@@ -1,8 +1,7 @@
 import React from 'react';
 import {Navigation} from '../Navigation';
-import {SharedElement as _SharedElement} from '../Navigation';
+import {SharedElement} from '../Navigation';
 
-const SharedElement = _SharedElement.SharedElement;
 
 interface PostProps {
     navigation: Navigation;

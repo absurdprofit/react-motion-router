@@ -3,7 +3,7 @@ import {CSSTransition} from 'react-transition-group';
 import { disable_scroll, enable_scroll } from '../common/utils';
 import {Navigation} from './common/utils';
 import "../css/Transition.css";
-import { SharedElement } from '.';
+import SharedElement from './SharedElement';
 import { AnimationConfig, RouterDataContext, RouterData } from './Router';
 
 interface ScreenProps {
@@ -34,30 +34,32 @@ export namespace Stack {
 
         componentDidMount() {
             //convert animation into {animation_type}-{animation_direction}
-            //e.g. slide-right
-            //if animation is fade set animation type only
-            
-            if (this.context.animation!.type === "slide") {
-                this.transition_string = `${this.context.animation!.type}-${this.context.animation!.direction || 'right'}`;
-            } else {
-                this.transition_string = `${this.context.animation!.type}`;
-            }
+                //e.g. slide-right
+                //if animation is fade set animation type only
+                
+                if (this.context.animation!.type === "slide") {
+                    this.transition_string = `${this.context.animation!.type}-${this.context.animation!.direction || 'right'}`;
+                } else {
+                    this.transition_string = `${this.context.animation!.type}`;
+                }
         }
 
         on_exiting() {
-            console.log(this.props.path, "on exiting");
+            // console.log(this.props.path, "on exiting");
             // GhostLayer.set_current_scene(this.shared_element_scene);
             this.context.ghost_layer.current_scene = this.shared_element_scene;
         }
 
         on_entering() {
-            console.log(this.props.path, "on entering");
+            // console.log(this.props.path, "on entering");
             // GhostLayer.set_next_scene(this.shared_element_scene);
             this.context.ghost_layer.next_scene = this.shared_element_scene;
         }
 
         render() {
             if (this.props.path) {
+                
+                
                 const _in:boolean = this.props.path === this.context.current_path;
                 return (
                     <CSSTransition

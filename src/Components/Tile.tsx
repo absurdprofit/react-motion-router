@@ -1,8 +1,6 @@
 import React from 'react';
 import {Hero} from '../assets/Heroes';
-import {SharedElement as _SharedElement} from '../Navigation';
-
-const SharedElement = _SharedElement.SharedElement;
+import {SharedElement} from '../Navigation';
 
 interface TileProps {
     hero: Hero;

@@ -1,5 +1,5 @@
 import React from 'react';
-import {SharedElement} from '../Navigation';
+import SharedElement from './SharedElement';
 import {get_css_text} from '../common/utils';
 
 interface GhostLayerProps {

@@ -1,8 +1,6 @@
 import React from 'react';
 import {Navigation} from '../Navigation';
-import {SharedElement as _SharedElement} from '../Navigation';
-
-const SharedElement = _SharedElement.SharedElement;
+import {SharedElement} from '../Navigation';
 
 interface DetailsProps {
     navigation: Navigation;

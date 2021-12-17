@@ -1,7 +1,7 @@
 import React, { createContext } from 'react';
 import {Navigation} from './common/utils';
 import {TransitionGroup} from 'react-transition-group';
-import GhostLayer from '../Components/GhostLayer';
+import GhostLayer from './GhostLayer';
 
 enum AnimationDirectionEnum {
     up,
@@ -88,8 +88,6 @@ export default class Router extends React.Component<RouterProps, RouterState> {
     private navigation = new Navigation();
     private config: Config;
     private _router_data: RouterData;
-    private ref: HTMLDivElement | null = null;
-    private ghost_layer: GhostLayer | null = null;
     static defaultProps = {
         config: {
             animation: {
@@ -122,13 +120,8 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         shared_elements: new Array<string>()
     }
 
-    componentDidMount() {
-        this._router_data.routes_data = this.state.routes_data;
-        this.setState({current_path: window.location.pathname});
-        this._router_data.current_path = window.location.pathname;
-        window.addEventListener('go-back', ()=>{
-            console.log('------Back Navigate------');
-            this.setState({back_navigating: true});
+    animation_direction_swap() {
+        if (this.config.animation.type === "slide") {
             const forward_direction = this.config.animation.direction;
             switch(this.config.animation.direction) {
                 case "right":
@@ -143,28 +136,50 @@ export default class Router extends React.Component<RouterProps, RouterState> {
                 case "down":
                     this.config.animation.direction = "up";
                     break;
+                
+                default:
+                    this.config.animation.direction = "left";
             }
+
+            this._router_data.animation = this.config.animation;
             setTimeout(() => {
                 this.config.animation.direction = forward_direction;
+                this._router_data.animation = this.config.animation;
             }, this.config.animation.duration);
+        }
+    }
+    componentDidMount() {
+        this._router_data.routes_data = this.state.routes_data;
+        this.setState({current_path: window.location.pathname});
+        this._router_data.current_path = window.location.pathname;
+        window.addEventListener('go-back', ()=>{
+            console.log('------Back Navigate------');
+            this.setState({back_navigating: true});
+            
+            this.animation_direction_swap();
         }, true);
 
         window.addEventListener('popstate', (e) => {
             e.preventDefault();
-            const animation_config = this.config.animation;
-            if (!this.state.back_navigating) {
-                if (this.config.animation.type !== 'fade') {
-                    this.config.animation = {
-                        type: 'none',
-                        duration: 0
-                    };
-                }
-            }
+            // const animation_config = this.config.animation;
+            // if (!this.state.back_navigating) {
+            //     if (this.config.animation.type !== 'fade') {
+            //         this.config.animation = {
+            //             type: 'none',
+            //             duration: 0
+            //         };
+            //     }
+            // }
             
+            if (window.location.pathname === this.navigation.history.previous) {
+                console.log("Back navigating")
+                this.setState({back_navigating: true});
+                this.animation_direction_swap();
+            }
             this._router_data.current_path = window.location.pathname;
-            this.setState({current_path: window.location.pathname, back_navigating: false}, () => {
+            this.setState({current_path: window.location.pathname}, () => {
                 setTimeout(() => {
-                    this.config.animation = animation_config;
+                    // this.config.animation = animation_config;
                 }, this.config.animation.duration);
             });
         }, true);
@@ -202,10 +217,9 @@ export default class Router extends React.Component<RouterProps, RouterState> {
     }
     render() {
         return (
-            <div className="react-motion-router" ref={c => this.ref = c}>
+            <div className="react-motion-router">
                 <RouterDataContext.Provider value={this._router_data}>
                     <GhostLayer instance={(instance: GhostLayer | null) => {
-                        this.ghost_layer = instance;
                         this._router_data.ghost_layer = instance;
                     }} transition_duration={this.props.config?.animation.duration} />
                     <TransitionGroup
