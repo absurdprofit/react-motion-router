@@ -161,27 +161,14 @@ export default class Router extends React.Component<RouterProps, RouterState> {
 
         window.addEventListener('popstate', (e) => {
             e.preventDefault();
-            // const animation_config = this.config.animation;
-            // if (!this.state.back_navigating) {
-            //     if (this.config.animation.type !== 'fade') {
-            //         this.config.animation = {
-            //             type: 'none',
-            //             duration: 0
-            //         };
-            //     }
-            // }
             
             if (window.location.pathname === this.navigation.history.previous) {
-                console.log("Back navigating")
+                console.log("Back navigating");
                 this.setState({back_navigating: true});
                 this.animation_direction_swap();
             }
             this._router_data.current_path = window.location.pathname;
-            this.setState({current_path: window.location.pathname}, () => {
-                setTimeout(() => {
-                    // this.config.animation = animation_config;
-                }, this.config.animation.duration);
-            });
+            this.setState({current_path: window.location.pathname});
         }, true);
         window.addEventListener('navigate', (e : Event) => {
             console.log('------Navigate------');
