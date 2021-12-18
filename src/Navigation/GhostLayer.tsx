@@ -65,6 +65,12 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         travel_distance.x = end_instance.scene.scroll_pos.x;
                         travel_distance.y = end_instance.scene.scroll_pos.y;
                     }
+
+                    /**
+                     * KNOWN ISSUES:
+                     * 1. if page 2 scroll position is falsely (0, 0) elements might fail to transition properly.
+                     *    has a lot to do with how scrolling works in this implementation.
+                     */
                     end_pos.x = Math.abs(end_pos.x - travel_distance.x);
                     end_pos.y = Math.abs(end_pos.y - travel_distance.y);
                     (end_node.firstChild as HTMLElement).style.transform = `translate(${end_pos.x}px, ${end_pos.y}px)`;

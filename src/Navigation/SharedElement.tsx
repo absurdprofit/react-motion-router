@@ -26,11 +26,6 @@ namespace SharedElement {
     export interface NodeMap {
         [key:string]: SharedElementNode;
     }
-    export interface RegisterEvent {
-        reject: (reason?: any) => void;
-        resolve: (value: boolean | PromiseLike<boolean>) => void;
-        elements_map: Map;
-    }
 
     export class Scene {
         private _nodes: NodeMap = {};
@@ -73,34 +68,6 @@ namespace SharedElement {
     }
 
     export const SceneContext = createContext<Scene | null>(null);
-
-    export function end_transition(elements_map: Map) {
-        return new Promise<boolean>((resolve, reject) => {
-            const end_transition_event = new CustomEvent<RegisterEvent>('end-shared-elements', {
-                detail: {
-                    elements_map: elements_map,
-                    resolve: resolve,
-                    reject: reject
-                }
-            });
-
-            window.dispatchEvent(end_transition_event);
-        });
-    }
-
-    export function start_transition(elements_map: Map) {
-        return new Promise<boolean>((resolve, reject) => {
-            const start_transition_event = new CustomEvent<RegisterEvent>('start-shared-elements', {
-                detail: {
-                    elements_map: elements_map,
-                    resolve: resolve,
-                    reject: reject
-                }
-            });
-
-            window.dispatchEvent(start_transition_event);
-        });
-    }
 
     function node_from_ref(
         id: string,
