@@ -1,6 +1,5 @@
 import React from 'react';
-import {Navigation} from '../Navigation';
-import {SharedElement} from '../Navigation';
+import {Navigation, SharedElement} from 'react-motion-router';
 
 interface PostProps {
     navigation: Navigation;

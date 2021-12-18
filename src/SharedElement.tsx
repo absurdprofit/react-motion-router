@@ -1,7 +1,6 @@
 import assert from 'assert';
 import React, {createContext} from 'react';
-import {get_css_text, clamp} from '../common/utils';
-import {Vec2} from './common/utils';
+import {get_css_text, clamp, Vec2} from './common/utils';
 
 namespace SharedElement {
     interface SharedElementNode {

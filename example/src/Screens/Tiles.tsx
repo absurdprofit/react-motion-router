@@ -1,6 +1,6 @@
 import React from 'react';
 import { Heroes, Hero } from '../assets/Heroes';
-import {Navigation} from '../Navigation';
+import {Navigation} from 'react-motion-router';
 import Tile from '../Components/Tile';
 
 interface TilesProps {

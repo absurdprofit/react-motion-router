@@ -1,5 +1,5 @@
 import React from 'react';
-import '../css/Anchor.css';
+import './css/Anchor.css';
 
 interface AnchorProps {
     children: any;

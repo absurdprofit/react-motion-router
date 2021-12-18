@@ -1,5 +1,5 @@
 import React from 'react';
-import {Router, Stack} from './Navigation';
+import {Router, Stack} from 'react-motion-router';
 import Home from './Screens/Home';
 import Details from './Screens/Details';
 import Post from './Screens/Post';

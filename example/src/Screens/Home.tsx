@@ -1,10 +1,8 @@
 import React from 'react';
-import Anchor from '../Navigation/Anchor';
-import {Navigation} from '../Navigation';
+import {SharedElement, Navigation, Anchor} from 'react-motion-router';
 import ProfilePicture from '../assets/profile-picture.jpg';
 import PostPicture from '../assets/post-picture.png';
 import Tiles from './Tiles';
-import {SharedElement} from '../Navigation';
 
 interface HomeProps {
     navigation: Navigation;

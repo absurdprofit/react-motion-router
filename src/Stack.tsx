@@ -1,6 +1,6 @@
 import React from 'react';
 import {CSSTransition} from 'react-transition-group';
-import "../css/Transition.css";
+import "./css/Transition.css";
 import SharedElement from './SharedElement';
 import { RouterDataContext } from './Router';
 import {Vec2} from './common/utils';

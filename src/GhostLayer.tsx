@@ -1,6 +1,6 @@
 import React from 'react';
 import SharedElement from './SharedElement';
-import {get_css_text} from '../common/utils';
+import {get_css_text} from './common/utils';
 import { AnimationConfig } from './Router';
 import {Vec2} from './common/utils';
 
