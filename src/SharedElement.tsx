@@ -34,7 +34,7 @@ namespace SharedElement {
             this._name = name;
         }
         add_node(node: SharedElementNode) {
-            assert(!Object.keys(this.nodes).includes(node.id), "Duplicate Shared Element ID");
+            assert(!Object.keys(this.nodes).includes(node.id), `Duplicate Shared Element ID: ${node.id} in ${this._name}`);
             this._nodes[node.id] = node;
         }
 
@@ -78,7 +78,7 @@ namespace SharedElement {
         const client_rect = instance.client_rect;
         (node.firstChild as HTMLElement).style.cssText = get_css_text(computed_style);
         (node.firstChild as HTMLElement).style.transform = `translate(${clamp(client_rect.x, 0)}px, ${clamp(client_rect.y, 0)}px)`;
-        (node.firstChild as HTMLElement).style.willChange = 'transform';
+        (node as HTMLElement).style.willChange = 'contents';
         (node as HTMLElement).style.position = 'absolute';
         (node as HTMLElement).setAttribute('x', `${clamp(client_rect.x, 0)}px`);
         (node as HTMLElement).setAttribute('y', `${clamp(client_rect.y, 0)}px`);

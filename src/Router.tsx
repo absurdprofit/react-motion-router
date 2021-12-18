@@ -33,13 +33,15 @@ interface RouterProps {
     config: Config;
     children: React.ReactChild[];
 }
+
+interface RoutesData {[key:string]: any}
+
 interface RouterState {
     current_path: string;
     back_navigating: boolean;
-    routes_data: {[key:string]: any};
+    routes_data: RoutesData;
 }
 
-interface RoutesData {[key:string]: any}
 export class RouterData {
     private _current_path: string = '';
     private _routes_data: RoutesData = {};
