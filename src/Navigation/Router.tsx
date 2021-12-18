@@ -27,6 +27,7 @@ export interface AnimationConfig {
 
 interface Config {
     animation: AnimationConfig;
+    page_load_transition?: boolean;
 }
 interface RouterProps {
     config: Config;
@@ -36,20 +37,18 @@ interface RouterState {
     current_path: string;
     back_navigating: boolean;
     routes_data: {[key:string]: any};
-    shared_elements: string[];
 }
 
 interface RoutesData {[key:string]: any}
 export class RouterData {
     private _current_path: string = '';
     private _routes_data: RoutesData = {};
-    private _navigation: Navigation;
-    private _animation: AnimationConfig;
+    private _navigation: Navigation = new Navigation();
+    private _animation: AnimationConfig = {
+        type: "none",
+        duration: 0,
+    };
     private _ghost_layer: GhostLayer| null = null;
-    constructor(_navigation: Navigation, _animation: AnimationConfig) {
-        this._animation = _animation;
-        this._navigation = _navigation;
-    }
 
     set current_path(_current_path: string) {
         this._current_path = _current_path;
@@ -83,11 +82,12 @@ export class RouterData {
     }
 }
 
-export const RouterDataContext = createContext<RouterData | null>(null);
+export const RouterDataContext = createContext<RouterData>(new RouterData());
 export default class Router extends React.Component<RouterProps, RouterState> {
     private navigation = new Navigation();
     private config: Config;
     private _router_data: RouterData;
+    private _page_load: boolean = true;
     static defaultProps = {
         config: {
             animation: {
@@ -110,14 +110,14 @@ export default class Router extends React.Component<RouterProps, RouterState> {
             }
         }
 
-        this._router_data = new RouterData(this.navigation, this.config.animation);
+        this._router_data = new RouterData();
+        this._router_data.navigation = this.navigation;
         this._router_data.animation = this.config.animation;
     }
     state: RouterState = {
         current_path: "",
         back_navigating: false,
-        routes_data: {},
-        shared_elements: new Array<string>()
+        routes_data: {}
     }
 
     animation_direction_swap() {
@@ -153,17 +153,17 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         this.setState({current_path: window.location.pathname});
         this._router_data.current_path = window.location.pathname;
         window.addEventListener('go-back', ()=>{
-            console.log('------Back Navigate------');
             this.setState({back_navigating: true});
+            this._page_load = false;
             
             this.animation_direction_swap();
         }, true);
 
         window.addEventListener('popstate', (e) => {
             e.preventDefault();
+            this._page_load = false;
             
             if (window.location.pathname === this.navigation.history.previous) {
-                console.log("Back navigating");
                 this.setState({back_navigating: true});
                 this.animation_direction_swap();
             }
@@ -171,8 +171,9 @@ export default class Router extends React.Component<RouterProps, RouterState> {
             this.setState({current_path: window.location.pathname});
         }, true);
         window.addEventListener('navigate', (e : Event) => {
-            console.log('------Navigate------');
             e.preventDefault();
+            this._page_load = false;
+            
             const current_path = (e as CustomEvent).detail.route;
             this._router_data.current_path = current_path;
             this.setState({
@@ -187,7 +188,6 @@ export default class Router extends React.Component<RouterProps, RouterState> {
                         params: (e as CustomEvent).detail.route_params
                     };
 
-                    
 
                     this.setState({routes_data: routes_data}, () => {
                         this._router_data.routes_data = routes_data;
@@ -206,11 +206,14 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         return (
             <div className="react-motion-router">
                 <RouterDataContext.Provider value={this._router_data}>
-                    <GhostLayer instance={(instance: GhostLayer | null) => {
-                        this._router_data.ghost_layer = instance;
-                    }} transition_duration={this.props.config?.animation.duration} />
+                    <GhostLayer
+                        animation={this.config.animation}
+                        instance={(instance: GhostLayer | null) => {
+                            this._router_data.ghost_layer = instance;
+                        }}
+                    />
                     <TransitionGroup
-                        style={{transition: `all ${this.props.config?.animation.duration || 200}ms`}}
+                        style={!this._page_load || this.props.config.page_load_transition ? {transition: `all ${this.props.config?.animation.duration || 200}ms`} : undefined}
                     >
                         {this.props.children}
                     </TransitionGroup>

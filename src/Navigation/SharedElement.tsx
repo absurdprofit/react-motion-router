@@ -1,6 +1,7 @@
 import assert from 'assert';
 import React, {createContext} from 'react';
 import {get_css_text, clamp} from '../common/utils';
+import {Vec2} from './common/utils';
 
 namespace SharedElement {
     interface SharedElementNode {
@@ -9,9 +10,6 @@ namespace SharedElement {
         instance: SharedElement;
     }
     
-    interface SharedElementState {
-    
-    }
     interface SharedElementProps {
         id: string | number;
         children: React.ReactChild;
@@ -37,22 +35,17 @@ namespace SharedElement {
     export class Scene {
         private _nodes: NodeMap = {};
         private _name: string = '';
+        private _scroll_pos: Vec2 | null = null;
         constructor(name: string) {
             this._name = name;
         }
         add_node(node: SharedElementNode) {
             assert(!Object.keys(this.nodes).includes(node.id), "Duplicate Shared Element ID");
             this._nodes[node.id] = node;
-            // if (node.id === "saitama") {
-            //     console.log(this.name, "added:", node.id);
-            // }
         }
 
         remove_node(node: SharedElementNode) {
             delete this._nodes[node.id];
-            // if (node.id === "saitama") {
-            //     console.log(this.name, "removed:", node.id, "; Scene empty?:", this.is_empty());
-            // }
         }
 
         get nodes(): NodeMap {
@@ -62,6 +55,18 @@ namespace SharedElement {
         get name(): string {
             return this._name;
         }
+        
+        get scroll_pos() {
+            return this._scroll_pos || {
+                x: 0,
+                y: 0
+            };
+        }
+
+        set scroll_pos(_scroll_pos: Vec2) {
+            this._scroll_pos = _scroll_pos;
+        }
+
         is_empty() {
             return !Object.keys(this._nodes).length ? true : false;
         }
@@ -109,6 +114,9 @@ namespace SharedElement {
         (node.firstChild as HTMLElement).style.transform = `translate(${clamp(client_rect.x, 0)}px, ${clamp(client_rect.y, 0)}px)`;
         (node.firstChild as HTMLElement).style.willChange = 'transform';
         (node as HTMLElement).style.position = 'absolute';
+        (node as HTMLElement).setAttribute('x', `${clamp(client_rect.x, 0)}px`);
+        (node as HTMLElement).setAttribute('y', `${clamp(client_rect.y, 0)}px`);
+
         /**
          * TODO:
          * 1. If animation type is slide change translate to either translateX or translateY depending on the slide direction
@@ -122,13 +130,17 @@ namespace SharedElement {
             instance: instance
         };
     }
-    export class SharedElement extends React.Component<SharedElementProps, SharedElementState> {
+    export class SharedElement extends React.Component<SharedElementProps> {
         private _id : string = this.props.id.toString();
         private ref: HTMLDivElement | null = null;
-        private scene: Scene | null = null;
+        private _scene: Scene | null = null;
         private _hidden: boolean = false;
         private _is_mounted: boolean = false;
-    
+        
+        get scene() {
+            return this._scene;
+        }
+        
         get client_rect() {
             if (this.ref && this.ref.firstChild) {
                 return (this.ref.firstChild as Element).getBoundingClientRect();
@@ -200,7 +212,7 @@ namespace SharedElement {
             return (
                 <SceneContext.Consumer>
                     {(scene) => {
-                        this.scene = scene;
+                        this._scene = scene;
                         return (
                             <div ref={this.set_ref.bind(this)} id={`shared-element-${this._id}`} className={"shared-element"} style={{opacity: this._hidden ? '0': '1'}}>
                                 {this.props.children}

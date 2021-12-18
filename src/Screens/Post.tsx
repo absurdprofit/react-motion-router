@@ -2,7 +2,6 @@ import React from 'react';
 import {Navigation} from '../Navigation';
 import {SharedElement} from '../Navigation';
 
-
 interface PostProps {
     navigation: Navigation;
     route: {

@@ -1,10 +1,12 @@
 import React from 'react';
 import SharedElement from './SharedElement';
 import {get_css_text} from '../common/utils';
+import { AnimationConfig } from './Router';
+import {Vec2} from './common/utils';
 
 interface GhostLayerProps {
-    transition_duration: number;
     instance?: (instance: GhostLayer | null) => any;
+    animation: AnimationConfig;
 }
 interface GhostLayerState {
     transitioning: boolean;
@@ -26,7 +28,6 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
         this._next_scene = scene;
 
         if (this._current_scene) {
-            console.log("---Shared element transition here---");
             if (!this._current_scene.is_empty() && !this._next_scene.is_empty()) {
                 this.shared_element_transition(this._current_scene, this._next_scene);
                 return;
@@ -47,21 +48,36 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     end_instance.hidden = true;
 
                     const start_node = current_scene.nodes[id].node;
-                    (start_node.firstChild as HTMLElement).style.transition = `all ${this.props.transition_duration}ms ease`;
-                    (start_node as HTMLElement).style.transition = `all ${this.props.transition_duration}ms ease`;
+                    (start_node.firstChild as HTMLElement).style.transition = `all ${this.props.animation.duration}ms ease`;
+                    (start_node as HTMLElement).style.transition = `all ${this.props.animation.duration}ms ease`;
                     this.ref?.appendChild(start_node);
-                    // window.scrollTo(0, 0);
 
                     const end_node = next_scene.nodes[id].node;
-                    (end_node.firstChild as HTMLElement).style.transition = `all ${this.props.transition_duration}ms ease`;
+                    const end_pos: Vec2 = {
+                        x: parseFloat((end_node as HTMLElement).getAttribute('x') || '0'),
+                        y: parseFloat((end_node as HTMLElement).getAttribute('y') || '0')
+                    }
+                    const travel_distance: Vec2 = {
+                        x: 0,
+                        y: 0
+                    }
+                    if (end_instance.scene) {
+                        travel_distance.x = end_instance.scene.scroll_pos.x;
+                        travel_distance.y = end_instance.scene.scroll_pos.y;
+                    }
+                    end_pos.x = Math.abs(end_pos.x - travel_distance.x);
+                    end_pos.y = Math.abs(end_pos.y - travel_distance.y);
+                    (end_node.firstChild as HTMLElement).style.transform = `translate(${end_pos.x}px, ${end_pos.y}px)`;
+                    (end_node.firstChild as HTMLElement).style.transition = `all ${this.props.animation.duration}ms ease`;
+                    
                     setTimeout(() => {
                         (start_node.firstChild as HTMLElement).style.cssText = get_css_text((end_node.firstChild as HTMLElement).style);
-                    }, this.props.transition_duration/5);
+                    }, this.props.animation.duration/5);
                     setTimeout(() => {
                         start_instance.hidden = false;
                         end_instance.hidden = false;
                         this.ref?.removeChild(start_node);
-                    }, this.props.transition_duration * 1.1);
+                    }, this.props.animation.duration * 1.1);
                 }
             }
         });
@@ -70,7 +86,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
             this.setState({transitioning: false});
             this._next_scene = null;
             this._current_scene = null;
-        }, this.props.transition_duration * 1.5);
+        }, this.props.animation.duration * 1.5);
     }
     
     componentDidMount() {

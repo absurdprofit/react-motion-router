@@ -10,19 +10,16 @@ function App() {
   return (
     <div className="App">
       <Router config={{
+        page_load_transition: true,
         animation: {
           type: "fade",
-          duration: 1000,
+          duration: 500,
         }
       }}>
-        
         <Stack.Screen
           path={"/details"}
           component={Details}
           default_params={{data: "Default"}}
-          shared_elements={(props) => {
-            return [props.route.params.profile?.id];
-          }}
         />
         <Stack.Screen
           path={"/"}
@@ -32,9 +29,6 @@ function App() {
           path={"/post"}
           component={Post}
           default_params={{data: "Default"}}
-          shared_elements={(props) => {
-            return [props.route.params.post?.id];
-          }}
         />
         <Stack.Screen
           path={"/tiles"}

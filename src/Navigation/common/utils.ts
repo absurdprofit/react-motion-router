@@ -52,3 +52,8 @@ export class Navigation {
         return this._history;
     }
 }
+
+export interface Vec2 {
+    x: number;
+    y: number;
+}

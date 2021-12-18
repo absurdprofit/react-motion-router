@@ -1,3 +1,9 @@
+/* disable swipe navigation */
+html, body {
+  overscroll-behavior: none;
+  /* overflow: hidden; */
+}
+
 /* slide-right */
 .slide-right-enter {
   transform: translateX(100vw);
@@ -80,6 +86,9 @@
 .screen {
   position: absolute;
   will-change: transition;
+}
+.screen-content {
+  overflow: scroll;
 }
 .shared-element {
   width: 100%;
