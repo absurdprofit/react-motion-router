@@ -46,16 +46,20 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     const start_instance = current_scene.nodes[id].instance;
                     start_instance.hidden = true;
                     end_instance.hidden = true;
-
                     const start_node = current_scene.nodes[id].node;
-                    (start_node.firstChild as HTMLElement).style.transition = `all ${this.props.animation.duration}ms ease`;
-                    (start_node as HTMLElement).style.transition = `all ${this.props.animation.duration}ms ease`;
+                    const end_node = next_scene.nodes[id].node;
+
+                    const x_duration: number = end_instance.props.config?.x?.duration || end_instance.props.config?.duration || this.props.animation.duration;
+                    const y_duration: number = end_instance.props.config?.y?.duration || end_instance.props.config?.duration || this.props.animation.duration;
+                    
+
+                    (start_node.firstChild as HTMLElement).style.transition = `all ${y_duration}ms ${end_instance.props.config?.easing_function ||'ease'}`;
+                    start_node.style.transition = `all ${x_duration}ms ${end_instance.props.config?.easing_function ||'ease'}`;
                     this.ref?.appendChild(start_node);
 
-                    const end_node = next_scene.nodes[id].node;
                     const end_pos: Vec2 = {
-                        x: parseFloat((end_node as HTMLElement).getAttribute('x') || '0'),
-                        y: parseFloat((end_node as HTMLElement).getAttribute('y') || '0')
+                        x: parseFloat(end_node.getAttribute('x') || '0'),
+                        y: parseFloat(end_node.getAttribute('y') || '0')
                     }
                     const travel_distance: Vec2 = {
                         x: 0,
@@ -73,17 +77,24 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                      */
                     end_pos.x = Math.abs(end_pos.x - travel_distance.x);
                     end_pos.y = Math.abs(end_pos.y - travel_distance.y);
-                    (end_node.firstChild as HTMLElement).style.transform = `translate(${end_pos.x}px, ${end_pos.y}px)`;
-                    (end_node.firstChild as HTMLElement).style.transition = `all ${this.props.animation.duration}ms ease`;
-                    
-                    setTimeout(() => {
+
+
+                    (end_node.firstChild as HTMLElement).style.transform = `translateY(${end_pos.y}px)`;
+                    end_node.style.transform = `translateX(${end_pos.x}px)`;
+                    (end_node.firstChild as HTMLElement).style.transition = `all ${y_duration}ms ${end_instance.props.config?.easing_function ||'ease'}`;
+                    end_node.style.transition = `all ${x_duration}ms ${end_instance.props.config?.easing_function ||'ease'}`;
+
+
+                    window.requestAnimationFrame(() => {
+                        start_node.style.transform = end_node.style.transform;
                         (start_node.firstChild as HTMLElement).style.cssText = get_css_text((end_node.firstChild as HTMLElement).style);
-                    }, this.props.animation.duration/5);
+                    });
+
                     setTimeout(() => {
                         start_instance.hidden = false;
                         end_instance.hidden = false;
                         this.ref?.removeChild(start_node);
-                    }, this.props.animation.duration * 1.1);
+                    }, this.props.animation.duration);
                 }
             }
         });
@@ -92,7 +103,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
             this.setState({transitioning: false});
             this._next_scene = null;
             this._current_scene = null;
-        }, this.props.animation.duration * 1.5);
+        }, this.props.animation.duration * 1.1);
     }
     
     componentDidMount() {

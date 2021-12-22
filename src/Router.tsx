@@ -28,6 +28,7 @@ export interface AnimationConfig {
 interface Config {
     animation: AnimationConfig;
     page_load_transition?: boolean;
+    default_route?: string;
 }
 interface RouterProps {
     config: Config;
@@ -151,6 +152,10 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         }
     }
     componentDidMount() {
+        if (this.props.config.default_route) {
+            this.navigation.history.default_route = this.props.config.default_route;
+        }
+
         this._router_data.routes_data = this.state.routes_data;
         this.setState({current_path: window.location.pathname});
         this._router_data.current_path = window.location.pathname;
@@ -164,7 +169,6 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         window.addEventListener('popstate', (e) => {
             e.preventDefault();
             this._page_load = false;
-            
             if (window.location.pathname === this.navigation.history.previous) {
                 this.setState({back_navigating: true});
                 this.animation_direction_swap();

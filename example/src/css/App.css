@@ -43,6 +43,7 @@
     max-width: 1000px;
     height: auto;
     border-radius: 0;
+    object-fit: cover;
 }
 
 
@@ -105,11 +106,27 @@
 }
 .post .picture img {
     width: 100%;
+    object-fit: cover;
 }
 .post .text {
     display: flex;
     flex-direction: column;
     gap: 15px;
+}
+
+.post .text p {
+    animation: slide-up 400ms ease-out;
+}
+
+@keyframes slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0px);
+    }
 }
 
 .tiles {

@@ -10,6 +10,7 @@ function App() {
   return (
     <div className="App">
       <Router config={{
+        default_route: '/',
         page_load_transition: true,
         animation: {
           type: "fade",

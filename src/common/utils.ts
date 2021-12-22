@@ -2,14 +2,26 @@ export class History {
     private _stack: string[] = [];
     private _next: string | null = null;
     private _previous: string | null = null;
+    private _default_route: string | null = null;
     constructor() {
         this._stack.push(window.location.pathname);
+    }
+
+    set default_route(_default_route: string | null) {
+        this._default_route = _default_route;
+    }
+
+    get default_route() {
+        return this._default_route;
     }
     get next() {
         return this._next;
     }
     get previous() {
         return this._previous;
+    }
+    get is_empty() {
+        return this._stack.length ? true : false;
     }
     push(route: string) {
         this._previous = window.location.pathname;
@@ -21,7 +33,9 @@ export class History {
     back() {
         this._next = this._previous;
         this._previous = this._stack.pop() || null;
+
         window.history.back();
+
         return this._previous;
     }
 }
@@ -41,11 +55,15 @@ export class Navigation {
     }
 
     go_back() {
-        this._history.back();
+        if (this._history.default_route && this._history.is_empty) {
+            this.navigate(this._history.default_route);
+        } else {
+            this._history.back();
 
-        const event = new CustomEvent('go-back');
+            const event = new CustomEvent('go-back');
 
-        window.dispatchEvent(event);  
+            window.dispatchEvent(event);
+        }  
     }
 
     get history() {

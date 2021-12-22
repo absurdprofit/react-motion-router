@@ -5,13 +5,76 @@ import {get_css_text, clamp, Vec2} from './common/utils';
 namespace SharedElement {
     interface SharedElementNode {
         id: string;
-        node: Node;
+        node: HTMLElement;
         instance: SharedElement;
     }
+
+    //https://developer.mozilla.org/en-US/docs/Web/CSS/transform-origin#formal_syntax
+    //https://stackoverflow.com/questions/51445767/how-to-define-a-regex-matched-string-type-in-typescript
+    enum TransformOriginKeywordEnum {
+        top,
+        bottom,
+        left,
+        right,
+    };
+
+    enum TransformOriginLengthUnitEnum {
+        cap, ch, em, ex, ic, lh, rem, rlh, //relative length
+        vh, vw, vi, vb, vmin, vmax,       //viewport percentage length
+        px, cm, mm, Q, in, pc, pt,       //absolute length
+        '%'
+    }
+
+    enum TransformOriginGlobalEnum {
+        inital,
+        inherit,
+        revert,
+        unset
+    }
+
+    enum EasingFunctionKeywordEnum {
+        "ease",
+        "ease-in",
+        "ease-in-out",
+        "ease-out"
+    }
+
+    type EasingFunctionKeyword = keyof typeof EasingFunctionKeywordEnum;
+
+    type EasingFunction = EasingFunctionKeyword | `cubic-bezier(${number}, ${number}, ${number}, ${number})`;
+
+    type TransformOriginGlobal = keyof typeof TransformOriginGlobalEnum;
+
+    type TransformOriginLengthUnit = keyof typeof TransformOriginLengthUnitEnum;
+    //e.g. 20px, 20%, 20rem
+    type TransformOriginLength = `${number}${TransformOriginLengthUnit}` | 0;
+
+    type TransformOriginKeyword = keyof typeof TransformOriginKeywordEnum;
+    type OneValueTransformOrigin = TransformOriginKeyword | TransformOriginLength;
+    type TwoValueTransformOrigin = `${OneValueTransformOrigin} ${OneValueTransformOrigin}`;
+    type ThreeValueTransformOrigin = `${OneValueTransformOrigin} ${OneValueTransformOrigin} ${TransformOriginLength}`;
+    type TransformOrigin = TransformOriginGlobal | OneValueTransformOrigin | TwoValueTransformOrigin | ThreeValueTransformOrigin;
+    
+    
+    interface SharedElementConfig {
+        transform_origin?: TransformOrigin;
+        easing_function?: EasingFunction,
+        duration?: number,
+        x?: {
+            duration?: number;
+            easing_function?: EasingFunction
+        }
+        y?: {
+            duration?: number;
+            easing_function?: EasingFunction
+        }
+    }
+
     
     interface SharedElementProps {
         id: string | number;
         children: React.ReactChild;
+        config?: SharedElementConfig;
     }
     
     export interface Map {
@@ -73,16 +136,27 @@ namespace SharedElement {
         ref: Element,
         instance: SharedElement.SharedElement
     ): SharedElementNode {
-        const node = ref.cloneNode(true);
+        const node: HTMLElement = ref.cloneNode(true) as HTMLElement;
         const computed_style = instance.computed_style;
         const client_rect = instance.client_rect;
         (node.firstChild as HTMLElement).style.cssText = get_css_text(computed_style);
-        (node.firstChild as HTMLElement).style.transform = `translate(${clamp(client_rect.x, 0)}px, ${clamp(client_rect.y, 0)}px)`;
-        (node as HTMLElement).style.willChange = 'contents';
-        (node as HTMLElement).style.position = 'absolute';
-        (node as HTMLElement).setAttribute('x', `${clamp(client_rect.x, 0)}px`);
-        (node as HTMLElement).setAttribute('y', `${clamp(client_rect.y, 0)}px`);
 
+        if (instance.props.config && instance.props.config.transform_origin) {
+            (node.firstChild as HTMLElement).style.transformOrigin = instance.props.config.transform_origin;
+        }
+        /**
+         * Translate X on outer element and translate Y on inner element
+         * allows for layered animations
+         */
+        (node.firstChild as HTMLElement).style.transform = `translateY(${clamp(client_rect.y, 0)}px)`;
+        node.style.transform = `translateX(${clamp(client_rect.x, 0)}px)`;
+        node.style.willChange = 'contents, transform';
+        node.style.position = 'absolute';
+        node.style.top = '0';
+        node.style.left = '0';
+        node.setAttribute('x', `${clamp(client_rect.x, 0)}px`);
+        node.setAttribute('y', `${clamp(client_rect.y, 0)}px`);
+ 
         /**
          * TODO:
          * 1. If animation type is slide change translate to either translateX or translateY depending on the slide direction

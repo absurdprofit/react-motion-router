@@ -27,11 +27,23 @@ export default function Home(props: HomeProps) {
                 profile: profile
             })} href="/details">
                 <div className="profile-card">
-                    <SharedElement id={profile.id}>
+                    <SharedElement config={{
+                        transform_origin: 'top top',
+                        y: {
+                            duration: 300,
+                            easing_function: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                        },
+                        x: {
+                            duration: 200,
+                            easing_function: 'ease-out'
+                        }
+                    }} id={profile.id}>
                         <img src={profile.photo} alt="profile-home" />
                     </SharedElement>
                     <div className="profile-description">
-                        <h3>{profile.name}</h3>
+                        <SharedElement id={`title-${profile.id}`}>
+                            <h3>{profile.name}</h3>
+                        </SharedElement>
                         <p>{profile.description}</p>
                     </div>
                 </div>
@@ -39,7 +51,9 @@ export default function Home(props: HomeProps) {
             <Anchor href="/post" onClick={() => props.navigation.navigate('/post', {post: post})}>
                 <div className="post-card">
                         <div className="post-title">
-                            <h3>{post.title}</h3>
+                            <SharedElement id={`title-${post.id}`}>
+                                <h3>{post.title}</h3>
+                            </SharedElement>
                         </div>
                         <SharedElement id={post.id}>
                             <img src={post.picture} alt="post" />

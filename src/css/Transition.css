@@ -1,7 +1,7 @@
 /* disable swipe navigation */
 html, body {
   overscroll-behavior: none;
-  /* overflow: hidden; */
+  overflow: hidden;
 }
 
 /* slide-right */

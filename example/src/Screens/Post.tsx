@@ -23,7 +23,9 @@ export default class Post extends React.Component<PostProps, {}> {
                     </div>
                     <div className="text">
                         <div className="title">
-                            <h1>{this.props.route.params.post.title}</h1>
+                            <SharedElement id={`title-${this.props.route.params.post.id}`}>
+                                <h1>{this.props.route.params.post.title}</h1>
+                            </SharedElement>
                         </div>
                         <div className="content">
                             <p>{this.props.route.params.post.description}</p>
