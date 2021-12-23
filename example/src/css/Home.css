@@ -4,8 +4,9 @@
 }
 .home .list {
     background-color: white;
+    display: flex;
+    flex-direction: column;
 }
 .home .list button {
     padding: 0;
-    width: 100%;
 }

@@ -1,21 +1,21 @@
 .navbar {
-    height: 64px;
-    background-color: rgba(254, 226, 85, 0.63);
-    position: sticky;
-    top: 0px;
-    width: 100vw;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-shadow: 0px 1px 5px black;
-    backdrop-filter: saturate(180%) blur(20px);
-    z-index: 1000;
+  height: 64px;
+  background-color: rgba(254, 226, 85, 0.63);
+  position: sticky;
+  top: 0px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0px 1px 5px black;
+  backdrop-filter: saturate(180%) blur(20px);
+  z-index: 1000;
 }
 
 .navbar .back {
-    position: absolute;
-    left: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  position: absolute;
+  left: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
