@@ -1,0 +1,33 @@
+{
+  "files": {
+    "main.css": "https://nxtexe.github.io/react-motion-router/static/css/main.018b1c0d.chunk.css",
+    "main.js": "https://nxtexe.github.io/react-motion-router/static/js/main.082efe7b.chunk.js",
+    "main.js.map": "https://nxtexe.github.io/react-motion-router/static/js/main.082efe7b.chunk.js.map",
+    "runtime-main.js": "https://nxtexe.github.io/react-motion-router/static/js/runtime-main.278b795e.js",
+    "runtime-main.js.map": "https://nxtexe.github.io/react-motion-router/static/js/runtime-main.278b795e.js.map",
+    "static/js/2.55f27072.chunk.js": "https://nxtexe.github.io/react-motion-router/static/js/2.55f27072.chunk.js",
+    "static/js/2.55f27072.chunk.js.map": "https://nxtexe.github.io/react-motion-router/static/js/2.55f27072.chunk.js.map",
+    "static/js/3.74d8601f.chunk.js": "https://nxtexe.github.io/react-motion-router/static/js/3.74d8601f.chunk.js",
+    "static/js/3.74d8601f.chunk.js.map": "https://nxtexe.github.io/react-motion-router/static/js/3.74d8601f.chunk.js.map",
+    "index.html": "/index.html",
+    "static/css/main.018b1c0d.chunk.css.map": "https://nxtexe.github.io/react-motion-router/static/css/main.018b1c0d.chunk.css.map",
+    "static/js/2.55f27072.chunk.js.LICENSE.txt": "https://nxtexe.github.io/react-motion-router/static/js/2.55f27072.chunk.js.LICENSE.txt",
+    "static/media/atomicsamurai.bb2b321f.jpg": "https://nxtexe.github.io/react-motion-router/static/media/atomicsamurai.bb2b321f.jpg",
+    "static/media/garou.8651afab.png": "https://nxtexe.github.io/react-motion-router/static/media/garou.8651afab.png",
+    "static/media/genos.0bf5a1e3.jpg": "https://nxtexe.github.io/react-motion-router/static/media/genos.0bf5a1e3.jpg",
+    "static/media/king.266c7bf0.jpg": "https://nxtexe.github.io/react-motion-router/static/media/king.266c7bf0.jpg",
+    "static/media/metalbat.1200ad5c.jpg": "https://nxtexe.github.io/react-motion-router/static/media/metalbat.1200ad5c.jpg",
+    "static/media/metalknight.fb92b92d.jpg": "https://nxtexe.github.io/react-motion-router/static/media/metalknight.fb92b92d.jpg",
+    "static/media/onepunch.f08c5cc7.jpg": "https://nxtexe.github.io/react-motion-router/static/media/onepunch.f08c5cc7.jpg",
+    "static/media/puripuri.4633396f.png": "https://nxtexe.github.io/react-motion-router/static/media/puripuri.4633396f.png",
+    "static/media/silverfang.0781a4c0.png": "https://nxtexe.github.io/react-motion-router/static/media/silverfang.0781a4c0.png",
+    "static/media/tatsumaki.8f77f136.png": "https://nxtexe.github.io/react-motion-router/static/media/tatsumaki.8f77f136.png",
+    "static/media/watchdog.16495504.png": "https://nxtexe.github.io/react-motion-router/static/media/watchdog.16495504.png"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.278b795e.js",
+    "static/js/2.55f27072.chunk.js",
+    "static/css/main.018b1c0d.chunk.css",
+    "static/js/main.082efe7b.chunk.js"
+  ]
+}
