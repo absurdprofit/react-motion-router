@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { Heroes, Hero } from '../assets/Heroes';
+import { Heroes } from '../assets/Heroes';
 import ClearIcon from '@mui/icons-material/Clear';
 import { Navigation, SharedElement } from 'react-motion-router';
 import IconButton from '@mui/material/IconButton';

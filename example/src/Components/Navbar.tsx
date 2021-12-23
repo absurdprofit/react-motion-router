@@ -1,7 +1,6 @@
 import React from 'react';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import IconButton from '@mui/material/IconButton';
-import {Navigation} from 'react-motion-router';
 import '../css/Navbar.css';
 
 interface NavbarProps {

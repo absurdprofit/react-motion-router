@@ -38,9 +38,7 @@ export default function Details(props: DetailsProps) {
                         <SharedElement id={`title-${props.route.params.profile.id}`}>
                             <h1>{props.route.params.profile.name}</h1>
                         </SharedElement>
-                        <SharedElement id={`desc-${props.route.params.profile.id}`}>
-                            <p>{props.route.params.profile.description}</p>
-                        </SharedElement>
+                        <p>{props.route.params.profile.description}</p>
                     </div>
                 </div>
             </div>

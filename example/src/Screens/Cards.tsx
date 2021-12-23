@@ -20,7 +20,7 @@ export default function Cards(props: CardsProps) {
             {
                 Heroes.map((hero: Hero, index) => {
                     return (
-                        <ButtonBase onClick={() => props.navigation.navigate('/details', {
+                        <ButtonBase key={index} onClick={() => props.navigation.navigate('/details', {
                             profile: hero
                         })}>
                             <Card sx={{ width: 345 }}>
@@ -36,13 +36,7 @@ export default function Cards(props: CardsProps) {
                                     <SharedElement id={`title-${hero.id}`}>
                                         <Typography gutterBottom variant="h5" component="h5">{hero.name}</Typography>
                                     </SharedElement>
-                                    {
-                                        hero.description ?
-                                        <SharedElement id={`desc-${hero.id}`}>
-                                            <p>{hero.description}</p>
-                                        </SharedElement>
-                                        : undefined
-                                    }
+                                    <p>{hero.description}</p>
                                 </CardContent>
                             </Card>
                         </ButtonBase>
