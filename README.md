@@ -1,3 +1,132 @@
 # React Motion Router
+Declarative routing library for React ⚛ with page transitions and animations. Under Development 🧪. Based on React Router and React Navigation.
 
 #### [Demo](https://router.nxtetechnologies.com)
+
+## Installation
+```
+npm install react-motion-router
+```
+
+## Usage
+#### Basic
+Use the ```Router``` component to place your screens. Pass a component to the component prop of ```Stack.Screen``` component to be rendered when navigated to.
+```
+...
+import {Router, Stack} from 'react-motion-router';
+
+function Home() {
+    return(
+        <div className="Home">
+            <h1>Hello World</h1>
+        </div>
+    );
+}
+function App() {
+    return(
+        <div className="app">
+            <Stack.Screen path="/" component={Home} />
+        </div>
+    ):
+}
+
+...
+```
+
+#### Navigation
+Navigation is done through the navigation object exposed on your screen's props.
+```
+...
+function Home(props) {
+    return(
+        <div>
+            ...
+            <button
+                onClick={() => {
+                    props.navigation.navigate('/posts');
+                }}>Posts</button>
+            ...
+        </div>
+    );
+}
+...
+```
+#### Passing Parameters to Other Screens
+To pass data to the next screen, pass a value to the navigate function.
+```
+props.navigation.navigate('/posts', {
+    post: {
+        title: "Post"
+    }
+});
+```
+To access this data on the next screen:
+```
+// Screen: POSTS
+...
+<h1>{props.route.params.post.title}</h1>
+...
+```
+All data passed to the navigate function is accessible on the target screen through the route prop.
+
+#### Default Parameters
+A default parameter can be passed to the screen by passing a value to the default_params prop on ```Stack.Screen``` component.
+```
+...
+<Stack.Screen path="/posts" component={Posts} default_params={{
+    post: {
+        title: "Default Title"
+    }
+}}/>
+...
+```
+#### Transitions
+Transitions are a feature baked into react-motion-router; hence the name... To transition between pages do:
+```
+<Router config={{
+    animation: {
+        type: "slide",
+        direction: "right",
+        duration: 300
+    }
+}}>
+...
+</Router>
+```
+
+#### Shared ELement Transition
+To do a shared element transition wrap the component you would like shared between screens and supply it with a unique ID prop.
+```
+// Screen: HOME
+...
+<SharedElement id="post">
+    <h1>Post</h1>
+</SharedElement>
+...
+```
+and on another screen:
+```
+Screen: POSTS
+...
+<SharedElement id="post">
+    <h1>Post</h1>
+</SharedElement>
+...
+```
+That's it! The element will transition from one screen to the next seemlessly. They can even do layered animations.
+```
+<SharedELement id="post" config={{
+    x: {
+        duration: 100
+    },
+    y: {
+        duration: 300
+    }
+}}>
+    <h1>Post</h1>
+</SharedElement>
+```
+This way the X and Y axis are animated independently and can alter the path of the shared element while transitioning.
+
+## API Documentation
+#### Router
