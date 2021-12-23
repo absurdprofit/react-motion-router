@@ -1,21 +1,32 @@
 # React Motion Router
-
 Declarative routing library for React ⚛ with page transitions and animations. Under Development 🧪. Based on React Router and React Navigation.
 
 #### [Demo](https://router.nxtetechnologies.com)
 
+## Table of Contents
+* [Installation](##istallation)
+* [Usage](##usage)
+    * [Basic](####basic)
+    * [Navigation](####navigation)
+    * [Passing Params](####passing parameters to other screens)
+    * [Default Params](####default parameters)
+    * [Transitions](####transitions)
+    * [Shared Element Transition](####shared element transition)
+* [API Documentation](##api documentation)
+    * [Router Config](####router config)
+    * [Animation Config](####animation config)
+    * [Shared Element Transitions](####shared element transition)
+    * [Shared Element Config](####sharedelementconfig)
+* [Remarks](##remarks)
+* [Credits](##credits)
 ## Installation
-
 ```
 npm install react-motion-router
 ```
 
 ## Usage
-
 #### Basic
-
-Use the `Router` component to place your screens. Pass a component to the component prop of `Stack.Screen` component to be rendered when navigated to.
-
+Use the ```Router``` component to place your screens. Pass a component to the component prop of ```Stack.Screen``` component to be rendered when navigated to.
 ```
 ...
 import {Router, Stack} from 'react-motion-router';
@@ -39,9 +50,7 @@ function App() {
 ```
 
 #### Navigation
-
 Navigation is done through the navigation object exposed on your screen's props.
-
 ```
 ...
 function Home(props) {
@@ -58,11 +67,8 @@ function Home(props) {
 }
 ...
 ```
-
 #### Passing Parameters to Other Screens
-
 To pass data to the next screen, pass a value to the navigate function.
-
 ```
 props.navigation.navigate('/posts', {
     post: {
@@ -70,22 +76,17 @@ props.navigation.navigate('/posts', {
     }
 });
 ```
-
 To access this data on the next screen:
-
 ```
 // Screen: POSTS
 ...
 <h1>{props.route.params.post.title}</h1>
 ...
 ```
-
 All data passed to the navigate function is accessible on the target screen through the route prop.
 
 #### Default Parameters
-
-A default parameter can be passed to the screen by passing a value to the default_params prop on `Stack.Screen` component.
-
+A default parameter can be passed to the screen by passing a value to the default_params prop on ```Stack.Screen``` component.
 ```
 ...
 <Stack.Screen path="/posts" component={Posts} default_params={{
@@ -95,11 +96,8 @@ A default parameter can be passed to the screen by passing a value to the defaul
 }}/>
 ...
 ```
-
 #### Transitions
-
 Transitions are a feature baked into react-motion-router; hence the name... To transition between pages do:
-
 ```
 <Router config={{
     animation: {
@@ -113,9 +111,7 @@ Transitions are a feature baked into react-motion-router; hence the name... To t
 ```
 
 #### Shared Element Transition
-
 To do a shared element transition wrap the component you would like shared between screens and supply it with a unique ID prop.
-
 ```
 // Screen: HOME
 ...
@@ -124,9 +120,7 @@ To do a shared element transition wrap the component you would like shared betwe
 </SharedElement>
 ...
 ```
-
 and on another screen:
-
 ```
 Screen: POSTS
 ...
@@ -135,9 +129,7 @@ Screen: POSTS
 </SharedElement>
 ...
 ```
-
 That's it! The element will transition from one screen to the next seemlessly. They can even do layered animations.
-
 ```
 <SharedELement id="post" config={{
     x: {
@@ -150,13 +142,10 @@ That's it! The element will transition from one screen to the next seemlessly. T
     <h1>Post</h1>
 </SharedElement>
 ```
-
 This way the X and Y axis are animated independently and can alter the path of the shared element while transitioning.
 
 ## API Documentation
-
 #### Router Config
-
 Config object used to modify the behaviour of the Router.
 | Property | Type | Description |
 | ------ | ------ | ------ |
@@ -165,7 +154,6 @@ Config object used to modify the behaviour of the Router.
 | animation | AnimationConfig | Config object used to modify the router's transition behaviour. |
 
 #### Animation Config
-
 Config object used to modify the router's transition behaviour.
 | Property | Type | Description |
 | ------ | ------ | ------ |
@@ -174,19 +162,36 @@ Config object used to modify the router's transition behaviour.
 | direction | "left", "right", "up" or "down" | The direction used for slide transitions. The direction is swapped automatically on back navigation. i.e. The user presses their browser back button or navigation.back() is called. |
 
 #### Shared Element Transitions
-
-| Property | Type                | Description                                                         |
-| -------- | ------------------- | ------------------------------------------------------------------- |
-| id       | string or number    | The unique ID used to keep track of the element in the scene.       |
-| children | React.ReactChild    | A single React element which will be displayed between transitions. |
-| config   | SharedElementConfig | Config object used to alter the behaviour of the shared element.    |
+| Property | Type | Description |
+| ------ | ------ | ------ |
+| id | string or number | The unique ID used to keep track of the element in the scene. |
+| children | React.ReactChild | A single React element which will be displayed between transitions. |
+| config | SharedElementConfig | Config object used to alter the behaviour of the shared element. |
 
 #### SharedElementConfig
+| Property | Type | Description |
+| ------ | ------ | ------ |
+| transform_origin | TransformOrigin | Changes transform alignment of shared element. |
+| duration | number | The time in milliseconds for how long the shared element transition is from start to end |
+| easing_function | CSS <easing-function> | denotes a mathematical function that describes the rate at which a numerical value changes.[^1^](https://developer.mozilla.org/en-US/docs/Web/CSS/easing-function) |
+It is useful to not that the duration and easing function properties can also be set on the X and Y axis as independent values by specifying an X or Y property on the shared element config object.
+```
+...
+config={{
+    x: {
+        easing_function: "center-center",
+        duration: 500
+    }
+}}
+...
+```
+## Remarks
+This is a work in progress and elements of this solution are subject to change.
+There are a few limitations to be aware of for example there is no analogue for HashRouter in this solution.
 
-| Property         | Type                  | Description                                                                                                                                                                                     |
-| ---------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| transform_origin | TransformOrigin       | Changes transform alignment of shared element.                                                                                                                                                  |
-| duration         | number                | The time in milliseconds for how long the shared element transition is from start to end                                                                                                        |
-| easing_function  | CSS <easing-function> | denotes a mathematical function that describes the rate at which a numerical value changes.<sup>[1](denotes a mathematical function that describes the rate at which a numerical value changes. |
-
-)</sup> |
+## Credits
+Shoutout to [@IzjerenHein](https://github.com/IjzerenHein) whose [react-native-shared-element](https://github.com/IjzerenHein/react-native-shared-element) was a source of great inspiration for this project 🙏.
+#### Other Relevant Resources
+1. [materio.io](https://material.io/design/motion/the-motion-system.html)
+2. [react-native-magic-move](https://github.com/IjzerenHein/react-native-magic-move)
+3. [Hein Rutjes React Europe Talk](https://www.youtube.com/watch?v=Uj7aWfrtey8&list=FLsxiG7-SUK8s8xReSGAH4lQ)
