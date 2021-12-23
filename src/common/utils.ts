@@ -21,7 +21,7 @@ export class History {
         return this._previous;
     }
     get is_empty() {
-        return this._stack.length ? true : false;
+        return !this._stack.length ? true : false;
     }
     push(route: string) {
         this._previous = window.location.pathname;
@@ -55,15 +55,14 @@ export class Navigation {
     }
 
     go_back() {
-        if (this._history.default_route && this._history.is_empty) {
+        if (this._history.default_route && !this._history.previous) {
             this.navigate(this._history.default_route);
         } else {
             this._history.back();
-
-            const event = new CustomEvent('go-back');
-
-            window.dispatchEvent(event);
         }  
+        const event = new CustomEvent('go-back');
+
+        window.dispatchEvent(event);
     }
 
     get history() {

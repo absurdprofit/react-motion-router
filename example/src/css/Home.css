@@ -1,0 +1,11 @@
+.home {
+    background-color: #efefef;
+    flex: 1;
+}
+.home .list {
+    background-color: white;
+}
+.home .list button {
+    padding: 0;
+    width: 100%;
+}

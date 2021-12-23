@@ -85,7 +85,7 @@ html, body {
 }
 .screen {
   position: absolute;
-  will-change: transition;
+  will-change: transform, opacity;
 }
 .screen-content {
   overflow: scroll;

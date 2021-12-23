@@ -1,7 +1,9 @@
 import React from 'react';
 import { Heroes, Hero } from '../assets/Heroes';
 import {Navigation} from 'react-motion-router';
+import Navbar from '../Components/Navbar';
 import Tile from '../Components/Tile';
+import '../css/Tiles.css';
 
 interface TilesProps {
     navigation: Navigation;
@@ -17,19 +19,12 @@ export default class Tiles extends React.Component<TilesProps, TilesState> {
     render(): React.ReactNode {
         return(
             <div className="tiles">
-                <div className="nav-bar">
-                    <div className="back-button">
-                        <button onClick={() => this.props.navigation.go_back()}>&lt;</button>
-                    </div>
-                    <div className="page-title">
-                        <h3>Tiles Demo</h3>
-                    </div>
-                </div>
+                <Navbar title="Tiles Demo" on_back={() => this.props.navigation.go_back()} />
                 <div className="content">
                     {this.state.heroes.map((hero: Hero, index: number) => {
                         return <Tile hero={hero} key={index} onClick={() => {
-                            this.props.navigation.navigate('/details', {
-                                profile: hero
+                            this.props.navigation.navigate('/slides', {
+                                hero: index
                             })
                         }} />
                     })}

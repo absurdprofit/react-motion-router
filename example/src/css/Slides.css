@@ -1,0 +1,33 @@
+.slides {
+    flex: 1;
+    background-color: rgb(46, 46, 46);
+    color: white;
+}
+.slides .back {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    color: white!important;
+}
+.slides .title {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+.slides .slide {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.slides .slide img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+.slides .slide .shared-element {
+    width: 100%;
+    height: auto;
+}

@@ -1,0 +1,29 @@
+.details button, .post button {
+    animation-name: fade-in;
+    animation-duration: 500ms;
+    animation-fill-mode: forwards;
+    animation-delay: .5s;
+    opacity: 0;
+    left: 0;
+    top: 0;
+    z-index: 1;
+}
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0px);
+    }
+}
+
+.details .text-content {
+    padding: 15px;
+}
+.details .text-content p {
+    text-align: justify;
+    line-height: 1.5rem;
+    height: 100%;
+}

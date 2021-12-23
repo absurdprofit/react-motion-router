@@ -53,7 +53,7 @@ export const Heroes: Hero[] = [
   },
   {
     id: "metalknight",
-    name: "Metal knight",
+    name: "Metal Knight",
     photo: MetalKnight,
     quote: "Dr. Bofoi",
     description:
@@ -67,11 +67,11 @@ export const Heroes: Hero[] = [
     description:
       'Tatsumaki has a rather brash, moody, hotheaded and impatient personality. She is disrespectful towards most people, especially to those she deems incompetent. She is completely intolerant to those who are impertinent, as shown when she pinned Genos to a large piece rubble for retaliating against her verbal abuse of Saitama. Tatsumaki especially dislikes being ignored or being called things like "brat" and "runt".',
   },
-  { id: "watchdog", name: "Watchdog man", photo: WatchDog },
+  { id: "watchdog", name: "Watchdog Man", photo: WatchDog },
   { id: "king", name: "King", photo: King },
   {
     id: "atomicsamurai",
-    name: "Atomic samurai",
+    name: "Atomic Samurai",
     photo: AtomicSamurai,
   },
   {
@@ -81,7 +81,7 @@ export const Heroes: Hero[] = [
   },
   {
     id: "metalbat",
-    name: "Metal bat",
+    name: "Metal Bat",
     photo: MetalBat,
   },
 ];

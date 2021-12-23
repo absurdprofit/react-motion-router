@@ -92,7 +92,12 @@ export namespace Stack {
                     classNames={`screen ${this.transition_string}`}
                     unmountOnExit
                 >
-                    <div ref={(ref) => this.ref = ref} className="screen-content" style={{minHeight: '100vh', minWidth: '100vw'}}>
+                    <div ref={(ref) => this.ref = ref} className="screen-content" style={{
+                        minHeight: '100vh',
+                        minWidth: '100vw',
+                        display: 'flex',
+                        flexDirection: 'column'
+                    }}>
                         <SharedElement.SceneContext.Provider value={this.shared_element_scene}>
                             <this.props.component
                                 route={this.context.routes_data[this.props.path] || {

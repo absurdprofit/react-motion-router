@@ -4,6 +4,8 @@ import Home from './Screens/Home';
 import Details from './Screens/Details';
 import Post from './Screens/Post';
 import Tiles from './Screens/Tiles';
+import Slides from './Screens/Slides';
+import Cards from './Screens/Cards';
 import "./css/App.css";
 
 function App() {
@@ -11,12 +13,22 @@ function App() {
     <div className="App">
       <Router config={{
         default_route: '/',
-        page_load_transition: true,
+        page_load_transition: false,
         animation: {
-          type: "fade",
-          duration: 500,
+          type: "slide",
+          direction: "right",
+          duration: 300,
         }
       }}>
+        <Stack.Screen
+          path={'/slides'}
+          component={Slides}
+          default_params={{hero: 0}}
+        />
+        <Stack.Screen
+          path={'/cards'}
+          component={Cards}
+        />
         <Stack.Screen
           path={"/details"}
           component={Details}

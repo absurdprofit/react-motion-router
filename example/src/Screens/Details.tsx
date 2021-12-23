@@ -1,5 +1,8 @@
 import React from 'react';
 import {Navigation, SharedElement} from 'react-motion-router';
+import IconButton from '@mui/material/IconButton';
+import ClearIcon from '@mui/icons-material/Clear';
+import '../css/Details.css';
 
 interface DetailsProps {
     navigation: Navigation;
@@ -14,7 +17,9 @@ export default function Details(props: DetailsProps) {
     if (props.route.params.profile) {
         return (
             <div className="details" style={{width: "100%", height: "100%"}}>
-                <button style={{position: "absolute"}} onClick={() => {props.navigation.go_back()}}>Back</button>
+                <IconButton style={{position: "absolute", color: 'white'}} onClick={() => {props.navigation.go_back()}}>
+                    <ClearIcon />
+                </IconButton>
                 <div className="profile-info">
                     <SharedElement config={{
                         transform_origin: 'bottom bottom',
@@ -29,10 +34,14 @@ export default function Details(props: DetailsProps) {
                     }} id={props.route.params.profile.id}>
                         <img src={props.route.params.profile.photo} alt="profile-details" />
                     </SharedElement>
-                    <SharedElement id={`title-${props.route.params.profile.id}`}>
-                        <h1>{props.route.params.profile.name}</h1>
-                    </SharedElement>
-                    <p>{props.route.params.profile.description}</p>
+                    <div className="text-content">
+                        <SharedElement id={`title-${props.route.params.profile.id}`}>
+                            <h1>{props.route.params.profile.name}</h1>
+                        </SharedElement>
+                        <SharedElement id={`desc-${props.route.params.profile.id}`}>
+                            <p>{props.route.params.profile.description}</p>
+                        </SharedElement>
+                    </div>
                 </div>
             </div>
         )
