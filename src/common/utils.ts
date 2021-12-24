@@ -38,6 +38,27 @@ export class History {
 
         return this._previous;
     }
+
+    search_params_to_object(search_part: string) {
+        const entries = new URLSearchParams(decodeURI(search_part)).entries();
+        const result: {[key:string]: string} = {};
+        for(const [key, value] of entries) { // each 'entry' is a [key, value] tupple
+            let parsed_key = '';
+            let parsed_value = '';
+            try {
+                parsed_key = JSON.parse(key);
+            } catch (e) {
+                parsed_key = key;
+            }
+            try {
+                parsed_value = JSON.parse(value);
+            } catch(e) {
+                parsed_value = value;
+            }
+            result[parsed_key] = JSON.parse(parsed_value);
+        }
+        return result;
+    }
 }
 export class Navigation {
     private _history = new History();

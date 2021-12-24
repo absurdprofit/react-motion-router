@@ -156,8 +156,16 @@ export default class Router extends React.Component<RouterProps, RouterState> {
             this.navigation.history.default_route = this.props.config.default_route;
         }
 
-        this._router_data.routes_data = this.state.routes_data;
-        this.setState({current_path: window.location.pathname});
+        // get url search params and append to existing route params
+        const search_params = this.navigation.history.search_params_to_object(window.location.search);
+        const routes_data = this.state.routes_data;
+        routes_data[window.location.pathname] = {
+            params: search_params
+        };
+
+        this.setState({current_path: window.location.pathname, routes_data: routes_data}, () => {
+            this._router_data.routes_data = this.state.routes_data;
+        });
         this._router_data.current_path = window.location.pathname;
         window.addEventListener('go-back', ()=>{
             this.setState({back_navigating: true});

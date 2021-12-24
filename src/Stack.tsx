@@ -93,7 +93,7 @@ export namespace Stack {
                     unmountOnExit
                 >
                     <div ref={(ref) => this.ref = ref} className="screen-content" style={{
-                        minHeight: '100vh',
+                        height: '100vh',
                         minWidth: '100vw',
                         display: 'flex',
                         flexDirection: 'column'
