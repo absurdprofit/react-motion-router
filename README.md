@@ -178,7 +178,7 @@ This way the X and Y axis are animated independently and can alter the path of t
 Config object used to modify the behaviour of the Router.
 | Property | Type | Description |
 | ------ | ------ | ------ |
-| default_route | string | If the user navigates directly to a route other than the default and navigate.back() is called the app will navigate to the default route instead of closing. |
+| default_route | string | If the user navigates directly to a route other than the default and navigate.go_back() is called the app will navigate to the default route instead of closing. |
 | page_load_transition | boolean | Set to false if you wish to disable page transitions when the application first loads. |
 | animation | AnimationConfig | Config object used to modify the router's transition behaviour. |
 
@@ -189,7 +189,7 @@ Config object used to modify the router's transition behaviour.
 | ------ | ------ | ------ |
 | type | "slide" or "fade" | The animation type used for page transitions. |
 | duration | number | The time in milliseconds for how long page transitions are from start to end. |
-| direction | "left", "right", "up" or "down" | The direction used for slide transitions. The direction is swapped automatically on back navigation. i.e. The user presses their browser back button or navigation.back() is called. |
+| direction | "left", "right", "up" or "down" | The direction used for slide transitions. The direction is swapped automatically on back navigation. i.e. The user presses their browser back button or navigation.go_back() is called. |
 
 #### Shared Element Transitions
 

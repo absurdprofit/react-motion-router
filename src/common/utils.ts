@@ -43,19 +43,7 @@ export class History {
         const entries = new URLSearchParams(decodeURI(search_part)).entries();
         const result: {[key:string]: string} = {};
         for(const [key, value] of entries) { // each 'entry' is a [key, value] tupple
-            let parsed_key = '';
-            let parsed_value = '';
-            try {
-                parsed_key = JSON.parse(key);
-            } catch (e) {
-                parsed_key = key;
-            }
-            try {
-                parsed_value = JSON.parse(value);
-            } catch(e) {
-                parsed_value = value;
-            }
-            result[parsed_key] = JSON.parse(parsed_value);
+            result[key] = value;
         }
         return result;
     }
