@@ -2,13 +2,16 @@ import React from 'react';
 import {CSSTransition} from 'react-transition-group';
 import "./css/Transition.css";
 import SharedElement from './SharedElement';
-import { RouterDataContext } from './Router';
+import { AnimationConfig, RouterDataContext } from './Router';
 import {Vec2} from './common/utils';
 
 interface ScreenProps {
     component: any;
     path: string;
     default_params?: {};
+    config?: {
+        animation: AnimationConfig;
+    };
 }
 
 interface ScreenState {
@@ -77,17 +80,25 @@ export namespace Stack {
             //convert animation into {animation_type}-{animation_direction}
             //e.g. slide-right
             //if animation is fade set animation type only
-            if (this.context.animation!.type === "slide") {
-                this.transition_string = `${this.context.animation!.type}-${this.context.animation!.direction || 'right'}`;
+            if (this.context.animation!.type === "slide" || this.props.config?.animation.type === "slide") {
+                if (this.props.config?.animation) {
+                    this.transition_string = `${this.props.config.animation.type}-${this.props.config.animation.direction || 'right'}`;
+                } else {
+                    this.transition_string = `${this.context.animation!.type}-${this.context.animation!.direction || 'right'}`;
+                }
             } else {
-                this.transition_string = `${this.context.animation!.type}`;
+                if (this.props.config?.animation) {
+                    this.transition_string = `${this.props.config.animation.type}`;
+                } else {
+                    this.transition_string = `${this.context.animation!.type}`;
+                }
             }
 
             return (
                 <CSSTransition
                     onExit={this.on_exit.bind(this)}
                     onEntering={this.on_entering.bind(this)}
-                    timeout={this.context.animation.duration || 200}
+                    timeout={this.props.config?.animation ? this.props.config.animation.duration : this.context.animation.duration || 200}
                     in={this.state._in}
                     classNames={`screen ${this.transition_string}`}
                     unmountOnExit

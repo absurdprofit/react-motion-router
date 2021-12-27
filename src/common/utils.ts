@@ -42,10 +42,18 @@ export class History {
     search_params_to_object(search_part: string) {
         const entries = new URLSearchParams(decodeURI(search_part)).entries();
         const result: {[key:string]: string} = {};
+        
         for(const [key, value] of entries) { // each 'entry' is a [key, value] tupple
-            result[key] = value;
+            let parsed_value = '';
+            try {
+                parsed_value = JSON.parse(value);
+            } catch (e) {
+                console.warn("Non JSON seralisable value was passed as URL route param.");
+                parsed_value = value;
+            }
+            result[key] = parsed_value;
         }
-        return result;
+        return Object.keys(result).length ? result : undefined;
     }
 }
 export class Navigation {

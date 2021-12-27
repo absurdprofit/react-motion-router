@@ -32,7 +32,7 @@ npm install react-motion-router
 
 #### Basic
 
-Use the `Router` component to place your screens. Pass a component to the component prop of `Stack.Screen` component to be rendered when navigated to.
+Use the `Router` component to place your screens. Pass a React component to the component prop of `Stack.Screen` to be rendered when navigated to.
 
 ```
 ...

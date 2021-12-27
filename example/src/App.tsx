@@ -15,9 +15,8 @@ function App() {
         default_route: '/',
         page_load_transition: false,
         animation: {
-          type: "slide",
-          direction: "right",
-          duration: 300,
+          type: "zoom",
+          duration: 200,
         }
       }}>
         <Stack.Screen
@@ -33,6 +32,7 @@ function App() {
           path={"/details"}
           component={Details}
           default_params={{data: "Default"}}
+          
         />
         <Stack.Screen
           path={"/"}
@@ -46,6 +46,7 @@ function App() {
         <Stack.Screen
           path={"/tiles"}
           component={Tiles}
+          default_params={{params: "data"}}
         />
       </Router>
     </div>  

@@ -13,6 +13,7 @@ enum AnimationDirectionEnum {
 enum AnimationTypeEnum {
     slide,
     fade,
+    zoom,
     none
 }
 
@@ -159,9 +160,11 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         // get url search params and append to existing route params
         const search_params = this.navigation.history.search_params_to_object(window.location.search);
         const routes_data = this.state.routes_data;
-        routes_data[window.location.pathname] = {
-            params: search_params
-        };
+        if (search_params) {
+            routes_data[window.location.pathname] = {
+                params: search_params
+            };
+        }
 
         this.setState({current_path: window.location.pathname, routes_data: routes_data}, () => {
             this._router_data.routes_data = this.state.routes_data;
