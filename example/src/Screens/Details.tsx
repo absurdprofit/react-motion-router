@@ -28,7 +28,7 @@ export default function Details(props: DetailsProps) {
                             easing_function: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)'
                         },
                         y: {
-                            duration: 200,
+                            duration: 250,
                             easing_function: 'ease-out'
                         }
                     }} id={props.route.params.profile.id}>

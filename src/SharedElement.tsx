@@ -39,9 +39,18 @@ namespace SharedElement {
         "ease-out"
     }
 
+    enum TransitionAnimationEnum {
+        "move",
+        "fade-in",
+        "fade-out",
+        "cross-fade"
+    }
+
+    type TransitionAnimation = keyof typeof TransitionAnimationEnum;
+
     type EasingFunctionKeyword = keyof typeof EasingFunctionKeywordEnum;
 
-    type EasingFunction = EasingFunctionKeyword | `cubic-bezier(${number}, ${number}, ${number}, ${number})`;
+    type EasingFunction = EasingFunctionKeyword | string;
 
     type TransformOriginGlobal = keyof typeof TransformOriginGlobalEnum;
 
@@ -58,16 +67,17 @@ namespace SharedElement {
     
     interface SharedElementConfig {
         transform_origin?: TransformOrigin;
-        easing_function?: EasingFunction,
-        duration?: number,
+        easing_function?: EasingFunction;
+        duration?: number;
+        animation?: TransitionAnimation;
         x?: {
             duration?: number;
             easing_function?: EasingFunction
-        }
+        };
         y?: {
             duration?: number;
             easing_function?: EasingFunction
-        }
+        };
     }
 
     
@@ -254,7 +264,15 @@ namespace SharedElement {
                     {(scene) => {
                         this._scene = scene;
                         return (
-                            <div ref={this.set_ref.bind(this)} id={`shared-element-${this._id}`} className={"shared-element"} style={{opacity: this._hidden ? '0': '1'}}>
+                            <div
+                                ref={this.set_ref.bind(this)}
+                                id={`shared-element-${this._id}`}
+                                className={"shared-element"}
+                                style={{
+                                    display: this._hidden ? 'block' : 'contents',
+                                    opacity: this._hidden ? '0': '1'
+                                }
+                            }>
                                 {this.props.children}
                             </div>
                         );

@@ -10,7 +10,9 @@ export default class Tile extends React.Component<TileProps> {
     render() {
         return (
             <div onClick={this.props.onClick} className="tile">
-                <SharedElement id={this.props.hero.id}>
+                <SharedElement id={this.props.hero.id} config={{
+                    duration: 200
+                }}>
                     <img src={this.props.hero.photo} alt={this.props.hero.name} />
                 </SharedElement>
             </div>

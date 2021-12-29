@@ -46,8 +46,13 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     const start_instance = current_scene.nodes[id].instance;
                     start_instance.hidden = true;
                     end_instance.hidden = true;
+
+                    
                     const start_node = current_scene.nodes[id].node;
                     const end_node = next_scene.nodes[id].node;
+
+                    start_node.style.display = 'unset';
+                    end_node.style.display = 'unset';
 
                     const x_duration: number = end_instance.props.config?.x?.duration || end_instance.props.config?.duration || this.props.animation.duration;
                     const y_duration: number = end_instance.props.config?.y?.duration || end_instance.props.config?.duration || this.props.animation.duration;

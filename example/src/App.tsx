@@ -16,7 +16,7 @@ function App() {
         page_load_transition: false,
         animation: {
           type: "zoom",
-          duration: 200,
+          duration: 300,
         }
       }}>
         <Stack.Screen
