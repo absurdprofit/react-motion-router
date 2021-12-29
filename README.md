@@ -1,6 +1,6 @@
 # React Motion Router
 
-Declarative routing library for React ⚛; with page transitions and animations 🚀. Under Development 🧪. Based on React Router and React Navigation.
+Declarative routing library for React ⚛ with page transitions and animations 🚀. Under Development 🧪. Based on React Router and React Navigation.
 
 #### [Demo](https://router.nxtetechnologies.com)
 
