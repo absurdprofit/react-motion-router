@@ -8,6 +8,7 @@
     top: 15px;
     left: 15px;
     color: white!important;
+    z-index: 1;
 }
 .slides .title {
     position: absolute;

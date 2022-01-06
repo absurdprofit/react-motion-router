@@ -16,6 +16,8 @@ interface ScreenProps {
 
 interface ScreenState {
     _in: boolean;
+    x_overflow: boolean;
+    y_overflow: boolean;
 }
 
 
@@ -25,6 +27,7 @@ export namespace Stack {
         private transition_string : string = "";
         private shared_element_scene: SharedElement.Scene = new SharedElement.Scene(this.props.path);
         private ref: HTMLElement | null = null;
+        private observer: ResizeObserver = new ResizeObserver(this.observe.bind(this));
         private scroll_pos: Vec2 = {
             x: 0,
             y: 0
@@ -38,7 +41,9 @@ export namespace Stack {
         }
 
         state: ScreenState  = {
-            _in: false
+            _in: false,
+            x_overflow: false,
+            y_overflow: true
         }
 
         componentDidUpdate() {
@@ -49,6 +54,26 @@ export namespace Stack {
             } else {
                 if (this.state._in) {
                     this.setState({_in: false});
+                }
+            }
+        }
+
+        componentWillUnmount() {
+            if (this.ref) {
+                this.observer.unobserve(this.ref);
+            }
+        }
+
+        observe(entries: ResizeObserverEntry[]) {
+            if (entries.length) {
+                const x_overflow = entries[0].target.scrollWidth > window.innerWidth; 
+                const y_overflow = entries[0].target.scrollHeight > window.innerHeight;
+
+                if (x_overflow !== this.state.x_overflow) {
+                    this.setState({x_overflow: x_overflow});
+                }
+                if (y_overflow !== this.state.y_overflow) {
+                    this.setState({y_overflow: y_overflow});
                 }
             }
         }
@@ -73,6 +98,21 @@ export namespace Stack {
             
             if (this.context.ghost_layer) {
                 this.context.ghost_layer.next_scene = this.shared_element_scene;
+            }
+        }
+
+        private set_ref(ref: HTMLElement | null) {
+            if (this.ref !== ref) {
+                if (this.ref) {
+                    this.observer.unobserve(this.ref);
+                }
+
+                this.ref = ref;
+
+                if (ref) {
+                    this.observer.observe(ref);
+                    console.log("Observing");
+                }
             }
         }
 
@@ -101,14 +141,17 @@ export namespace Stack {
                     timeout={this.props.config?.animation ? this.props.config.animation.duration : this.context.animation.duration || 200}
                     in={this.state._in}
                     classNames={`screen ${this.transition_string}`}
-                    unmountOnExit
-                >
-                    <div ref={(ref) => this.ref = ref} className="screen-content" style={{
+                    style={{
                         height: '100vh',
                         minWidth: '100vw',
                         display: 'flex',
-                        flexDirection: 'column'
-                    }}>
+                        flexDirection: 'column',
+                        overflowX: this.state.x_overflow ? 'scroll' : undefined,
+                        overflowY: this.state.y_overflow ? 'scroll' : undefined
+                    }}
+                    unmountOnExit
+                >
+                    <div ref={this.set_ref.bind(this)} className="screen-content">
                         <SharedElement.SceneContext.Provider value={this.shared_element_scene}>
                             <this.props.component
                                 route={this.context.routes_data[this.props.path] || {

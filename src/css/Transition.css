@@ -106,9 +106,6 @@ html, body {
   position: absolute;
   will-change: transform, opacity;
 }
-.screen-content {
-  overflow: scroll;
-}
 #ghost-layer {
   position: absolute;
   z-index: 100000;
