@@ -111,7 +111,6 @@ export namespace Stack {
 
                 if (ref) {
                     this.observer.observe(ref);
-                    console.log("Observing");
                 }
             }
         }

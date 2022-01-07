@@ -4,6 +4,8 @@ Declarative routing library for React âš› with page transitions and animations ð
 
 #### [Demo](https://router.nxtetechnologies.com)
 
+# ![version](https://img.shields.io/npm/v/react-motion-router)  ![downloads](https://img.shields.io/npm/dm/react-motion-router) ![license](https://img.shields.io/npm/l/react-motion-router)
+
 ## Table of Contents
 
 - [Installation](#installation)
