@@ -1,6 +1,6 @@
 import React from 'react';
 import { Heroes, Hero } from '../assets/Heroes';
-import {Navigation} from 'react-motion-router';
+import {Navigation, Anchor} from 'react-motion-router';
 import Navbar from '../Components/Navbar';
 import Tile from '../Components/Tile';
 import '../css/Tiles.css';
@@ -22,11 +22,15 @@ export default class Tiles extends React.Component<TilesProps, TilesState> {
                 <Navbar title="Tiles Demo" on_back={() => this.props.navigation.go_back()} />
                 <div className="content">
                     {this.state.heroes.map((hero: Hero, index: number) => {
-                        return <Tile hero={hero} key={index} onClick={() => {
-                            this.props.navigation.navigate('/slides', {
-                                hero: index
-                            })
-                        }} />
+                        return (
+                            <Anchor href={`/slides?hero=${index}`}>
+                                <Tile hero={hero} key={index} onClick={() => {
+                                    this.props.navigation.navigate('/slides', {
+                                        hero: index
+                                    })
+                                }} />
+                            </Anchor>
+                        );
                     })}
                 </div>
             </div>

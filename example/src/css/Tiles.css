@@ -10,10 +10,6 @@
     row-gap: 1vw;
 }
 
-.tiles .content .tile:last-child {
-    width: 100%;
-}
-
 .tile {
     width: 49vw;
     height: calc(30vw - 2px);

@@ -19,7 +19,6 @@ Declarative routing library for React âš› with page transitions and animations ð
 - [API Documentation](#api-documentation)
   - [Router Config](#router-config)
   - [Animation Config](#animation-config)
-  - [Shared Element Transitions](#shared-element-transition)
   - [Shared Element Config](#sharedelementconfig)
 - [Remarks](#remarks)
 - [Credits](#credits)
@@ -215,7 +214,7 @@ It is useful to note that the duration and easing function properties can also b
 ...
 config={{
     x: {
-        easing_function: "center center",
+        easing_function: "ease-in-out",
         duration: 500
     }
 }}
