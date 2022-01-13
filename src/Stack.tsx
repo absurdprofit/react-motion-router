@@ -119,20 +119,18 @@ export namespace Stack {
             //convert animation into {animation_type}-{animation_direction}
             //e.g. slide-right
             //if animation is fade set animation type only
-            if (this.context.animation!.type === "slide" || this.props.config?.animation.type === "slide") {
-                if (this.props.config?.animation) {
-                    this.transition_string = `${this.props.config.animation.type}-${this.props.config.animation.direction || 'right'}`;
+            const animation_type = this.context.animation!.type || this.props.config?.animation.type;
+            const animation_direction = this.context.animation!.direction || this.props.config?.animation.direction;
+            
+            if (animation_type === "slide" || animation_type === "zoom") {
+                if (animation_type === "zoom") {
+                    this.transition_string = `${animation_type}-${animation_direction || 'in'}`;
                 } else {
-                    this.transition_string = `${this.context.animation!.type}-${this.context.animation!.direction || 'right'}`;
+                    this.transition_string = `${animation_type}-${animation_direction || 'right'}`;
                 }
             } else {
-                if (this.props.config?.animation) {
-                    this.transition_string = `${this.props.config.animation.type}`;
-                } else {
-                    this.transition_string = `${this.context.animation!.type}`;
-                }
+                this.transition_string = `${animation_type}`;
             }
-
             return (
                 <CSSTransition
                     onExit={this.on_exit.bind(this)}

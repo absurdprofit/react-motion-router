@@ -84,20 +84,38 @@ html, body {
   transition: inherit;
 }
 /* zoom */
-.zoom-enter {
+.zoom-in-enter {
   opacity: 0;
   transform: scale(0.85);
 }
-.zoom-enter-active {
+.zoom-in-enter-active {
   opacity: 1;
   transform: scale(1);
   transition: inherit;
 }
-.zoom-exit {
+.zoom-in-exit {
   opacity: 1;
   transform: scale(1);
 }
-.zoom-exit-active {
+.zoom-in-exit-active {
+  opacity: 0;
+  transform: scale(1.15);
+  transition: inherit;
+}
+.zoom-out-enter {
+  opacity: 0;
+  transform: scale(1.15);
+}
+.zoom-out-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: inherit;
+}
+.zoom-out-exit {
+  opacity: 1;
+  transform: scale(1);
+}
+.zoom-out-exit-active {
   opacity: 0;
   transform: scale(0.85);
   transition: inherit;

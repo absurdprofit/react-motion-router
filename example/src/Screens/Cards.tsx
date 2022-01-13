@@ -15,7 +15,9 @@ interface CardsProps {
 export default function Cards(props: CardsProps) {
     return (
         <div className="cards">
-            <Navbar title="Cards Demo" on_back={() => props.navigation.go_back()} />
+            <SharedElement id="navbar">
+                <Navbar title="Cards Demo" on_back={() => props.navigation.go_back()} />
+            </SharedElement>
             <div className="card-list">
             {
                 Heroes.map((hero: Hero, index) => {

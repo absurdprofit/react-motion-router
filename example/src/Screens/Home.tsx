@@ -1,5 +1,5 @@
 import React from 'react';
-import {Navigation} from 'react-motion-router';
+import {Navigation, SharedElement} from 'react-motion-router';
 import ListItemComponent from '../Components/ListItem';
 import Navbar from '../Components/Navbar';
 import '../css/Home.css';
@@ -28,7 +28,9 @@ export default function Home(props: HomeProps) {
     ]
     return (
         <div className="home">
-            <Navbar title="Shared Element Demo" />
+            <SharedElement id="navbar">
+                <Navbar title="Shared Element Demo" />
+            </SharedElement>
             <div className="list">
                 {
                     list.map((item: ListItem, index: number) => {

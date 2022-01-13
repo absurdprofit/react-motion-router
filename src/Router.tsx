@@ -7,7 +7,9 @@ enum AnimationDirectionEnum {
     up,
     down,
     left,
-    right
+    right,
+    in,
+    out
 }
 
 enum AnimationTypeEnum {
@@ -125,6 +127,28 @@ export default class Router extends React.Component<RouterProps, RouterState> {
     }
 
     animation_direction_swap() {
+        if (this.config.animation.type === "zoom") {
+            const forward_direction = this.config.animation.direction;
+            switch(forward_direction) {
+                case "in":
+                    this.config.animation.direction = "out";
+                    break;
+                
+                case "out":
+                    this.config.animation.direction = "in";
+                    break;
+                
+                default:
+                    this.config.animation.direction = "out";
+            }
+
+            this._router_data.animation = this.config.animation;
+            setTimeout(() => {
+                this.config.animation.direction = forward_direction;
+                this._router_data.animation = this.config.animation;
+            }, this.config.animation.duration);
+            return;
+        }
         if (this.config.animation.type === "slide") {
             const forward_direction = this.config.animation.direction;
             switch(this.config.animation.direction) {
