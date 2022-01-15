@@ -89,9 +89,19 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     (end_node.firstChild as HTMLElement).style.transition = `all ${y_duration}ms ${end_instance.props.config?.easing_function ||'ease'}`;
                     end_node.style.transition = `all ${x_duration}ms ${end_instance.props.config?.easing_function ||'ease'}`;
 
-
                     window.requestAnimationFrame(() => {
-                        start_node.style.transform = end_node.style.transform;
+                        // start_node.style.transform = end_node.style.transform;
+                        start_node.animate([
+                            {
+                                transform: start_node.style.transform
+                            },
+                            {
+                                transform: end_node.style.transform
+                            }
+                        ],
+                        {
+                            duration: this.props.animation.duration
+                        });
                         (start_node.firstChild as HTMLElement).style.cssText = get_css_text((end_node.firstChild as HTMLElement).style);
                     });
 
