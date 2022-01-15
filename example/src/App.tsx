@@ -15,8 +15,8 @@ function App() {
         default_route: '/',
         page_load_transition: false,
         animation: {
-          type: "zoom",
-          duration: 300,
+          type: "fade",
+          duration: 1000,
         }
       }}>
         <Stack.Screen

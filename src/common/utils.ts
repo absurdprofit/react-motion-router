@@ -107,6 +107,17 @@ export function get_css_text(styles: CSSStyleDeclaration): string {
     }
 }
 
+export function get_style_object(styles: CSSStyleDeclaration): {[key:string]: string} {
+    const style_object: {[key:string]:string} = {};
+    for (const key in styles) {
+        if (styles[key] && styles[key].length && typeof styles[key] !== "function") {
+            if (/^\d+$/.test(key)) continue;
+            if (key === "offset") continue;
+            style_object[key] = styles[key];
+        }
+    }
+    return style_object;
+}
 export function clamp(num: number, min: number, max?: number) {
     if (num < min) {
         return min;

@@ -2,7 +2,7 @@ import React from 'react';
 import SharedElement from './SharedElement';
 import {get_css_text} from './common/utils';
 import { AnimationConfig } from './Router';
-import {Vec2} from './common/utils';
+import {Vec2, get_style_object} from './common/utils';
 
 interface GhostLayerProps {
     instance?: (instance: GhostLayer | null) => any;
@@ -10,6 +10,25 @@ interface GhostLayerProps {
 }
 interface GhostLayerState {
     transitioning: boolean;
+}
+
+interface TransitionXYState {
+    duration: number;
+    easing_function: SharedElement.EasingFunction;
+    position: number;
+    node: HTMLElement;
+}
+
+interface TransitionState {
+    id: string;
+    start: {
+        x: TransitionXYState;
+        y: TransitionXYState;
+    };
+    end: {
+        x: TransitionXYState;
+        y: TransitionXYState;
+    }
 }
 
 export default class GhostLayer extends React.Component<GhostLayerProps, GhostLayerState> {
@@ -47,25 +66,53 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     start_instance.hidden = true;
                     end_instance.hidden = true;
 
-                    
                     const start_node = current_scene.nodes[id].node;
                     const end_node = next_scene.nodes[id].node;
+
+                    const transition_state: TransitionState = {
+                        id: start_instance.id,
+                        start: {
+                            x: {
+                                node: start_node,
+                                duration: start_instance.props.config?.x?.duration || end_instance.props.config?.duration || this.props.animation.duration,
+                                easing_function: start_instance.props.config?.x?.easing_function || start_instance.props.config?.easing_function ||'ease',
+                                position: parseFloat(start_node.getAttribute('x') || '0'),
+                                
+                            },
+                            y: {
+                                node: start_node.firstElementChild as HTMLElement,
+                                duration: start_instance.props.config?.y?.duration || end_instance.props.config?.duration || this.props.animation.duration,
+                                easing_function: start_instance.props.config?.y?.easing_function || start_instance.props.config?.easing_function || 'ease',
+                                position: parseFloat(start_node.getAttribute('y') || '0')
+                            }
+                        },
+                        end: {
+                            x: {
+                                node: end_node,
+                                duration: end_instance.props.config?.x?.duration || end_instance.props.config?.duration || this.props.animation.duration,
+                                easing_function: end_instance.props.config?.x?.easing_function || end_instance.props.config?.easing_function || 'ease',
+                                position: parseFloat(end_node.getAttribute('x') || '0')
+                            },
+                            y: {
+                                node: end_node.firstElementChild as HTMLElement,
+                                duration: end_instance.props.config?.y?.duration || end_instance.props.config?.duration || this.props.animation.duration,
+                                easing_function: end_instance.props.config?.x?.easing_function || end_instance.props.config?.easing_function || 'ease',
+                                position: parseFloat(end_node.getAttribute('y') || '0')
+                            }
+                        }
+                    };
+                    
+                    
 
                     start_node.style.display = 'unset';
                     end_node.style.display = 'unset';
 
-                    const x_duration: number = end_instance.props.config?.x?.duration || end_instance.props.config?.duration || this.props.animation.duration;
-                    const y_duration: number = end_instance.props.config?.y?.duration || end_instance.props.config?.duration || this.props.animation.duration;
-                    
 
-                    (start_node.firstChild as HTMLElement).style.transition = `all ${y_duration}ms ${end_instance.props.config?.easing_function ||'ease'}`;
-                    start_node.style.transition = `all ${x_duration}ms ${end_instance.props.config?.easing_function ||'ease'}`;
+                    transition_state.start.y.node.style.transition = `all ${transition_state.end.y.duration}ms ${transition_state.end.y.easing_function}`;
+                    transition_state.start.x.node.style.transition = `all ${transition_state.end.x.duration}ms ${transition_state.end.x.easing_function}`;
                     this.ref?.appendChild(start_node);
 
-                    const end_pos: Vec2 = {
-                        x: parseFloat(end_node.getAttribute('x') || '0'),
-                        y: parseFloat(end_node.getAttribute('y') || '0')
-                    }
+                    
                     const travel_distance: Vec2 = {
                         x: 0,
                         y: 0
@@ -80,30 +127,44 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                      * 1. if page 2 scroll position is falsely (0, 0) elements might fail to transition properly.
                      *    has a lot to do with how scrolling works in this implementation.
                      */
-                    end_pos.x = Math.abs(end_pos.x - travel_distance.x);
-                    end_pos.y = Math.abs(end_pos.y - travel_distance.y);
+                    transition_state.end.x.position = Math.abs(transition_state.end.x.position - travel_distance.x);
+                    transition_state.end.y.position = Math.abs(transition_state.end.y.position - travel_distance.y);
 
+                    // (end_node.firstChild as HTMLElement).style.transform = `translateY(${end_pos.y}px)`;
+                    // end_node.style.transform = `translateX(${end_pos.x}px)`;
+                    transition_state.end.y.node.style.transition = `all ${transition_state.end.y.duration}ms ${transition_state.end.y.easing_function}`;
+                    
+                    transition_state.end.x.node.style.transition = `all ${transition_state.end.x.duration}ms ${transition_state.end.x.easing_function}`;
 
-                    (end_node.firstChild as HTMLElement).style.transform = `translateY(${end_pos.y}px)`;
-                    end_node.style.transform = `translateX(${end_pos.x}px)`;
-                    (end_node.firstChild as HTMLElement).style.transition = `all ${y_duration}ms ${end_instance.props.config?.easing_function ||'ease'}`;
-                    end_node.style.transition = `all ${x_duration}ms ${end_instance.props.config?.easing_function ||'ease'}`;
-
-                    window.requestAnimationFrame(() => {
-                        // start_node.style.transform = end_node.style.transform;
-                        start_node.animate([
+                    const x_animation = transition_state.start.x.node.animate([
+                        {
+                            transform: `translate(${transition_state.start.x.position}px, 0px)`
+                        },
+                        {
+                            ...get_style_object(transition_state.end.x.node.style),
+                            transform: `translate(${transition_state.end.x.position}px, 0px)`
+                        }
+                    ],
+                    {
+                        easing: transition_state.end.x.easing_function,
+                        duration: this.props.animation.duration
+                    });
+                    const y_animation = transition_state.start.y.node.animate(
+                        [
                             {
-                                transform: start_node.style.transform
+                                transform: `translate(0px, ${transition_state.start.y.position}px)`
                             },
                             {
-                                transform: end_node.style.transform
+                                ...get_style_object(transition_state.end.y.node.style),
+                                transform: `translate(0px, ${transition_state.end.y.position}px)`
                             }
                         ],
                         {
+                            easing: transition_state.end.y.easing_function,
                             duration: this.props.animation.duration
-                        });
-                        (start_node.firstChild as HTMLElement).style.cssText = get_css_text((end_node.firstChild as HTMLElement).style);
-                    });
+                        }
+                    );
+
 
                     setTimeout(() => {
                         start_instance.hidden = false;

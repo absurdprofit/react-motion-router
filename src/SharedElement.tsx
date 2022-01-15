@@ -50,7 +50,7 @@ namespace SharedElement {
 
     type EasingFunctionKeyword = keyof typeof EasingFunctionKeywordEnum;
 
-    type EasingFunction = EasingFunctionKeyword | string;
+    export type EasingFunction = EasingFunctionKeyword | string;
 
     type TransformOriginGlobal = keyof typeof TransformOriginGlobalEnum;
 
