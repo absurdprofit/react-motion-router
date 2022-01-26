@@ -1,4 +1,3 @@
-import assert from 'assert';
 import React, {createContext} from 'react';
 import {get_css_text, clamp, Vec2} from './common/utils';
 
@@ -107,7 +106,10 @@ namespace SharedElement {
             this._name = name;
         }
         add_node(node: SharedElementNode) {
-            assert(!Object.keys(this.nodes).includes(node.id), `Duplicate Shared Element ID: ${node.id} in ${this._name}`);
+            if (Object.keys(this.nodes).includes(node.id)) {
+                console.assert(!Object.keys(this.nodes).includes(node.id), `Duplicate Shared Element ID: ${node.id} in ${this._name}`);
+                throw new Error(`Duplicate Shared Element ID: '${node.id}' in Component: '${this._name}'`);
+            }
             this._nodes[node.id] = node;
         }
 

@@ -25,7 +25,7 @@ export namespace Stack {
     
     export class Screen extends React.Component<ScreenProps, ScreenState> {
         private transition_string : string = "";
-        private shared_element_scene: SharedElement.Scene = new SharedElement.Scene(this.props.path);
+        private shared_element_scene: SharedElement.Scene = new SharedElement.Scene(this.props.component.name);
         private ref: HTMLElement | null = null;
         private observer: ResizeObserver = new ResizeObserver(this.observe.bind(this));
         private scroll_pos: Vec2 = {
