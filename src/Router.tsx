@@ -35,7 +35,7 @@ interface Config {
 }
 interface RouterProps {
     config: Config;
-    children: React.ReactChild[];
+    children: React.ReactChild[] | React.ReactChild;
 }
 
 interface RoutesData {[key:string]: any}
@@ -190,7 +190,12 @@ export default class Router extends React.Component<RouterProps, RouterState> {
             };
         }
 
-        this.setState({current_path: window.location.pathname, routes_data: routes_data}, () => {
+        let current_path = window.location.pathname;
+        if (this.props.config.default_route && window.location.pathname === '/' && this.props.config.default_route !== '/') {
+            this.navigation.navigate(this.props.config.default_route);
+            current_path = this.props.config.default_route;
+        }
+        this.setState({current_path: current_path, routes_data: routes_data}, () => {
             this._router_data.routes_data = this.state.routes_data;
         });
         this._router_data.current_path = window.location.pathname;

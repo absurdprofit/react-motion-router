@@ -1,6 +1,6 @@
 import React from 'react';
 import SharedElement from './SharedElement';
-import {get_css_text} from './common/utils';
+import {clamp, get_css_text} from './common/utils';
 import { AnimationConfig } from './Router';
 import {Vec2, get_style_object} from './common/utils';
 
@@ -108,8 +108,6 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     end_node.style.display = 'unset';
 
 
-                    transition_state.start.y.node.style.transition = `all ${transition_state.end.y.duration}ms ${transition_state.end.y.easing_function}`;
-                    transition_state.start.x.node.style.transition = `all ${transition_state.end.x.duration}ms ${transition_state.end.x.easing_function}`;
                     this.ref?.appendChild(start_node);
 
                     
@@ -130,11 +128,6 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     transition_state.end.x.position = Math.abs(transition_state.end.x.position - travel_distance.x);
                     transition_state.end.y.position = Math.abs(transition_state.end.y.position - travel_distance.y);
 
-                    // (end_node.firstChild as HTMLElement).style.transform = `translateY(${end_pos.y}px)`;
-                    // end_node.style.transform = `translateX(${end_pos.x}px)`;
-                    transition_state.end.y.node.style.transition = `all ${transition_state.end.y.duration}ms ${transition_state.end.y.easing_function}`;
-                    
-                    transition_state.end.x.node.style.transition = `all ${transition_state.end.x.duration}ms ${transition_state.end.x.easing_function}`;
 
                     const x_animation = transition_state.start.x.node.animate([
                         {
@@ -146,8 +139,9 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         }
                     ],
                     {
+                        fill: 'forwards',
                         easing: transition_state.end.x.easing_function,
-                        duration: this.props.animation.duration
+                        duration: clamp(transition_state.end.x.duration, 0, this.props.animation.duration)
                     });
                     const y_animation = transition_state.start.y.node.animate(
                         [
@@ -160,17 +154,25 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             }
                         ],
                         {
+                            fill: 'forwards',
                             easing: transition_state.end.y.easing_function,
-                            duration: this.props.animation.duration
+                            duration: clamp(transition_state.end.y.duration, 0, this.props.animation.duration)
                         }
                     );
 
-
-                    setTimeout(() => {
+                    const unhide = () => {
                         start_instance.hidden = false;
                         end_instance.hidden = false;
                         this.ref?.removeChild(start_node);
-                    }, this.props.animation.duration);
+                    };
+
+                    if (transition_state.end.y.duration > transition_state.end.x.duration) {
+                        y_animation.oncancel = unhide;
+                        y_animation.onfinish = unhide;
+                    } else {
+                        x_animation.oncancel = unhide;
+                        x_animation.onfinish = unhide;
+                    }
                 }
             }
         });

@@ -12,11 +12,11 @@ function App() {
   return (
     <div className="App">
       <Router config={{
-        default_route: '/',
+        default_route: '/tiles',
         page_load_transition: false,
         animation: {
           type: "fade",
-          duration: 1000,
+          duration: 300,
         }
       }}>
         <Stack.Screen
