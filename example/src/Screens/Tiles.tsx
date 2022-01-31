@@ -20,7 +20,7 @@ export default class Tiles extends React.Component<TilesProps, TilesState> {
         return(
             <div className="tiles">
                 <SharedElement id="navbar">
-                    <Navbar title="Tiles Demo" on_back={() => this.props.navigation.go_back()} />
+                    <Navbar title="Tiles Demo" onBack={() => this.props.navigation.goBack()} />
                 </SharedElement>
                 <div className="content">
                     {this.state.heroes.map((hero: Hero, index: number) => {

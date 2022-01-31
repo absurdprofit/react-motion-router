@@ -16,7 +16,7 @@ export default function Cards(props: CardsProps) {
     return (
         <div className="cards">
             <SharedElement id="navbar">
-                <Navbar title="Cards Demo" on_back={() => props.navigation.go_back()} />
+                <Navbar title="Cards Demo" onBack={() => props.navigation.goBack()} />
             </SharedElement>
             <div className="card-list">
             {

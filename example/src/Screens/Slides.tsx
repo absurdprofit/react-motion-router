@@ -18,18 +18,18 @@ interface SlidesProps {
     }
 }
 export default function Slides(props: SlidesProps) {
-    const [index, set_index] = useState(props.route.params.hero);
+    const [index, setIndex] = useState(props.route.params.hero);
     return (
         <div className="slides">
             <div className="back">
-                <IconButton style={{color: 'white'}} onClick={() => props.navigation.go_back()}>
+                <IconButton style={{color: 'white'}} onClick={() => props.navigation.goBack()}>
                     <ClearIcon />
                 </IconButton>
             </div>
             <div className="title">
                 <h2>{Heroes[index].name}</h2>
             </div>
-            <KeyboardSwipeableViews onChangeIndex={(index: number) => set_index(index)} index={index}>
+            <KeyboardSwipeableViews onChangeIndex={(index: number) => setIndex(index)} index={index}>
             {
                 Heroes.map((hero: Hero, _index: number) => {
                     return (

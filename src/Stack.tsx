@@ -4,31 +4,35 @@ import "./css/Transition.css";
 import SharedElement from './SharedElement';
 import { AnimationConfig, RouterDataContext } from './Router';
 import {Vec2} from './common/utils';
+import { AnimationProvider } from './AnimationLayer';
 
 interface ScreenProps {
     component: any;
     path: string;
-    default_params?: {};
+    defaultParams?: {};
     config?: {
-        animation: AnimationConfig;
+        animation?: {
+            in: AnimationConfig;
+            out?: AnimationConfig;
+        };
     };
 }
 
 interface ScreenState {
     _in: boolean;
-    x_overflow: boolean;
-    y_overflow: boolean;
+    xOverflow: boolean;
+    yOverflow: boolean;
 }
 
 
 export namespace Stack {
     
     export class Screen extends React.Component<ScreenProps, ScreenState> {
-        private transition_string : string = "";
-        private shared_element_scene: SharedElement.Scene = new SharedElement.Scene(this.props.component.name);
+        private transitionString : string = "";
+        private sharedElementScene: SharedElement.Scene = new SharedElement.Scene(this.props.component.name);
         private ref: HTMLElement | null = null;
         private observer: ResizeObserver = new ResizeObserver(this.observe.bind(this));
-        private scroll_pos: Vec2 = {
+        private scrollPos: Vec2 = {
             x: 0,
             y: 0
         }
@@ -42,12 +46,17 @@ export namespace Stack {
 
         state: ScreenState  = {
             _in: false,
-            x_overflow: false,
-            y_overflow: true
+            xOverflow: false,
+            yOverflow: true
         }
 
+        componentDidMount() {
+            this.setState({_in: Boolean(this.props.path === this.context.currentPath)});
+        }
+        
         componentDidUpdate() {
-            if (this.props.path === this.context.current_path) {
+            console.log(this.context.currentPath);
+            if (this.props.path !== this.context.currentPath) {
                 if (!this.state._in) {
                     this.setState({_in: true});
                 }
@@ -66,42 +75,42 @@ export namespace Stack {
 
         observe(entries: ResizeObserverEntry[]) {
             if (entries.length) {
-                const x_overflow = entries[0].target.scrollWidth > window.innerWidth; 
-                const y_overflow = entries[0].target.scrollHeight > window.innerHeight;
+                const xOverflow = entries[0].target.scrollWidth > window.innerWidth; 
+                const yOverflow = entries[0].target.scrollHeight > window.innerHeight;
 
-                if (x_overflow !== this.state.x_overflow) {
-                    this.setState({x_overflow: x_overflow});
+                if (xOverflow !== this.state.xOverflow) {
+                    this.setState({xOverflow: xOverflow});
                 }
-                if (y_overflow !== this.state.y_overflow) {
-                    this.setState({y_overflow: y_overflow});
+                if (yOverflow !== this.state.yOverflow) {
+                    this.setState({yOverflow: yOverflow});
                 }
             }
         }
 
-        on_exit() {
+        onExit() {
             
             if (this.ref) {
-                this.scroll_pos = {
+                this.scrollPos = {
                     x: this.ref.scrollLeft,
                     y: this.ref.scrollTop
                 }
                 
-                this.shared_element_scene.scroll_pos = this.scroll_pos;
+                this.sharedElementScene.scrollPos = this.scrollPos;
             }
-            if (this.context.ghost_layer) {
-                this.context.ghost_layer.current_scene = this.shared_element_scene;
+            if (this.context.ghostLayer) {
+                this.context.ghostLayer.currentScene = this.sharedElementScene;
             }
         }
 
-        on_entering() {
-            this.ref?.scrollTo(this.scroll_pos.x, this.scroll_pos.y);
+        onEnter() {
+            this.ref?.scrollTo(this.scrollPos.x, this.scrollPos.y);
             
-            if (this.context.ghost_layer) {
-                this.context.ghost_layer.next_scene = this.shared_element_scene;
+            if (this.context.ghostLayer) {
+                this.context.ghostLayer.nextScene = this.sharedElementScene;
             }
         }
 
-        private set_ref(ref: HTMLElement | null) {
+        private setRef(ref: HTMLElement | null) {
             if (this.ref !== ref) {
                 if (this.ref) {
                     this.observer.unobserve(this.ref);
@@ -119,46 +128,69 @@ export namespace Stack {
             //convert animation into {animation_type}-{animation_direction}
             //e.g. slide-right
             //if animation is fade set animation type only
-            const animation_type = this.context.animation!.type || this.props.config?.animation.type;
-            const animation_direction = this.context.animation!.direction || this.props.config?.animation.direction;
-            
-            if (animation_type === "slide" || animation_type === "zoom") {
-                if (animation_type === "zoom") {
-                    this.transition_string = `${animation_type}-${animation_direction || 'in'}`;
+            let animationDirection;
+            let animationType;
+            let duration;
+            if (this.context.backNavigating) {
+                if (this.props.config?.animation && this.props.config.animation.out) {
+                    animationType = this.props.config?.animation.out.type;
+                    animationDirection = this.props.config?.animation.out.direction;
+                    duration = this.props.config.animation.out.duration;
                 } else {
-                    this.transition_string = `${animation_type}-${animation_direction || 'right'}`;
+                    animationType = this.context.animation!.out.type;
+                    animationDirection = this.context.animation!.out.direction;
+                    duration = this.context.animation.out.duration || 200;
                 }
             } else {
-                this.transition_string = `${animation_type}`;
+                if (this.props.config?.animation && this.props.config.animation.in) {
+                    animationType = this.props.config?.animation.in.type;
+                    animationDirection = this.props.config?.animation.in.direction;
+                    duration = this.props.config.animation.in.duration;
+                } else {
+                    animationType = this.context.animation!.in.type;
+                    animationDirection = this.context.animation!.in.direction;
+                    duration = this.context.animation.in.duration || 200;
+                }
             }
+            
+            if (animationType === "slide" || animationType === "zoom") {
+                if (animationType === "zoom") {
+                    this.transitionString = `${animationType}-${animationDirection || 'in'}`;
+                } else {
+                    this.transitionString = `${animationType}-${animationDirection || 'right'}`;
+                }
+            } else {
+                this.transitionString = `${animationType}`;
+            }
+
             return (
-                <CSSTransition
-                    onExit={this.on_exit.bind(this)}
-                    onEntering={this.on_entering.bind(this)}
-                    timeout={this.props.config?.animation ? this.props.config.animation.duration : this.context.animation.duration || 200}
-                    in={this.state._in}
-                    classNames={`screen ${this.transition_string}`}
-                    style={{
-                        height: '100vh',
-                        minWidth: '100vw',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        overflowX: this.state.x_overflow ? 'scroll' : undefined,
-                        overflowY: this.state.y_overflow ? 'scroll' : undefined
-                    }}
-                    unmountOnExit
+                <AnimationProvider
+                    onExit={this.onExit.bind(this)}
+                    onEnter={this.onEnter.bind(this)}
+                    in={this.props.path === this.context.currentPath}
                 >
-                    <div ref={this.set_ref.bind(this)} className="screen-content">
-                        <SharedElement.SceneContext.Provider value={this.shared_element_scene}>
+                    <div
+                        ref={this.setRef.bind(this)}
+                        className="screen-content"
+                        style={{
+                            height: '100vh',
+                            minWidth: '100vw',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            overflowX: this.state.xOverflow ? 'scroll' : undefined,
+                            overflowY: this.state.yOverflow ? 'scroll' : undefined
+                        }}
+                    >
+                        <SharedElement.SceneContext.Provider value={this.sharedElementScene}>
                             <this.props.component
-                                route={this.context.routes_data[this.props.path] || {
-                                    params: this.props.default_params
+                                route={this.context.routesData[this.props.path] || {
+                                    params: this.props.defaultParams
                                 }}
                                 navigation={this.context.navigation}
                             />
                         </SharedElement.SceneContext.Provider>
                     </div>
-                </CSSTransition>
+                </AnimationProvider>
             );
         }
     }

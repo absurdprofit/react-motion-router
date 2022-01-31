@@ -17,19 +17,19 @@ export default function Details(props: DetailsProps) {
     if (props.route.params.profile) {
         return (
             <div className="details" style={{width: "100%", height: "100%"}}>
-                <IconButton style={{position: "absolute", color: 'white'}} onClick={() => {props.navigation.go_back()}}>
+                <IconButton style={{position: "absolute", color: 'white'}} onClick={() => {props.navigation.goBack()}}>
                     <ClearIcon />
                 </IconButton>
                 <div className="profile-info">
                     <SharedElement config={{
-                        transform_origin: 'bottom bottom',
+                        transformOrigin: 'bottom bottom',
                         x: {
                             duration: 900,
-                            easing_function: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                            easingFunction: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)'
                         },
                         y: {
                             duration: 750,
-                            easing_function: 'ease-out'
+                            easingFunction: 'ease-out'
                         }
                     }} id={props.route.params.profile.id}>
                         <img src={props.route.params.profile.photo} alt="profile-details" />
@@ -47,7 +47,7 @@ export default function Details(props: DetailsProps) {
         return (
             <div className="details">
                 <h1>Return Home</h1>
-                <button onClick={() => {props.navigation.go_back()}}>Back</button>
+                <button onClick={() => {props.navigation.goBack()}}>Back</button>
             </div>
         );
     }

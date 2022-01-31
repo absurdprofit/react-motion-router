@@ -12,17 +12,19 @@ function App() {
   return (
     <div className="App">
       <Router config={{
-        default_route: '/tiles',
-        page_load_transition: false,
+        defaultRoute: '/',
+        pageLoadTransition: false,
         animation: {
-          type: "fade",
-          duration: 300,
+          in: {
+            type: "slide",
+            duration: 300,
+          }
         }
       }}>
         <Stack.Screen
           path={'/slides'}
           component={Slides}
-          default_params={{hero: 0}}
+          defaultParams={{hero: 0}}
         />
         <Stack.Screen
           path={'/cards'}
@@ -31,7 +33,7 @@ function App() {
         <Stack.Screen
           path={"/details"}
           component={Details}
-          default_params={{data: "Default"}}
+          defaultParams={{data: "Default"}}
           
         />
         <Stack.Screen
@@ -41,12 +43,12 @@ function App() {
         <Stack.Screen
           path={"/post"}
           component={Post}
-          default_params={{data: "Default"}}
+          defaultParams={{data: "Default"}}
         />
         <Stack.Screen
           path={"/tiles"}
           component={Tiles}
-          default_params={{params: "data"}}
+          defaultParams={{params: "data"}}
         />
       </Router>
     </div>  

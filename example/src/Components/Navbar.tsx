@@ -5,15 +5,15 @@ import '../css/Navbar.css';
 
 interface NavbarProps {
     title: string;
-    on_back?: React.MouseEventHandler<HTMLButtonElement>;
+    onBack?: React.MouseEventHandler<HTMLButtonElement>;
 }
 export default function Navbar(props: NavbarProps) {
     return (
         <div className="navbar">
             <div className="back">
                 {
-                    props.on_back ?
-                    <IconButton onClick={props.on_back}>
+                    props.onBack ?
+                    <IconButton onClick={props.onBack}>
                         <ChevronLeftIcon />
                     </IconButton>
                     :
