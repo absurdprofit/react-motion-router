@@ -131,3 +131,7 @@ html, body {
   height: 100vh;
   pointer-events: none;
 }
+
+.animation-provider {
+  position: absolute;
+}

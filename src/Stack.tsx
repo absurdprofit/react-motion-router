@@ -6,7 +6,9 @@ import { AnimationConfig, RouterDataContext } from './Router';
 import {Vec2} from './common/utils';
 import { AnimationProvider } from './AnimationLayer';
 
-interface ScreenProps {
+export interface ScreenProps {
+    out?: boolean;
+    in?: boolean;
     component: any;
     path: string;
     defaultParams?: {};
@@ -55,7 +57,6 @@ export namespace Stack {
         }
         
         componentDidUpdate() {
-            console.log(this.context.currentPath);
             if (this.props.path !== this.context.currentPath) {
                 if (!this.state._in) {
                     this.setState({_in: true});
@@ -124,50 +125,57 @@ export namespace Stack {
             }
         }
 
+        set mounted(_mounted: boolean) {
+            
+        }
+
         render() {
             //convert animation into {animation_type}-{animation_direction}
             //e.g. slide-right
             //if animation is fade set animation type only
-            let animationDirection;
-            let animationType;
-            let duration;
-            if (this.context.backNavigating) {
-                if (this.props.config?.animation && this.props.config.animation.out) {
-                    animationType = this.props.config?.animation.out.type;
-                    animationDirection = this.props.config?.animation.out.direction;
-                    duration = this.props.config.animation.out.duration;
-                } else {
-                    animationType = this.context.animation!.out.type;
-                    animationDirection = this.context.animation!.out.direction;
-                    duration = this.context.animation.out.duration || 200;
-                }
-            } else {
-                if (this.props.config?.animation && this.props.config.animation.in) {
-                    animationType = this.props.config?.animation.in.type;
-                    animationDirection = this.props.config?.animation.in.direction;
-                    duration = this.props.config.animation.in.duration;
-                } else {
-                    animationType = this.context.animation!.in.type;
-                    animationDirection = this.context.animation!.in.direction;
-                    duration = this.context.animation.in.duration || 200;
-                }
-            }
+            // let animationDirection;
+            // let animationType;
+            // let duration;
+            // if (this.context.backNavigating) {
+            //     if (this.props.config?.animation && this.props.config.animation.out) {
+            //         animationType = this.props.config?.animation.out.type;
+            //         animationDirection = this.props.config?.animation.out.direction;
+            //         duration = this.props.config.animation.out.duration;
+            //     } else {
+            //         animationType = this.context.animation!.out.type;
+            //         animationDirection = this.context.animation!.out.direction;
+            //         duration = this.context.animation.out.duration || 200;
+            //     }
+            // } else {
+            //     if (this.props.config?.animation && this.props.config.animation.in) {
+            //         animationType = this.props.config?.animation.in.type;
+            //         animationDirection = this.props.config?.animation.in.direction;
+            //         duration = this.props.config.animation.in.duration;
+            //     } else {
+            //         animationType = this.context.animation!.in.type;
+            //         animationDirection = this.context.animation!.in.direction;
+            //         duration = this.context.animation.in.duration || 200;
+            //     }
+            // }
             
-            if (animationType === "slide" || animationType === "zoom") {
-                if (animationType === "zoom") {
-                    this.transitionString = `${animationType}-${animationDirection || 'in'}`;
-                } else {
-                    this.transitionString = `${animationType}-${animationDirection || 'right'}`;
-                }
-            } else {
-                this.transitionString = `${animationType}`;
-            }
-
+            // if (animationType === "slide" || animationType === "zoom") {
+            //     if (animationType === "zoom") {
+            //         this.transitionString = `${animationType}-${animationDirection || 'in'}`;
+            //     } else {
+            //         this.transitionString = `${animationType}-${animationDirection || 'right'}`;
+            //     }
+            // } else {
+            //     this.transitionString = `${animationType}`;
+            // }
             return (
                 <AnimationProvider
                     onExit={this.onExit.bind(this)}
                     onEnter={this.onEnter.bind(this)}
-                    in={this.props.path === this.context.currentPath}
+                    in={this.props.in || false}
+                    out={this.props.out || false}
+                    name={this.props.path}
+                    animation={this.context!.animation}
+                    backNavigating={this.context!.backNavigating}
                 >
                     <div
                         ref={this.setRef.bind(this)}
@@ -184,7 +192,7 @@ export namespace Stack {
                         <SharedElement.SceneContext.Provider value={this.sharedElementScene}>
                             <this.props.component
                                 route={this.context.routesData[this.props.path] || {
-                                    params: this.props.defaultParams
+                                    params: this.props.defaultParams || {}
                                 }}
                                 navigation={this.context.navigation}
                             />

@@ -1,9 +1,8 @@
 import React, { createContext } from 'react';
 import {Navigation} from './common/utils';
-import {TransitionGroup} from 'react-transition-group';
 import AnimationLayer, { AnimationProvider } from './AnimationLayer';
 import GhostLayer from './GhostLayer';
-import { Stack } from '.';
+import { ScreenChild, ScreenChildren, Stack } from '.';
 
 enum AnimationDirectionEnum {
     up,
@@ -40,7 +39,7 @@ interface Config {
 }
 interface RouterProps {
     config: Config;
-    children: React.ReactElement<Stack.Screen> | React.ReactElement<Stack.Screen>[];
+    children: ScreenChild | ScreenChildren;
 }
 
 interface RoutesData {[key:string]: any}
@@ -152,7 +151,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         this._routerData.navigation = this.navigation;
         this._routerData.animation = {
             in: this.config.animation.in,
-            out: this.config.animation.out || this.animationDirectionSwap(this.config.animation.in)
+            out: this.config.animation.out || this.config.animation.in
         };
     }
     state: RouterState = {
@@ -248,6 +247,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
             this._routerData.backNavigating = true;
             setTimeout(() => {
                 this._routerData.backNavigating = false;
+                this.setState({backNavigating: false});
             }, this._routerData.animation.out.duration);
         }, true);
 
@@ -261,6 +261,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
             this._routerData.backNavigating = true;
             setTimeout(() => {
                 this._routerData.backNavigating = false;
+                this.setState({backNavigating: false});
             }, this._routerData.animation.out.duration);
             this._routerData.currentPath = window.location.pathname;
             this.setState({currentPath: window.location.pathname});
@@ -308,12 +309,12 @@ export default class Router extends React.Component<RouterProps, RouterState> {
                         }}
                         backNavigating={this.state.backNavigating}
                     />
-                    {this.props.children}
                     <AnimationLayer
                         shoudAnimate={Boolean(this._pageLoad || this.props.config.pageLoadTransition)}
                         currentPath={this.state.currentPath}
                         // style={!this._pageLoad || this.props.config.pageLoadTransition ? {transition: `all ${this.props.config?.animation.in.duration || 200}ms`} : undefined}
                     >
+                        {this.props.children}
                     </AnimationLayer>
                 </RouterDataContext.Provider>
             </div>

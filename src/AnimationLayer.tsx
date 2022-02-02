@@ -1,7 +1,8 @@
 import React, { createContext } from 'react';
 import {SwipeEndEvent, SwipeEvent, SwipeStartEvent} from 'web-gesture-events';
+import { ScreenChild, ScreenChildren } from '.';
 import AnimationKeyframePresets from './Animations';
-import { Stack } from './Stack';
+import { AnimationConfig } from './Router';
 
 // export interface ScreenMap {
 //     [key:string]: Stack.Screen;
@@ -31,17 +32,29 @@ export class AnimationLayerData {
     private _currentScreen: AnimationProvider | null = null;
     private _nextScreen: AnimationProvider | null = null;
 
-    private animate(currentScreen: AnimationProvider, nextScreen: AnimationProvider) {
-        setTimeout(() => {
-            if (currentScreen) {
-                currentScreen.mounted = false;
-                currentScreen.forceUpdate();
+    animate() {
+        if (this._currentScreen && this._nextScreen) {
+            // currentScreen.mounted = false;
+            this._nextScreen.mounted = true;
+            const outAnimation = this._currentScreen.animate(AnimationKeyframePresets[this._currentScreen.outAnimation as keyof typeof AnimationKeyframePresets], {
+                duration: 500,
+                fill: 'forwards'
+            });
+            const inAnimation = this._nextScreen.animate(AnimationKeyframePresets[this._nextScreen.inAnimation as keyof typeof AnimationKeyframePresets], {
+                duration: 500,
+                fill: 'forwards'
+            });
+
+            if (inAnimation) {
             }
-            if (nextScreen) {
-                nextScreen.mounted = true;
-                nextScreen.forceUpdate();
+            if (outAnimation) {
+                outAnimation.onfinish = () => {
+                    if (this._currentScreen) {
+                        this._currentScreen.mounted = false;
+                    }
+                }
             }
-        }, 250);
+        }
     }
 
     set playing(_playing: boolean) {
@@ -54,13 +67,11 @@ export class AnimationLayerData {
 
     set nextScreen(_screen: AnimationProvider) {
         this._nextScreen = _screen;
-        if (this._currentScreen) {
-            this.animate(this.currentScreen, this._nextScreen);
-        } else {
+        if (!this._currentScreen) {
             _screen.mounted = true;
-            _screen.forceUpdate();
 
             this._nextScreen = null;
+            // this.animate(this._currentScreen, this._nextScreen);
         }
     }
 
@@ -75,10 +86,26 @@ interface AnimationProviderProps {
     onExit: Function;
     onEnter: Function;
     in: boolean;
+    out: boolean;
+    name: string;
+    animation: {
+        in: AnimationConfig;
+        out: AnimationConfig;
+    };
+    backNavigating: boolean;
 }
 
 interface AnimationProviderState {
     mounted: boolean;
+}
+
+const OppositeDirection = {
+    "left": "right" as const,
+    "right": "left" as const,
+    "up": "down" as const,
+    "down": "up" as const,
+    "in": "out" as const,
+    "out": "in" as const
 }
 
 export class AnimationProvider extends React.Component<AnimationProviderProps, AnimationProviderState> {
@@ -95,33 +122,78 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
     }
 
     componentDidMount() {
-        if (this.props.in) {
-            if (this.props.onEnter) this.props.onEnter();
+        if (this._animationLayerData) {
+            if (this.props.in) {
+                this._animationLayerData.nextScreen = this;
+                if (this.props.onEnter) this.props.onEnter();
+            }
         }
-
-        this.setState({mounted: this.props.in});
+        // this.setState({mounted: this.props.in});
     }
 
-    shouldComponentUpdate(nextProps: AnimationProviderProps) {
-        if (this.props.in !== nextProps.in && this._animationLayerData) {
-            if (nextProps.in) {
-                // set next screen and call onEnter
-                this._animationLayerData.nextScreen = this;
-                if (this.props.onEnter) {
-                    this.props.onEnter();
-                }
-            } else {
+    componentDidUpdate(prevProps: AnimationProviderProps) {
+        if (!this._animationLayerData) return;
+        if (this.props.out !== prevProps.out || this.props.in !== prevProps.in) {
+            if (this.props.out) {
                 // set current screen and call onExit
                 this._animationLayerData.currentScreen = this;
                 if (this.props.onExit) {
                     this.props.onExit();
                 }
+            } else if (this.props.in) {
+                this._animationLayerData.nextScreen = this;
+                if (this.props.onEnter) this.props.onEnter();
             }
-
-            return true;
         }
+    }
 
-        return false;
+
+    get inAnimation() {
+        let direction = this.props.animation.in.direction;
+        let directionPrefix = '';
+        if (this.props.backNavigating && direction) {
+            if (this.props.animation.in.type === "zoom" || this.props.animation.in.type === "slide") {
+                direction = OppositeDirection[direction];
+                directionPrefix = 'back-';
+            }
+        }
+        switch(this.props.animation.in.type) {
+            case "slide":
+                return `slide-${directionPrefix + direction || 'left'}-in`;
+
+            case "zoom":
+                return `zoom-${direction || 'in'}-in`;
+            
+            case "fade":
+                return "fade-in";
+            
+            default:
+                return "none";
+        }
+    }
+
+    get outAnimation(): string {
+        let direction = this.props.animation.out.direction;
+        let directionPrefix = '';
+        if (this.props.backNavigating && direction) {
+            if (this.props.animation.out.type === "zoom" || this.props.animation.out.type === "slide") {
+                direction = OppositeDirection[direction];
+                directionPrefix = 'back-'
+            }
+        }
+        switch(this.props.animation.out.type) {
+            case "slide":
+                return `slide-${directionPrefix + direction || 'left'}-out`;
+
+            case "zoom":
+                return `zoom-${direction || 'in'}-out`;
+            
+            case "fade":
+                return "fade-out";
+            
+            default:
+                return "none";
+        }
     }
 
     animate(keyframes: Keyframe[] | PropertyIndexedKeyframes | null, options?: number | KeyframeAnimationOptions | undefined): Animation | undefined {
@@ -134,41 +206,83 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
 
     render() {
         return (
-            <AnimationLayerDataContext.Consumer>
-                {(animationLayerData) => {
-                    this._animationLayerData = animationLayerData;
+            <div className="animation-provider" ref={this.setRef} style={{
+                zIndex: this.props.in && !this.props.backNavigating ? 1 : this.props.out && this.props.backNavigating ? 1 : 0
+            }}>
+                <AnimationLayerDataContext.Consumer>
+                    {(animationLayerData) => {
+                        this._animationLayerData = animationLayerData;
 
-                    if (this.props.in) {
-                        return (
-                            <div className="animation-privder" ref={this.setRef}>
-                                {this.props.children}
-                            </div>
-                        );
-                    } else {
-                        return <></>;
-                    }
+                        if (this.state.mounted) {
+                            return this.props.children;
+                        } else {
+                            return <></>;
+                        }
                 }}
-            </AnimationLayerDataContext.Consumer>
-        );
+                </AnimationLayerDataContext.Consumer>
+            </div>
+        ); 
     }
 }
 
 interface AnimationLayerProps {
-    children: React.ReactElement<Stack.Screen> | React.ReactElement<Stack.Screen>[];
+    children: ScreenChild | ScreenChildren;
     shoudAnimate: boolean;
     currentPath: string;
 }
 
-export default class AnimationLayer extends React.Component<AnimationLayerProps, {}> {
+interface AnimationLayerState {
+    currentPath: string;
+    children: ScreenChild | ScreenChildren;
+}
+
+// type of children coerces type in React.Children.map such that 'path' is available on props
+export default class AnimationLayer extends React.Component<AnimationLayerProps, AnimationLayerState> {
     private onSwipeStartListener = this.onSwipeStart.bind(this);
     private onSwipeListener = this.onSwipe.bind(this);
     private onSwipeEndListener = this.onSwipeEnd.bind(this);
     private animationLayerData = new AnimationLayerData();
 
+    state: AnimationLayerState = {
+        currentPath: this.props.currentPath,
+        children: this.props.children
+    }
+
     componentDidMount() {
         window.addEventListener('swipestart', this.onSwipeStartListener);
         window.addEventListener('swipe', this.onSwipeListener);
         window.addEventListener('swipeend', this.onSwipeEndListener);
+    }
+
+    static getDerivedStateFromProps(nextProps: AnimationLayerProps, state: AnimationLayerState) {
+        if (nextProps.currentPath !== state.currentPath) {
+            return {
+                children: React.Children.map(
+                    nextProps.children,
+                    (child: ScreenChild) => {
+                        if (React.isValidElement(child)) {
+                            if (child.props.path === nextProps.currentPath) {
+                                const element = React.cloneElement(child, {...child.props, in: true, out: false});
+                                return element;
+                            } else if (child.props.path === state.currentPath) {
+                                const element = React.cloneElement(child, {...child.props, out: true, in: false});
+                                return element;
+                            } else {
+                                return undefined;
+                            }
+                        }
+                    }
+                ),
+                currentPath: nextProps.currentPath
+            }
+        }
+        return state;
+    }
+
+    componentDidUpdate(prevProps: AnimationLayerProps) {
+        if (prevProps.currentPath !== this.state.currentPath) {
+            this.animationLayerData.animate();
+        }
     }
 
     componentWillUnmount() {
@@ -192,7 +306,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
     render() {
         return (
             <AnimationLayerDataContext.Provider value={this.animationLayerData}>
-                {this.props.children}
+                {this.state.children}
             </AnimationLayerDataContext.Provider>
         );
     }

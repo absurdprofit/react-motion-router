@@ -1,6 +1,15 @@
 // animation keyframes for slide left, slide right, slide up, slide down, zoom in, zoom out and fade
-const AnimationKeyframePresets: {[key:string]:Keyframe[]} = {
+const Presets = {
     "slide-right-in": [
+        {
+            transform: 'translateX(100vw)',
+            
+        },
+        {
+            transform: 'translateX(0vw)'
+        }
+    ],
+    "slide-back-right-in": [
         {
             transform: 'translateX(50vw)',
             
@@ -14,10 +23,26 @@ const AnimationKeyframePresets: {[key:string]:Keyframe[]} = {
             transform: 'translateX(0vw)'
         },
         {
+            transform: 'translateX(-50vw)'
+        }
+    ],
+    "slide-back-right-out": [
+        {
+            transform: 'translateX(0vw)'
+        },
+        {
             transform: 'translateX(-100vw)'
         }
     ],
     "slide-left-in": [
+        {
+            transform: 'translateX(-100vw)'
+        },
+        {
+            transform: 'translateX(0vw)'
+        }
+    ],
+    "slide-back-left-in": [
         {
             transform: 'translateX(-50vw)'
         },
@@ -30,10 +55,26 @@ const AnimationKeyframePresets: {[key:string]:Keyframe[]} = {
             transform: 'translateX(0vw)'
         },
         {
+            transform: 'translateX(50vw)'
+        }
+    ],
+    "slide-back-left-out": [
+        {
+            transform: 'translateX(0vw)'
+        },
+        {
             transform: 'translateX(100vw)'
         }
     ],
     "slide-up-in": [
+        {
+            transform: 'translateY(100vh)'
+        },
+        {
+            transform: 'translateY(0vh)'
+        }
+    ],
+    "slide-back-up-in": [
         {
             transform: 'translateY(50vh)'
         },
@@ -46,10 +87,26 @@ const AnimationKeyframePresets: {[key:string]:Keyframe[]} = {
             transform: 'translateY(0vh)'
         },
         {
+            transform: 'translateY(-50vh)'
+        }
+    ],
+    "slide-back-up-out": [
+        {
+            transform: 'translateY(0vh)'
+        },
+        {
             transform: 'translateY(-100vh)'
         }
     ],
     "slide-down-in": [
+        {
+            transform: 'translateY(-100vh)'
+        },
+        {
+            transform: 'translateY(0vh)'
+        }
+    ],
+    "slide-back-down-in": [
         {
             transform: 'translateY(-50vh)'
         },
@@ -58,6 +115,14 @@ const AnimationKeyframePresets: {[key:string]:Keyframe[]} = {
         }
     ],
     "slide-down-out": [
+        {
+            transform: 'translateY(0vh)'
+        },
+        {
+            transform: 'translateY(50vh)'
+        }
+    ],
+    "slide-back-down-out": [
         {
             transform: 'translateY(0vh)'
         },
@@ -120,7 +185,10 @@ const AnimationKeyframePresets: {[key:string]:Keyframe[]} = {
         {
             opacity: 0
         }
-    ]
+    ],
+    "none": []
 }
+
+const AnimationKeyframePresets: {[Property in keyof typeof Presets]: Keyframe[]} = Presets;
 
 export default AnimationKeyframePresets;

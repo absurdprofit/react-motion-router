@@ -17,6 +17,7 @@ function App() {
         animation: {
           in: {
             type: "slide",
+            direction: 'right',
             duration: 300,
           }
         }
