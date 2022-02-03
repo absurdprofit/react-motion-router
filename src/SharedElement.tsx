@@ -39,7 +39,7 @@ namespace SharedElement {
     }
 
     enum TransitionAnimationEnum {
-        "move",
+        "morph",
         "fade-in",
         "fade-out",
         "cross-fade"
@@ -65,6 +65,7 @@ namespace SharedElement {
     
     
     interface SharedElementConfig {
+        type?: TransitionAnimation;
         transformOrigin?: TransformOrigin;
         easingFunction?: EasingFunction;
         duration?: number;
@@ -102,6 +103,9 @@ namespace SharedElement {
         private _nodes: NodeMap = {};
         private _name: string = '';
         private _scrollPos: Vec2 | null = null;
+        private _x: number = 0;
+        private _y: number = 0;
+
         constructor(name: string) {
             this._name = name;
         }
@@ -132,8 +136,24 @@ namespace SharedElement {
             };
         }
 
+        get x() {
+            return this._x;
+        }
+        
+        get y() {
+            return this._y;
+        }
+
         set scrollPos(_scrollPos: Vec2) {
             this._scrollPos = _scrollPos;
+        }
+
+        set x(_x: number) {
+            this._x = _x;
+        }
+
+        set y(_y: number) {
+            this._y = _y;
         }
 
         isEmpty() {
@@ -160,21 +180,20 @@ namespace SharedElement {
          * Translate X on outer element and translate Y on inner element
          * allows for layered animations
          */
-        (node.firstChild as HTMLElement).style.transform = `translateY(${clamp(clientRect.y, 0)}px)`;
-        node.style.transform = `translateX(${clamp(clientRect.x, 0)}px)`;
+        (node.firstChild as HTMLElement).style.transform = `translateY(${clientRect.y}px)`;
+        node.style.transform = `translateX(${clientRect.x}px)`;
         node.style.willChange = 'contents, transform';
         node.style.position = 'absolute';
         node.style.top = '0';
         node.style.left = '0';
-        node.setAttribute('x', `${clamp(clientRect.x, 0)}px`);
-        node.setAttribute('y', `${clamp(clientRect.y, 0)}px`);
+        node.setAttribute('x', `${clientRect.x}px`);
+        node.setAttribute('y', `${clientRect.y}px`);
  
         /**
          * TODO:
-         * 1. If animation type is slide change translate to either translateX or translateY depending on the slide direction
          * i.e. if slide is horizontal (left|right) change to translateY or if slide is vertical (up|down) change to translateX
          * 
-         * 2. Compensate for travel distance due to window scroll position
+         * 2̶.̶ C̶o̶m̶p̶e̶n̶s̶a̶t̶e̶ f̶o̶r̶ t̶r̶a̶v̶e̶l̶ d̶i̶s̶t̶a̶n̶c̶e̶ d̶u̶e̶ t̶o̶ w̶i̶n̶d̶o̶w̶ s̶c̶r̶o̶l̶l̶ p̶o̶s̶i̶t̶i̶o̶n̶
          */
         return {
             id: id,
@@ -188,6 +207,7 @@ namespace SharedElement {
         private _scene: Scene | null = null;
         private _hidden: boolean = false;
         private _isMounted: boolean = false;
+        private onRef = this.setRef.bind(this);
         
         get scene() {
             return this._scene;
@@ -195,7 +215,8 @@ namespace SharedElement {
         
         get clientRect() {
             if (this.ref && this.ref.firstChild) {
-                return (this.ref.firstChild as Element).getBoundingClientRect();
+                const clientRect = (this.ref.firstChild as Element).getBoundingClientRect();
+                return clientRect;
             }
             return new DOMRect();
         }
@@ -221,6 +242,10 @@ namespace SharedElement {
 
         get hidden() {
             return this._hidden;
+        }
+
+        get transitionType() {
+            return this.props.config?.type || 'morph';
         }
 
         set hidden(_hidden: boolean) {
@@ -267,7 +292,7 @@ namespace SharedElement {
                         this._scene = scene;
                         return (
                             <div
-                                ref={this.setRef.bind(this)}
+                                ref={this.onRef}
                                 id={`shared-element-${this._id}`}
                                 className={"shared-element"}
                                 style={{

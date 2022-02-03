@@ -18,7 +18,7 @@ function App() {
           in: {
             type: "slide",
             direction: 'right',
-            duration: 300,
+            duration: 350,
           }
         }
       }}>

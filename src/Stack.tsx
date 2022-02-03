@@ -30,10 +30,10 @@ interface ScreenState {
 export namespace Stack {
     
     export class Screen extends React.Component<ScreenProps, ScreenState> {
-        private transitionString : string = "";
         private sharedElementScene: SharedElement.Scene = new SharedElement.Scene(this.props.component.name);
         private ref: HTMLElement | null = null;
         private observer: ResizeObserver = new ResizeObserver(this.observe.bind(this));
+        private onRef = this.setRef.bind(this);
         private scrollPos: Vec2 = {
             x: 0,
             y: 0
@@ -89,7 +89,6 @@ export namespace Stack {
         }
 
         onExit() {
-            
             if (this.ref) {
                 this.scrollPos = {
                     x: this.ref.scrollLeft,
@@ -105,6 +104,7 @@ export namespace Stack {
 
         onEnter() {
             this.ref?.scrollTo(this.scrollPos.x, this.scrollPos.y);
+
             
             if (this.context.ghostLayer) {
                 this.context.ghostLayer.nextScene = this.sharedElementScene;
@@ -120,53 +120,15 @@ export namespace Stack {
                 this.ref = ref;
 
                 if (ref) {
+                    const clientRect = ref.getBoundingClientRect();
+                    this.sharedElementScene.x = clientRect.x;
+                    this.sharedElementScene.y = clientRect.y;
                     this.observer.observe(ref);
                 }
             }
         }
 
-        set mounted(_mounted: boolean) {
-            
-        }
-
         render() {
-            //convert animation into {animation_type}-{animation_direction}
-            //e.g. slide-right
-            //if animation is fade set animation type only
-            // let animationDirection;
-            // let animationType;
-            // let duration;
-            // if (this.context.backNavigating) {
-            //     if (this.props.config?.animation && this.props.config.animation.out) {
-            //         animationType = this.props.config?.animation.out.type;
-            //         animationDirection = this.props.config?.animation.out.direction;
-            //         duration = this.props.config.animation.out.duration;
-            //     } else {
-            //         animationType = this.context.animation!.out.type;
-            //         animationDirection = this.context.animation!.out.direction;
-            //         duration = this.context.animation.out.duration || 200;
-            //     }
-            // } else {
-            //     if (this.props.config?.animation && this.props.config.animation.in) {
-            //         animationType = this.props.config?.animation.in.type;
-            //         animationDirection = this.props.config?.animation.in.direction;
-            //         duration = this.props.config.animation.in.duration;
-            //     } else {
-            //         animationType = this.context.animation!.in.type;
-            //         animationDirection = this.context.animation!.in.direction;
-            //         duration = this.context.animation.in.duration || 200;
-            //     }
-            // }
-            
-            // if (animationType === "slide" || animationType === "zoom") {
-            //     if (animationType === "zoom") {
-            //         this.transitionString = `${animationType}-${animationDirection || 'in'}`;
-            //     } else {
-            //         this.transitionString = `${animationType}-${animationDirection || 'right'}`;
-            //     }
-            // } else {
-            //     this.transitionString = `${animationType}`;
-            // }
             return (
                 <AnimationProvider
                     onExit={this.onExit.bind(this)}
@@ -178,7 +140,7 @@ export namespace Stack {
                     backNavigating={this.context!.backNavigating}
                 >
                     <div
-                        ref={this.setRef.bind(this)}
+                        ref={this.onRef}
                         className="screen-content"
                         style={{
                             height: '100vh',

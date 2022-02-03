@@ -80,14 +80,14 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 node: startNode,
                                 duration: startInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration,
                                 easingFunction: startInstance.props.config?.x?.easingFunction || startInstance.props.config?.easingFunction ||'ease',
-                                position: parseFloat(startNode.getAttribute('x') || '0'),
+                                position: parseFloat(startNode.getAttribute('x') || '0') - currentScene.x,
                                 
                             },
                             y: {
                                 node: startNode.firstElementChild as HTMLElement,
                                 duration: startInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration,
                                 easingFunction: startInstance.props.config?.y?.easingFunction || startInstance.props.config?.easingFunction || 'ease',
-                                position: parseFloat(startNode.getAttribute('y') || '0')
+                                position: parseFloat(startNode.getAttribute('y') || '0') - currentScene.y
                             }
                         },
                         end: {
@@ -95,13 +95,13 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 node: endNode,
                                 duration: endInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration,
                                 easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
-                                position: parseFloat(endNode.getAttribute('x') || '0')
+                                position: parseFloat(endNode.getAttribute('x') || '0') - nextScene.x
                             },
                             y: {
                                 node: endNode.firstElementChild as HTMLElement,
                                 duration: endInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration,
                                 easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
-                                position: parseFloat(endNode.getAttribute('y') || '0')
+                                position: parseFloat(endNode.getAttribute('y') || '0') - nextScene.y
                             }
                         }
                     };
@@ -110,9 +110,15 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
 
                     startNode.style.display = 'unset';
                     endNode.style.display = 'unset';
-
-
                     this.ref?.appendChild(startNode);
+
+                    if (endInstance.transitionType === "cross-fade") {
+                        this.ref?.appendChild(endNode);
+                    } else if (endInstance.transitionType === "fade-in") {
+                        this.ref?.appendChild(endNode);
+                    } else if (endInstance.transitionType === "fade-out") {
+                        this.ref?.appendChild(endNode);
+                    }
 
                     
                     const travelDistance: Vec2 = {
@@ -132,8 +138,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     transitionState.end.x.position = Math.abs(transitionState.end.x.position - travelDistance.x);
                     transitionState.end.y.position = Math.abs(transitionState.end.y.position - travelDistance.y);
 
-
-                    const xAnimation = transitionState.start.x.node.animate([
+                    const startXAnimation = transitionState.start.x.node.animate([
                         {
                             transform: `translate(${transitionState.start.x.position}px, 0px)`
                         },
@@ -147,7 +152,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         easing: transitionState.end.x.easingFunction,
                         duration: clamp(transitionState.end.x.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
                     });
-                    const yAnimation = transitionState.start.y.node.animate(
+                    const startYAnimation = transitionState.start.y.node.animate(
                         [
                             {
                                 transform: `translate(0px, ${transitionState.start.y.position}px)`
@@ -171,11 +176,11 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     };
 
                     if (transitionState.end.y.duration > transitionState.end.x.duration) {
-                        yAnimation.oncancel = unhide;
-                        yAnimation.onfinish = unhide;
+                        startYAnimation.oncancel = unhide;
+                        startYAnimation.onfinish = unhide;
                     } else {
-                        xAnimation.oncancel = unhide;
-                        xAnimation.onfinish = unhide;
+                        startXAnimation.oncancel = unhide;
+                        startXAnimation.onfinish = unhide;
                     }
                 }
             }

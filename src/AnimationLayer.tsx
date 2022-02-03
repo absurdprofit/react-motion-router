@@ -31,17 +31,22 @@ export class AnimationLayerData {
     private _playing: boolean = false;
     private _currentScreen: AnimationProvider | null = null;
     private _nextScreen: AnimationProvider | null = null;
+    private _onExit: Function | undefined;
+    private _onEnter: Function | undefined;
+    private _duration: number = 0;
 
     animate() {
         if (this._currentScreen && this._nextScreen) {
             // currentScreen.mounted = false;
             this._nextScreen.mounted = true;
+            if (this._onExit) this._onExit();
+
             const outAnimation = this._currentScreen.animate(AnimationKeyframePresets[this._currentScreen.outAnimation as keyof typeof AnimationKeyframePresets], {
-                duration: 500,
+                duration: this._duration,
                 fill: 'forwards'
             });
             const inAnimation = this._nextScreen.animate(AnimationKeyframePresets[this._nextScreen.inAnimation as keyof typeof AnimationKeyframePresets], {
-                duration: 500,
+                duration: this._duration,
                 fill: 'forwards'
             });
 
@@ -69,12 +74,23 @@ export class AnimationLayerData {
         this._nextScreen = _screen;
         if (!this._currentScreen) {
             _screen.mounted = true;
-
+            if (this._onEnter) this._onEnter();
             this._nextScreen = null;
             // this.animate(this._currentScreen, this._nextScreen);
         }
     }
 
+    set onEnter(_onEnter: Function | undefined) {
+        this._onEnter = _onEnter;
+    }
+
+    set onExit(_onExit: Function | undefined) {
+        this._onExit = _onExit;
+    }
+
+    set duration(_duration: number) {
+        this._duration = _duration;
+    }
     get progress() {
         return this._progress;
     }
@@ -124,8 +140,8 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
     componentDidMount() {
         if (this._animationLayerData) {
             if (this.props.in) {
+                this._animationLayerData.onEnter = this.props.onEnter;
                 this._animationLayerData.nextScreen = this;
-                if (this.props.onEnter) this.props.onEnter();
             }
         }
         // this.setState({mounted: this.props.in});
@@ -136,13 +152,11 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
         if (this.props.out !== prevProps.out || this.props.in !== prevProps.in) {
             if (this.props.out) {
                 // set current screen and call onExit
+                this._animationLayerData.onExit = this.props.onExit;
                 this._animationLayerData.currentScreen = this;
-                if (this.props.onExit) {
-                    this.props.onExit();
-                }
             } else if (this.props.in) {
+                this._animationLayerData.onEnter = this.props.onEnter;
                 this._animationLayerData.nextScreen = this;
-                if (this.props.onEnter) this.props.onEnter();
             }
         }
     }
@@ -201,7 +215,13 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
     }
 
     set mounted(_mounted: boolean) {
-        this.setState({mounted: _mounted});
+        this.setState({mounted: _mounted}, () => {
+            if (_mounted) {
+                if (this.props.onEnter) {
+                    this.props.onEnter();
+                }
+            }
+        });
     }
 
     render() {
@@ -218,7 +238,7 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
                         } else {
                             return <></>;
                         }
-                }}
+                    }}
                 </AnimationLayerDataContext.Consumer>
             </div>
         ); 
@@ -229,6 +249,7 @@ interface AnimationLayerProps {
     children: ScreenChild | ScreenChildren;
     shoudAnimate: boolean;
     currentPath: string;
+    duration: number;
 }
 
 interface AnimationLayerState {
@@ -272,7 +293,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
                             }
                         }
                     }
-                ),
+                ).sort((child, _) => child.props.path === nextProps.currentPath ? 1 : -1), // current screen mounts first
                 currentPath: nextProps.currentPath
             }
         }
@@ -281,6 +302,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
 
     componentDidUpdate(prevProps: AnimationLayerProps) {
         if (prevProps.currentPath !== this.state.currentPath) {
+            this.animationLayerData.duration = this.props.duration;
             this.animationLayerData.animate();
         }
     }
