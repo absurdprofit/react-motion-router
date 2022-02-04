@@ -19,6 +19,21 @@ export class AnimationLayerData {
     private _gestureNavigating: boolean = false;
     private _onEnd: Function | null = null;
 
+    reset() {
+        this._onEnd = null;
+        this.playbackRate = 1;
+        this._play = true;
+        this._progress = 0;
+        this._gestureNavigating = false;
+    }
+
+    cancel() {
+        if (this._inAnimation && this._outAnimation) {
+            this._inAnimation.cancel();
+            this._outAnimation.cancel();
+        }
+    }
+
     async animate() {
         if (this._currentScreen && this._nextScreen) {
             if (this._gestureNavigating) {
@@ -47,9 +62,6 @@ export class AnimationLayerData {
                 this._outAnimation.onfinish = () => {
                     if (this._onEnd) {
                         this._onEnd();
-                    }
-                    if (this._gestureNavigating) {
-                        console.log(this._outAnimation?.currentTime);
                     }
                     if (this._currentScreen && !this.gestureNavigating) {
                         this._currentScreen.mounted(false);
@@ -189,7 +201,6 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
 
     componentDidUpdate(prevProps: AnimationProviderProps) {
         if (!this._animationLayerData) return;
-        if (this._animationLayerData.gestureNavigating) return;
         if (this.props.out !== prevProps.out || this.props.in !== prevProps.in) {
             if (this.props.out) {
                 // set current screen and call onExit
@@ -260,9 +271,6 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
     mounted(_mounted: boolean): Promise<void> {
         return new Promise((resolve, _) => {
             this.setState({mounted: _mounted}, () => {
-                if (this.props.name === '/') {
-                    console.log(this.state.mounted);
-                }
                 if (_mounted) {
                     if (this.props.onEnter) {
                         this.props.onEnter();
@@ -368,12 +376,13 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         return state;
     }
 
-    componentDidUpdate(prevProps: AnimationLayerProps) {
+    componentDidUpdate(prevProps: AnimationLayerProps, prevState: AnimationLayerState) {
         if (prevProps.currentPath !== this.state.currentPath) {
             this.animationLayerData.duration = this.props.duration;
             if (!this.state.gestureNavigation) {
                 this.animationLayerData.play = true;
             }
+            console.log(prevState.gestureNavigation)
             if (this.state.shouldAnimate) this.animationLayerData.animate();
         }
     }
@@ -391,7 +400,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         // this.animationLayerData.backNavigating = true;
         // this.animationLayerData.play = false;
         if (ev.direction === "right" && ev.touches[0].clientX < 60) {
-            this.setState({shouldPlay: false}, () => {
+            this.setState({shouldPlay: false, gestureNavigation: true}, () => {
                 this.animationLayerData.gestureNavigating = true;
                 this.animationLayerData.playbackRate = -1;
                 this.animationLayerData.play = false;    
@@ -430,34 +439,29 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
 
     onSwipeEnd(ev: SwipeEndEvent) {
         if (this.state.shouldPlay) return;
-        this.animationLayerData.progress = this.state.progress;
+        // this.animationLayerData.progress = this.state.progress;
         let onEnd = null;
         if (this.state.progress < 50) {
-            this.setState({shouldPlay: true, gestureNavigation: false}, () => {
-                onEnd = () => {
-                    this.setState({shouldAnimate: false}, () => {
-                        this.props.navigation.goBack();
-                        this.animationLayerData.onEnd = null;
-                    });
-
-                    this.animationLayerData.playbackRate = 1;
-                }
-                this.animationLayerData.playbackRate = -1;
-            });
+            onEnd = () => {
+                // this.setState({shouldAnimate: false}, () => {
+                //     this.props.navigation.goBack();
+                // });
+                this.animationLayerData.reset();
+            }
+            this.animationLayerData.playbackRate = -1;
+            this.setState({shouldPlay: true, gestureNavigation: false});
         } else {
-            this.setState({shouldPlay: true, gestureNavigation: false}, () => {
-                this.animationLayerData.playbackRate = 2;
-                onEnd = () => {
-                    this.animationLayerData.playbackRate = 1;
-                }
-            });
+            this.animationLayerData.playbackRate = 2;
+            onEnd = () => {
+                // this.animationLayerData.reset();
+            }
+            this.setState({shouldPlay: true, gestureNavigation: false});
         }
 
         this.animationLayerData.onEnd = onEnd;
         this.animationLayerData.play = true;
 
         // this.animationLayerData.animate();
-        // this.animationLayerData.gestureNavigating = false;
     }
 
     render() {
