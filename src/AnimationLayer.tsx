@@ -1,69 +1,105 @@
 import React, { createContext } from 'react';
 import {SwipeEndEvent, SwipeEvent, SwipeStartEvent} from 'web-gesture-events';
-import { ScreenChild, ScreenChildren } from '.';
+import { clamp, Navigation } from './common/utils';
 import AnimationKeyframePresets from './Animations';
 import { AnimationConfig } from './Router';
-
-// export interface ScreenMap {
-//     [key:string]: Stack.Screen;
-// }
-
-// export class AnimationLayerScene {
-//     private _screens: ScreenMap = {};
-    
-//     addScreen(screen: Stack.Screen, name: string) {
-//         this._screens[name] = screen;
-//     }
-
-//     removeScreen(name: string) {
-//         delete this._screens[name];
-//     }
-
-//     get screens() {
-//         return this._screens;
-//     }
-// }
-
-
+import {ScreenChild, ScreenChildren} from './index';
 
 export class AnimationLayerData {
     private _progress: number = 0;
-    private _playing: boolean = false;
+    private _play: boolean = true;
     private _currentScreen: AnimationProvider | null = null;
     private _nextScreen: AnimationProvider | null = null;
     private _onExit: Function | undefined;
     private _onEnter: Function | undefined;
     private _duration: number = 0;
+    private _inAnimation: Animation | undefined;
+    private _outAnimation: Animation | undefined;
+    private _playbackRate: number = 1;
+    private _gestureNavigating: boolean = false;
+    private _onEnd: Function | null = null;
 
-    animate() {
+    async animate() {
         if (this._currentScreen && this._nextScreen) {
-            // currentScreen.mounted = false;
-            this._nextScreen.mounted = true;
+            if (this._gestureNavigating) {
+                await this._currentScreen.mounted(true);
+            }
+
+            await this._nextScreen.mounted(true);
             if (this._onExit) this._onExit();
 
-            const outAnimation = this._currentScreen.animate(AnimationKeyframePresets[this._currentScreen.outAnimation as keyof typeof AnimationKeyframePresets], {
-                duration: this._duration,
-                fill: 'forwards'
+            this._outAnimation = this._currentScreen.animate(AnimationKeyframePresets[this._currentScreen.outAnimation as keyof typeof AnimationKeyframePresets], {
+                fill: 'forwards',
+                duration: this._duration
             });
-            const inAnimation = this._nextScreen.animate(AnimationKeyframePresets[this._nextScreen.inAnimation as keyof typeof AnimationKeyframePresets], {
-                duration: this._duration,
-                fill: 'forwards'
+            this._inAnimation = this._nextScreen.animate(AnimationKeyframePresets[this._nextScreen.inAnimation as keyof typeof AnimationKeyframePresets], {
+                fill: 'forwards',
+                duration: this._duration
             });
 
-            if (inAnimation) {
-            }
-            if (outAnimation) {
-                outAnimation.onfinish = () => {
-                    if (this._currentScreen) {
-                        this._currentScreen.mounted = false;
+            if (this._inAnimation && this._outAnimation) {
+                this._inAnimation.playbackRate = this._playbackRate;
+                this._outAnimation.playbackRate = this._playbackRate;
+                if (!this._play) {
+                    this._inAnimation.pause();
+                    this._outAnimation.pause();
+                }
+                this._outAnimation.onfinish = () => {
+                    if (this._onEnd) {
+                        this._onEnd();
+                    }
+                    if (this._gestureNavigating) {
+                        console.log(this._outAnimation?.currentTime);
+                    }
+                    if (this._currentScreen && !this.gestureNavigating) {
+                        this._currentScreen.mounted(false);
                     }
                 }
             }
         }
     }
 
-    set playing(_playing: boolean) {
-        this._playing = _playing;
+    set onEnd(_onEnd: Function | null) {
+        this._onEnd = _onEnd;
+    }
+
+    set playbackRate(_playbackRate: number) {
+        this._playbackRate = _playbackRate;
+        if (this._inAnimation && this._outAnimation) {
+            this._inAnimation.playbackRate = this._playbackRate;
+            this._outAnimation.playbackRate = this._playbackRate;
+
+        }
+    }
+
+    set gestureNavigating(_gestureNavigating: boolean) {
+        this._gestureNavigating = _gestureNavigating;
+    }
+
+    set play(_play: boolean) {
+        if (this._play !== _play) {
+            this._play = _play;
+
+            if (this._inAnimation && this._outAnimation) {
+                if (_play) {
+                    this._inAnimation.play();
+                    this._outAnimation.play();
+                } else {
+                    this._inAnimation.pause();
+                    this._outAnimation.pause();
+                }
+            }
+        }
+    }
+
+    set progress(_progress: number) {
+        this._progress = _progress;
+
+        const currentTime = (_progress / 100) * this._duration;
+        if (this._inAnimation && this._outAnimation) {
+            this._inAnimation.currentTime = currentTime;
+            this._outAnimation.currentTime = currentTime;
+        }
     }
 
     set currentScreen(_screen: AnimationProvider) {
@@ -73,7 +109,7 @@ export class AnimationLayerData {
     set nextScreen(_screen: AnimationProvider) {
         this._nextScreen = _screen;
         if (!this._currentScreen) {
-            _screen.mounted = true;
+            _screen.mounted(true);
             if (this._onEnter) this._onEnter();
             this._nextScreen = null;
             // this.animate(this._currentScreen, this._nextScreen);
@@ -93,6 +129,10 @@ export class AnimationLayerData {
     }
     get progress() {
         return this._progress;
+    }
+
+    get gestureNavigating() {
+        return this._gestureNavigating;
     }
 }
 
@@ -149,6 +189,7 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
 
     componentDidUpdate(prevProps: AnimationProviderProps) {
         if (!this._animationLayerData) return;
+        if (this._animationLayerData.gestureNavigating) return;
         if (this.props.out !== prevProps.out || this.props.in !== prevProps.in) {
             if (this.props.out) {
                 // set current screen and call onExit
@@ -165,7 +206,8 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
     get inAnimation() {
         let direction = this.props.animation.in.direction;
         let directionPrefix = '';
-        if (this.props.backNavigating && direction) {
+        const backNavigating = this.props.backNavigating;
+        if (backNavigating && direction) {
             if (this.props.animation.in.type === "zoom" || this.props.animation.in.type === "slide") {
                 direction = OppositeDirection[direction];
                 directionPrefix = 'back-';
@@ -189,7 +231,8 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
     get outAnimation(): string {
         let direction = this.props.animation.out.direction;
         let directionPrefix = '';
-        if (this.props.backNavigating && direction) {
+        const backNavigating = this.props.backNavigating;
+        if (backNavigating && direction) {
             if (this.props.animation.out.type === "zoom" || this.props.animation.out.type === "slide") {
                 direction = OppositeDirection[direction];
                 directionPrefix = 'back-'
@@ -214,20 +257,32 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
         return this.ref?.animate(keyframes, options);
     }
 
-    set mounted(_mounted: boolean) {
-        this.setState({mounted: _mounted}, () => {
-            if (_mounted) {
-                if (this.props.onEnter) {
-                    this.props.onEnter();
+    mounted(_mounted: boolean): Promise<void> {
+        return new Promise((resolve, _) => {
+            this.setState({mounted: _mounted}, () => {
+                if (this.props.name === '/') {
+                    console.log(this.state.mounted);
                 }
-            }
+                if (_mounted) {
+                    if (this.props.onEnter) {
+                        this.props.onEnter();
+                    }
+                }
+
+                resolve();
+            });
         });
     }
 
     render() {
+        let gestureEndState = {};
+        if (this._animationLayerData?.gestureNavigating && this.props.in) {
+            gestureEndState = AnimationKeyframePresets[this.inAnimation as keyof typeof AnimationKeyframePresets][0];
+        }
         return (
             <div className="animation-provider" ref={this.setRef} style={{
-                zIndex: this.props.in && !this.props.backNavigating ? 1 : this.props.out && this.props.backNavigating ? 1 : 0
+                zIndex: this.props.in && !this.props.backNavigating ? 1 : this.props.out && this.props.backNavigating ? 1 : 0,
+                ...gestureEndState // so the "old" nextScreen doesn't snap back to centre
             }}>
                 <AnimationLayerDataContext.Consumer>
                     {(animationLayerData) => {
@@ -245,16 +300,23 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
     }
 }
 
+export const Motion = createContext(0);
+
 interface AnimationLayerProps {
     children: ScreenChild | ScreenChildren;
     shoudAnimate: boolean;
     currentPath: string;
     duration: number;
+    navigation: Navigation;
 }
 
 interface AnimationLayerState {
     currentPath: string;
     children: ScreenChild | ScreenChildren;
+    progress: number;
+    shouldPlay: boolean;
+    gestureNavigation: boolean;
+    shouldAnimate: boolean;
 }
 
 // type of children coerces type in React.Children.map such that 'path' is available on props
@@ -266,10 +328,16 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
 
     state: AnimationLayerState = {
         currentPath: this.props.currentPath,
-        children: this.props.children
+        children: this.props.children,
+        progress: 0,
+        shouldPlay: true,
+        gestureNavigation: false,
+        shouldAnimate: true
     }
 
     componentDidMount() {
+        this.animationLayerData.duration = this.props.duration;
+
         window.addEventListener('swipestart', this.onSwipeStartListener);
         window.addEventListener('swipe', this.onSwipeListener);
         window.addEventListener('swipeend', this.onSwipeEndListener);
@@ -303,7 +371,10 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
     componentDidUpdate(prevProps: AnimationLayerProps) {
         if (prevProps.currentPath !== this.state.currentPath) {
             this.animationLayerData.duration = this.props.duration;
-            this.animationLayerData.animate();
+            if (!this.state.gestureNavigation) {
+                this.animationLayerData.play = true;
+            }
+            if (this.state.shouldAnimate) this.animationLayerData.animate();
         }
     }
 
@@ -314,21 +385,87 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
     }
 
     onSwipeStart(ev: SwipeStartEvent) {
+        // if only one child return
+        if (!React.Children.count(this.state.children)) return;
 
+        // this.animationLayerData.backNavigating = true;
+        // this.animationLayerData.play = false;
+        if (ev.direction === "right" && ev.touches[0].clientX < 60) {
+            this.setState({shouldPlay: false}, () => {
+                this.animationLayerData.gestureNavigating = true;
+                this.animationLayerData.playbackRate = -1;
+                this.animationLayerData.play = false;    
+                this.animationLayerData.animate();
+            });
+            
+            // this.setState({
+            //     shouldPlay: false,
+            //     gestureNavigation: true,
+                // children: React.Children.map(this.state.children, (child: ScreenChild) => {
+                //     if (React.isValidElement(child)) {
+                //         const _in = child.props.path === this.state.currentPath ? false : true;
+                //         const element = React.cloneElement(child, {
+                //             ...child.props,
+                //             in: _in,
+                //             out: !_in
+                //         });
+
+                //         return element as ScreenChild;
+                //     } else {
+                //         return undefined;
+                //     }
+                // }).sort((firstChild) => firstChild.props.path === this.state.currentPath ? 1 : -1)
+            // });
+        }
     }
 
     onSwipe(ev: SwipeEvent) {
-    
+        if (this.state.shouldPlay) return;
+        const percentage = (Math.abs(ev.changedTouches[0].clientX - window.innerWidth) / window.innerWidth) * 100;
+
+        this.setState({progress: clamp(percentage, 0, 100)}, () => {
+            this.animationLayerData.progress = percentage;
+        });
     }
 
     onSwipeEnd(ev: SwipeEndEvent) {
+        if (this.state.shouldPlay) return;
+        this.animationLayerData.progress = this.state.progress;
+        let onEnd = null;
+        if (this.state.progress < 50) {
+            this.setState({shouldPlay: true, gestureNavigation: false}, () => {
+                onEnd = () => {
+                    this.setState({shouldAnimate: false}, () => {
+                        this.props.navigation.goBack();
+                        this.animationLayerData.onEnd = null;
+                    });
 
+                    this.animationLayerData.playbackRate = 1;
+                }
+                this.animationLayerData.playbackRate = -1;
+            });
+        } else {
+            this.setState({shouldPlay: true, gestureNavigation: false}, () => {
+                this.animationLayerData.playbackRate = 2;
+                onEnd = () => {
+                    this.animationLayerData.playbackRate = 1;
+                }
+            });
+        }
+
+        this.animationLayerData.onEnd = onEnd;
+        this.animationLayerData.play = true;
+
+        // this.animationLayerData.animate();
+        // this.animationLayerData.gestureNavigating = false;
     }
 
     render() {
         return (
             <AnimationLayerDataContext.Provider value={this.animationLayerData}>
-                {this.state.children}
+                <Motion.Provider value={this.state.progress}>
+                    {this.state.children}
+                </Motion.Provider>
             </AnimationLayerDataContext.Provider>
         );
     }

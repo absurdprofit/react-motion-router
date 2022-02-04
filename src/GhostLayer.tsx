@@ -112,14 +112,11 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     endNode.style.display = 'unset';
                     this.ref?.appendChild(startNode);
 
-                    if (endInstance.transitionType === "cross-fade") {
-                        this.ref?.appendChild(endNode);
-                    } else if (endInstance.transitionType === "fade-in") {
-                        this.ref?.appendChild(endNode);
-                    } else if (endInstance.transitionType === "fade-out") {
+                    const transitionType = endInstance.transitionType || startInstance.transitionType || 'morph';
+
+                    if (transitionType !== "morph") {
                         this.ref?.appendChild(endNode);
                     }
-
                     
                     const travelDistance: Vec2 = {
                         x: 0,
@@ -172,7 +169,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     const unhide = () => {
                         startInstance.hidden = false;
                         endInstance.hidden = false;
-                        this.ref?.removeChild(startNode);
+                        // this.ref?.removeChild(startNode);
                     };
 
                     if (transitionState.end.y.duration > transitionState.end.x.duration) {

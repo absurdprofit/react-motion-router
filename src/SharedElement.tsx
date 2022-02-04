@@ -245,7 +245,7 @@ namespace SharedElement {
         }
 
         get transitionType() {
-            return this.props.config?.type || 'morph';
+            return this.props.config?.type;
         }
 
         set hidden(_hidden: boolean) {

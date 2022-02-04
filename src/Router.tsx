@@ -310,6 +310,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
                         backNavigating={this.state.backNavigating}
                     />
                     <AnimationLayer
+                        navigation={this._routerData.navigation}
                         duration={this._routerData.animation.in.duration}
                         shoudAnimate={Boolean(this._pageLoad || this.props.config.pageLoadTransition)}
                         currentPath={this.state.currentPath}

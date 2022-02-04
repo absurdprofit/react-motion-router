@@ -1,5 +1,5 @@
 import React from 'react';
-import {Navigation, SharedElement} from 'react-motion-router';
+import {Navigation, SharedElement, Motion} from 'react-motion-router';
 import ListItemComponent from '../Components/ListItem';
 import Navbar from '../Components/Navbar';
 import '../css/Home.css';
@@ -27,22 +27,28 @@ export default function Home(props: HomeProps) {
         }
     ]
     return (
-        <div className="home">
-            <SharedElement id="navbar">
-                <Navbar title="Shared Element Demo" />
-            </SharedElement>
-            <div className="list">
-                {
-                    list.map((item: ListItem, index: number) => {
-                        return <ListItemComponent
-                                    key={index}
-                                    title={item.title}
-                                    description={item.description}
-                                    onClick={item.onClick}
-                                />
-                    })
-                }
-            </div>
-        </div>
+        <Motion.Consumer>
+            {(progress) => {
+                return (
+                    <div className="home">
+                        <SharedElement id="navbar">
+                            <Navbar title="Shared Element Demo" />
+                        </SharedElement>
+                        <div className={`list ${progress}`}>
+                            {
+                                list.map((item: ListItem, index: number) => {
+                                    return <ListItemComponent
+                                                key={index}
+                                                title={item.title}
+                                                description={item.description}
+                                                onClick={item.onClick}
+                                            />
+                                })
+                            }
+                        </div>
+                    </div>
+                );
+            }}
+        </Motion.Consumer>
     )
 }
