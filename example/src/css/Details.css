@@ -1,9 +1,4 @@
 .details button, .post button {
-    animation-name: fade-in;
-    animation-duration: 500ms;
-    animation-fill-mode: forwards;
-    animation-delay: .5s;
-    opacity: 0;
     left: 0;
     top: 0;
     z-index: 1;

@@ -166,28 +166,20 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         }
                     );
 
-                    const unhide = () => {
+                    window.addEventListener('page-animation-end', ()=>{
                         startInstance.hidden = false;
                         endInstance.hidden = false;
-                        // this.ref?.removeChild(startNode);
-                    };
-
-                    if (transitionState.end.y.duration > transitionState.end.x.duration) {
-                        startYAnimation.oncancel = unhide;
-                        startYAnimation.onfinish = unhide;
-                    } else {
-                        startXAnimation.oncancel = unhide;
-                        startXAnimation.onfinish = unhide;
-                    }
+                        this.ref?.removeChild(startNode);
+                    }, {once:true});
                 }
             }
         });
-        
-        setTimeout(() => {
+
+        window.addEventListener('page-animation-end', () => {
             this.setState({transitioning: false});
             this._nextScene = null;
             this._currentScene = null;
-        }, this.props.backNavigating ? this.props.animation.out.duration * 1.1 : this.props.animation.in.duration * 1.1);
+        }, {once: true});
     }
     
     componentDidMount() {

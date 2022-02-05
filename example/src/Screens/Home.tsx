@@ -46,6 +46,8 @@ export default function Home(props: HomeProps) {
                                 })
                             }
                         </div>
+
+                        <div className="motion-element" style={{transform: `translate(-50%, -${progress}px) rotate(${-progress}deg)`}}>MOTION</div>
                     </div>
                 );
             }}

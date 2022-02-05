@@ -244,11 +244,8 @@ export default class Router extends React.Component<RouterProps, RouterState> {
             this.setState({backNavigating: true});
             this._pageLoad = false;
 
+            window.addEventListener('page-animation-end', this.onAnimationEnd.bind(this), {once: true});
             this._routerData.backNavigating = true;
-            setTimeout(() => {
-                this._routerData.backNavigating = false;
-                this.setState({backNavigating: false});
-            }, this._routerData.animation.out.duration);
         }, true);
 
         window.addEventListener('popstate', (e) => {
@@ -258,11 +255,8 @@ export default class Router extends React.Component<RouterProps, RouterState> {
                 this.setState({backNavigating: true});
             }
 
+            window.addEventListener('page-animation-end', this.onAnimationEnd.bind(this), {once: true});
             this._routerData.backNavigating = true;
-            setTimeout(() => {
-                this._routerData.backNavigating = false;
-                this.setState({backNavigating: false});
-            }, this._routerData.animation.out.duration);
             this._routerData.currentPath = window.location.pathname;
             this.setState({currentPath: window.location.pathname});
         }, true);
@@ -293,6 +287,13 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         }, true);
     }
 
+    private onAnimationEnd() {
+        if (this.state.backNavigating) {
+            this._routerData.backNavigating = false;
+            this.setState({backNavigating: false});
+        }
+    }
+
     componentWillUnmount() {
         window.removeEventListener('navigate', ()=>{});
         window.removeEventListener('popstate', ()=>{});
@@ -300,7 +301,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
     }
     render() {
         return (
-            <div className="react-motion-router">
+            <div className="react-motion-router" style={{touchAction: 'pan-y'}}>
                 <RouterDataContext.Provider value={this._routerData}>
                     <GhostLayer
                         animation={this._routerData.animation}
@@ -314,6 +315,8 @@ export default class Router extends React.Component<RouterProps, RouterState> {
                         duration={this._routerData.animation.in.duration}
                         shoudAnimate={Boolean(this._pageLoad || this.props.config.pageLoadTransition)}
                         currentPath={this.state.currentPath}
+                        backNavigating={this.state.backNavigating}
+                        lastPath={this.navigation.history.previous}
                         // style={!this._pageLoad || this.props.config.pageLoadTransition ? {transition: `all ${this.props.config?.animation.in.duration || 200}ms`} : undefined}
                     >
                         {this.props.children}

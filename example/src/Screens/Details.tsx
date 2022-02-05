@@ -1,5 +1,5 @@
 import React from 'react';
-import {Navigation, SharedElement} from 'react-motion-router';
+import {Navigation, SharedElement, Motion} from 'react-motion-router';
 import IconButton from '@mui/material/IconButton';
 import ClearIcon from '@mui/icons-material/Clear';
 import '../css/Details.css';
@@ -17,9 +17,21 @@ export default function Details(props: DetailsProps) {
     if (props.route.params.profile) {
         return (
             <div className="details" style={{width: "100%", height: "100%"}}>
-                <IconButton style={{position: "absolute", color: 'white'}} onClick={() => {props.navigation.goBack()}}>
-                    <ClearIcon />
-                </IconButton>
+                <Motion.Consumer>
+                    {(progress) => {
+                        return (
+                            <IconButton style={{
+                                position: "absolute",
+                                color: 'white',
+                                transform: `translate(0px, ${-100 + progress}px)`,
+                                opacity: progress / 100,
+                                zIndex: 10000
+                            }} onClick={() => {props.navigation.goBack()}}>
+                                <ClearIcon />
+                            </IconButton>
+                        );
+                    }}
+                </Motion.Consumer>
                 <div className="profile-info">
                     <SharedElement config={{
                         transformOrigin: 'bottom bottom',

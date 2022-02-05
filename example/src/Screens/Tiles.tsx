@@ -16,6 +16,7 @@ export default class Tiles extends React.Component<TilesProps, TilesState> {
     state: TilesState = {
         heroes: Heroes
     }
+
     render(): React.ReactNode {
         return(
             <div className="tiles">
