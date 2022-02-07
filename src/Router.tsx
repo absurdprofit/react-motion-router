@@ -301,7 +301,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
     }
     render() {
         return (
-            <div className="react-motion-router" style={{touchAction: 'pan-y'}}>
+            <div className="react-motion-router">
                 <RouterDataContext.Provider value={this._routerData}>
                     <GhostLayer
                         animation={this._routerData.animation}

@@ -2,123 +2,11 @@
 html, body {
   overscroll-behavior: none;
   overflow: hidden;
-}
-
-/* slide-right */
-.slide-right-enter {
-  transform: translateX(100vw);
-}
-.slide-right-enter-active {
-  transform: translateX(0vw);
-  transition: inherit;
-}
-.slide-right-exit {
-  transform: translateX(0vw);
-}
-.slide-right-exit-active {
-  transform: translateX(-100vw);
-  transition: inherit;
-}
-
-/* slide-left */
-.slide-left-enter {
-  transform: translateX(-100vw);
-}
-.slide-left-enter-active {
-  transform: translateX(0vw);
-  transition: inherit;
-}
-.slide-left-exit {
-  transform: translateX(0vw);
-}
-.slide-left-exit-active {
-  transform: translateX(100vw);
-  transition: inherit;
-}
-
-/* slide-up */
-.slide-up-enter {
-  transform: translateY(100vw);
-}
-.slide-up-enter-active {
-  transform: translateX(0vw);
-  transition: inherit;
-}
-.slide-up-exit {
-  transform: translateX(0vw);
-}
-.slide-up-exit-active {
-  transform: translateY(-100vw);
-  transition: inherit;
-}
-
-/* slide-down */
-.slide-down-enter {
-  transform: translateY(-100vw);
-}
-.slide-down-enter-active {
-  transform: translateX(0vw);
-  transition: inherit;
-}
-.slide-down-exit {
-  transform: translateX(0vw);
-}
-.slide-down-exit-active {
-  transform: translateY(100vw);
-  transition: inherit;
-}
-
-/* fade */
-.fade-enter {
-  opacity: 0;
-}
-.fade-enter-active {
-  opacity: 1;
-  transition: inherit;
-}
-.fade-exit {
-  opacity: 1;
-}
-.fade-exit-active {
-  opacity: 0;
-  transition: inherit;
-}
-/* zoom */
-.zoom-in-enter {
-  opacity: 0;
-  transform: scale(0.85);
-}
-.zoom-in-enter-active {
-  opacity: 1;
-  transform: scale(1);
-  transition: inherit;
-}
-.zoom-in-exit {
-  opacity: 1;
-  transform: scale(1);
-}
-.zoom-in-exit-active {
-  opacity: 0;
-  transform: scale(1.15);
-  transition: inherit;
-}
-.zoom-out-enter {
-  opacity: 0;
-  transform: scale(1.15);
-}
-.zoom-out-enter-active {
-  opacity: 1;
-  transform: scale(1);
-  transition: inherit;
-}
-.zoom-out-exit {
-  opacity: 1;
-  transform: scale(1);
-}
-.zoom-out-exit-active {
-  opacity: 0;
-  transform: scale(0.85);
-  transition: inherit;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 .screen {
   position: absolute;
@@ -131,7 +19,6 @@ html, body {
   height: 100vh;
   pointer-events: none;
 }
-
 .animation-provider {
   position: absolute;
 }

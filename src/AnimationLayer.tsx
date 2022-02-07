@@ -399,16 +399,6 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         shouldAnimate: true
     }
 
-    componentDidMount() {
-        this.animationLayerData.duration = this.props.duration;
-        this.animationLayerData.onProgress = (_progress: number) => {
-            const progress = this.props.backNavigating ? 99 - _progress : _progress + 1;
-            this.setState({progress: clamp(progress, 0, 100)});
-        }
-        window.addEventListener('swipestart', this.onSwipeStartListener);
-        
-    }
-
     static getDerivedStateFromProps(nextProps: AnimationLayerProps, state: AnimationLayerState) {
         if (nextProps.currentPath !== state.currentPath) {
             return {
@@ -434,7 +424,18 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         return state;
     }
 
-    componentDidUpdate(prevProps: AnimationLayerProps, prevState: AnimationLayerState) {
+    componentDidMount() {
+        this.animationLayerData.duration = this.props.duration;
+        this.animationLayerData.onProgress = (_progress: number) => {
+            const progress = this.props.backNavigating ? 99 - _progress : _progress + 1;
+            this.setState({progress: clamp(progress, 0, 100)});
+        }
+
+        window.addEventListener('swipestart', this.onSwipeStartListener, {passive: false});
+        
+    }
+
+    componentDidUpdate(prevProps: AnimationLayerProps) {
         if (prevProps.currentPath !== this.state.currentPath) {
             this.animationLayerData.duration = this.props.duration;
             if (!this.state.gestureNavigation) {
@@ -445,11 +446,15 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
                 this.animationLayerData.animate();
                 this.animationLayerData.progress = 100;
             }
+        } else if (this.state.gestureNavigation) {
+            window.addEventListener('swipe', this.onSwipeListener);
+            window.addEventListener('swipeend', this.onSwipeEndListener);
         }
     }
 
     componentWillUnmount() {
         window.removeEventListener('swipestart', this.onSwipeStartListener);
+        
     }
 
     onSwipeStart(ev: SwipeStartEvent) {
@@ -458,7 +463,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
 
         // this.animationLayerData.backNavigating = true;
         // this.animationLayerData.play = false;
-        if (ev.direction === "right" && ev.touches[0].clientX < 100) {
+        if (ev.direction === "right" && ev.x < 100) {
             const children = React.Children.map(this.state.children, (child: ScreenChild) => {
                 if (React.isValidElement(child)) {
                     if (child.props.path === this.props.currentPath || child.props.path === this.props.lastPath) {
@@ -484,9 +489,6 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
                     this.animationLayerData.playbackRate = -1;
                     this.animationLayerData.play = false;
                     this.animationLayerData.animate();
-
-                    window.addEventListener('swipe', this.onSwipeListener);
-                    window.addEventListener('swipeend', this.onSwipeEndListener);
             });
             
         }
@@ -495,7 +497,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
     onSwipe(ev: SwipeEvent) {
         console.log("Swipe");
         if (this.state.shouldPlay) return;
-        const percentage = (Math.abs(ev.changedTouches[0].clientX - window.innerWidth) / window.innerWidth) * 100;
+        const percentage = (Math.abs(ev.x - window.innerWidth) / window.innerWidth) * 100;
         this.animationLayerData.progress = percentage;
     }
 
@@ -509,6 +511,8 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
                     this.props.navigation.goBack();
                 });
                 // this.animationLayerData.reset();
+                this.animationLayerData.progress = 1;
+                this.animationLayerData.onEnd = null;
                 this.animationLayerData.gestureNavigating = false;
             }
             this.animationLayerData.playbackRate = -1;
@@ -516,6 +520,8 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         } else {
             this.animationLayerData.playbackRate = 2;
             onEnd = () => {
+                this.animationLayerData.progress = 1;
+                this.animationLayerData.onEnd = null;
                 this.animationLayerData.gestureNavigating = false;
                 // this.animationLayerData.reset();
             }
@@ -524,10 +530,10 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
 
         this.animationLayerData.onEnd = onEnd;
         this.animationLayerData.play = true;
-
-        // this.animationLayerData.animate();
         window.removeEventListener('swipe', this.onSwipeListener);
         window.removeEventListener('swipeend', this.onSwipeEndListener);
+        // this.animationLayerData.animate();
+        
     }
 
     render() {
