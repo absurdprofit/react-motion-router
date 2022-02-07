@@ -28,7 +28,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
         this._next_scene = scene;
 
         if (this._current_scene) {
-            if (!this._current_scene.isEmpty() && !this._next_scene.isEmpty()) {
+            if (!this._current_scene.is_empty() && !this._next_scene.is_empty()) {
                 this.shared_element_transition(this._current_scene, this._next_scene);
                 return;
             }
@@ -58,8 +58,8 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     const y_duration: number = end_instance.props.config?.y?.duration || end_instance.props.config?.duration || this.props.animation.duration;
                     
 
-                    (start_node.firstChild as HTMLElement).style.transition = `all ${y_duration}ms ${end_instance.props.config?.easingFunction ||'ease'}`;
-                    start_node.style.transition = `all ${x_duration}ms ${end_instance.props.config?.easingFunction ||'ease'}`;
+                    (start_node.firstChild as HTMLElement).style.transition = `all ${y_duration}ms ${end_instance.props.config?.easing_function ||'ease'}`;
+                    start_node.style.transition = `all ${x_duration}ms ${end_instance.props.config?.easing_function ||'ease'}`;
                     this.ref?.appendChild(start_node);
 
                     const end_pos: Vec2 = {
@@ -71,8 +71,8 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         y: 0
                     }
                     if (end_instance.scene) {
-                        travel_distance.x = end_instance.scene.scrollPos.x;
-                        travel_distance.y = end_instance.scene.scrollPos.y;
+                        travel_distance.x = end_instance.scene.scroll_pos.x;
+                        travel_distance.y = end_instance.scene.scroll_pos.y;
                     }
 
                     /**
@@ -86,8 +86,8 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
 
                     (end_node.firstChild as HTMLElement).style.transform = `translateY(${end_pos.y}px)`;
                     end_node.style.transform = `translateX(${end_pos.x}px)`;
-                    (end_node.firstChild as HTMLElement).style.transition = `all ${y_duration}ms ${end_instance.props.config?.easingFunction ||'ease'}`;
-                    end_node.style.transition = `all ${x_duration}ms ${end_instance.props.config?.easingFunction ||'ease'}`;
+                    (end_node.firstChild as HTMLElement).style.transition = `all ${y_duration}ms ${end_instance.props.config?.easing_function ||'ease'}`;
+                    end_node.style.transition = `all ${x_duration}ms ${end_instance.props.config?.easing_function ||'ease'}`;
 
 
                     window.requestAnimationFrame(() => {
