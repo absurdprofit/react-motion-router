@@ -22,15 +22,18 @@ export class AnimationLayerData {
     private _onProgress: Function | null = null;
 
     private updateProgress() {
+        
         if (this._gestureNavigating) {
             // update in set progress() instead
             window.cancelAnimationFrame(this._progressUpdateID);
+            return;
         }
         const update = () => {
             const currentTime = this._outAnimation?.currentTime || 0;
-            const progress = (currentTime / this._duration) * 100;
+            const progress = clamp((currentTime / this._duration) * 100, 0, 100);
 
-            this._progress = clamp(progress, 0, 100);
+            this._progress = progress;
+
             if (this._onProgress) {
                 this._onProgress(this._progress);
             }
@@ -153,6 +156,7 @@ export class AnimationLayerData {
     set progress(_progress: number) {
         this._progress = _progress;
         if (this._onProgress) {
+            console.log("On Progress");
             this._onProgress(this._progress);
         }
         const currentTime = (this._progress / 100) * this._duration;
@@ -445,11 +449,10 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             if (!this.state.shouldAnimate) {
                 this.animationLayerData.animate();
                 this.animationLayerData.progress = 100;
+                
             }
-        } else if (this.state.gestureNavigation) {
-            window.addEventListener('swipe', this.onSwipeListener);
-            window.addEventListener('swipeend', this.onSwipeEndListener);
         }
+        console.log("Component Did Update");
     }
 
     componentWillUnmount() {
@@ -464,33 +467,41 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         // this.animationLayerData.backNavigating = true;
         // this.animationLayerData.play = false;
         if (ev.direction === "right" && ev.x < 100) {
-            const children = React.Children.map(this.state.children, (child: ScreenChild) => {
-                if (React.isValidElement(child)) {
-                    if (child.props.path === this.props.currentPath || child.props.path === this.props.lastPath) {
-                        const _in = child.props.path === this.props.currentPath ? true : false;
-                        const element = React.cloneElement(child, {
-                            ...child.props,
-                            in: _in,
-                            out: !_in
-                        });
-                        return element as ScreenChild;
+            const start = Date.now();
+            const children = React.Children.map(
+                this.state.children,
+                (child: ScreenChild) => {
+                    if (React.isValidElement(child)) {
+                        if (child.props.path === this.props.currentPath || child.props.path === this.props.lastPath) {
+                            const _in = child.props.path === this.props.currentPath ? true : false;
+                            const element = React.cloneElement(child, {
+                                ...child.props,
+                                in: _in,
+                                out: !_in
+                            });
+                            return element as ScreenChild;
+                        }
+                    } else {
+                        return undefined;
                     }
-                } else {
-                    return undefined;
                 }
-            }).sort((firstChild) => firstChild.props.path === this.props.currentPath ? -1 : 1);
-
+            ).sort((firstChild) => firstChild.props.path === this.props.currentPath ? -1 : 1);
+            
+            
             this.setState({
                 shouldPlay: false,
                 gestureNavigation: true,
                 children: children
-                }, () => {
-                    this.animationLayerData.gestureNavigating = true;
-                    this.animationLayerData.playbackRate = -1;
-                    this.animationLayerData.play = false;
-                    this.animationLayerData.animate();
+            }, () => {
+                this.animationLayerData.gestureNavigating = true;
+                this.animationLayerData.playbackRate = -1;
+                this.animationLayerData.play = false;
+                this.animationLayerData.animate();
+                const end = Date.now();
+                console.log('Finished in:', end - start, 'ms');
+                window.addEventListener('swipe', this.onSwipeListener);
+                window.addEventListener('swipeend', this.onSwipeEndListener);
             });
-            
         }
     }
 
@@ -501,7 +512,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         this.animationLayerData.progress = percentage;
     }
 
-    onSwipeEnd(ev: SwipeEndEvent) {
+    onSwipeEnd() {
         if (this.state.shouldPlay) return;
         // this.animationLayerData.progress = this.state.progress;
         let onEnd = null;

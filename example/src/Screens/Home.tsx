@@ -13,44 +13,55 @@ interface ListItem {
     description: string;
     onClick: () => void;
 }
-export default function Home(props: HomeProps) {
-    const list = [
+export default class Home extends React.Component<HomeProps> {
+    list = [
         {
             title: 'Tiles Demo',
             description: "Image tiles that zoom-in and then allow gestures to paginate and dismiss",
-            onClick: () => props.navigation.navigate('/tiles')
+            onClick: () => this.props.navigation.navigate('/tiles')
         },
         {
             title: 'Card Demo',
             description: 'Card reveal with shared element transitions',
-            onClick: () => props.navigation.navigate('/cards')
+            onClick: () => this.props.navigation.navigate('/cards')
         }
     ]
-    return (
-        <Motion.Consumer>
-            {(progress) => {
-                return (
-                    <div className="home">
-                        <SharedElement id="navbar">
-                            <Navbar title="Shared Element Demo" />
-                        </SharedElement>
-                        <div className={`list ${progress}`}>
-                            {
-                                list.map((item: ListItem, index: number) => {
-                                    return <ListItemComponent
-                                                key={index}
-                                                title={item.title}
-                                                description={item.description}
-                                                onClick={item.onClick}
-                                            />
-                                })
-                            }
-                        </div>
 
-                        <div className="motion-element" style={{transform: `translate(-50%, -${progress}px) rotate(${-progress}deg)`}}>MOTION</div>
-                    </div>
-                );
-            }}
-        </Motion.Consumer>
-    )
+    componentDidMount() {
+        console.log("Home Mounted");
+    }
+
+    componentWillUnmount() {
+        console.log("Home Unmounted");
+    }
+    
+    render () {
+        return (
+            <Motion.Consumer>
+                {(progress) => {
+                    return (
+                        <div className="home">
+                            <SharedElement id="navbar">
+                                <Navbar title="Shared Element Demo" />
+                            </SharedElement>
+                            <div className={`list ${progress}`}>
+                                {
+                                    this.list.map((item: ListItem, index: number) => {
+                                        return <ListItemComponent
+                                                    key={index}
+                                                    title={item.title}
+                                                    description={item.description}
+                                                    onClick={item.onClick}
+                                                />
+                                    })
+                                }
+                            </div>
+    
+                            <div className="motion-element" style={{transform: `translate(-50%, -${progress}px) rotate(${-progress}deg)`}}>MOTION</div>
+                        </div>
+                    );
+                }}
+            </Motion.Consumer>
+        )
+    }
 }
