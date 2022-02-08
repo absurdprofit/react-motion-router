@@ -156,7 +156,6 @@ export class AnimationLayerData {
     set progress(_progress: number) {
         this._progress = _progress;
         if (this._onProgress) {
-            console.log("On Progress");
             this._onProgress(this._progress);
         }
         const currentTime = (this._progress / 100) * this._duration;
@@ -445,14 +444,14 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             if (!this.state.gestureNavigation) {
                 this.animationLayerData.play = true;
             }
-            if (this.state.shouldAnimate) this.animationLayerData.animate();
-            if (!this.state.shouldAnimate) {
-                this.animationLayerData.animate();
-                this.animationLayerData.progress = 100;
+
+            if (this.state.shouldAnimate) this.animationLayerData.animate(); // children changes committed now animate
+            // if (!this.state.shouldAnimate) {
+            //     this.animationLayerData.animate();
+            //     this.animationLayerData.progress = 100;
                 
-            }
+            // }
         }
-        console.log("Component Did Update");
     }
 
     componentWillUnmount() {
@@ -464,12 +463,9 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         // if only one child return
         if (!this.props.lastPath) return;
 
-        // this.animationLayerData.backNavigating = true;
-        // this.animationLayerData.play = false;
         if (ev.direction === "right" && ev.x < 100) {
-            const start = Date.now();
             const children = React.Children.map(
-                this.state.children,
+                this.props.children,
                 (child: ScreenChild) => {
                     if (React.isValidElement(child)) {
                         if (child.props.path === this.props.currentPath || child.props.path === this.props.lastPath) {
@@ -497,8 +493,6 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
                 this.animationLayerData.playbackRate = -1;
                 this.animationLayerData.play = false;
                 this.animationLayerData.animate();
-                const end = Date.now();
-                console.log('Finished in:', end - start, 'ms');
                 window.addEventListener('swipe', this.onSwipeListener);
                 window.addEventListener('swipeend', this.onSwipeEndListener);
             });
@@ -506,7 +500,6 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
     }
 
     onSwipe(ev: SwipeEvent) {
-        console.log("Swipe");
         if (this.state.shouldPlay) return;
         const percentage = (Math.abs(ev.x - window.innerWidth) / window.innerWidth) * 100;
         this.animationLayerData.progress = percentage;
@@ -514,7 +507,6 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
 
     onSwipeEnd() {
         if (this.state.shouldPlay) return;
-        // this.animationLayerData.progress = this.state.progress;
         let onEnd = null;
         if (this.state.progress < 50) {
             onEnd = () => {
