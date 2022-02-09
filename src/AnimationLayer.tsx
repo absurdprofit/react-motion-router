@@ -462,7 +462,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
                             if (child.props.path === nextProps.currentPath) {
                                 const element = React.cloneElement(child, {...child.props, in: true, out: false});
                                 return element;
-                            } else if (child.props.path === nextProps.lastPath) {
+                            } else if (child.props.path === state.currentPath) {
                                 const element = React.cloneElement(child, {...child.props, out: true, in: false});
                                 return element;
                             } else {

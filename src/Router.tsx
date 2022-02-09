@@ -1,5 +1,5 @@
 import React, { createContext } from 'react';
-import {Navigation} from './common/utils';
+import {Navigation, BackEvent} from './common/utils';
 import AnimationLayer, { AnimationProvider } from './AnimationLayer';
 import GhostLayer from './GhostLayer';
 import { ScreenChild, ScreenChildren, Stack } from '.';
@@ -113,6 +113,10 @@ export default class Router extends React.Component<RouterProps, RouterState> {
     private config: Config;
     private _routerData: RouterData;
     private _pageLoad: boolean = true;
+    private onBackListener = this.onBack.bind(this) as EventListener;
+    private onNavigateListener = this.onNavigate.bind(this);
+    private onPopStateListener = this.onPopstate.bind(this);
+
     static defaultProps = {
         config: {
             animation: {
@@ -242,55 +246,10 @@ export default class Router extends React.Component<RouterProps, RouterState> {
             this._routerData.routesData = this.state.routesData;
         });
         this._routerData.currentPath = window.location.pathname;
-        window.addEventListener('go-back', ()=>{
-            this.setState({backNavigating: true});
-            this._pageLoad = false;
+        window.addEventListener('go-back', this.onBackListener, true);
 
-            window.addEventListener('page-animation-end', this.onAnimationEnd.bind(this), {once: true});
-            this._routerData.backNavigating = true;
-        }, true);
-
-        window.addEventListener('popstate', (e) => {
-            e.preventDefault();
-            this._pageLoad = false;
-            if (window.location.pathname === this.navigation.history.previous) {
-                if (!this.state.implicitBack) {
-                    this.setState({backNavigating: true});
-                    this._routerData.backNavigating = true;
-                } else {
-                    this.setState({implicitBack: false});
-                }
-            }
-
-            window.addEventListener('page-animation-end', this.onAnimationEnd.bind(this), {once: true});
-            this._routerData.currentPath = window.location.pathname;
-            this.setState({currentPath: window.location.pathname});
-        }, true);
-        window.addEventListener('navigate', (e : Event) => {
-            e.preventDefault();
-            this._pageLoad = false;
-            
-            const currentPath = (e as CustomEvent).detail.route;
-            this._routerData.currentPath = currentPath;
-            this.setState({
-                currentPath: currentPath
-            }, () => {
-                if ((e as CustomEvent).detail.routeParams) {
-                    const routesData = this.state.routesData;
-
-                    //store per route data in object
-                    //with pathname as key and route data as value
-                    (routesData as any)[currentPath] = {
-                        params: (e as CustomEvent).detail.routeParams
-                    };
-
-
-                    this.setState({routesData: routesData}, () => {
-                        this._routerData.routesData = routesData;
-                    });
-                }
-            });
-        }, true);
+        window.addEventListener('popstate', this.onPopStateListener, true);
+        window.addEventListener('navigate', this.onNavigateListener, true);
     }
 
     private onAnimationEnd(e: any) {
@@ -300,10 +259,72 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         }
     }
 
+    onPopstate(e: Event) {
+        e.preventDefault();
+        this._pageLoad = false;
+        if (window.location.pathname === this.navigation.history.previous) {
+            if (!this.state.implicitBack) {
+                this.setState({backNavigating: true});
+                this._routerData.backNavigating = true;
+            } else {
+                this.setState({implicitBack: false});
+            }
+
+            this.navigation.implicitBack();
+        } else {
+            if (!this.state.backNavigating && !this.state.implicitBack) {
+                this.navigation.implicitNavigate(window.location.pathname);
+            }
+        }
+
+        window.addEventListener('page-animation-end', this.onAnimationEnd.bind(this), {once: true});
+        this._routerData.currentPath = window.location.pathname;
+        this.setState({currentPath: window.location.pathname});
+    }
+
+    onBack(e: BackEvent) {
+        this.setState({backNavigating: true});
+        this._pageLoad = false;
+
+        if (e.detail.replaceState) { // replaced state with default route
+            this._routerData.currentPath = window.location.pathname;
+            this.setState({currentPath: window.location.pathname});
+        }
+
+        window.addEventListener('page-animation-end', this.onAnimationEnd.bind(this), {once: true});
+        this._routerData.backNavigating = true;
+    }
+
+    onNavigate(e: Event) {
+        e.preventDefault();
+        this._pageLoad = false;
+        
+        const currentPath = (e as CustomEvent).detail.route;
+        this._routerData.currentPath = currentPath;
+        this.setState({
+            currentPath: currentPath
+        }, () => {
+            if ((e as CustomEvent).detail.routeParams) {
+                const routesData = this.state.routesData;
+
+                //store per route data in object
+                //with pathname as key and route data as value
+                (routesData as any)[currentPath] = {
+                    params: (e as CustomEvent).detail.routeParams
+                };
+
+
+                this.setState({routesData: routesData}, () => {
+                    this._routerData.routesData = routesData;
+                });
+            }
+        });
+    }
+
     componentWillUnmount() {
-        window.removeEventListener('navigate', ()=>{});
-        window.removeEventListener('popstate', ()=>{});
-        window.removeEventListener('go-back', ()=>{});
+        window.removeEventListener('navigate', this.onNavigateListener);
+        window.removeEventListener('popstate', this.onPopStateListener);
+        window.removeEventListener('go-back', this.onBackListener);
     }
     render() {
         return (
@@ -325,7 +346,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
                         lastPath={this.navigation.history.previous}
                         goBack={() => {
                             this.setState({implicitBack: true}, () => {
-                                this.navigation.history.back();
+                                this.navigation.goBack();
                             });
                         }}
                         // style={!this._pageLoad || this.props.config.pageLoadTransition ? {transition: `all ${this.props.config?.animation.in.duration || 200}ms`} : undefined}
