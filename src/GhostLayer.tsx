@@ -1,8 +1,9 @@
 import React from 'react';
 import SharedElement from './SharedElement';
-import {clamp, getCssText} from './common/utils';
+import {clamp} from './common/utils';
 import { AnimationConfig } from './Router';
 import {Vec2, getStyleObject} from './common/utils';
+import {MotionProgressEvent} from './AnimationLayer';
 
 interface GhostLayerProps {
     instance?: (instance: GhostLayer | null) => any;
@@ -14,6 +15,7 @@ interface GhostLayerProps {
 }
 interface GhostLayerState {
     transitioning: boolean;
+    playing: boolean;
 }
 
 interface TransitionXYState {
@@ -39,9 +41,16 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
     private ref: HTMLDivElement | null = null;
     private _currentScene: SharedElement.Scene | null = null;
     private _nextScene: SharedElement.Scene | null = null;
+    private _animationMap: {[key:string]:{[key:string]:Animation}} = {};
+    private onProgressStartListener = this.onProgressStart.bind(this) as EventListener;
+    private onProgressListener = this.onProgress.bind(this) as EventListener;
+    private onProgressEndListener = this.onProgressEnd.bind(this) as EventListener;
+    
     state: GhostLayerState = {
         transitioning: false,
+        playing: true
     }
+
 
     set currentScene(scene: SharedElement.Scene) {
         this._currentScene = scene;
@@ -166,6 +175,16 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         }
                     );
 
+                    this._animationMap[startInstance.id] = {startXAnimation, startYAnimation};
+
+                    if (!this.state.playing) {
+                        Object.values(this._animationMap).map((xYAnimations: {[key:string]:Animation}) => {
+                            Object.values(xYAnimations).map((animation: Animation) => {
+                                animation.pause();
+                            });
+                        });
+                    }
+
                     window.addEventListener('page-animation-end', ()=>{
                         startInstance.hidden = false;
                         endInstance.hidden = false;
@@ -186,6 +205,43 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
         if (this.props.instance) {
             this.props.instance(this);
         }
+
+        window.addEventListener('motion-progress-start', this.onProgressStartListener);
+        window.addEventListener('motion-progress', this.onProgressListener);
+        window.addEventListener('motion-progress-end', this.onProgressEndListener);
+
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('motion-progress-start', this.onProgressStartListener);
+        window.removeEventListener('motion-progress', this.onProgressListener);
+        window.removeEventListener('motion-progress-end', this.onProgressEndListener);
+    }
+
+    onProgressStart() {
+        this.setState({playing: false});
+    }
+
+    onProgress(e: MotionProgressEvent) {
+        if (!this.state.playing) {
+            Object.values(this._animationMap).map((xYAnimations: {[key:string]:Animation}) => {
+                Object.values(xYAnimations).map((animation: Animation) => {
+                    const progress = e.detail.progress; // because ghost layer animations never run backwards
+                    const defaultDuration = this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration;
+                    let duration = animation.effect?.getComputedTiming().duration || defaultDuration;
+                    if (typeof duration === "string") {
+                        duration = parseFloat(duration);
+                    }
+
+                    const currentTime = (progress / 100) * duration;
+                    animation.currentTime = currentTime;
+                });
+            });
+        }
+    }
+
+    onProgressEnd() {
+        this.setState({playing: true, transitioning: false});
     }
 
     render() {

@@ -48,6 +48,7 @@ interface RouterState {
     currentPath: string;
     backNavigating: boolean;
     routesData: RoutesData;
+    implicitBack: boolean;
 }
 
 export class RouterData {
@@ -157,7 +158,8 @@ export default class Router extends React.Component<RouterProps, RouterState> {
     state: RouterState = {
         currentPath: "",
         backNavigating: false,
-        routesData: {}
+        routesData: {},
+        implicitBack: false
     }
 
     animationDirectionSwap(animationConfig: AnimationConfig): AnimationConfig {
@@ -252,11 +254,15 @@ export default class Router extends React.Component<RouterProps, RouterState> {
             e.preventDefault();
             this._pageLoad = false;
             if (window.location.pathname === this.navigation.history.previous) {
-                this.setState({backNavigating: true});
+                if (!this.state.implicitBack) {
+                    this.setState({backNavigating: true});
+                    this._routerData.backNavigating = true;
+                } else {
+                    this.setState({implicitBack: false});
+                }
             }
 
             window.addEventListener('page-animation-end', this.onAnimationEnd.bind(this), {once: true});
-            this._routerData.backNavigating = true;
             this._routerData.currentPath = window.location.pathname;
             this.setState({currentPath: window.location.pathname});
         }, true);
@@ -287,7 +293,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         }, true);
     }
 
-    private onAnimationEnd() {
+    private onAnimationEnd(e: any) {
         if (this.state.backNavigating) {
             this._routerData.backNavigating = false;
             this.setState({backNavigating: false});
@@ -317,6 +323,11 @@ export default class Router extends React.Component<RouterProps, RouterState> {
                         currentPath={this.state.currentPath}
                         backNavigating={this.state.backNavigating}
                         lastPath={this.navigation.history.previous}
+                        goBack={() => {
+                            this.setState({implicitBack: true}, () => {
+                                this.navigation.history.back();
+                            });
+                        }}
                         // style={!this._pageLoad || this.props.config.pageLoadTransition ? {transition: `all ${this.props.config?.animation.in.duration || 200}ms`} : undefined}
                     >
                         {this.props.children}
