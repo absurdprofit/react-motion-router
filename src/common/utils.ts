@@ -2,17 +2,24 @@ export class History {
     private _stack: string[] = [];
     private _next: string | null = null;
     private _previous: string | null = null;
-    private _default_route: string | null = null;
+    private _defaultRoute: string | null = null;
     constructor() {
         this._stack.push(window.location.pathname);
     }
 
-    set default_route(_default_route: string | null) {
-        this._default_route = _default_route;
+    set defaultRoute(_defaultRoute: string | null) {
+        if (window.location.pathname !== _defaultRoute) {
+            this._previous = _defaultRoute;
+        }
+        this._defaultRoute = _defaultRoute;
     }
 
-    get default_route() {
-        return this._default_route;
+    get length() {
+        return this._stack.length;
+    }
+
+    get defaultRoute() {
+        return this._defaultRoute;
     }
     get next() {
         return this._next;
@@ -20,64 +27,120 @@ export class History {
     get previous() {
         return this._previous;
     }
-    get is_empty() {
+    get isEmpty() {
         return !this._stack.length ? true : false;
     }
+    
     push(route: string) {
         this._previous = window.location.pathname;
         this._next = route;
+        
         window.history.pushState({}, "", route);
+
         this._stack.push(route);
     }
 
-    back() {
-        this._next = this._previous;
-        this._previous = this._stack.pop() || null;
+    implicitPush(route: string) {
+        this._previous = this._stack[this._stack.length - 1] || null;
+        this._next = route; 
+        this._stack.push(route);
+    }
 
-        window.history.back();
+    back(replaceState: boolean): string;
+    back(): string;
+    back(replaceState?: boolean) {
+        this._next = this._stack.pop() || null;
+        this._previous = this._stack[this._stack.length - 2] || null;
+        
+        if (replaceState && this._defaultRoute) {
+            window.history.replaceState({}, "", this._defaultRoute);
+        } else {
+            window.history.back();
+        }
 
         return this._previous;
     }
 
-    search_params_to_object(search_part: string) {
-        const entries = new URLSearchParams(decodeURI(search_part)).entries();
+    implicitBack() {
+        this._next = this._stack.pop() || null;
+        this._previous = this._stack[this._stack.length - 2] || null;
+
+        return this._previous;
+    }
+
+    searchParamsToObject(searchPart: string) {
+        const entries = new URLSearchParams(decodeURI(searchPart)).entries();
         const result: {[key:string]: string} = {};
         
         for(const [key, value] of entries) { // each 'entry' is a [key, value] tupple
-            let parsed_value = '';
+            let parsedValue = '';
             try {
-                parsed_value = JSON.parse(value);
+                parsedValue = JSON.parse(value);
             } catch (e) {
                 console.warn("Non JSON seralisable value was passed as URL route param.");
-                parsed_value = value;
+                parsedValue = value;
             }
-            result[key] = parsed_value;
+            result[key] = parsedValue;
         }
         return Object.keys(result).length ? result : undefined;
     }
 }
+
+export type BackEvent = CustomEvent<{replaceState:boolean}>;
+interface NavigateEventDetail {
+    route: string;
+    routeParams?: any;
+}
+export type NavigateEvent = CustomEvent<NavigateEventDetail>;
+
 export class Navigation {
     private _history = new History();
-    navigate(route: string, route_params?: any) {
+    navigate(route: string, routeParams?: any) {
         this._history.push(route);
 
-        const event = new CustomEvent('navigate', {
+        const event = new CustomEvent<NavigateEventDetail>('navigate', {
             detail: {
                 route: route,
-                route_params: route_params
+                routeParams: routeParams
             }
         });
 
         window.dispatchEvent(event);
     }
 
-    go_back() {
-        if (this._history.default_route && !this._history.previous) {
-            this.navigate(this._history.default_route);
+    implicitNavigate(route: string, routeParams?: any) {
+        this._history.implicitPush(route);
+        
+        const event = new CustomEvent<NavigateEventDetail>('navigate', {
+            detail: {
+                route: route,
+                routeParams: routeParams
+            }
+        });
+
+        window.dispatchEvent(event);
+    }
+
+    implicitBack() {
+        this._history.implicitBack();
+    }
+
+    goBack() {
+        let event = new CustomEvent<{replaceState:boolean}>('go-back', {
+            detail: {
+                replaceState: false
+            }
+        });
+        if (this._history.defaultRoute && this._history.length === 1) {
+            this._history.back(true);
+            event = new CustomEvent<{replaceState:boolean}>('go-back', {
+                detail: {
+                    replaceState: true
+                }
+            });
         } else {
             this._history.back();
-        }  
-        const event = new CustomEvent('go-back');
+        } 
 
         window.dispatchEvent(event);
     }
@@ -92,21 +155,32 @@ export interface Vec2 {
     y: number;
 }
 
-export function get_css_text(styles: CSSStyleDeclaration): string {
+export function getCssText(styles: CSSStyleDeclaration): string {
     if (styles.cssText !== '') {
         return styles.cssText;
     } else {
-        const css_text = Object.values(styles).reduce(
-            (css, property_name) =>
-                `${css}${property_name}:${styles.getPropertyValue(
-                    property_name
+        const cssText = Object.values(styles).reduce(
+            (css, propertyName) =>
+                `${css}${propertyName}:${styles.getPropertyValue(
+                    propertyName
                 )};`
         );
 
-        return css_text;
+        return cssText;
     }
 }
 
+export function getStyleObject(styles: CSSStyleDeclaration): {[key:string]: string} {
+    const styleObject: {[key:string]:string} = {};
+    for (const key in styles) {
+        if (styles[key] && styles[key].length && typeof styles[key] !== "function") {
+            if (/^\d+$/.test(key)) continue;
+            if (key === "offset") continue;
+            styleObject[key] = styles[key];
+        }
+    }
+    return styleObject;
+}
 export function clamp(num: number, min: number, max?: number) {
     if (num < min) {
         return min;

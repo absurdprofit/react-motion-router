@@ -26,12 +26,15 @@ export default function Home(props: HomeProps) {
             onClick: () => props.navigation.navigate('/cards')
         }
     ]
+
     return (
         <div className="home">
-            <SharedElement id="navbar">
+            <SharedElement id="navbar" config={{
+                type: 'fade'
+            }}>
                 <Navbar title="Shared Element Demo" />
             </SharedElement>
-            <div className="list">
+            <div className={`list`}>
                 {
                     list.map((item: ListItem, index: number) => {
                         return <ListItemComponent

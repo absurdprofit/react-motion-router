@@ -1,5 +1,5 @@
 import React, {createContext} from 'react';
-import {get_css_text, clamp, Vec2} from './common/utils';
+import {getCssText, clamp, Vec2} from './common/utils';
 
 namespace SharedElement {
     interface SharedElementNode {
@@ -39,9 +39,9 @@ namespace SharedElement {
     }
 
     enum TransitionAnimationEnum {
-        "move",
-        "fade-in",
-        "fade-out",
+        "morph",
+        "fade-through",
+        "fade",
         "cross-fade"
     }
 
@@ -49,7 +49,7 @@ namespace SharedElement {
 
     type EasingFunctionKeyword = keyof typeof EasingFunctionKeywordEnum;
 
-    type EasingFunction = EasingFunctionKeyword | string;
+    export type EasingFunction = EasingFunctionKeyword | `cubic-bezier(${number},${' ' | ''}${number},${' ' | ''}${number},${' ' | ''}${number})`;
 
     type TransformOriginGlobal = keyof typeof TransformOriginGlobalEnum;
 
@@ -65,17 +65,17 @@ namespace SharedElement {
     
     
     interface SharedElementConfig {
-        transform_origin?: TransformOrigin;
-        easing_function?: EasingFunction;
+        type?: TransitionAnimation;
+        transformOrigin?: TransformOrigin;
+        easingFunction?: EasingFunction;
         duration?: number;
-        animation?: TransitionAnimation;
         x?: {
             duration?: number;
-            easing_function?: EasingFunction
+            easingFunction?: EasingFunction
         };
         y?: {
             duration?: number;
-            easing_function?: EasingFunction
+            easingFunction?: EasingFunction
         };
     }
 
@@ -89,8 +89,8 @@ namespace SharedElement {
     export interface Map {
         [key:string]: {
             node: Node;
-            computed_styles: CSSStyleDeclaration;
-            client_rect: DOMRect;
+            computedStyles: CSSStyleDeclaration;
+            clientRect: DOMRect;
         };
     }
 
@@ -101,11 +101,14 @@ namespace SharedElement {
     export class Scene {
         private _nodes: NodeMap = {};
         private _name: string = '';
-        private _scroll_pos: Vec2 | null = null;
+        private _scrollPos: Vec2 | null = null;
+        private _x: number = 0;
+        private _y: number = 0;
+
         constructor(name: string) {
             this._name = name;
         }
-        add_node(node: SharedElementNode) {
+        addNode(node: SharedElementNode) {
             if (Object.keys(this.nodes).includes(node.id)) {
                 console.assert(!Object.keys(this.nodes).includes(node.id), `Duplicate Shared Element ID: ${node.id} in ${this._name}`);
                 throw new Error(`Duplicate Shared Element ID: '${node.id}' in Component: '${this._name}'`);
@@ -113,7 +116,7 @@ namespace SharedElement {
             this._nodes[node.id] = node;
         }
 
-        remove_node(node: SharedElementNode) {
+        removeNode(node: SharedElementNode) {
             delete this._nodes[node.id];
         }
 
@@ -125,56 +128,71 @@ namespace SharedElement {
             return this._name;
         }
         
-        get scroll_pos() {
-            return this._scroll_pos || {
+        get scrollPos() {
+            return this._scrollPos || {
                 x: 0,
                 y: 0
             };
         }
 
-        set scroll_pos(_scroll_pos: Vec2) {
-            this._scroll_pos = _scroll_pos;
+        get x() {
+            return this._x;
+        }
+        
+        get y() {
+            return this._y;
         }
 
-        is_empty() {
+        set scrollPos(_scrollPos: Vec2) {
+            this._scrollPos = _scrollPos;
+        }
+
+        set x(_x: number) {
+            this._x = _x;
+        }
+
+        set y(_y: number) {
+            this._y = _y;
+        }
+
+        isEmpty() {
             return !Object.keys(this._nodes).length ? true : false;
         }
     }
 
     export const SceneContext = createContext<Scene | null>(null);
 
-    function node_from_ref(
+    function nodeFromRef(
         id: string,
         ref: Element,
         instance: SharedElement.SharedElement
     ): SharedElementNode {
         const node: HTMLElement = ref.cloneNode(true) as HTMLElement;
-        const computed_style = instance.computed_style;
-        const client_rect = instance.client_rect;
-        (node.firstChild as HTMLElement).style.cssText = get_css_text(computed_style);
+        const computedStyle = instance.computedStyle;
+        const clientRect = instance.clientRect;
+        (node.firstChild as HTMLElement).style.cssText = getCssText(computedStyle);
 
-        if (instance.props.config && instance.props.config.transform_origin) {
-            (node.firstChild as HTMLElement).style.transformOrigin = instance.props.config.transform_origin;
+        if (instance.props.config && instance.props.config.transformOrigin) {
+            (node.firstChild as HTMLElement).style.transformOrigin = instance.props.config.transformOrigin;
         }
         /**
          * Translate X on outer element and translate Y on inner element
          * allows for layered animations
          */
-        (node.firstChild as HTMLElement).style.transform = `translateY(${clamp(client_rect.y, 0)}px)`;
-        node.style.transform = `translateX(${clamp(client_rect.x, 0)}px)`;
+        (node.firstChild as HTMLElement).style.transform = `translateY(${clientRect.y}px)`;
+        node.style.transform = `translateX(${clientRect.x}px)`;
         node.style.willChange = 'contents, transform';
         node.style.position = 'absolute';
         node.style.top = '0';
         node.style.left = '0';
-        node.setAttribute('x', `${clamp(client_rect.x, 0)}px`);
-        node.setAttribute('y', `${clamp(client_rect.y, 0)}px`);
+        node.setAttribute('x', `${clientRect.x}px`);
+        node.setAttribute('y', `${clientRect.y}px`);
  
         /**
          * TODO:
-         * 1. If animation type is slide change translate to either translateX or translateY depending on the slide direction
          * i.e. if slide is horizontal (left|right) change to translateY or if slide is vertical (up|down) change to translateX
          * 
-         * 2. Compensate for travel distance due to window scroll position
+         * 2̶.̶ C̶o̶m̶p̶e̶n̶s̶a̶t̶e̶ f̶o̶r̶ t̶r̶a̶v̶e̶l̶ d̶i̶s̶t̶a̶n̶c̶e̶ d̶u̶e̶ t̶o̶ w̶i̶n̶d̶o̶w̶ s̶c̶r̶o̶l̶l̶ p̶o̶s̶i̶t̶i̶o̶n̶
          */
         return {
             id: id,
@@ -187,31 +205,33 @@ namespace SharedElement {
         private ref: HTMLDivElement | null = null;
         private _scene: Scene | null = null;
         private _hidden: boolean = false;
-        private _is_mounted: boolean = false;
+        private _isMounted: boolean = false;
+        private onRef = this.setRef.bind(this);
         
         get scene() {
             return this._scene;
         }
         
-        get client_rect() {
+        get clientRect() {
             if (this.ref && this.ref.firstChild) {
-                return (this.ref.firstChild as Element).getBoundingClientRect();
+                const clientRect = (this.ref.firstChild as Element).getBoundingClientRect();
+                return clientRect;
             }
             return new DOMRect();
         }
     
-        get computed_style() {
+        get computedStyle() {
             if (this.ref && this.ref.firstChild) {
-                const computed_styles = window.getComputedStyle((this.ref.firstChild as Element));
+                const computedStyles = window.getComputedStyle((this.ref.firstChild as Element));
                 
-                return computed_styles;
+                return computedStyles;
             }
             return new CSSStyleDeclaration();
         }
     
-        get css_text() {
-            const computed_style = this.computed_style;
-            if (computed_style) return get_css_text(computed_style);
+        get cssText() {
+            const computedStyle = this.computedStyle;
+            if (computedStyle) return getCssText(computedStyle);
             return '';
         }
     
@@ -223,41 +243,45 @@ namespace SharedElement {
             return this._hidden;
         }
 
+        get transitionType() {
+            return this.props.config?.type;
+        }
+
         set hidden(_hidden: boolean) {
             this._hidden = _hidden;
-            if (this._is_mounted) {
+            if (this._isMounted) {
                 this.forceUpdate();
             }
         }
 
-        private set_ref(ref: HTMLDivElement | null) {
+        private setRef(ref: HTMLDivElement | null) {
             if (this.ref !== ref) {
                 if (this.ref) {
-                    this.scene?.remove_node(node_from_ref(this._id, this.ref, this));
+                    this.scene?.removeNode(nodeFromRef(this._id, this.ref, this));
                 }
                 this.ref = ref;
                 
                 if (ref) {
-                    this.scene?.add_node(node_from_ref(this._id, ref, this));
+                    this.scene?.addNode(nodeFromRef(this._id, ref, this));
                 }
             }
     
         }
 
         componentDidMount() {
-            this._is_mounted = true;
+            this._isMounted = true;
         }
         componentDidUpdate() {
             if (this._id !== this.props.id) {
                 if (this.ref) {
-                    this.scene?.remove_node(node_from_ref(this._id, this.ref, this));
+                    this.scene?.removeNode(nodeFromRef(this._id, this.ref, this));
                     this._id = this.props.id.toString();
-                    this.scene?.add_node(node_from_ref(this._id, this.ref, this));
+                    this.scene?.addNode(nodeFromRef(this._id, this.ref, this));
                 }
             }
         }
         componentWillUnmount() {
-            this._is_mounted = false;
+            this._isMounted = false;
         }
 
         render() {
@@ -267,7 +291,7 @@ namespace SharedElement {
                         this._scene = scene;
                         return (
                             <div
-                                ref={this.set_ref.bind(this)}
+                                ref={this.onRef}
                                 id={`shared-element-${this._id}`}
                                 className={"shared-element"}
                                 style={{

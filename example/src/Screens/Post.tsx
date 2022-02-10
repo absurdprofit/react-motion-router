@@ -15,7 +15,7 @@ export default class Post extends React.Component<PostProps, {}> {
         if (this.props.route.params.post) {
             return (
                 <div className="post">
-                    <button style={{position: "absolute"}} onClick={() => {this.props.navigation.go_back()}}>Back</button>
+                    <button style={{position: "absolute"}} onClick={() => {this.props.navigation.goBack()}}>Back</button>
                     <div className="picture">
                         <SharedElement id={this.props.route.params.post.id}>
                             <img src={this.props.route.params.post.picture} alt="post" />

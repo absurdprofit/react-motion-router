@@ -1,23 +1,45 @@
 .cards button {
-    text-align: left;
+  text-align: left;
 }
 .cards .card-list {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding-top: 15px;
-    padding-bottom: 15px;
-    gap: 15px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding-top: 15px;
+  padding-bottom: 15px;
+  gap: 15px;
 }
 .cards p {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: justify;
-    line-height: 1.5rem;
-    height: 70px;
+  overflow: hidden;
+  text-overflow: clip;
+  text-align: justify;
+  line-height: 1.5rem;
+  height: 70px;
+  width: 313px;
+}
+.cards .MuiPaper-root,
+.cards .MuiPaper-root p,
+.cards .MuiPaper-root img,
+.cards .MuiPaper-root h5 {
+  position: static;
+  z-index: 1;
+}
+.cards .card-bg {
+  width: 345px;
+  height: 291px;
+  position: absolute;
+  border-radius: 15px;
+  background-color: white;
+  z-index: 0;
+  box-shadow: 0px 2px 1px -1px rgb(0 0 0 / 20%), 0px 1px 1px 0px rgb(0 0 0 / 14%), 0px 1px 3px 0px rgb(0 0 0 / 12%);
+}
+.cards .MuiPaper-root {
+  border-radius: 15px;
+  background-color: transparent;
+  box-shadow: none;
+}
+.cards .MuiPaper-root img {
+  border-radius: 15px 15px 0px 0px;
 }

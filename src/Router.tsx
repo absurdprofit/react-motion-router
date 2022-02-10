@@ -1,7 +1,8 @@
 import React, { createContext } from 'react';
-import {Navigation} from './common/utils';
-import {TransitionGroup} from 'react-transition-group';
+import {Navigation, BackEvent, NavigateEvent} from './common/utils';
+import AnimationLayer from './AnimationLayer';
 import GhostLayer from './GhostLayer';
+import { ScreenChild, ScreenChildren } from '.';
 
 enum AnimationDirectionEnum {
     up,
@@ -29,53 +30,72 @@ export interface AnimationConfig {
 }
 
 interface Config {
-    animation: AnimationConfig;
-    page_load_transition?: boolean;
-    default_route?: string;
+    animation: {
+        in: AnimationConfig;
+        out?: AnimationConfig;
+    } | AnimationConfig;
+    pageLoadTransition?: boolean;
+    defaultRoute?: string;
+    swipeAreaWidth?: number;
+    minFlingVelocity?: number;
+    hysteresis?: number;
+    disableDiscovery?: boolean;
 }
 interface RouterProps {
     config: Config;
-    children: React.ReactChild[] | React.ReactChild;
+    children: ScreenChild | ScreenChildren;
 }
 
 interface RoutesData {[key:string]: any}
 
 interface RouterState {
-    current_path: string;
-    back_navigating: boolean;
-    routes_data: RoutesData;
+    currentPath: string;
+    backNavigating: boolean;
+    routesData: RoutesData;
+    implicitBack: boolean;
 }
 
 export class RouterData {
-    private _current_path: string = '';
-    private _routes_data: RoutesData = {};
+    private _currentPath: string = '';
+    private _routesData: RoutesData = {};
     private _navigation: Navigation = new Navigation();
-    private _animation: AnimationConfig = {
-        type: "none",
-        duration: 0,
+    private _backNavigating: boolean = false;
+    private _animation: {in: AnimationConfig; out: AnimationConfig} = {
+        in: {
+            type: "none",
+            duration: 0,
+        },
+        out: {
+            type: "none",
+            duration: 0
+        }
     };
-    private _ghost_layer: GhostLayer| null = null;
+    private _ghostLayer: GhostLayer| null = null;
 
-    set current_path(_current_path: string) {
-        this._current_path = _current_path;
+    set currentPath(_currentPath: string) {
+        this._currentPath = _currentPath;
     }
-    set routes_data(_routes_data: RoutesData) {
-        this._routes_data = _routes_data;
+    set routesData(_routesData: RoutesData) {
+        this._routesData = _routesData;
     }
     set navigation(_navigation: Navigation) {
         this._navigation = _navigation;
     }
-    set animation(_animation: AnimationConfig) {
+    set animation(_animation: {in: AnimationConfig; out: AnimationConfig}) {
         this._animation = _animation;
     }
-    set ghost_layer(_ghost_layer: GhostLayer | null) {
-        this._ghost_layer = _ghost_layer;
+    set ghostLayer(_ghostLayer: GhostLayer | null) {
+        this._ghostLayer = _ghostLayer;
     }
-    get current_path() {
-        return this._current_path;
+    set backNavigating(_backNavigating: boolean) {
+        this._backNavigating = _backNavigating;
     }
-    get routes_data() {
-        return this._routes_data;
+
+    get currentPath() {
+        return this._currentPath;
+    }
+    get routesData() {
+        return this._routesData;
     }
     get navigation() {
         return this._navigation;
@@ -83,8 +103,11 @@ export class RouterData {
     get animation() {
         return this._animation;
     }
-    get ghost_layer() {
-        return this._ghost_layer;
+    get ghostLayer() {
+        return this._ghostLayer;
+    }
+    get backNavigating() {
+        return this._backNavigating;
     }
 }
 
@@ -92,14 +115,25 @@ export const RouterDataContext = createContext<RouterData>(new RouterData());
 export default class Router extends React.Component<RouterProps, RouterState> {
     private navigation = new Navigation();
     private config: Config;
-    private _router_data: RouterData;
-    private _page_load: boolean = true;
+    private _routerData: RouterData;
+    private _pageLoad: boolean = true;
+    private onBackListener = this.onBack.bind(this) as EventListener;
+    private onNavigateListener = this.onNavigate.bind(this) as EventListener;
+    private onPopStateListener = this.onPopstate.bind(this);
+
     static defaultProps = {
         config: {
             animation: {
-                type: "fade",
-                duration: 200,
-                direction: "none"
+                in: {
+                    type: "fade",
+                    duration: 200,
+                    direction: "none"
+                },
+                out: {
+                    type: "fade",
+                    duration: 200,
+                    direction: "none"
+                }
             }
         }
     }
@@ -110,159 +144,228 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         } else {
             this.config = {
                 animation: {
-                    type: "none",
-                    duration: 0,
+                    in: {
+                        type: "none",
+                        duration: 0,
+                    },
+                    out: {
+                        type: "none",
+                        duration: 0,
+                    }
                 }
             }
         }
 
-        this._router_data = new RouterData();
-        this._router_data.navigation = this.navigation;
-        this._router_data.animation = this.config.animation;
+        this._routerData = new RouterData();
+        this._routerData.navigation = this.navigation;
+        if ('in' in this.config.animation) {
+            this._routerData.animation = {
+                in: this.config.animation.in,
+                out: this.config.animation.out || this.config.animation.in
+            };
+        } else {
+            this._routerData.animation = {
+                in: this.config.animation,
+                out: this.config.animation
+            };
+        }
     }
     state: RouterState = {
-        current_path: "",
-        back_navigating: false,
-        routes_data: {}
+        currentPath: "",
+        backNavigating: false,
+        routesData: {},
+        implicitBack: false
     }
 
-    animation_direction_swap() {
-        if (this.config.animation.type === "zoom") {
-            const forward_direction = this.config.animation.direction;
-            switch(forward_direction) {
+    animationDirectionSwap(animationConfig: AnimationConfig): AnimationConfig {
+        if (animationConfig.type === "zoom") {
+            switch(animationConfig.direction) {
                 case "in":
-                    this.config.animation.direction = "out";
-                    break;
+                    return {
+                        ...animationConfig,
+                        direction: "out"
+                    };
                 
                 case "out":
-                    this.config.animation.direction = "in";
-                    break;
+                    return {
+                        ...animationConfig,
+                        direction: "in"
+                    }
                 
                 default:
-                    this.config.animation.direction = "out";
+                    return {
+                        ...animationConfig,
+                        direction: "out"
+                    }
             }
-
-            this._router_data.animation = this.config.animation;
-            setTimeout(() => {
-                this.config.animation.direction = forward_direction;
-                this._router_data.animation = this.config.animation;
-            }, this.config.animation.duration);
-            return;
         }
-        if (this.config.animation.type === "slide") {
-            const forward_direction = this.config.animation.direction;
-            switch(this.config.animation.direction) {
+
+        if (animationConfig.type === "slide") {
+            switch(animationConfig.direction) {
                 case "right":
-                    this.config.animation.direction = "left";
-                    break;
+                    return {
+                        ...animationConfig,
+                        direction: "left"
+                    }
                 case "left":
-                    this.config.animation.direction = "right";
-                    break;
+                    return {
+                        ...animationConfig,
+                        direction: "right"
+                    }
                 case "up":
-                    this.config.animation.direction = "down";
-                    break;
+                    return {
+                        ...animationConfig,
+                        direction: "down"
+                    }
                 case "down":
-                    this.config.animation.direction = "up";
-                    break;
+                    return {
+                        ...animationConfig,
+                        direction: "up"
+                    }
                 
                 default:
-                    this.config.animation.direction = "left";
+                    return {
+                        ...animationConfig,
+                        direction: "left"
+                    }
             }
-
-            this._router_data.animation = this.config.animation;
-            setTimeout(() => {
-                this.config.animation.direction = forward_direction;
-                this._router_data.animation = this.config.animation;
-            }, this.config.animation.duration);
         }
+
+        return animationConfig;
     }
+
     componentDidMount() {
-        if (this.props.config.default_route) {
-            this.navigation.history.default_route = this.props.config.default_route;
+        if (this.props.config.defaultRoute) {
+            this.navigation.history.defaultRoute = this.props.config.defaultRoute;
         }
 
         // get url search params and append to existing route params
-        const search_params = this.navigation.history.search_params_to_object(window.location.search);
-        const routes_data = this.state.routes_data;
-        if (search_params) {
-            routes_data[window.location.pathname] = {
-                params: search_params
+        const searchParams = this.navigation.history.searchParamsToObject(window.location.search);
+        const routesData = this.state.routesData;
+        if (searchParams) {
+            routesData[window.location.pathname] = {
+                params: searchParams
             };
         }
 
-        let current_path = window.location.pathname;
-        if (this.props.config.default_route && window.location.pathname === '/' && this.props.config.default_route !== '/') {
-            this.navigation.navigate(this.props.config.default_route);
-            current_path = this.props.config.default_route;
+        let currentPath = window.location.pathname;
+        if (this.props.config.defaultRoute && window.location.pathname === '/' && this.props.config.defaultRoute !== '/') {
+            this.navigation.navigate(this.props.config.defaultRoute);
+            currentPath = this.props.config.defaultRoute;
         }
-        this.setState({current_path: current_path, routes_data: routes_data}, () => {
-            this._router_data.routes_data = this.state.routes_data;
+        this.setState({currentPath: currentPath, routesData: routesData}, () => {
+            this._routerData.routesData = this.state.routesData;
         });
-        this._router_data.current_path = window.location.pathname;
-        window.addEventListener('go-back', ()=>{
-            this.setState({back_navigating: true});
-            this._page_load = false;
-            
-            this.animation_direction_swap();
-        }, true);
+        this._routerData.currentPath = window.location.pathname;
+        window.addEventListener('go-back', this.onBackListener, true);
 
-        window.addEventListener('popstate', (e) => {
-            e.preventDefault();
-            this._page_load = false;
-            if (window.location.pathname === this.navigation.history.previous) {
-                this.setState({back_navigating: true});
-                this.animation_direction_swap();
+        window.addEventListener('popstate', this.onPopStateListener, true);
+        window.addEventListener('navigate', this.onNavigateListener, true);
+    }
+
+    private onAnimationEnd() {
+        if (this.state.backNavigating) {
+            this._routerData.backNavigating = false;
+            this.setState({backNavigating: false});
+        }
+    }
+
+    onPopstate(e: Event) {
+        e.preventDefault();
+        this._pageLoad = false;
+        if (window.location.pathname === this.navigation.history.previous) {
+            if (!this.state.implicitBack) {
+                this.setState({backNavigating: true});
+                this._routerData.backNavigating = true;
+            } else {
+                this.setState({implicitBack: false});
             }
-            this._router_data.current_path = window.location.pathname;
-            this.setState({current_path: window.location.pathname});
-        }, true);
-        window.addEventListener('navigate', (e : Event) => {
-            e.preventDefault();
-            this._page_load = false;
-            
-            const current_path = (e as CustomEvent).detail.route;
-            this._router_data.current_path = current_path;
-            this.setState({
-                current_path: current_path
-            }, () => {
-                if ((e as CustomEvent).detail.route_params) {
-                    const routes_data = this.state.routes_data;
 
-                    //store per route data in object
-                    //with pathname as key and route data as value
-                    (routes_data as any)[current_path] = {
-                        params: (e as CustomEvent).detail.route_params
-                    };
+            this.navigation.implicitBack();
+        } else {
+            if (!this.state.backNavigating && !this.state.implicitBack) {
+                this.navigation.implicitNavigate(window.location.pathname);
+            }
+        }
+
+        window.addEventListener('page-animation-end', this.onAnimationEnd.bind(this), {once: true});
+        this._routerData.currentPath = window.location.pathname;
+        this.setState({currentPath: window.location.pathname});
+    }
+
+    onBack(e: BackEvent) {
+        this.setState({backNavigating: true});
+        this._pageLoad = false;
+
+        if (e.detail.replaceState) { // replaced state with default route
+            this._routerData.currentPath = window.location.pathname;
+            this.setState({currentPath: window.location.pathname});
+        }
+
+        window.addEventListener('page-animation-end', this.onAnimationEnd.bind(this), {once: true});
+        this._routerData.backNavigating = true;
+    }
+
+    onNavigate(e: NavigateEvent) {
+        e.preventDefault();
+        this._pageLoad = false;
+        
+        const currentPath = e.detail.route;
+        this._routerData.currentPath = currentPath;
+        if (e.detail.routeParams) {
+            const routesData = this.state.routesData;
+
+            //store per route data in object
+            //with pathname as key and route data as value
+            routesData[currentPath] = {
+                params: e.detail.routeParams
+            };
 
 
-                    this.setState({routes_data: routes_data}, () => {
-                        this._router_data.routes_data = routes_data;
-                    });
-                }
+            this.setState({routesData: routesData}, () => {
+                this._routerData.routesData = routesData;
+                this.setState({currentPath: currentPath});
             });
-        }, true);
+        } else {
+            this.setState({currentPath: currentPath});
+        }
     }
 
     componentWillUnmount() {
-        window.removeEventListener('navigate', ()=>{});
-        window.removeEventListener('popstate', ()=>{});
-        window.removeEventListener('go-back', ()=>{});
+        window.removeEventListener('navigate', this.onNavigateListener);
+        window.removeEventListener('popstate', this.onPopStateListener);
+        window.removeEventListener('go-back', this.onBackListener);
     }
     render() {
         return (
             <div className="react-motion-router">
-                <RouterDataContext.Provider value={this._router_data}>
+                <RouterDataContext.Provider value={this._routerData}>
                     <GhostLayer
-                        animation={this.config.animation}
+                        animation={this._routerData.animation}
                         instance={(instance: GhostLayer | null) => {
-                            this._router_data.ghost_layer = instance;
+                            this._routerData.ghostLayer = instance;
                         }}
+                        backNavigating={this.state.backNavigating}
                     />
-                    <TransitionGroup
-                        style={!this._page_load || this.props.config.page_load_transition ? {transition: `all ${this.props.config?.animation.duration || 200}ms`} : undefined}
+                    <AnimationLayer
+                        disableDiscovery={this.props.config.disableDiscovery || false}
+                        hysteresis={this.props.config.hysteresis || 50}
+                        minFlingVelocity={this.props.config.minFlingVelocity || 400}
+                        swipeAreaWidth={this.props.config.swipeAreaWidth || 100}
+                        navigation={this._routerData.navigation}
+                        duration={this._routerData.animation.in.duration}
+                        shoudAnimate={Boolean(this._pageLoad || this.props.config.pageLoadTransition)}
+                        currentPath={this.state.currentPath}
+                        backNavigating={this.state.backNavigating}
+                        lastPath={this.navigation.history.previous}
+                        goBack={() => {
+                            this.setState({implicitBack: true}, () => {
+                                this.navigation.goBack();
+                            });
+                        }}
                     >
                         {this.props.children}
-                    </TransitionGroup>
+                    </AnimationLayer>
                 </RouterDataContext.Provider>
             </div>
         );

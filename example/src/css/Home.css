@@ -10,3 +10,8 @@
 .home .list button {
     padding: 0;
 }
+.home .motion-element {
+    position: absolute;
+    bottom: 25px;
+    left: 50%;
+}

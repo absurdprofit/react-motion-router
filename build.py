@@ -2,6 +2,7 @@ import shutil
 import threading
 import os
 from progress.spinner import Spinner
+from datetime import datetime
 
 def compile_func():
     print("Creating an optimised build of React Motion Router ⚛\n")
@@ -66,7 +67,8 @@ def main():
     # load.join(5)
 
     clear()
-    print("Done!")
+    end = datetime.now().strftime("%H:%M:%S")
+    print(f"Done! {end}")
     exit(0)
 
 

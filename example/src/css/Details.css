@@ -1,9 +1,7 @@
+.details {
+    background-color: white;
+}
 .details button, .post button {
-    animation-name: fade-in;
-    animation-duration: 500ms;
-    animation-fill-mode: forwards;
-    animation-delay: .2s;
-    opacity: 0;
     left: 0;
     top: 0;
     z-index: 1;
@@ -25,19 +23,27 @@
 .details .text-content p {
     text-align: justify;
     line-height: 1.5rem;
-    height: 100%;
+    height: auto;
+    overflow: hidden;
+    text-overflow: clip;
+    width: 313px;
 }
-.details .text-content p {
-    animation: slide-up 300ms ease-out;
+.details .card-bg {
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: white;
+    z-index: 0;
 }
-
-@keyframes slide-up {
-    from {
-        opacity: 0;
-        transform: translateY(15px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0px);
-    }
+.details .profile-info .text-content,
+.details .profile-info img {
+    position: static;
+    z-index: 1;
+}
+.details .description {
+    width: calc(100vw - 30px);
+    display: flex;
+    justify-content: center;
 }
