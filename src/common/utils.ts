@@ -87,12 +87,18 @@ export class History {
 }
 
 export type BackEvent = CustomEvent<{replaceState:boolean}>;
+interface NavigateEventDetail {
+    route: string;
+    routeParams?: any;
+}
+export type NavigateEvent = CustomEvent<NavigateEventDetail>;
+
 export class Navigation {
     private _history = new History();
     navigate(route: string, routeParams?: any) {
         this._history.push(route);
 
-        const event = new CustomEvent('navigate', {
+        const event = new CustomEvent<NavigateEventDetail>('navigate', {
             detail: {
                 route: route,
                 routeParams: routeParams
@@ -105,7 +111,7 @@ export class Navigation {
     implicitNavigate(route: string, routeParams?: any) {
         this._history.implicitPush(route);
         
-        const event = new CustomEvent('navigate', {
+        const event = new CustomEvent<NavigateEventDetail>('navigate', {
             detail: {
                 route: route,
                 routeParams: routeParams

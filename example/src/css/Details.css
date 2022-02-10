@@ -23,5 +23,27 @@
 .details .text-content p {
     text-align: justify;
     line-height: 1.5rem;
-    height: 100%;
+    height: auto;
+    overflow: hidden;
+    text-overflow: clip;
+    width: 313px;
+}
+.details .card-bg {
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: white;
+    z-index: 0;
+}
+.details .profile-info .text-content,
+.details .profile-info img {
+    position: static;
+    z-index: 1;
+}
+.details .description {
+    width: calc(100vw - 30px);
+    display: flex;
+    justify-content: center;
 }

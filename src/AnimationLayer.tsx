@@ -77,6 +77,12 @@ export class AnimationLayerData {
         if (this._currentScreen && this._nextScreen && this._shouldAnimate) {
             if (this._gestureNavigating) {
                 await this._currentScreen.mounted(true);
+                this._nextScreen.pointerEvents = 'none';
+                this._currentScreen.pointerEvents = 'unset';
+            } else {
+                this._currentScreen.pointerEvents = 'none';
+                this._nextScreen.pointerEvents = 'unset';
+
             }
 
             // failing to call _onExit to disable SETs
@@ -165,6 +171,13 @@ export class AnimationLayerData {
 
     set playbackRate(_playbackRate: number) {
         this._playbackRate = _playbackRate;
+        if (_playbackRate > 0) {
+            // aborted gesture navigation so set pointer events back to correct setting
+            if (this._currentScreen && this._nextScreen) {
+                this._currentScreen.pointerEvents = 'none';
+                this._nextScreen.pointerEvents = 'unset';
+            }
+        }
         if (this._inAnimation && this._outAnimation) {
             this._inAnimation.playbackRate = this._playbackRate;
             this._outAnimation.playbackRate = this._playbackRate;
@@ -257,6 +270,7 @@ interface AnimationProviderProps {
 
 interface AnimationProviderState {
     mounted: boolean;
+    pointerEvents: React.CSSProperties['pointerEvents'];
 }
 
 const OppositeDirection = {
@@ -274,7 +288,8 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
     private setRef = this.onRef.bind(this);
 
     state: AnimationProviderState = {
-        mounted: false
+        mounted: false,
+        pointerEvents: 'unset'
     }
     
     onRef(ref: HTMLElement | null) {
@@ -379,6 +394,10 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
         });
     }
 
+    set pointerEvents(_pointerEvents: React.CSSProperties['pointerEvents']) {
+        this.setState({pointerEvents: _pointerEvents});
+    }
+
     render() {
         let gestureEndState = {};
         if (this._animationLayerData?.gestureNavigating && this.props.in) {
@@ -387,9 +406,11 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
         if (this._animationLayerData?.gestureNavigating && this.props.out) {
             gestureEndState = AnimationKeyframePresets[this.outAnimation as keyof typeof AnimationKeyframePresets][0];
         }
+        
         return (
             <div className="animation-provider" ref={this.setRef} style={{
                 position: 'absolute',
+                pointerEvents: this.state.pointerEvents,
                 zIndex: this.props.in && !this.props.backNavigating ? 1 : this.props.out && this.props.backNavigating ? 1 : 0,
                 ...gestureEndState // so the "old" nextScreen doesn't snap back to centre
             }}>
@@ -420,6 +441,10 @@ interface AnimationLayerProps {
     navigation: Navigation;
     backNavigating: boolean;
     goBack: Function;
+    hysteresis: number;
+    minFlingVelocity: number;
+    swipeAreaWidth: number;
+    disableDiscovery: boolean;
 }
 
 interface AnimationLayerState {
@@ -501,7 +526,9 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             });
         }
 
-        window.addEventListener('swipestart', this.onSwipeStartListener, {passive: false});
+        if (!this.props.disableDiscovery) {
+            window.addEventListener('swipestart', this.onSwipeStartListener, {passive: false});
+        }
     }
 
     componentDidUpdate(prevProps: AnimationLayerProps) {
@@ -516,14 +543,16 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
     }
 
     componentWillUnmount() {
-        window.removeEventListener('swipestart', this.onSwipeStartListener);
+        if (!this.props.disableDiscovery) {
+            window.removeEventListener('swipestart', this.onSwipeStartListener);
+        }
     }
 
     onSwipeStart(ev: SwipeStartEvent) {
         // if only one child return
         if (!this.props.lastPath) return;
 
-        if (ev.direction === "right" && ev.x < 100) {
+        if (ev.direction === "right" && ev.x < this.props.swipeAreaWidth) {
             const children = React.Children.map(
                 this.props.children,
                 (child: ScreenChild) => {
@@ -569,11 +598,11 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         this.animationLayerData.progress = progress;
     }
 
-    onSwipeEnd() {
+    onSwipeEnd(e: SwipeEndEvent) {
         if (this.state.shouldPlay) return;
         let onEnd = null;
         const motionEndEvent = new CustomEvent('motion-progress-end');
-        if (this.state.progress < 50) {
+        if (this.state.progress < this.props.hysteresis || e.velocity > this.props.minFlingVelocity) {
             onEnd = () => {
                 this.animationLayerData.shouldAnimate = false;
                 this.animationLayerData.reset();

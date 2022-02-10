@@ -1,8 +1,8 @@
 import React, { createContext } from 'react';
-import {Navigation, BackEvent} from './common/utils';
-import AnimationLayer, { AnimationProvider } from './AnimationLayer';
+import {Navigation, BackEvent, NavigateEvent} from './common/utils';
+import AnimationLayer from './AnimationLayer';
 import GhostLayer from './GhostLayer';
-import { ScreenChild, ScreenChildren, Stack } from '.';
+import { ScreenChild, ScreenChildren } from '.';
 
 enum AnimationDirectionEnum {
     up,
@@ -36,6 +36,10 @@ interface Config {
     };
     pageLoadTransition?: boolean;
     defaultRoute?: string;
+    swipeAreaWidth?: number;
+    minFlingVelocity?: number;
+    hysteresis?: number;
+    disableDiscovery?: boolean;
 }
 interface RouterProps {
     config: Config;
@@ -114,7 +118,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
     private _routerData: RouterData;
     private _pageLoad: boolean = true;
     private onBackListener = this.onBack.bind(this) as EventListener;
-    private onNavigateListener = this.onNavigate.bind(this);
+    private onNavigateListener = this.onNavigate.bind(this) as EventListener;
     private onPopStateListener = this.onPopstate.bind(this);
 
     static defaultProps = {
@@ -252,7 +256,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         window.addEventListener('navigate', this.onNavigateListener, true);
     }
 
-    private onAnimationEnd(e: any) {
+    private onAnimationEnd() {
         if (this.state.backNavigating) {
             this._routerData.backNavigating = false;
             this.setState({backNavigating: false});
@@ -295,30 +299,29 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         this._routerData.backNavigating = true;
     }
 
-    onNavigate(e: Event) {
+    onNavigate(e: NavigateEvent) {
         e.preventDefault();
         this._pageLoad = false;
         
-        const currentPath = (e as CustomEvent).detail.route;
+        const currentPath = e.detail.route;
         this._routerData.currentPath = currentPath;
-        this.setState({
-            currentPath: currentPath
-        }, () => {
-            if ((e as CustomEvent).detail.routeParams) {
-                const routesData = this.state.routesData;
+        if (e.detail.routeParams) {
+            const routesData = this.state.routesData;
 
-                //store per route data in object
-                //with pathname as key and route data as value
-                (routesData as any)[currentPath] = {
-                    params: (e as CustomEvent).detail.routeParams
-                };
+            //store per route data in object
+            //with pathname as key and route data as value
+            routesData[currentPath] = {
+                params: e.detail.routeParams
+            };
 
 
-                this.setState({routesData: routesData}, () => {
-                    this._routerData.routesData = routesData;
-                });
-            }
-        });
+            this.setState({routesData: routesData}, () => {
+                this._routerData.routesData = routesData;
+                this.setState({currentPath: currentPath});
+            });
+        } else {
+            this.setState({currentPath: currentPath});
+        }
     }
 
     componentWillUnmount() {
@@ -338,6 +341,10 @@ export default class Router extends React.Component<RouterProps, RouterState> {
                         backNavigating={this.state.backNavigating}
                     />
                     <AnimationLayer
+                        disableDiscovery={this.props.config.disableDiscovery || false}
+                        hysteresis={this.props.config.hysteresis || 50}
+                        minFlingVelocity={this.props.config.minFlingVelocity || 400}
+                        swipeAreaWidth={this.props.config.swipeAreaWidth || 100}
                         navigation={this._routerData.navigation}
                         duration={this._routerData.animation.in.duration}
                         shoudAnimate={Boolean(this._pageLoad || this.props.config.pageLoadTransition)}
@@ -349,7 +356,6 @@ export default class Router extends React.Component<RouterProps, RouterState> {
                                 this.navigation.goBack();
                             });
                         }}
-                        // style={!this._pageLoad || this.props.config.pageLoadTransition ? {transition: `all ${this.props.config?.animation.in.duration || 200}ms`} : undefined}
                     >
                         {this.props.children}
                     </AnimationLayer>

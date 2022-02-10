@@ -129,13 +129,21 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         this.ref?.appendChild(endNode);
                     }
                     
-                    const travelDistance: Vec2 = {
+                    const endTravelDistance: Vec2 = {
                         x: 0,
                         y: 0
                     }
+                    const startTravelDistance: Vec2 = {
+                        x: 0,
+                        y: 0
+                    }
+                    if (startInstance.scene) {
+                        startTravelDistance.x = transitionState.start.x.position > startInstance.scene.scrollPos.x ? startInstance.scene.scrollPos.x : 0;
+                        startTravelDistance.y = transitionState.start.y.position > startInstance.scene.scrollPos.y ? startInstance.scene.scrollPos.y : 0;
+                    }
                     if (endInstance.scene) {
-                        travelDistance.x = endInstance.scene.scrollPos.x;
-                        travelDistance.y = endInstance.scene.scrollPos.y;
+                        endTravelDistance.x = transitionState.end.x.position > endInstance.scene.scrollPos.x ? endInstance.scene.scrollPos.x : 0;
+                        endTravelDistance.y = transitionState.end.y.position > endInstance.scene.scrollPos.y ? endInstance.scene.scrollPos.y : 0;
                     }
 
                     /**
@@ -143,9 +151,12 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                      * 1. if page 2 scroll position is falsely (0, 0) elements might fail to transition properly.
                      *    has a lot to do with how scrolling works in this implementation.
                      */
-                    transitionState.end.x.position = Math.abs(transitionState.end.x.position - travelDistance.x);
-                    transitionState.end.y.position = Math.abs(transitionState.end.y.position - travelDistance.y);
+                    transitionState.start.x.position = Math.abs(transitionState.start.x.position - startTravelDistance.x);
+                    transitionState.start.y.position = Math.abs(transitionState.start.y.position - startTravelDistance.y);
+                    transitionState.end.x.position = Math.abs(transitionState.end.x.position - endTravelDistance.x);
+                    transitionState.end.y.position = Math.abs(transitionState.end.y.position - endTravelDistance.y);
 
+                    
                     let startXAnimation;
                     let startYAnimation;
                     let endXAnimation;

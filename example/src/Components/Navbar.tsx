@@ -1,6 +1,7 @@
 import React from 'react';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import IconButton from '@mui/material/IconButton';
+import { SharedElement } from 'react-motion-router';
 import '../css/Navbar.css';
 
 interface NavbarProps {
@@ -14,7 +15,9 @@ export default function Navbar(props: NavbarProps) {
                 {
                     props.onBack ?
                     <IconButton onClick={props.onBack}>
-                        <ChevronLeftIcon />
+                        <SharedElement id="back">
+                            <ChevronLeftIcon />
+                        </SharedElement>
                     </IconButton>
                     :
                     undefined

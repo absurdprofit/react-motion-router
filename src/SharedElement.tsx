@@ -49,7 +49,7 @@ namespace SharedElement {
 
     type EasingFunctionKeyword = keyof typeof EasingFunctionKeywordEnum;
 
-    export type EasingFunction = EasingFunctionKeyword | string;
+    export type EasingFunction = EasingFunctionKeyword | `cubic-bezier(${number},${' ' | ''}${number},${' ' | ''}${number},${' ' | ''}${number})`;
 
     type TransformOriginGlobal = keyof typeof TransformOriginGlobalEnum;
 

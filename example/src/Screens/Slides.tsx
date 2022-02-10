@@ -23,7 +23,11 @@ export default function Slides(props: SlidesProps) {
         <div className="slides">
             <div className="back">
                 <IconButton style={{color: 'white'}} onClick={() => props.navigation.goBack()}>
-                    <ClearIcon />
+                    <SharedElement id="back" config={{
+                        type: 'fade-through'
+                    }}>
+                        <ClearIcon />
+                    </SharedElement>
                 </IconButton>
             </div>
             <Motion.Consumer>

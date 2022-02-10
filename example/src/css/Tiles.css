@@ -55,3 +55,6 @@
 .tiles .nav-bar .back-button button:active {
     box-shadow: -1px -1px 1px black;
 }
+.tiles .content a:last-child .tile {
+    width: 100vw;
+}

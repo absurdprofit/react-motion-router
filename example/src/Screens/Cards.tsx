@@ -25,6 +25,9 @@ export default function Cards(props: CardsProps) {
                         <ButtonBase key={index} onClick={() => props.navigation.navigate('/details', {
                             profile: hero
                         })}>
+                            <SharedElement id={`${hero.id}-card-bg`}>
+                                <div className="card-bg"></div>
+                            </SharedElement>
                             <Card sx={{ width: 345 }}>
                                 <SharedElement id={hero.id}>
                                     <CardMedia
@@ -38,7 +41,11 @@ export default function Cards(props: CardsProps) {
                                     <SharedElement id={`title-${hero.id}`}>
                                         <Typography gutterBottom variant="h5" component="h5">{hero.name}</Typography>
                                     </SharedElement>
-                                    <p>{hero.description}</p>
+                                    <SharedElement id={`description-${hero.id}`}>
+                                        <p style={{
+                                            fontSize: '16px'
+                                        }}>{hero.description}</p>
+                                    </SharedElement>
                                 </CardContent>
                             </Card>
                         </ButtonBase>
