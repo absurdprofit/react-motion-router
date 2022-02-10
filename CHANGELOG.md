@@ -1,4 +1,4 @@
-# V2.0.0-alpha
+# [V2.0.0-alpha](https://github.com/nxtexe/react-motion-router/blob/main/CHANGELOG.md#v200-alpha)
 
 ## Features
 
@@ -8,3 +8,4 @@
 ## Enhancements
 
 -  Snake case has been removed and refactored in favour of camel case. After consulting [Javascript Standard Style](https://standardjs.com/rules.html) I made sure to change that mistake. Coming from python it was just a force of habit :). This does break code using the older versions of the library hence the major version changing.
+- The official logo has been added to the repo 🤩.
