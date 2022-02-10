@@ -40,8 +40,8 @@ namespace SharedElement {
 
     enum TransitionAnimationEnum {
         "morph",
-        "fade-in",
-        "fade-out",
+        "fade-through",
+        "fade",
         "cross-fade"
     }
 
@@ -69,7 +69,6 @@ namespace SharedElement {
         transformOrigin?: TransformOrigin;
         easingFunction?: EasingFunction;
         duration?: number;
-        animation?: TransitionAnimation;
         x?: {
             duration?: number;
             easingFunction?: EasingFunction

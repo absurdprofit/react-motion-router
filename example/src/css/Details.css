@@ -1,3 +1,6 @@
+.details {
+    background-color: white;
+}
 .details button, .post button {
     left: 0;
     top: 0;
@@ -21,18 +24,4 @@
     text-align: justify;
     line-height: 1.5rem;
     height: 100%;
-}
-.details .text-content p {
-    animation: slide-up 300ms ease-out;
-}
-
-@keyframes slide-up {
-    from {
-        opacity: 0;
-        transform: translateY(15px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0px);
-    }
 }

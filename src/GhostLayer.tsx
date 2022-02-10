@@ -119,6 +119,8 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
 
                     startNode.style.display = 'unset';
                     endNode.style.display = 'unset';
+                    startNode.style.zIndex = '1';
+                    endNode.style.zIndex = '0';
                     this.ref?.appendChild(startNode);
 
                     const transitionType = endInstance.transitionType || startInstance.transitionType || 'morph';
@@ -144,38 +146,240 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     transitionState.end.x.position = Math.abs(transitionState.end.x.position - travelDistance.x);
                     transitionState.end.y.position = Math.abs(transitionState.end.y.position - travelDistance.y);
 
-                    const startXAnimation = transitionState.start.x.node.animate([
-                        {
-                            transform: `translate(${transitionState.start.x.position}px, 0px)`
-                        },
-                        {
-                            ...getStyleObject(transitionState.end.x.node.style),
-                            transform: `translate(${transitionState.end.x.position}px, 0px)`
-                        }
-                    ],
-                    {
-                        fill: 'forwards',
-                        easing: transitionState.end.x.easingFunction,
-                        duration: clamp(transitionState.end.x.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
-                    });
-                    const startYAnimation = transitionState.start.y.node.animate(
-                        [
+                    let startXAnimation;
+                    let startYAnimation;
+                    let endXAnimation;
+                    let endYAnimation;
+
+                    if (transitionType === "morph") {
+                        startXAnimation = transitionState.start.x.node.animate([
                             {
-                                transform: `translate(0px, ${transitionState.start.y.position}px)`
+                                transform: `translate(${transitionState.start.x.position}px, 0px)`
                             },
                             {
-                                ...getStyleObject(transitionState.end.y.node.style),
-                                transform: `translate(0px, ${transitionState.end.y.position}px)`
+                                ...getStyleObject(transitionState.end.x.node.style),
+                                transform: `translate(${transitionState.end.x.position}px, 0px)`
                             }
                         ],
                         {
                             fill: 'forwards',
-                            easing: transitionState.end.y.easingFunction,
-                            duration: clamp(transitionState.end.y.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
-                        }
-                    );
+                            easing: transitionState.end.x.easingFunction,
+                            duration: clamp(transitionState.end.x.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                        });
+                        startYAnimation = transitionState.start.y.node.animate(
+                            [
+                                {
+                                    transform: `translate(0px, ${transitionState.start.y.position}px)`
+                                },
+                                {
+                                    ...getStyleObject(transitionState.end.y.node.style),
+                                    transform: `translate(0px, ${transitionState.end.y.position}px)`
+                                }
+                            ],
+                            {
+                                fill: 'forwards',
+                                easing: transitionState.end.y.easingFunction,
+                                duration: clamp(transitionState.end.y.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                            }
+                        );
+                        this._animationMap[startInstance.id] = {startXAnimation, startYAnimation};
+                    } else if (transitionType === "fade") {
+                        startXAnimation = transitionState.start.x.node.animate([
+                            {
+                                transform: `translate(${transitionState.start.x.position}px, 0px)`,
+                                opacity: 1
+                            },
+                            {
+                                transform: `translate(${transitionState.end.x.position}px, 0px)`,
+                                opacity: 0
+                            }
+                        ],
+                        {
+                            fill: 'forwards',
+                            easing: transitionState.end.x.easingFunction,
+                            duration: clamp(transitionState.end.x.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                        });
+                        startYAnimation = transitionState.start.y.node.animate(
+                            [
+                                {
+                                    transform: `translate(0px, ${transitionState.start.y.position}px)`
+                                },
+                                {
+                                    transform: `translate(0px, ${transitionState.end.y.position}px)`
+                                }
+                            ],
+                            {
+                                fill: 'forwards',
+                                easing: transitionState.end.y.easingFunction,
+                                duration: clamp(transitionState.end.y.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                            }
+                        );
 
-                    this._animationMap[startInstance.id] = {startXAnimation, startYAnimation};
+                        endXAnimation = transitionState.end.x.node.animate([
+                            {
+                                transform: `translate(${transitionState.start.x.position}px, 0px)`
+                            },
+                            {
+                                transform: `translate(${transitionState.end.x.position}px, 0px)`
+                            }
+                        ],
+                        {
+                            fill: 'forwards',
+                            easing: transitionState.end.x.easingFunction,
+                            duration: clamp(transitionState.end.x.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                        });
+                        endYAnimation = transitionState.end.y.node.animate(
+                            [
+                                {
+                                    transform: `translate(0px, ${transitionState.start.y.position}px)`
+                                },
+                                {
+                                    transform: `translate(0px, ${transitionState.end.y.position}px)`
+                                }
+                            ],
+                            {
+                                fill: 'forwards',
+                                easing: transitionState.end.y.easingFunction,
+                                duration: clamp(transitionState.end.y.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                            }
+                        );
+                        this._animationMap[startInstance.id] = {startXAnimation, startYAnimation, endXAnimation, endYAnimation};
+                    } else if (transitionType === "fade-through") {
+                        startXAnimation = transitionState.start.x.node.animate([
+                            {
+                                transform: `translate(${transitionState.start.x.position}px, 0px)`,
+                                opacity: 1
+                            },
+                            {
+                                opacity: 0,
+                                offset: 0.5
+                            },
+                            {
+                                transform: `translate(${transitionState.end.x.position}px, 0px)`,
+                                opacity: 0
+                            }
+                        ],
+                        {
+                            fill: 'forwards',
+                            easing: transitionState.end.x.easingFunction,
+                            duration: clamp(transitionState.end.x.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                        });
+                        startYAnimation = transitionState.start.y.node.animate(
+                            [
+                                {
+                                    transform: `translate(0px, ${transitionState.start.y.position}px)`
+                                },
+                                {
+                                    transform: `translate(0px, ${transitionState.end.y.position}px)`
+                                }
+                            ],
+                            {
+                                fill: 'forwards',
+                                easing: transitionState.end.y.easingFunction,
+                                duration: clamp(transitionState.end.y.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                            }
+                        );
+
+                        endXAnimation = transitionState.end.x.node.animate([
+                            {
+                                transform: `translate(${transitionState.start.x.position}px, 0px)`,
+                                opacity: 0
+                            },
+                            {
+                                opacity: 0,
+                                offset: 0.5
+                            },
+                            {
+                                transform: `translate(${transitionState.end.x.position}px, 0px)`,
+                                opacity: 1
+                            }
+                        ],
+                        {
+                            fill: 'forwards',
+                            easing: transitionState.end.x.easingFunction,
+                            duration: clamp(transitionState.end.x.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                        });
+                        endYAnimation = transitionState.end.y.node.animate(
+                            [
+                                {
+                                    transform: `translate(0px, ${transitionState.start.y.position}px)`
+                                },
+                                {
+                                    transform: `translate(0px, ${transitionState.end.y.position}px)`
+                                }
+                            ],
+                            {
+                                fill: 'forwards',
+                                easing: transitionState.end.y.easingFunction,
+                                duration: clamp(transitionState.end.y.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                            }
+                        );
+                        this._animationMap[startInstance.id] = {startXAnimation, startYAnimation, endXAnimation, endYAnimation};
+                    } else { // cross-fade
+                        startXAnimation = transitionState.start.x.node.animate([
+                            {
+                                transform: `translate(${transitionState.start.x.position}px, 0px)`,
+                                opacity: 1
+                            },
+                            {
+                                transform: `translate(${transitionState.end.x.position}px, 0px)`,
+                                opacity: 0
+                            }
+                        ],
+                        {
+                            fill: 'forwards',
+                            easing: transitionState.end.x.easingFunction,
+                            duration: clamp(transitionState.end.x.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                        });
+                        startYAnimation = transitionState.start.y.node.animate(
+                            [
+                                {
+                                    transform: `translate(0px, ${transitionState.start.y.position}px)`
+                                },
+                                {
+                                    transform: `translate(0px, ${transitionState.end.y.position}px)`
+                                }
+                            ],
+                            {
+                                fill: 'forwards',
+                                easing: transitionState.end.y.easingFunction,
+                                duration: clamp(transitionState.end.y.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                            }
+                        );
+
+                        endXAnimation = transitionState.end.x.node.animate([
+                            {
+                                transform: `translate(${transitionState.start.x.position}px, 0px)`,
+                                opacity: 0
+                            },
+                            {
+                                transform: `translate(${transitionState.end.x.position}px, 0px)`,
+                                opacity: 1
+                            }
+                        ],
+                        {
+                            fill: 'forwards',
+                            easing: transitionState.end.x.easingFunction,
+                            duration: clamp(transitionState.end.x.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                        });
+                        endYAnimation = transitionState.end.y.node.animate(
+                            [
+                                {
+                                    transform: `translate(0px, ${transitionState.start.y.position}px)`
+                                },
+                                {
+                                    transform: `translate(0px, ${transitionState.end.y.position}px)`
+                                }
+                            ],
+                            {
+                                fill: 'forwards',
+                                easing: transitionState.end.y.easingFunction,
+                                duration: clamp(transitionState.end.y.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                            }
+                        );
+                        this._animationMap[startInstance.id] = {startXAnimation, startYAnimation, endXAnimation, endYAnimation};
+                    }
+                    
 
                     if (!this.state.playing) {
                         Object.values(this._animationMap).map((xYAnimations: {[key:string]:Animation}) => {
@@ -189,6 +393,9 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         startInstance.hidden = false;
                         endInstance.hidden = false;
                         this.ref?.removeChild(startNode);
+                        if (transitionType !== "morph") {
+                            this.ref?.removeChild(endNode);
+                        }
                     }, {once:true});
                 }
             }
@@ -247,7 +454,13 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
     render() {
         if (this.state.transitioning) {
             return (
-                <div id="ghost-layer" ref={c => this.ref = c}>
+                <div id="ghost-layer" ref={c => this.ref = c} style={{
+                    position: 'absolute',
+                    zIndex: 1000,
+                    width: '100vw',
+                    height: '100vh',
+                    pointerEvents: 'none'
+                }}>
                 </div>
             );
         } else {

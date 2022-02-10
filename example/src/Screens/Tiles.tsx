@@ -16,14 +16,6 @@ export default class Tiles extends React.Component<TilesProps, TilesState> {
     state: TilesState = {
         heroes: Heroes
     }
-
-    componentDidMount() {
-        console.log("Tiles Mounted");
-    }
-
-    componentWillUnmount() {
-        console.log("Tiles Unmounted");
-    }
     
     render(): React.ReactNode {
         return(

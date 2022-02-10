@@ -45,10 +45,21 @@ export default function Details(props: DetailsProps) {
                         <img src={props.route.params.profile.photo} alt="profile-details" />
                     </SharedElement>
                     <div className="text-content">
-                        <SharedElement id={`title-${props.route.params.profile.id}`}>
+                        <SharedElement id={`title-${props.route.params.profile.id}`} config={{
+                            type: 'fade-through'
+                        }}>
                             <h1>{props.route.params.profile.name}</h1>
                         </SharedElement>
-                        <p>{props.route.params.profile.description}</p>
+                        <Motion.Consumer>
+                            {(progress) => {
+                                return (
+                                    <p style={{
+                                        opacity: progress / 100,
+                                        transform: `translateY(${((100 - progress) / 100) * 30}px)`
+                                    }}>{props.route.params.profile.description}</p>
+                                );
+                            }}
+                        </Motion.Consumer>
                     </div>
                 </div>
             </div>

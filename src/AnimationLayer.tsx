@@ -128,6 +128,12 @@ export class AnimationLayerData {
                             this._currentScreen.mounted(false);
                         }
                     } else {
+                        if (this._currentScreen) {
+                            // hotfix for weird bug that snaps screen to start position after gesture navigation
+                            this._currentScreen.animate([
+                                {transform: 'translateX(0vw)'}
+                            ], {duration: 0, fill: 'forwards'});
+                        }
                         if (this._nextScreen) {
                             this._nextScreen.mounted(false);
                         }
@@ -383,6 +389,7 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
         }
         return (
             <div className="animation-provider" ref={this.setRef} style={{
+                position: 'absolute',
                 zIndex: this.props.in && !this.props.backNavigating ? 1 : this.props.out && this.props.backNavigating ? 1 : 0,
                 ...gestureEndState // so the "old" nextScreen doesn't snap back to centre
             }}>

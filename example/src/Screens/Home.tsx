@@ -1,5 +1,5 @@
 import React from 'react';
-import {Navigation, SharedElement, Motion} from 'react-motion-router';
+import {Navigation, SharedElement} from 'react-motion-router';
 import ListItemComponent from '../Components/ListItem';
 import Navbar from '../Components/Navbar';
 import '../css/Home.css';
@@ -13,55 +13,39 @@ interface ListItem {
     description: string;
     onClick: () => void;
 }
-export default class Home extends React.Component<HomeProps> {
-    list = [
+export default function Home(props: HomeProps) {
+    const list = [
         {
             title: 'Tiles Demo',
             description: "Image tiles that zoom-in and then allow gestures to paginate and dismiss",
-            onClick: () => this.props.navigation.navigate('/tiles')
+            onClick: () => props.navigation.navigate('/tiles')
         },
         {
             title: 'Card Demo',
             description: 'Card reveal with shared element transitions',
-            onClick: () => this.props.navigation.navigate('/cards')
+            onClick: () => props.navigation.navigate('/cards')
         }
     ]
 
-    componentDidMount() {
-        console.log("Home Mounted");
-    }
-
-    componentWillUnmount() {
-        console.log("Home Unmounted");
-    }
-    
-    render () {
-        return (
-            <Motion.Consumer>
-                {(progress) => {
-                    return (
-                        <div className="home">
-                            <SharedElement id="navbar">
-                                <Navbar title="Shared Element Demo" />
-                            </SharedElement>
-                            <div className={`list ${progress}`}>
-                                {
-                                    this.list.map((item: ListItem, index: number) => {
-                                        return <ListItemComponent
-                                                    key={index}
-                                                    title={item.title}
-                                                    description={item.description}
-                                                    onClick={item.onClick}
-                                                />
-                                    })
-                                }
-                            </div>
-    
-                            <div className="motion-element" style={{transform: `translate(-50%, -${progress}px) rotate(${-progress}deg)`}}>MOTION</div>
-                        </div>
-                    );
-                }}
-            </Motion.Consumer>
-        )
-    }
+    return (
+        <div className="home">
+            <SharedElement id="navbar" config={{
+                type: 'fade'
+            }}>
+                <Navbar title="Shared Element Demo" />
+            </SharedElement>
+            <div className={`list`}>
+                {
+                    list.map((item: ListItem, index: number) => {
+                        return <ListItemComponent
+                                    key={index}
+                                    title={item.title}
+                                    description={item.description}
+                                    onClick={item.onClick}
+                                />
+                    })
+                }
+            </div>
+        </div>
+    )
 }

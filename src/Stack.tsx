@@ -1,10 +1,9 @@
 import React from 'react';
-import {CSSTransition} from 'react-transition-group';
-import "./css/Transition.css";
 import SharedElement from './SharedElement';
 import { AnimationConfig, RouterDataContext } from './Router';
 import {Vec2} from './common/utils';
 import { AnimationProvider } from './AnimationLayer';
+
 
 export interface ScreenProps {
     out?: boolean;
@@ -147,6 +146,8 @@ export namespace Stack {
                             minWidth: '100vw',
                             display: 'flex',
                             flexDirection: 'column',
+                            position: 'absolute',
+                            willChange: 'transform, opacity',
                             overflowX: this.state.xOverflow ? 'scroll' : undefined,
                             overflowY: this.state.yOverflow ? 'scroll' : undefined
                         }}

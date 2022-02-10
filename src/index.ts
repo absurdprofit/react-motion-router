@@ -4,7 +4,7 @@ import _SharedElement from './SharedElement';
 import {Navigation, History} from './common/utils';
 import Anchor from './Anchor';
 import {Motion} from './AnimationLayer';
-
+import './css/index.css';
 import 'web-gesture-events';
 
 const SharedElement = _SharedElement.SharedElement;

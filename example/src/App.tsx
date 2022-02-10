@@ -35,7 +35,6 @@ function App() {
           path={"/details"}
           component={Details}
           defaultParams={{data: "Default"}}
-          
         />
         <Stack.Screen
           path={"/"}
