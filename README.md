@@ -240,10 +240,11 @@ Config object used to modify the router's transition behaviour.
 
 #### SharedElementConfig
 
-| Property         | Type                        | Description                                                                                                                                                                 |
+| Property |Type | Description |
 | ---------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| transformOrigin | TransformOrigin             | Changes transform alignment of shared element.                                                                                                                              |
-| duration         | number                      | The time in milliseconds for how long the shared element transition is from start to end                                                                                    |
+| type | "morph", "fade", "fade-through" or "cross-fade" | Type of transition. |
+| transformOrigin | TransformOrigin | Changes transform alignment of shared element. |
+| duration | number | The time in milliseconds for how long the shared element transition is from start to end |
 | easingFunction  | CSS &lt;easing-function&gt; | Denotes a mathematical function that describes the rate at which a numerical value changes.<sup>[1](https://developer.mozilla.org/en-US/docs/Web/CSS/easing-function)</sup> |
 
 It is useful to note that the duration and easing function properties can also be set on the X and Y axis as independent values by specifying an X or Y property on the shared element config object.

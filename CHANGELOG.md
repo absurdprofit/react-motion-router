@@ -9,3 +9,4 @@
 
 -  Snake case has been removed and refactored in favour of camel case. After consulting [Javascript Standard Style](https://standardjs.com/rules.html) I made sure to change that mistake. Coming from python it was just a force of habit :). This does break code using the older versions of the library hence the major version changing.
 - The official logo has been added to the repo 🤩.
+- Added fade, fade-through, cross-fade transition types to SharedElement.
