@@ -1,8 +1,14 @@
-# React Motion Router
+<p align="center">
+    <img src="logo.png" />
+</p>
+
+<h1 align="center">
+    React Motion Router
+</h1>
 
 Declarative routing library for React ⚛ with page transitions and animations 🚀. Under Development 🧪. Based on React Router and React Navigation.
 
-#### [Demo](https://router.nxtetechnologies.com)
+#### [Demo](https://router.nxtetechnologies.com) 
 
 # [![version](https://img.shields.io/npm/v/react-motion-router)](https://www.npmjs.com/package/react-motion-router)  [![downloads](https://img.shields.io/npm/dm/react-motion-router)](https://www.npmjs.com/package/react-motion-router) [![license](https://img.shields.io/npm/l/react-motion-router)](https://github.com/nxtexe/react-motion-router/blob/main/LICENSE)
 
@@ -17,6 +23,7 @@ Declarative routing library for React ⚛ with page transitions and animations �
   - [Transitions](#transitions)
   - [Shared Element Transition](#shared-element-transition)
 - [API Documentation](#api-documentation)
+  - [Stack.Screen](#stackscreen)
   - [Router Config](#router-config)
   - [Animation Config](#animation-config)
   - [Shared Element Config](#sharedelementconfig)
@@ -33,7 +40,7 @@ npm install react-motion-router
 
 #### Basic
 
-Use the `Router` component to place your screens. Pass a React component to the component prop of `Stack.Screen` to be rendered when navigated to.
+Use the `Router` component to render your screens. Pass a React component to the component prop of `Stack.Screen` to be rendered when the path prop of the screen has been navigated to.
 
 ```
 ...
@@ -103,11 +110,11 @@ All data passed to the navigate function is accessible on the target screen thro
 
 #### Default Parameters
 
-A default parameter can be passed to the screen by passing a value to the default_params prop on `Stack.Screen` component.
+A default parameter can be passed to the screen by passing a value to the defaultParams prop on `Stack.Screen` component.
 
 ```
 ...
-<Stack.Screen path="/posts" component={Posts} default_params={{
+<Stack.Screen path="/posts" component={Posts} defaultParams={{
     post: {
         title: "Default Title"
     }
@@ -130,6 +137,27 @@ Transitions are a feature baked into react-motion-router; hence the name... To t
 ...
 </Router>
 ```
+
+You can subscribe to the transition progress by using the motion consumer component.
+
+```
+import {Motion} from 'react-motion-router';
+
+...
+<Motion.Consumer>
+    {(progress) => {
+        return (
+            <div>{progress}</div>
+        );
+    }}
+</Motion.Consumer>
+
+// OR Class.contextType
+
+static contextType = Motion;
+```
+
+The progress is updated as the animation plays and can be used to update DOM style attributes or control playback of an animation.
 
 #### Shared Element Transition
 
@@ -173,24 +201,34 @@ That's it! The element will transition from one screen to the next seemlessly. T
 This way the X and Y axis are animated independently and can alter the path of the shared element while transitioning.
 
 ## API Documentation
+#### Stack.Screen
+| Property | Type | Description |
+| ------ | ------ | ------ |
+| path | string | Pathname of the screen.|
+| animation | AnimationConfig | Config object used to modify the router's transition behaviour. In and out animation can also be set independently.|
+| component | any | A valid React Component to be rendered. |
+| defaultParams | Object | A dictionary of parameters that can be accessed by the rendered component. |
 
 #### Router Config
 
 Config object used to modify the behaviour of the Router.
 | Property | Type | Description |
 | ------ | ------ | ------ |
-| default_route | string | If the user navigates directly to a route other than the default and navigate.go_back() is called the app will navigate to the default route instead of closing. |
-| page_load_transition | boolean | Set to false if you wish to disable page transitions when the application first loads. |
-| animation | AnimationConfig | Config object used to modify the router's transition behaviour. |
+| defaultRoute | string | If the user navigates directly to a route other than the default and navigate.goBack() is called the app will navigate to the default route instead of leaving the website. |
+| pageLoadTransition | boolean | Set to false if you wish to disable page transitions when the application first loads. |
+| animation | AnimationConfig | Config object used to modify the router's global transition behaviour. In and out animation can also be set independently. |
+| swipeAreaWidth | number | Area in pixels from the left edge of the screen that gesture navigation can be triggered from. |
+| hysteresis | number | Percent from 0-100 which specifies minimum gesture progress before navigation is triggered. |
+| minFlingVelocity | number | Minimum average velocity of swipe gesture before navigation is triggered even if hysteresis was not reached. |
 
 #### Animation Config
 
 Config object used to modify the router's transition behaviour.
 | Property | Type | Description |
 | ------ | ------ | ------ |
-| type | "slide" or "fade" | The animation type used for page transitions. |
+| type | "slide", "fade", "zoom" or "none" | The animation type used for page transitions. |
 | duration | number | The time in milliseconds for how long page transitions are from start to end. |
-| direction | "left", "right", "up" or "down" | The direction used for slide transitions. The direction is swapped automatically on back navigation. i.e. The user presses their browser back button or navigation.go_back() is called. |
+| direction | "left", "right", "up", "down", "in" or "out" | The direction used for slide transitions. The direction is swapped automatically on back navigation. i.e. The user presses their browser back button or navigation.goBack() is called. |
 
 #### Shared Element Transitions
 
@@ -204,9 +242,9 @@ Config object used to modify the router's transition behaviour.
 
 | Property         | Type                        | Description                                                                                                                                                                 |
 | ---------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| transform_origin | TransformOrigin             | Changes transform alignment of shared element.                                                                                                                              |
+| transformOrigin | TransformOrigin             | Changes transform alignment of shared element.                                                                                                                              |
 | duration         | number                      | The time in milliseconds for how long the shared element transition is from start to end                                                                                    |
-| easing_function  | CSS &lt;easing-function&gt; | Denotes a mathematical function that describes the rate at which a numerical value changes.<sup>[1](https://developer.mozilla.org/en-US/docs/Web/CSS/easing-function)</sup> |
+| easingFunction  | CSS &lt;easing-function&gt; | Denotes a mathematical function that describes the rate at which a numerical value changes.<sup>[1](https://developer.mozilla.org/en-US/docs/Web/CSS/easing-function)</sup> |
 
 It is useful to note that the duration and easing function properties can also be set on the X and Y axis as independent values by specifying an X or Y property on the shared element config object.
 
@@ -214,7 +252,7 @@ It is useful to note that the duration and easing function properties can also b
 ...
 config={{
     x: {
-        easing_function: "ease-in-out",
+        easingFunction: "ease-in-out",
         duration: 500
     }
 }}

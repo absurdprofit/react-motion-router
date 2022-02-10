@@ -15,11 +15,9 @@ function App() {
         defaultRoute: '/',
         pageLoadTransition: false,
         animation: {
-          in: {
             type: "slide",
             direction: "right",
             duration: 350,
-          }
         }
       }}>
         <Stack.Screen

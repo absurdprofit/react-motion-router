@@ -33,7 +33,7 @@ interface Config {
     animation: {
         in: AnimationConfig;
         out?: AnimationConfig;
-    };
+    } | AnimationConfig;
     pageLoadTransition?: boolean;
     defaultRoute?: string;
     swipeAreaWidth?: number;
@@ -158,10 +158,17 @@ export default class Router extends React.Component<RouterProps, RouterState> {
 
         this._routerData = new RouterData();
         this._routerData.navigation = this.navigation;
-        this._routerData.animation = {
-            in: this.config.animation.in,
-            out: this.config.animation.out || this.config.animation.in
-        };
+        if ('in' in this.config.animation) {
+            this._routerData.animation = {
+                in: this.config.animation.in,
+                out: this.config.animation.out || this.config.animation.in
+            };
+        } else {
+            this._routerData.animation = {
+                in: this.config.animation,
+                out: this.config.animation
+            };
+        }
     }
     state: RouterState = {
         currentPath: "",
