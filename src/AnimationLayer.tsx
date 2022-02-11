@@ -384,8 +384,12 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
         return new Promise((resolve, _) => {
             this.setState({mounted: _mounted}, () => {
                 if (_mounted) {
+                    const shouldScroll = Boolean(
+                        (this.props.in && !this._animationLayerData?.gestureNavigating)
+                        || (this.props.out && this._animationLayerData?.gestureNavigating)
+                    );
                     if (this.props.onEnter) {
-                        this.props.onEnter();
+                        this.props.onEnter(shouldScroll);
                     }
                 }
 

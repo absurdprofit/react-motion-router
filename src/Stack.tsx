@@ -5,6 +5,11 @@ import {Vec2} from './common/utils';
 import { AnimationProvider } from './AnimationLayer';
 
 
+interface Animation {
+    in: AnimationConfig;
+    out?: AnimationConfig;
+}
+
 export interface ScreenProps {
     out?: boolean;
     in?: boolean;
@@ -12,11 +17,8 @@ export interface ScreenProps {
     path: string;
     defaultParams?: {};
     config?: {
-        animation?: {
-            in: AnimationConfig;
-            out?: AnimationConfig;
-        };
-    };
+        animation?: Animation | AnimationConfig;
+    }
 }
 
 interface ScreenState {
@@ -33,6 +35,19 @@ export namespace Stack {
         private ref: HTMLElement | null = null;
         private observer: ResizeObserver = new ResizeObserver(this.observe.bind(this));
         private onRef = this.setRef.bind(this);
+        private animation: {
+            in: AnimationConfig;
+            out: AnimationConfig;
+        } = {
+            in: {
+                type: 'none',
+                duration: 0
+            },
+            out: {
+                type: 'none',
+                duration: 0
+            }
+        }
         private scrollPos: Vec2 = {
             x: 0,
             y: 0
@@ -53,6 +68,22 @@ export namespace Stack {
 
         componentDidMount() {
             this.setState({_in: Boolean(this.props.path === this.context.currentPath)});
+
+            if (this.props.config?.animation) {
+                if ('in' in this.props.config.animation) {
+                    this.animation = {
+                        in: this.props.config.animation.in,
+                        out: this.props.config.animation.out || this.props.config.animation.in
+                    };
+                } else {
+                    this.animation = {
+                        in: this.props.config.animation,
+                        out: this.props.config.animation
+                    };
+                }
+            } else {
+                this.animation = this.context.animation;
+            }
         }
         
         componentDidUpdate() {
@@ -101,9 +132,9 @@ export namespace Stack {
             }
         }
 
-        onEnter() {
-            this.ref?.scrollTo(this.scrollPos.x, this.scrollPos.y);
-
+        onEnter(shouldScroll: boolean) {
+            if (shouldScroll) this.ref?.scrollTo(this.scrollPos.x, this.scrollPos.y);
+            
             
             if (this.context.ghostLayer) {
                 this.context.ghostLayer.nextScene = this.sharedElementScene;
@@ -135,7 +166,7 @@ export namespace Stack {
                     in={this.props.in || false}
                     out={this.props.out || false}
                     name={this.props.path}
-                    animation={this.context!.animation}
+                    animation={this.animation}
                     backNavigating={this.context!.backNavigating}
                 >
                     <div
@@ -148,6 +179,7 @@ export namespace Stack {
                             flexDirection: 'column',
                             position: 'absolute',
                             willChange: 'transform, opacity',
+                            touchAction: 'inherit',
                             overflowX: this.state.xOverflow ? 'scroll' : undefined,
                             overflowY: this.state.yOverflow ? 'scroll' : undefined
                         }}

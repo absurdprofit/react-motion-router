@@ -78,7 +78,6 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     const startInstance = currentScene.nodes[id].instance;
                     startInstance.hidden = true;
                     endInstance.hidden = true;
-
                     const startNode = currentScene.nodes[id].node;
                     const endNode = nextScene.nodes[id].node;
 
@@ -137,13 +136,26 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         x: 0,
                         y: 0
                     }
+
+                    const startRect = startInstance.clientRect;
+                    const endRect = endInstance.clientRect;
+
+                    
                     if (startInstance.scene) {
-                        startTravelDistance.x = transitionState.start.x.position > startInstance.scene.scrollPos.x ? startInstance.scene.scrollPos.x : 0;
-                        startTravelDistance.y = transitionState.start.y.position > startInstance.scene.scrollPos.y ? startInstance.scene.scrollPos.y : 0;
+                        if (transitionState.start.y.position - startRect.y >= startInstance.scene.scrollPos.y) {
+                            startTravelDistance.y = transitionState.start.y.position > startInstance.scene.scrollPos.y ? startInstance.scene.scrollPos.y : transitionState.start.y.position;
+                        }
+                        if (transitionState.start.x.position - startRect.x >= startInstance.scene.scrollPos.x) {
+                            startTravelDistance.x = transitionState.start.x.position > startInstance.scene.scrollPos.x ? startInstance.scene.scrollPos.x : transitionState.start.x.position;
+                        }
                     }
                     if (endInstance.scene) {
-                        endTravelDistance.x = transitionState.end.x.position > endInstance.scene.scrollPos.x ? endInstance.scene.scrollPos.x : 0;
-                        endTravelDistance.y = transitionState.end.y.position > endInstance.scene.scrollPos.y ? endInstance.scene.scrollPos.y : 0;
+                        if (transitionState.end.y.position - endRect.y >= endInstance.scene.scrollPos.y) {
+                            endTravelDistance.y = transitionState.end.y.position > endInstance.scene.scrollPos.y ? endInstance.scene.scrollPos.y : transitionState.end.y.position;
+                        }
+                        if (transitionState.end.x.position - endRect.x >= endInstance.scene.scrollPos.x) {
+                            endTravelDistance.x = transitionState.end.x.position > endInstance.scene.scrollPos.x ? endInstance.scene.scrollPos.x : transitionState.end.x.position;
+                        }
                     }
 
                     /**

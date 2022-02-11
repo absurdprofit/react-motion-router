@@ -32,7 +32,7 @@ export default function Home(props: HomeProps) {
             <SharedElement id="navbar" config={{
                 type: 'fade'
             }}>
-                <Navbar title="Shared Element Demo" />
+                <Navbar title="React Motion Router" />
             </SharedElement>
             <div className={`list`}>
                 {

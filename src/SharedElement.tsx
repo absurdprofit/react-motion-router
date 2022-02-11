@@ -1,5 +1,5 @@
 import React, {createContext} from 'react';
-import {getCssText, clamp, Vec2} from './common/utils';
+import {getCssText, Vec2} from './common/utils';
 
 namespace SharedElement {
     interface SharedElementNode {
