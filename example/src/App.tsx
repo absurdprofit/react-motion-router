@@ -14,6 +14,7 @@ function App() {
       <Router config={{
         defaultRoute: '/',
         pageLoadTransition: false,
+        disableBrowserRouting: true,
         animation: {
             type: "slide",
             direction: "right",

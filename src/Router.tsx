@@ -40,6 +40,7 @@ interface Config {
     minFlingVelocity?: number;
     hysteresis?: number;
     disableDiscovery?: boolean;
+    disableBrowserRouting?: boolean;
 }
 interface RouterProps {
     config: Config;
@@ -58,7 +59,7 @@ interface RouterState {
 export class RouterData {
     private _currentPath: string = '';
     private _routesData: RoutesData = {};
-    private _navigation: Navigation = new Navigation();
+    private _navigation: Navigation = new Navigation(false);
     private _backNavigating: boolean = false;
     private _animation: {in: AnimationConfig; out: AnimationConfig} = {
         in: {
@@ -113,7 +114,7 @@ export class RouterData {
 
 export const RouterDataContext = createContext<RouterData>(new RouterData());
 export default class Router extends React.Component<RouterProps, RouterState> {
-    private navigation = new Navigation();
+    private navigation = new Navigation(this.props.config.disableBrowserRouting || false);
     private config: Config;
     private _routerData: RouterData;
     private _pageLoad: boolean = true;
@@ -177,63 +178,6 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         implicitBack: false
     }
 
-    animationDirectionSwap(animationConfig: AnimationConfig): AnimationConfig {
-        if (animationConfig.type === "zoom") {
-            switch(animationConfig.direction) {
-                case "in":
-                    return {
-                        ...animationConfig,
-                        direction: "out"
-                    };
-                
-                case "out":
-                    return {
-                        ...animationConfig,
-                        direction: "in"
-                    }
-                
-                default:
-                    return {
-                        ...animationConfig,
-                        direction: "out"
-                    }
-            }
-        }
-
-        if (animationConfig.type === "slide") {
-            switch(animationConfig.direction) {
-                case "right":
-                    return {
-                        ...animationConfig,
-                        direction: "left"
-                    }
-                case "left":
-                    return {
-                        ...animationConfig,
-                        direction: "right"
-                    }
-                case "up":
-                    return {
-                        ...animationConfig,
-                        direction: "down"
-                    }
-                case "down":
-                    return {
-                        ...animationConfig,
-                        direction: "up"
-                    }
-                
-                default:
-                    return {
-                        ...animationConfig,
-                        direction: "left"
-                    }
-            }
-        }
-
-        return animationConfig;
-    }
-
     componentDidMount() {
         if (this.props.config.defaultRoute) {
             this.navigation.history.defaultRoute = this.props.config.defaultRoute;
@@ -258,9 +202,14 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         });
         this._routerData.currentPath = window.location.pathname;
         window.addEventListener('go-back', this.onBackListener, true);
-
         window.addEventListener('popstate', this.onPopStateListener, true);
         window.addEventListener('navigate', this.onNavigateListener, true);
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('navigate', this.onNavigateListener);
+        window.removeEventListener('popstate', this.onPopStateListener);
+        window.removeEventListener('go-back', this.onBackListener);
     }
 
     private onAnimationEnd() {
@@ -297,9 +246,22 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         this.setState({backNavigating: true});
         this._pageLoad = false;
 
-        if (e.detail.replaceState) { // replaced state with default route
-            this._routerData.currentPath = window.location.pathname;
-            this.setState({currentPath: window.location.pathname});
+        let pathname = window.location.pathname;
+        if (this.config.disableBrowserRouting) {
+            pathname = this.navigation.history.current || pathname;
+        }
+
+        if (e.detail.replaceState && !this.config.disableBrowserRouting) { // replaced state with default route
+            this._routerData.currentPath = pathname;
+            this.setState({currentPath: pathname});
+        }
+
+        if (this.config.disableBrowserRouting) {
+            this._routerData.currentPath = pathname;
+            this.setState({currentPath: pathname});
+            if (this.state.implicitBack) {
+                this.setState({implicitBack: false});
+            }
         }
 
         window.addEventListener('page-animation-end', this.onAnimationEnd.bind(this), {once: true});
@@ -330,12 +292,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
             this.setState({currentPath: currentPath});
         }
     }
-
-    componentWillUnmount() {
-        window.removeEventListener('navigate', this.onNavigateListener);
-        window.removeEventListener('popstate', this.onPopStateListener);
-        window.removeEventListener('go-back', this.onBackListener);
-    }
+    
     render() {
         return (
             <div className="react-motion-router">
@@ -348,13 +305,13 @@ export default class Router extends React.Component<RouterProps, RouterState> {
                         backNavigating={this.state.backNavigating}
                     />
                     <AnimationLayer
+                        disableBrowserRouting={this.props.config.disableBrowserRouting || false}
                         disableDiscovery={this.props.config.disableDiscovery || false}
                         hysteresis={this.props.config.hysteresis || 50}
                         minFlingVelocity={this.props.config.minFlingVelocity || 400}
                         swipeAreaWidth={this.props.config.swipeAreaWidth || 100}
                         navigation={this._routerData.navigation}
                         duration={this._routerData.animation.in.duration}
-                        shoudAnimate={Boolean(this._pageLoad || this.props.config.pageLoadTransition)}
                         currentPath={this.state.currentPath}
                         backNavigating={this.state.backNavigating}
                         lastPath={this.navigation.history.previous}

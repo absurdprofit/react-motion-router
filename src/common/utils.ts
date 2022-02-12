@@ -1,19 +1,18 @@
 export class History {
     private _stack: string[] = [];
     private _next: string | null = null;
-    private _previous: string | null = null;
     private _defaultRoute: string | null = null;
     constructor() {
         this._stack.push(window.location.pathname);
     }
 
     set defaultRoute(_defaultRoute: string | null) {
-        if (window.location.pathname !== _defaultRoute) {
-            this._previous = _defaultRoute;
-        }
         this._defaultRoute = _defaultRoute;
     }
 
+    get current() {
+        return this._stack[this._stack.length - 1];
+    }
     get length() {
         return this._stack.length;
     }
@@ -25,14 +24,16 @@ export class History {
         return this._next;
     }
     get previous() {
-        return this._previous;
+        if (this._stack.length > 1) {
+            return this._stack[this._stack.length - 2];
+        }
+        return null;
     }
     get isEmpty() {
         return !this._stack.length ? true : false;
     }
     
     push(route: string) {
-        this._previous = window.location.pathname;
         this._next = route;
         
         window.history.pushState({}, "", route);
@@ -41,7 +42,6 @@ export class History {
     }
 
     implicitPush(route: string) {
-        this._previous = this._stack[this._stack.length - 1] || null;
         this._next = route; 
         this._stack.push(route);
     }
@@ -50,22 +50,21 @@ export class History {
     back(): string;
     back(replaceState?: boolean) {
         this._next = this._stack.pop() || null;
-        this._previous = this._stack[this._stack.length - 2] || null;
         
         if (replaceState && this._defaultRoute) {
+            this._stack.push(this._defaultRoute);
             window.history.replaceState({}, "", this._defaultRoute);
         } else {
             window.history.back();
         }
 
-        return this._previous;
+        return this.previous;
     }
 
     implicitBack() {
         this._next = this._stack.pop() || null;
-        this._previous = this._stack[this._stack.length - 2] || null;
 
-        return this._previous;
+        return this.previous;
     }
 
     searchParamsToObject(searchPart: string) {
@@ -95,8 +94,18 @@ export type NavigateEvent = CustomEvent<NavigateEventDetail>;
 
 export class Navigation {
     private _history = new History();
+    private _disableBrowserRouting: boolean;
+
+    constructor(_disableBrowserRouting: boolean) {
+        this._disableBrowserRouting = _disableBrowserRouting;
+    }
+
     navigate(route: string, routeParams?: any) {
-        this._history.push(route);
+        if (this._disableBrowserRouting) {
+            this._history.implicitPush(route);
+        } else {
+            this._history.push(route);
+        }
 
         const event = new CustomEvent<NavigateEventDetail>('navigate', {
             detail: {
@@ -139,7 +148,11 @@ export class Navigation {
                 }
             });
         } else {
-            this._history.back();
+            if (this._disableBrowserRouting) {
+                this._history.implicitBack();
+            } else {
+                this._history.back();
+            }
         } 
 
         window.dispatchEvent(event);
@@ -147,6 +160,13 @@ export class Navigation {
 
     get history() {
         return this._history;
+    }
+
+    get location() {
+        return {
+            ...window.location,
+            pathname: this._history.current
+        }
     }
 }
 

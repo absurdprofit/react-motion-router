@@ -1,3 +1,8 @@
+# [V2.1.0-alpha](https://github.com/nxtexe/react-motion-router/blob/main/CHANGELOG.md#v210-alpha)
+## Features
+- Option to enable memory routing meaning instead of relying on the ```popstate``` event and the browser ```window.location``` routing is done completely in memory. One thing to note is that ```window.location.pathname``` will always be ```'/'``` so it is better to just check location on the navigator prop passed to your screen. Essentially it's just ```window.location``` with pathname being filled in from memory.
+
+
 # [V2.0.0-alpha](https://github.com/nxtexe/react-motion-router/blob/main/CHANGELOG.md#v200-alpha)
 
 ## Features

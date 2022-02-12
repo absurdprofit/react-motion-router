@@ -438,7 +438,6 @@ export const Motion = createContext(0);
 
 interface AnimationLayerProps {
     children: ScreenChild | ScreenChildren;
-    shoudAnimate: boolean;
     currentPath: string;
     lastPath: string | null;
     duration: number;
@@ -449,6 +448,7 @@ interface AnimationLayerProps {
     minFlingVelocity: number;
     swipeAreaWidth: number;
     disableDiscovery: boolean;
+    disableBrowserRouting: boolean;
 }
 
 interface AnimationLayerState {
@@ -516,7 +516,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
     componentDidMount() {
         this.animationLayerData.duration = this.props.duration;
         this.animationLayerData.onProgress = (_progress: number) => {
-            const progress = this.props.backNavigating && !this.state.gestureNavigation ? 99 - _progress : _progress + 1;
+            const progress = this.props.backNavigating && !this.state.gestureNavigation ? 99 - _progress : _progress;
             this.setState({progress: clamp(progress, 0, 100)});
             
             const progressEvent = new CustomEvent<MotionProgressEventDetail>('motion-progress', {
@@ -608,7 +608,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         const motionEndEvent = new CustomEvent('motion-progress-end');
         if (this.state.progress < this.props.hysteresis || e.velocity > this.props.minFlingVelocity) {
             onEnd = () => {
-                this.animationLayerData.shouldAnimate = false;
+                if(!this.props.disableBrowserRouting) this.animationLayerData.shouldAnimate = false;
                 this.animationLayerData.reset();
                 this.props.goBack();
                 
