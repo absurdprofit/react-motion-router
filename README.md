@@ -74,6 +74,9 @@ function Home(props) {
     return(
         <div>
             ...
+            <button onClick={() => {
+                props.navigation.goBack();
+            }}>BACK</button>
             <button
                 onClick={() => {
                     props.navigation.navigate('/posts');
@@ -84,6 +87,7 @@ function Home(props) {
 }
 ...
 ```
+The navigation object also exposes information such as ```navigation.location```. It's the same as ```window.location``` but it will always be up to date and correct regardless of if browser routing has been disabled.
 
 #### Passing Parameters to Other Screens
 
@@ -215,6 +219,7 @@ Config object used to modify the behaviour of the Router.
 | Property | Type | Description |
 | ------ | ------ | ------ |
 | defaultRoute | string | If the user navigates directly to a route other than the default and navigate.goBack() is called the app will navigate to the default route instead of leaving the website. |
+| disableBrowserRouting | boolean | Option to avoid updating browser native history stack and rely completely on memory routing. |
 | pageLoadTransition | boolean | Set to false if you wish to disable page transitions when the application first loads. |
 | animation | AnimationConfig | Config object used to modify the router's global transition behaviour. In and out animation can also be set independently. |
 | swipeAreaWidth | number | Area in pixels from the left edge of the screen that gesture navigation can be triggered from. |
