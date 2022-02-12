@@ -6,17 +6,6 @@
     top: 0;
     z-index: 1;
 }
-@keyframes fade-in {
-    from {
-        opacity: 0;
-        transform: translateY(-30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0px);
-    }
-}
-
 .details .text-content {
     padding: 15px;
 }
@@ -46,4 +35,20 @@
     width: calc(100vw - 30px);
     display: flex;
     justify-content: center;
+}
+.details .profile-info {
+    align-items: center;
+}
+.profile-info {
+    display: flex;
+    flex-direction: column;
+    max-width: 100vw;
+    overflow-x: hidden;
+}
+.profile-info img {
+    width: 100%;
+    max-width: 1000px;
+    height: auto;
+    border-radius: 0;
+    object-fit: cover;
 }

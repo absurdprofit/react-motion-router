@@ -2,7 +2,6 @@ import React from 'react';
 import {Router, Stack} from 'react-motion-router';
 import Home from './Screens/Home';
 import Details from './Screens/Details';
-import Post from './Screens/Post';
 import Tiles from './Screens/Tiles';
 import Slides from './Screens/Slides';
 import Cards from './Screens/Cards';
@@ -15,8 +14,7 @@ function App() {
     <div className="App">
       <Router config={{
         defaultRoute: '/',
-        pageLoadTransition: false,
-        disableDiscovery: !disableBrowserRouting,
+        disableDiscovery: false,
         disableBrowserRouting: disableBrowserRouting,
         animation: {
             type: "slide",
@@ -41,11 +39,6 @@ function App() {
         <Stack.Screen
           path={"/"}
           component={Home}
-        />
-        <Stack.Screen
-          path={"/post"}
-          component={Post}
-          defaultParams={{data: "Default"}}
         />
         <Stack.Screen
           path={"/tiles"}

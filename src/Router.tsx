@@ -34,7 +34,6 @@ interface Config {
         in: AnimationConfig;
         out?: AnimationConfig;
     } | AnimationConfig;
-    pageLoadTransition?: boolean;
     defaultRoute?: string;
     swipeAreaWidth?: number;
     minFlingVelocity?: number;
