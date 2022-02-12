@@ -6,15 +6,18 @@ import Post from './Screens/Post';
 import Tiles from './Screens/Tiles';
 import Slides from './Screens/Slides';
 import Cards from './Screens/Cards';
+import { getPWADisplayMode } from './common/utils';
 import "./css/App.css";
 
+const disableBrowserRouting = getPWADisplayMode() === 'standalone'; 
 function App() {
   return (
     <div className="App">
       <Router config={{
         defaultRoute: '/',
         pageLoadTransition: false,
-        disableBrowserRouting: true,
+        disableDiscovery: !disableBrowserRouting,
+        disableBrowserRouting: disableBrowserRouting,
         animation: {
             type: "slide",
             direction: "right",
