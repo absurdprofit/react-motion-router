@@ -221,7 +221,6 @@ Config object used to modify the behaviour of the Router.
 | defaultRoute | string | If the user navigates directly to a route other than the default and navigate.goBack() is called the app will navigate to the default route instead of leaving the website. |
 | disableDiscovery | boolean | Option to disable gesture navigation. |
 | disableBrowserRouting | boolean | Option to avoid updating browser native history stack and rely completely on memory routing. |
-| pageLoadTransition | boolean | Set to false if you wish to disable page transitions when the application first loads. |
 | animation | AnimationConfig | Config object used to modify the router's global transition behaviour. In and out animation can also be set independently. |
 | swipeAreaWidth | number | Area in pixels from the left edge of the screen that gesture navigation can be triggered from. |
 | hysteresis | number | Percent from 0-100 which specifies minimum gesture progress before navigation is triggered. |
