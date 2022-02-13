@@ -5,17 +5,17 @@ import Details from './Screens/Details';
 import Tiles from './Screens/Tiles';
 import Slides from './Screens/Slides';
 import Cards from './Screens/Cards';
-import { getPWADisplayMode } from './common/utils';
+import { getPWADisplayMode, iOS } from './common/utils';
 import "./css/App.css";
 
-const disableBrowserRouting = getPWADisplayMode() === 'standalone'; 
+const isPWA = getPWADisplayMode() === 'standalone'; 
 function App() {
   return (
     <div className="App">
       <Router config={{
         defaultRoute: '/',
-        disableDiscovery: false,
-        disableBrowserRouting: disableBrowserRouting,
+        disableDiscovery: !isPWA,
+        disableBrowserRouting: isPWA && iOS(),
         animation: {
             type: "slide",
             direction: "right",
