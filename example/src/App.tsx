@@ -1,5 +1,5 @@
 import React from 'react';
-import {Router, Stack} from 'react-motion-router';
+import {Router, Stack, AnimationConfig} from 'react-motion-router';
 import Home from './Screens/Home';
 import Details from './Screens/Details';
 import Tiles from './Screens/Tiles';
@@ -8,19 +8,28 @@ import Cards from './Screens/Cards';
 import { getPWADisplayMode, iOS } from './common/utils';
 import "./css/App.css";
 
-const isPWA = getPWADisplayMode() === 'standalone'; 
+const isPWA = getPWADisplayMode() === 'standalone';
+let animation: AnimationConfig = {
+  type: "slide",
+  direction: "right",
+  duration: 350,
+};
+
+if (iOS() && !isPWA) {
+  animation = {
+    type: 'none',
+    duration: 0
+  }
+}
+
 function App() {
   return (
     <div className="App">
       <Router config={{
         defaultRoute: '/',
-        disableDiscovery: false,
+        disableDiscovery: !isPWA,
         disableBrowserRouting: isPWA && iOS(),
-        animation: {
-            type: "slide",
-            direction: "right",
-            duration: 350,
-        }
+        animation: animation
       }}>
         <Stack.Screen
           path={'/slides'}

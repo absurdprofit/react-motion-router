@@ -70,6 +70,9 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
     }
 
     sharedElementTransition(currentScene: SharedElement.Scene, nextScene: SharedElement.Scene) {
+        if (this.props.animation.in.type === "none") return;
+        if (this.props.backNavigating && this.props.animation.out.type === "none") return;
+
         this.setState({transitioning: true}, () => {
             //if id exists in next scene
             for (const id in currentScene.nodes) {
