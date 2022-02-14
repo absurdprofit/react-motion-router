@@ -1,5 +1,6 @@
 import React, {createContext} from 'react';
 import {getCssText, Vec2} from './common/utils';
+import assert from 'assert';
 
 namespace SharedElement {
     interface SharedElementNode {
@@ -109,10 +110,11 @@ namespace SharedElement {
             this._name = name;
         }
         addNode(node: SharedElementNode) {
-            if (Object.keys(this.nodes).includes(node.id)) {
-                console.assert(!Object.keys(this.nodes).includes(node.id), `Duplicate Shared Element ID: ${node.id} in ${this._name}`);
-                throw new Error(`Duplicate Shared Element ID: '${node.id}' in Component: '${this._name}'`);
-            }
+            // if (Object.keys(this.nodes).includes(node.id)) {
+            //     console.assert(!Object.keys(this.nodes).includes(node.id), `Duplicate Shared Element ID: ${node.id} in ${this._name}`);
+            //     throw new Error(`Duplicate Shared Element ID: '${node.id}' in Component: '${this._name}'`);
+            // }
+            assert(!Object.keys(this.nodes).includes(node.id), `Duplicate Shared Element ID: ${node.id} in ${this._name}`);
             this._nodes[node.id] = node;
         }
 

@@ -91,13 +91,17 @@ export class AnimationLayerData {
 
             
             
+            let easingFunction = 'ease-out';
+            if (this._gestureNavigating) easingFunction = 'linear';
             this._outAnimation = this._currentScreen.animate(AnimationKeyframePresets[this._currentScreen.outAnimation as keyof typeof AnimationKeyframePresets], {
                 fill: 'forwards',
-                duration: this._duration
+                duration: this._duration,
+                easing: easingFunction
             });
             this._inAnimation = this._nextScreen.animate(AnimationKeyframePresets[this._nextScreen.inAnimation as keyof typeof AnimationKeyframePresets], {
                 fill: 'forwards',
-                duration: this._duration
+                duration: this._duration,
+                easing: easingFunction
             });
 
             if (this._inAnimation && this._outAnimation) {
@@ -129,7 +133,7 @@ export class AnimationLayerData {
                         this._outAnimation.onfinish = null;
                     }
                     // if playback rate is 2 then gesture navigation was aborted
-                    if (!this._gestureNavigating || this._playbackRate === 2) {
+                    if (!this._gestureNavigating || this._playbackRate === 0.5) {
                         if (this._currentScreen) {
                             this._currentScreen.mounted(false);
                         }
@@ -415,6 +419,7 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
                 position: 'absolute',
                 transformOrigin: 'center center',
                 pointerEvents: this.state.pointerEvents,
+                touchAction: this.state.pointerEvents,
                 zIndex: this.props.in && !this.props.backNavigating ? 1 : this.props.out && this.props.backNavigating ? 1 : 0,
                 ...gestureEndState // so the "old" nextScreen doesn't snap back to centre
             }}>
@@ -531,7 +536,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         }
 
         if (!this.props.disableDiscovery) {
-            window.addEventListener('swipestart', this.onSwipeStartListener, {passive: false});
+            window.addEventListener('swipestart', this.onSwipeStartListener);
         }
     }
 
@@ -602,11 +607,14 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         this.animationLayerData.progress = progress;
     }
 
-    onSwipeEnd(e: SwipeEndEvent) {
+    onSwipeEnd(ev: SwipeEndEvent) {
         if (this.state.shouldPlay) return;
         let onEnd = null;
         const motionEndEvent = new CustomEvent('motion-progress-end');
-        if (this.state.progress < this.props.hysteresis || e.velocity > this.props.minFlingVelocity) {
+        if (this.state.progress < this.props.hysteresis || ev.velocity > this.props.minFlingVelocity) {
+            if (ev.velocity >= this.props.minFlingVelocity) {
+                this.animationLayerData.playbackRate = -4;
+            }
             onEnd = () => {
                 if(!this.props.disableBrowserRouting) this.animationLayerData.shouldAnimate = false;
                 this.animationLayerData.reset();
@@ -618,7 +626,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             }
             this.setState({shouldPlay: true, shouldAnimate: false});
         } else {
-            this.animationLayerData.playbackRate = 2;
+            this.animationLayerData.playbackRate = 0.5;
             onEnd = () => {
                 this.animationLayerData.reset();
                 
