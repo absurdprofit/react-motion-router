@@ -110,10 +110,6 @@ namespace SharedElement {
             this._name = name;
         }
         addNode(node: SharedElementNode) {
-            // if (Object.keys(this.nodes).includes(node.id)) {
-            //     console.assert(!Object.keys(this.nodes).includes(node.id), `Duplicate Shared Element ID: ${node.id} in ${this._name}`);
-            //     throw new Error(`Duplicate Shared Element ID: '${node.id}' in Component: '${this._name}'`);
-            // }
             assert(!Object.keys(this.nodes).includes(node.id), `Duplicate Shared Element ID: ${node.id} in ${this._name}`);
             this._nodes[node.id] = node;
         }
@@ -273,6 +269,7 @@ namespace SharedElement {
         componentDidMount() {
             this._isMounted = true;
         }
+        
         componentDidUpdate() {
             if (this._id !== this.props.id) {
                 if (this.ref) {

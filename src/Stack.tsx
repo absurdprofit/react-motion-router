@@ -187,8 +187,10 @@ export namespace Stack {
                         <SharedElement.SceneContext.Provider value={this.sharedElementScene}>
                             <this.props.component
                                 route={{
-                                    ...this.context.routesData[this.props.path],
-                                    ...this.props.defaultParams,
+                                    params: {
+                                        ...this.props.defaultParams
+                                    },
+                                    ...this.context.routesData[this.props.path]
                                 }}
                                 navigation={this.context.navigation}
                             />
