@@ -16,7 +16,7 @@ export default function Navbar(props: NavbarProps) {
                     props.onBack ?
                     <IconButton onClick={props.onBack}>
                         <SharedElement id="back">
-                            <ChevronLeftIcon />
+                            <ChevronLeftIcon style={{zIndex: 100}} />
                         </SharedElement>
                     </IconButton>
                     :

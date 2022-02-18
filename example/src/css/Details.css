@@ -51,4 +51,5 @@
     height: auto;
     border-radius: 0;
     object-fit: cover;
+    clip: rect(0px, 100vw, 100vh, 0px);
 }

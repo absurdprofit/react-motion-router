@@ -72,6 +72,8 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
     sharedElementTransition(currentScene: SharedElement.Scene, nextScene: SharedElement.Scene) {
         if (this.props.animation.in.type === "none") return;
         if (this.props.backNavigating && this.props.animation.out.type === "none") return;
+        if (this.props.animation.in.duration === 0) return;
+        if (this.props.backNavigating && this.props.animation.out.duration === 0) return;
 
         this.setState({transitioning: true}, () => {
             //if id exists in next scene
@@ -121,8 +123,11 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
 
                     startNode.style.display = 'unset';
                     endNode.style.display = 'unset';
-                    startNode.style.zIndex = '1';
-                    endNode.style.zIndex = '0';
+
+                    const startZIndex = parseInt(startNode.style.zIndex) || 0;
+                    const endZIndex = parseInt(endNode.style.zIndex) || 0;
+                    endNode.style.zIndex = `${clamp(endZIndex, 0, startZIndex - 1)}`;
+
                     this.ref?.appendChild(startNode);
 
                     const transitionType = endInstance.transitionType || startInstance.transitionType || 'morph';

@@ -1,5 +1,5 @@
 import React, {createContext} from 'react';
-import {getCssText, Vec2} from './common/utils';
+import {getCSSText, Vec2} from './common/utils';
 import assert from 'assert';
 
 namespace SharedElement {
@@ -109,13 +109,14 @@ namespace SharedElement {
         constructor(name: string) {
             this._name = name;
         }
-        addNode(node: SharedElementNode) {
+        addNode(node: SharedElementNode | null) {
+            if (!node) return;
             assert(!Object.keys(this.nodes).includes(node.id), `Duplicate Shared Element ID: ${node.id} in ${this._name}`);
             this._nodes[node.id] = node;
         }
 
-        removeNode(node: SharedElementNode) {
-            delete this._nodes[node.id];
+        removeNode(_id: string) {
+            delete this._nodes[_id];
         }
 
         get nodes(): NodeMap {
@@ -164,23 +165,29 @@ namespace SharedElement {
         id: string,
         ref: Element,
         instance: SharedElement.SharedElement
-    ): SharedElementNode {
+    ): SharedElementNode | null {
         const node: HTMLElement = ref.cloneNode(true) as HTMLElement;
+        const firstChild = node.firstElementChild as HTMLElement | null;
+        
+        if (!firstChild) return null;
+
         const computedStyle = instance.computedStyle;
         const clientRect = instance.clientRect;
-        (node.firstChild as HTMLElement).style.cssText = getCssText(computedStyle);
+        firstChild.style.cssText = getCSSText(computedStyle);
 
         if (instance.props.config && instance.props.config.transformOrigin) {
-            (node.firstChild as HTMLElement).style.transformOrigin = instance.props.config.transformOrigin;
+            firstChild.style.transformOrigin = instance.props.config.transformOrigin;
         }
         /**
          * Translate X on outer element and translate Y on inner element
          * allows for layered animations
          */
-        (node.firstChild as HTMLElement).style.transform = `translateY(${clientRect.y}px)`;
+        firstChild.style.transform = `translateY(${clientRect.y}px)`;
         node.style.transform = `translateX(${clientRect.x}px)`;
         node.style.willChange = 'contents, transform';
         node.style.position = 'absolute';
+        firstChild.style.position = 'absolute';
+        node.style.zIndex = firstChild.style.zIndex;
         node.style.top = '0';
         node.style.left = '0';
         node.setAttribute('x', `${clientRect.x}px`);
@@ -229,7 +236,7 @@ namespace SharedElement {
     
         get cssText() {
             const computedStyle = this.computedStyle;
-            if (computedStyle) return getCssText(computedStyle);
+            if (computedStyle) return getCSSText(computedStyle);
             return '';
         }
     
@@ -255,7 +262,7 @@ namespace SharedElement {
         private setRef(ref: HTMLDivElement | null) {
             if (this.ref !== ref) {
                 if (this.ref) {
-                    this.scene?.removeNode(nodeFromRef(this._id, this.ref, this));
+                    this.scene?.removeNode(this._id);
                 }
                 this.ref = ref;
                 
@@ -273,7 +280,7 @@ namespace SharedElement {
         componentDidUpdate() {
             if (this._id !== this.props.id) {
                 if (this.ref) {
-                    this.scene?.removeNode(nodeFromRef(this._id, this.ref, this));
+                    this.scene?.removeNode(this._id);
                     this._id = this.props.id.toString();
                     this.scene?.addNode(nodeFromRef(this._id, this.ref, this));
                 }

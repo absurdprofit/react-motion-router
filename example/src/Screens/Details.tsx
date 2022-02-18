@@ -28,7 +28,9 @@ export default function Details(props: DetailsProps) {
                     <SharedElement id="back" config={{
                         type: 'fade-through'
                     }}>
-                        <ClearIcon />
+                        <ClearIcon style={{
+                            zIndex: 100
+                        }} />
                     </SharedElement>
                 </IconButton>
                 <div className="profile-info">

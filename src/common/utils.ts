@@ -175,7 +175,7 @@ export interface Vec2 {
     y: number;
 }
 
-export function getCssText(styles: CSSStyleDeclaration): string {
+export function getCSSText(styles: CSSStyleDeclaration): string {
     if (styles.cssText !== '') {
         return styles.cssText;
     } else {
