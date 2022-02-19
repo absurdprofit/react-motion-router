@@ -77,7 +77,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
 
         this.setState({transitioning: true}, () => {
             //if id exists in next scene
-            for (const id in currentScene.nodes) {
+            Object.keys(currentScene.nodes).forEach((id: string) => {
                 if (Object.keys(nextScene.nodes).includes(id)) {
                     const endInstance = nextScene.nodes[id].instance;
                     const startInstance = currentScene.nodes[id].instance;
@@ -85,6 +85,8 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     endInstance.hidden = true;
                     const startNode = currentScene.nodes[id].node;
                     const endNode = nextScene.nodes[id].node;
+                    const startRect = startInstance.clientRect;
+                    const endRect = endInstance.clientRect;
 
                     const transitionState: TransitionState = {
                         id: startInstance.id,
@@ -119,8 +121,6 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         }
                     };
                     
-                    
-
                     startNode.style.display = 'unset';
                     endNode.style.display = 'unset';
 
@@ -145,38 +145,36 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         y: 0
                     }
 
-                    const startRect = startInstance.clientRect;
-                    const endRect = endInstance.clientRect;
-
                     
                     if (startInstance.scene) {
                         if (transitionState.start.y.position - startRect.y >= startInstance.scene.scrollPos.y) {
-                            startTravelDistance.y = transitionState.start.y.position > startInstance.scene.scrollPos.y ? startInstance.scene.scrollPos.y : transitionState.start.y.position;
+                            startTravelDistance.y = startInstance.scene.scrollPos.y;
                         }
                         if (transitionState.start.x.position - startRect.x >= startInstance.scene.scrollPos.x) {
-                            startTravelDistance.x = transitionState.start.x.position > startInstance.scene.scrollPos.x ? startInstance.scene.scrollPos.x : transitionState.start.x.position;
+                            startTravelDistance.x = startInstance.scene.scrollPos.x;
                         }
                     }
                     if (endInstance.scene) {
                         if (transitionState.end.y.position - endRect.y >= endInstance.scene.scrollPos.y) {
-                            endTravelDistance.y = transitionState.end.y.position > endInstance.scene.scrollPos.y ? endInstance.scene.scrollPos.y : transitionState.end.y.position;
+                            endTravelDistance.y = endInstance.scene.scrollPos.y;
                         }
                         if (transitionState.end.x.position - endRect.x >= endInstance.scene.scrollPos.x) {
-                            endTravelDistance.x = transitionState.end.x.position > endInstance.scene.scrollPos.x ? endInstance.scene.scrollPos.x : transitionState.end.x.position;
+                            endTravelDistance.x = endInstance.scene.scrollPos.x;
                         }
                     }
 
+                    
                     /**
                      * KNOWN ISSUES:
                      * 1. if page 2 scroll position is falsely (0, 0) elements might fail to transition properly.
                      *    has a lot to do with how scrolling works in this implementation.
                      */
-                    transitionState.start.x.position = Math.abs(transitionState.start.x.position - startTravelDistance.x);
-                    transitionState.start.y.position = Math.abs(transitionState.start.y.position - startTravelDistance.y);
-                    transitionState.end.x.position = Math.abs(transitionState.end.x.position - endTravelDistance.x);
-                    transitionState.end.y.position = Math.abs(transitionState.end.y.position - endTravelDistance.y);
+                    transitionState.start.x.position = transitionState.start.x.position - startTravelDistance.x;
+                    transitionState.start.y.position = transitionState.start.y.position - startTravelDistance.y;
+                    transitionState.end.x.position = transitionState.end.x.position - endTravelDistance.x;
+                    transitionState.end.y.position = transitionState.end.y.position - endTravelDistance.y;
 
-                    
+
                     let startXAnimation;
                     let startYAnimation;
                     let endXAnimation;
@@ -429,7 +427,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         }
                     }, {once:true});
                 }
-            }
+            });
         });
 
         window.addEventListener('page-animation-end', () => {

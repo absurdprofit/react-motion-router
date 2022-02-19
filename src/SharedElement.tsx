@@ -3,12 +3,6 @@ import {getCSSText, Vec2} from './common/utils';
 import assert from 'assert';
 
 namespace SharedElement {
-    interface SharedElementNode {
-        id: string;
-        node: HTMLElement;
-        instance: SharedElement;
-    }
-
     //https://developer.mozilla.org/en-US/docs/Web/CSS/transform-origin#formal_syntax
     //https://stackoverflow.com/questions/51445767/how-to-define-a-regex-matched-string-type-in-typescript
     enum TransformOriginKeywordEnum {
@@ -63,36 +57,11 @@ namespace SharedElement {
     type TwoValueTransformOrigin = `${OneValueTransformOrigin} ${OneValueTransformOrigin}`;
     type ThreeValueTransformOrigin = `${OneValueTransformOrigin} ${OneValueTransformOrigin} ${TransformOriginLength}`;
     type TransformOrigin = TransformOriginGlobal | OneValueTransformOrigin | TwoValueTransformOrigin | ThreeValueTransformOrigin;
-    
-    
-    interface SharedElementConfig {
-        type?: TransitionAnimation;
-        transformOrigin?: TransformOrigin;
-        easingFunction?: EasingFunction;
-        duration?: number;
-        x?: {
-            duration?: number;
-            easingFunction?: EasingFunction
-        };
-        y?: {
-            duration?: number;
-            easingFunction?: EasingFunction
-        };
-    }
 
-    
-    interface SharedElementProps {
-        id: string | number;
-        children: React.ReactChild;
-        config?: SharedElementConfig;
-    }
-    
-    export interface Map {
-        [key:string]: {
-            node: Node;
-            computedStyles: CSSStyleDeclaration;
-            clientRect: DOMRect;
-        };
+    interface SharedElementNode {
+        id: string;
+        node: HTMLElement;
+        instance: SharedElement;
     }
 
     export interface NodeMap {
@@ -193,18 +162,34 @@ namespace SharedElement {
         node.setAttribute('x', `${clientRect.x}px`);
         node.setAttribute('y', `${clientRect.y}px`);
  
-        /**
-         * TODO:
-         * i.e. if slide is horizontal (left|right) change to translateY or if slide is vertical (up|down) change to translateX
-         * 
-         * 2̶.̶ C̶o̶m̶p̶e̶n̶s̶a̶t̶e̶ f̶o̶r̶ t̶r̶a̶v̶e̶l̶ d̶i̶s̶t̶a̶n̶c̶e̶ d̶u̶e̶ t̶o̶ w̶i̶n̶d̶o̶w̶ s̶c̶r̶o̶l̶l̶ p̶o̶s̶i̶t̶i̶o̶n̶
-         */
         return {
             id: id,
             node: node,
             instance: instance
         };
     }
+
+    interface SharedElementConfig {
+        type?: TransitionAnimation;
+        transformOrigin?: TransformOrigin;
+        easingFunction?: EasingFunction;
+        duration?: number;
+        x?: {
+            duration?: number;
+            easingFunction?: EasingFunction
+        };
+        y?: {
+            duration?: number;
+            easingFunction?: EasingFunction
+        };
+    }
+
+    interface SharedElementProps {
+        id: string | number;
+        children: React.ReactChild;
+        config?: SharedElementConfig;
+    }
+
     export class SharedElement extends React.Component<SharedElementProps> {
         private _id : string = this.props.id.toString();
         private ref: HTMLDivElement | null = null;
@@ -278,7 +263,7 @@ namespace SharedElement {
         }
         
         componentDidUpdate() {
-            if (this._id !== this.props.id) {
+            if (this._id !== this.props.id.toString()) {
                 if (this.ref) {
                     this.scene?.removeNode(this._id);
                     this._id = this.props.id.toString();
@@ -286,6 +271,7 @@ namespace SharedElement {
                 }
             }
         }
+        
         componentWillUnmount() {
             this._isMounted = false;
         }
