@@ -23,8 +23,6 @@ export interface ScreenProps {
 
 interface ScreenState {
     _in: boolean;
-    xOverflow: boolean;
-    yOverflow: boolean;
 }
 
 
@@ -33,7 +31,6 @@ export namespace Stack {
     export class Screen extends React.Component<ScreenProps, ScreenState> {
         private sharedElementScene: SharedElement.Scene = new SharedElement.Scene(this.props.component.name);
         private ref: HTMLElement | null = null;
-        private observer: ResizeObserver = new ResizeObserver(this.observe.bind(this));
         private onRef = this.setRef.bind(this);
         private animation: {
             in: AnimationConfig;
@@ -61,9 +58,7 @@ export namespace Stack {
         }
 
         state: ScreenState  = {
-            _in: false,
-            xOverflow: false,
-            yOverflow: true
+            _in: false
         }
 
         componentDidMount() {
@@ -98,26 +93,6 @@ export namespace Stack {
             }
         }
 
-        componentWillUnmount() {
-            if (this.ref) {
-                this.observer.unobserve(this.ref);
-            }
-        }
-
-        observe(entries: ResizeObserverEntry[]) {
-            if (entries.length) {
-                const xOverflow = entries[0].target.scrollWidth > window.innerWidth; 
-                const yOverflow = entries[0].target.scrollHeight > window.innerHeight;
-
-                if (xOverflow !== this.state.xOverflow) {
-                    this.setState({xOverflow: xOverflow});
-                }
-                if (yOverflow !== this.state.yOverflow) {
-                    this.setState({yOverflow: yOverflow});
-                }
-            }
-        }
-
         onExit() {
             if (this.ref) {
                 this.scrollPos = {
@@ -143,17 +118,12 @@ export namespace Stack {
 
         private setRef(ref: HTMLElement | null) {
             if (this.ref !== ref) {
-                if (this.ref) {
-                    this.observer.unobserve(this.ref);
-                }
-
                 this.ref = ref;
 
                 if (ref) {
                     const clientRect = ref.getBoundingClientRect();
                     this.sharedElementScene.x = clientRect.x;
                     this.sharedElementScene.y = clientRect.y;
-                    this.observer.observe(ref);
                 }
             }
         }
@@ -174,14 +144,14 @@ export namespace Stack {
                         className="screen-content"
                         style={{
                             height: '100vh',
-                            minWidth: '100vw',
+                            width: '100vw',
                             display: 'flex',
                             flexDirection: 'column',
                             position: 'absolute',
                             willChange: 'transform, opacity',
                             touchAction: 'inherit',
-                            overflowX: this.state.xOverflow ? 'scroll' : undefined,
-                            overflowY: this.state.yOverflow ? 'scroll' : undefined
+                            overflowX: 'auto',
+                            overflowY: 'auto'
                         }}
                     >
                         <SharedElement.SceneContext.Provider value={this.sharedElementScene}>
