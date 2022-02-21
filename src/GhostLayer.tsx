@@ -76,8 +76,8 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
         if (this.props.backNavigating && this.props.animation.out.duration === 0) return;
 
         this.setState({transitioning: true}, () => {
-            //if id exists in next scene
             Object.keys(currentScene.nodes).forEach((id: string) => {
+                //if id exists in next scene
                 if (Object.keys(nextScene.nodes).includes(id)) {
                     const endInstance = nextScene.nodes[id].instance;
                     const startInstance = currentScene.nodes[id].instance;
@@ -411,10 +411,16 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     
 
                     if (!this.state.playing) {
-                        Object.values(this._animationMap).map((xYAnimations: {[key:string]:Animation}) => {
-                            Object.values(xYAnimations).map((animation: Animation) => {
-                                animation.pause();
-                            });
+                        Object.values(this._animationMap[startInstance.id]).map((animation: Animation) => {
+                            const defaultDuration = this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration;
+                            let duration = animation.effect?.getComputedTiming().duration;
+                            if (typeof duration === "string") {
+                                duration = parseFloat(duration);
+                            }
+                            duration = duration || defaultDuration;
+                            
+                            animation.currentTime = duration;
+                            animation.pause();
                         });
                     }
 
@@ -462,12 +468,14 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
         if (!this.state.playing) {
             Object.values(this._animationMap).map((xYAnimations: {[key:string]:Animation}) => {
                 Object.values(xYAnimations).map((animation: Animation) => {
-                    const progress = e.detail.progress; // because ghost layer animations never run backwards
+                    const progress = e.detail.progress;
                     const defaultDuration = this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration;
-                    let duration = animation.effect?.getComputedTiming().duration || defaultDuration;
+                    let duration = animation.effect?.getComputedTiming().duration;
                     if (typeof duration === "string") {
                         duration = parseFloat(duration);
                     }
+                    duration = duration || defaultDuration;
+                    
 
                     const currentTime = (progress / 100) * duration;
                     animation.currentTime = currentTime;

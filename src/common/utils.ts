@@ -2,8 +2,17 @@ export class History {
     private _stack: string[] = [];
     private _next: string | null = null;
     private _defaultRoute: string | null = null;
-    constructor() {
-        this._stack.push(window.location.pathname);
+    constructor(_defaultRoute: string | null) {
+        const pathname = window.location.pathname + window.location.search;
+        if (_defaultRoute) {
+            this._defaultRoute = _defaultRoute;
+            if (this._defaultRoute !== window.location.pathname) {
+                this._stack.push(this._defaultRoute);
+                window.history.replaceState({}, "", this._defaultRoute);
+                window.history.pushState({}, "", pathname);
+            }
+        }
+        this._stack.push(pathname);
     }
 
     set defaultRoute(_defaultRoute: string | null) {
@@ -34,7 +43,7 @@ export class History {
     }
     
     push(route: string) {
-        this._next = route;
+        this._next = null;
         
         window.history.pushState({}, "", route);
 
@@ -42,7 +51,7 @@ export class History {
     }
 
     implicitPush(route: string) {
-        this._next = route; 
+        this._next = null; 
         this._stack.push(route);
     }
 
@@ -93,11 +102,12 @@ interface NavigateEventDetail {
 export type NavigateEvent = CustomEvent<NavigateEventDetail>;
 
 export class Navigation {
-    private _history = new History();
+    private _history;
     private _disableBrowserRouting: boolean;
 
-    constructor(_disableBrowserRouting: boolean) {
+    constructor(_disableBrowserRouting: boolean, _defaultRoute?: string | null) {
         this._disableBrowserRouting = _disableBrowserRouting;
+        this._history = new History(_defaultRoute || null);
     }
 
     navigate(route: string, routeParams?: any) {

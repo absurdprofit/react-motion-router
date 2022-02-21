@@ -26,9 +26,9 @@ export default function Cards(props: CardsProps) {
                             profile: hero
                         })}>
                             <SharedElement id={`${hero.id}-card-bg`}>
-                                <div className="card-bg"></div>
+                                <div className="card-bg" style={{ width: 345 > window.screen.width ? 300 : 345 }}></div>
                             </SharedElement>
-                            <Card sx={{ width: 345 }}>
+                            <Card sx={{ width: 345 > window.screen.width ? 300 : 345 }}>
                                 <SharedElement id={hero.id}>
                                     <CardMedia
                                         component="img"

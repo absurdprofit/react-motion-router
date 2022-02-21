@@ -113,10 +113,9 @@ export class RouterData {
 
 export const RouterDataContext = createContext<RouterData>(new RouterData());
 export default class Router extends React.Component<RouterProps, RouterState> {
-    private navigation = new Navigation(this.props.config.disableBrowserRouting || false);
+    private navigation = new Navigation(this.props.config.disableBrowserRouting || false, this.props.config.defaultRoute || null);
     private config: Config;
     private _routerData: RouterData;
-    private _pageLoad: boolean = true;
     private onBackListener = this.onBack.bind(this) as EventListener;
     private onNavigateListener = this.onNavigate.bind(this) as EventListener;
     private onPopStateListener = this.onPopstate.bind(this);
@@ -178,15 +177,13 @@ export default class Router extends React.Component<RouterProps, RouterState> {
     }
 
     componentDidMount() {
-        if (this.props.config.defaultRoute) {
-            this.navigation.history.defaultRoute = this.props.config.defaultRoute;
-        }
-
         // get url search params and append to existing route params
         const searchParams = this.navigation.history.searchParamsToObject(window.location.search);
         const routesData = this.state.routesData;
+        
         if (searchParams) {
             routesData[window.location.pathname] = {
+                ...this.state.routesData[window.location.pathname],
                 params: searchParams
             };
         }
@@ -220,7 +217,6 @@ export default class Router extends React.Component<RouterProps, RouterState> {
 
     onPopstate(e: Event) {
         e.preventDefault();
-        this._pageLoad = false;
         if (window.location.pathname === this.navigation.history.previous) {
             if (!this.state.implicitBack) {
                 this.setState({backNavigating: true});
@@ -243,7 +239,6 @@ export default class Router extends React.Component<RouterProps, RouterState> {
 
     onBack(e: BackEvent) {
         this.setState({backNavigating: true});
-        this._pageLoad = false;
 
         let pathname = window.location.pathname;
         if (this.config.disableBrowserRouting) {
@@ -269,7 +264,6 @@ export default class Router extends React.Component<RouterProps, RouterState> {
 
     onNavigate(e: NavigateEvent) {
         e.preventDefault();
-        this._pageLoad = false;
         
         const currentPath = e.detail.route;
         this._routerData.currentPath = currentPath;

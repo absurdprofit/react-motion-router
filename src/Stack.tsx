@@ -158,9 +158,9 @@ export namespace Stack {
                             <this.props.component
                                 route={{
                                     params: {
-                                        ...this.props.defaultParams
+                                        ...this.props.defaultParams,
+                                        ...this.context.routesData[this.props.path]?.params
                                     },
-                                    ...this.context.routesData[this.props.path]
                                 }}
                                 navigation={this.context.navigation}
                             />
