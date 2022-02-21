@@ -141,7 +141,7 @@ export namespace Stack {
                 >
                     <div
                         ref={this.onRef}
-                        className="screen-content"
+                        className="screen"
                         style={{
                             height: '100vh',
                             width: '100vw',

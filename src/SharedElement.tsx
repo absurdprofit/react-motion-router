@@ -249,7 +249,6 @@ namespace SharedElement {
             if (this.ref !== ref) {
                 if (this.ref) {
                     this.scene?.removeNode(this._id);
-
                     if (this.ref.firstElementChild) {
                         this._mutationObserver.disconnect();
                     }
@@ -257,6 +256,7 @@ namespace SharedElement {
                 this.ref = ref;
                 
                 if (ref) {
+                    
                     this.scene?.addNode(nodeFromRef(this._id, ref, this));
                     if (ref.firstElementChild) {
                         this._mutationObserver.observe(ref.firstElementChild, {

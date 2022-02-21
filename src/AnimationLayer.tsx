@@ -141,7 +141,7 @@ export class AnimationLayerData {
                         if (this._currentScreen) {
                             // hotfix for weird bug that snaps screen to start position after gesture navigation
                             this._currentScreen.animate([
-                                {transform: 'translateX(0vw)'}
+                                {transform: 'translateX(0vw) scale(1)', opacity: 1}
                             ], {duration: 0, fill: 'forwards'});
                         }
                         if (this._nextScreen) {

@@ -95,14 +95,14 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 node: startNode,
                                 duration: startInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration,
                                 easingFunction: startInstance.props.config?.x?.easingFunction || startInstance.props.config?.easingFunction ||'ease',
-                                position: parseFloat(startNode.getAttribute('x') || '0') - currentScene.x,
+                                position: startRect.x,
                                 
                             },
                             y: {
                                 node: startNode.firstElementChild as HTMLElement,
                                 duration: startInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration,
                                 easingFunction: startInstance.props.config?.y?.easingFunction || startInstance.props.config?.easingFunction || 'ease',
-                                position: parseFloat(startNode.getAttribute('y') || '0') - currentScene.y
+                                position: startRect.y
                             }
                         },
                         end: {
@@ -110,13 +110,13 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 node: endNode,
                                 duration: endInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration,
                                 easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
-                                position: parseFloat(endNode.getAttribute('x') || '0') - nextScene.x
+                                position: endRect.x - nextScene.x
                             },
                             y: {
                                 node: endNode.firstElementChild as HTMLElement,
                                 duration: endInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration,
                                 easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
-                                position: parseFloat(endNode.getAttribute('y') || '0') - nextScene.y
+                                position: endRect.y - nextScene.y
                             }
                         }
                     };
@@ -164,21 +164,17 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     }
 
                     
-                    /**
-                     * KNOWN ISSUES:
-                     * 1. if page 2 scroll position is falsely (0, 0) elements might fail to transition properly.
-                     *    has a lot to do with how scrolling works in this implementation.
-                     */
-                    transitionState.start.x.position = transitionState.start.x.position - startTravelDistance.x;
-                    transitionState.start.y.position = transitionState.start.y.position - startTravelDistance.y;
-                    transitionState.end.x.position = transitionState.end.x.position - endTravelDistance.x;
-                    transitionState.end.y.position = transitionState.end.y.position - endTravelDistance.y;
-
-
                     let startXAnimation;
                     let startYAnimation;
                     let endXAnimation;
                     let endYAnimation;
+
+                    if (!this.state.playing) {
+                        /**
+                         * TODO:
+                         * 1. Compensate for page animation start positions
+                         */
+                    }
 
                     if (transitionType === "morph") {
                         startXAnimation = transitionState.start.x.node.animate([

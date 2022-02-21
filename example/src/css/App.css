@@ -4,3 +4,15 @@
     margin: 0;
     font-family: 'Roboto', sans-serif;
 }
+.screen-content {
+    overflow: hidden!important;
+}
+.cards {
+    overflow: hidden;
+}
+.card-list {
+    height: 100vh;
+    overflow: scroll;
+    margin-bottom: 15px;
+    justify-content: unset!important;
+}
