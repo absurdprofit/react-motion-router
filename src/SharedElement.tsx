@@ -158,8 +158,6 @@ namespace SharedElement {
         node.style.zIndex = firstChild.style.zIndex;
         node.style.top = '0';
         node.style.left = '0';
-        node.setAttribute('x', `${clientRect.x}px`);
-        node.setAttribute('y', `${clientRect.y}px`);
  
         return {
             id: id,
@@ -203,8 +201,8 @@ namespace SharedElement {
         }
         
         get clientRect() {
-            if (this.ref && this.ref.firstChild) {
-                const clientRect = (this.ref.firstChild as Element).getBoundingClientRect();
+            if (this.ref && this.ref.firstElementChild) {
+                const clientRect = this.ref.firstElementChild.getBoundingClientRect();
                 return clientRect;
             }
             return new DOMRect();
@@ -304,10 +302,9 @@ namespace SharedElement {
                             <div
                                 ref={this.onRef}
                                 id={`shared-element-${this._id}`}
-                                className={"shared-element"}
                                 style={{
                                     display: this._hidden ? 'block' : 'contents',
-                                    opacity: this._hidden ? '0': '1'
+                                    visibility: this._hidden ? 'hidden': 'visible'
                                 }
                             }>
                                 {this.props.children}

@@ -89,8 +89,6 @@ export class AnimationLayerData {
             if (this._onExit && this._shouldAnimate) this._onExit();
             await this._nextScreen.mounted(true);
 
-            
-            
             let easingFunction = 'ease-out';
             if (this._gestureNavigating) easingFunction = 'linear';
             this._outAnimation = this._currentScreen.animate(AnimationKeyframePresets[this._currentScreen.outAnimation as keyof typeof AnimationKeyframePresets], {
@@ -231,7 +229,7 @@ export class AnimationLayerData {
     set nextScreen(_screen: AnimationProvider) {
         this._nextScreen = _screen;
         if (!this._currentScreen) {
-            _screen.mounted(true);
+            _screen.mounted(true, false);
             this._nextScreen = null;
             // this.animate(this._currentScreen, this._nextScreen);
         }
@@ -289,6 +287,8 @@ const OppositeDirection = {
 export class AnimationProvider extends React.Component<AnimationProviderProps, AnimationProviderState> {
     private _animationLayerData: AnimationLayerData | null = null;
     private ref: HTMLElement | null = null;
+    private onAnimationEnd = this.animationEnd.bind(this);
+    private onNavigate = this.navigate.bind(this);
     private setRef = this.onRef.bind(this);
 
     state: AnimationProviderState = {
@@ -300,7 +300,18 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
         this.ref = ref;
     }
 
+    animationEnd() {
+        if (this.ref) this.ref.style.willChange = 'auto';
+    }
+
+    navigate() {
+        if (this.ref) this.ref.style.willChange = 'transform, opacity';
+    }
+
     componentDidMount() {
+        window.addEventListener('go-back', this.onNavigate);
+        window.addEventListener('navigate', this.onNavigate);
+        window.addEventListener('page-animation-end', this.onAnimationEnd);
         if (this._animationLayerData) {
             if (this.props.in) {
                 this._animationLayerData.onEnter = this.props.onEnter;
@@ -311,7 +322,6 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
                 this._animationLayerData.currentScreen = this;
             }
         }
-        // this.setState({mounted: this.props.in});
     }
 
     componentDidUpdate(prevProps: AnimationProviderProps) {
@@ -329,6 +339,11 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
         }
     }
 
+    componentWillUnmount() {
+        window.removeEventListener('go-back', this.onNavigate);
+        window.removeEventListener('navigate', this.onNavigate);
+        window.removeEventListener('page-animation-end', this.onAnimationEnd);
+    }
 
     get inAnimation() {
         let direction = this.props.animation.in.direction;
@@ -384,10 +399,13 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
         return this.ref?.animate(keyframes, options);
     }
 
-    mounted(_mounted: boolean): Promise<void> {
+    mounted(_mounted: boolean, willAnimate: boolean = true): Promise<void> {
         return new Promise((resolve, _) => {
             this.setState({mounted: _mounted}, () => {
                 if (_mounted) {
+                    if (willAnimate) {
+                        if (this.ref) this.ref.style.willChange = 'transform, opacity';
+                    }
                     const shouldScroll = Boolean(
                         (this.props.in && !this._animationLayerData?.gestureNavigating)
                         || (this.props.out && this._animationLayerData?.gestureNavigating)
@@ -418,7 +436,6 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
             <div className="animation-provider" ref={this.setRef} style={{
                 position: 'absolute',
                 transformOrigin: 'center center',
-                willChange: 'transform, opacity',
                 pointerEvents: this.state.pointerEvents,
                 touchAction: this.state.pointerEvents,
                 zIndex: this.props.in && !this.props.backNavigating ? 1 : this.props.out && this.props.backNavigating ? 1 : 0,

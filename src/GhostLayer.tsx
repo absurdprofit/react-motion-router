@@ -120,7 +120,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             }
                         }
                     };
-                    
+
                     startNode.style.display = 'unset';
                     endNode.style.display = 'unset';
 
@@ -134,15 +134,6 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
 
                     if (transitionType !== "morph") {
                         this.ref?.appendChild(endNode);
-                    }
-                    
-                    const endTravelDistance: Vec2 = {
-                        x: 0,
-                        y: 0
-                    }
-                    const startTravelDistance: Vec2 = {
-                        x: 0,
-                        y: 0
                     }
                     
                     let startXAnimation;
@@ -382,7 +373,6 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         this._animationMap[startInstance.id] = {startXAnimation, startYAnimation, endXAnimation, endYAnimation};
                     }
                     
-
                     if (!this.state.playing) {
                         Object.values(this._animationMap[startInstance.id]).map((animation: Animation) => {
                             const defaultDuration = this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration;
@@ -398,8 +388,8 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     }
 
                     window.addEventListener('page-animation-end', ()=>{
-                        startNode.style.willChange = 'unset';
-                        endNode.style.willChange = 'unset';
+                        startNode.style.willChange = 'auto';
+                        endNode.style.willChange = 'auto';
                         startInstance.hidden = false;
                         endInstance.hidden = false;
                         this.ref?.removeChild(startNode);
@@ -471,7 +461,6 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     zIndex: 1000,
                     width: '100vw',
                     height: '100vh',
-                    pointerEvents: 'none'
                 }}>
                 </div>
             );

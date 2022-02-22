@@ -21,14 +21,9 @@ export interface ScreenProps {
     }
 }
 
-interface ScreenState {
-    _in: boolean;
-}
-
-
 export namespace Stack {
     
-    export class Screen extends React.Component<ScreenProps, ScreenState> {
+    export class Screen extends React.Component<ScreenProps> {
         private sharedElementScene: SharedElement.Scene = new SharedElement.Scene(this.props.component.name);
         private ref: HTMLElement | null = null;
         private onRef = this.setRef.bind(this);
@@ -57,13 +52,7 @@ export namespace Stack {
             }
         }
 
-        state: ScreenState  = {
-            _in: false
-        }
-
         componentDidMount() {
-            this.setState({_in: Boolean(this.props.path === this.context.currentPath)});
-
             if (this.props.config?.animation) {
                 if ('in' in this.props.config.animation) {
                     this.animation = {
@@ -79,18 +68,8 @@ export namespace Stack {
             } else {
                 this.animation = this.context.animation;
             }
-        }
-        
-        componentDidUpdate() {
-            if (this.props.path !== this.context.currentPath) {
-                if (!this.state._in) {
-                    this.setState({_in: true});
-                }
-            } else {
-                if (this.state._in) {
-                    this.setState({_in: false});
-                }
-            }
+
+            this.forceUpdate();
         }
 
         onExit() {

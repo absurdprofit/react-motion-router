@@ -10,8 +10,8 @@ import "./css/App.css";
 
 const isPWA = getPWADisplayMode() === 'standalone';
 let animation: AnimationConfig = {
-  type: "slide",
-  direction: "right",
+  type: "zoom",
+  direction: "in",
   duration: 350,
 };
 
