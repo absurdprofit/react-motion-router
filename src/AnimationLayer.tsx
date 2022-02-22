@@ -141,7 +141,7 @@ export class AnimationLayerData {
                         if (this._currentScreen) {
                             // hotfix for weird bug that snaps screen to start position after gesture navigation
                             this._currentScreen.animate([
-                                {transform: 'translateX(0vw) scale(1)', opacity: 1}
+                                {transform: 'translate(0vw, 0vh) scale(1)', opacity: 1}
                             ], {duration: 0, fill: 'forwards'});
                         }
                         if (this._nextScreen) {
@@ -418,6 +418,7 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
             <div className="animation-provider" ref={this.setRef} style={{
                 position: 'absolute',
                 transformOrigin: 'center center',
+                willChange: 'transform, opacity',
                 pointerEvents: this.state.pointerEvents,
                 touchAction: this.state.pointerEvents,
                 zIndex: this.props.in && !this.props.backNavigating ? 1 : this.props.out && this.props.backNavigating ? 1 : 0,

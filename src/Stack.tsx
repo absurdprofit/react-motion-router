@@ -148,7 +148,6 @@ export namespace Stack {
                             display: 'flex',
                             flexDirection: 'column',
                             position: 'absolute',
-                            willChange: 'transform, opacity',
                             touchAction: 'inherit',
                             overflowX: 'auto',
                             overflowY: 'auto'

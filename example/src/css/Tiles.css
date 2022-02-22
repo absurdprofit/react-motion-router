@@ -58,3 +58,11 @@
 .tiles .content a:last-child .tile {
     width: 100vw;
 }
+.tiles .tile img:empty {
+    background-color: #efefef;
+    width: 49vw;
+    height: calc(30vw - 2px);
+}
+.tiles a:last-child .tile img:empty {
+    width: 100vw;
+}

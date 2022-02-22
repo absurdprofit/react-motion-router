@@ -95,14 +95,14 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 node: startNode,
                                 duration: startInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration,
                                 easingFunction: startInstance.props.config?.x?.easingFunction || startInstance.props.config?.easingFunction ||'ease',
-                                position: startRect.x,
+                                position: startRect.x - (this.state.playing ? 0 : currentScene.x),
                                 
                             },
                             y: {
                                 node: startNode.firstElementChild as HTMLElement,
                                 duration: startInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration,
                                 easingFunction: startInstance.props.config?.y?.easingFunction || startInstance.props.config?.easingFunction || 'ease',
-                                position: startRect.y
+                                position: startRect.y - (this.state.playing ? 0 : currentScene.y)
                             }
                         },
                         end: {
@@ -110,13 +110,13 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 node: endNode,
                                 duration: endInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration,
                                 easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
-                                position: endRect.x - nextScene.x
+                                position: endRect.x - (this.state.playing ? nextScene.x : 0)
                             },
                             y: {
                                 node: endNode.firstElementChild as HTMLElement,
                                 duration: endInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration,
                                 easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
-                                position: endRect.y - nextScene.y
+                                position: endRect.y - (this.state.playing ? nextScene.y : 0)
                             }
                         }
                     };
@@ -144,37 +144,14 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         x: 0,
                         y: 0
                     }
-
-                    
-                    if (startInstance.scene) {
-                        if (transitionState.start.y.position - startRect.y >= startInstance.scene.scrollPos.y) {
-                            startTravelDistance.y = startInstance.scene.scrollPos.y;
-                        }
-                        if (transitionState.start.x.position - startRect.x >= startInstance.scene.scrollPos.x) {
-                            startTravelDistance.x = startInstance.scene.scrollPos.x;
-                        }
-                    }
-                    if (endInstance.scene) {
-                        if (transitionState.end.y.position - endRect.y >= endInstance.scene.scrollPos.y) {
-                            endTravelDistance.y = endInstance.scene.scrollPos.y;
-                        }
-                        if (transitionState.end.x.position - endRect.x >= endInstance.scene.scrollPos.x) {
-                            endTravelDistance.x = endInstance.scene.scrollPos.x;
-                        }
-                    }
-
                     
                     let startXAnimation;
                     let startYAnimation;
                     let endXAnimation;
                     let endYAnimation;
 
-                    if (!this.state.playing) {
-                        /**
-                         * TODO:
-                         * 1. Compensate for page animation start positions
-                         */
-                    }
+                    startNode.style.willChange = 'contents, transform, opacity';
+                    endNode.style.willChange = 'contents, transform, opacity';
 
                     if (transitionType === "morph") {
                         startXAnimation = transitionState.start.x.node.animate([
@@ -421,6 +398,8 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     }
 
                     window.addEventListener('page-animation-end', ()=>{
+                        startNode.style.willChange = 'unset';
+                        endNode.style.willChange = 'unset';
                         startInstance.hidden = false;
                         endInstance.hidden = false;
                         this.ref?.removeChild(startNode);

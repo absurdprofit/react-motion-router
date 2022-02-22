@@ -12,9 +12,9 @@ import '../css/Cards.css';
 interface CardsProps {
     navigation: Navigation;
 }
+
 export default class Cards extends React.Component<CardsProps> {
     private ref: HTMLElement | null = null;
-
     private static scrollPos = {
         x: 0,
         y: 0

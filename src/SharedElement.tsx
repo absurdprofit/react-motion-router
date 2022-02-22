@@ -153,7 +153,6 @@ namespace SharedElement {
          */
         firstChild.style.transform = `translateY(${clientRect.y}px)`;
         node.style.transform = `translateX(${clientRect.x}px)`;
-        node.style.willChange = 'contents, transform';
         node.style.position = 'absolute';
         firstChild.style.position = 'absolute';
         node.style.zIndex = firstChild.style.zIndex;
