@@ -1,5 +1,5 @@
 import React, {createContext} from 'react';
-import {getCSSText, Vec2} from './common/utils';
+import {getCSSData, Vec2} from './common/utils';
 import assert from 'assert';
 
 namespace SharedElement {
@@ -140,24 +140,9 @@ namespace SharedElement {
         
         if (!firstChild) return null;
 
-        const computedStyle = instance.computedStyle;
-        const clientRect = instance.clientRect;
-        firstChild.style.cssText = getCSSText(computedStyle);
-
         if (instance.props.config && instance.props.config.transformOrigin) {
             firstChild.style.transformOrigin = instance.props.config.transformOrigin;
         }
-        /**
-         * Translate X on outer element and translate Y on inner element
-         * allows for layered animations
-         */
-        firstChild.style.transform = `translateY(${clientRect.y}px)`;
-        node.style.transform = `translateX(${clientRect.x}px)`;
-        node.style.position = 'absolute';
-        firstChild.style.position = 'absolute';
-        node.style.zIndex = firstChild.style.zIndex;
-        node.style.top = '0';
-        node.style.left = '0';
  
         return {
             id: id,
@@ -214,13 +199,12 @@ namespace SharedElement {
                 
                 return computedStyles;
             }
-            return new CSSStyleDeclaration();
         }
     
-        get cssText() {
+        get getCSSData(): [string, {[key:string]:string}] {
             const computedStyle = this.computedStyle;
-            if (computedStyle) return getCSSText(computedStyle);
-            return '';
+            if (computedStyle) return getCSSData(computedStyle);
+            return ['', {}];
         }
     
         get id() {

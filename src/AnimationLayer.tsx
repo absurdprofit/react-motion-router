@@ -11,7 +11,6 @@ export class AnimationLayerData {
     private _currentScreen: AnimationProvider | null = null;
     private _nextScreen: AnimationProvider | null = null;
     private _onExit: Function | undefined;
-    private _onEnter: Function | undefined;
     private _progressUpdateID: number = 0;
     private _duration: number = 0;
     private _inAnimation: Animation | undefined;
@@ -231,12 +230,7 @@ export class AnimationLayerData {
         if (!this._currentScreen) {
             _screen.mounted(true, false);
             this._nextScreen = null;
-            // this.animate(this._currentScreen, this._nextScreen);
         }
-    }
-
-    set onEnter(_onEnter: Function | undefined) {
-        this._onEnter = _onEnter;
     }
 
     set onExit(_onExit: Function | undefined) {
@@ -314,7 +308,6 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
         window.addEventListener('page-animation-end', this.onAnimationEnd);
         if (this._animationLayerData) {
             if (this.props.in) {
-                this._animationLayerData.onEnter = this.props.onEnter;
                 this._animationLayerData.nextScreen = this;
             }
             if (this.props.out) {
@@ -329,11 +322,10 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
         if (this.props.out !== prevProps.out || this.props.in !== prevProps.in) {
             if (this.props.out) {
                 // set current screen and call onExit
-
                 this._animationLayerData.onExit = this.props.onExit;
                 this._animationLayerData.currentScreen = this;
             } else if (this.props.in) {
-                this._animationLayerData.onEnter = this.props.onEnter;
+                // this._animationLayerData.onEnter = this.props.onEnter;
                 this._animationLayerData.nextScreen = this;
             }
         }

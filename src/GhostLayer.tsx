@@ -76,17 +76,38 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
         if (this.props.backNavigating && this.props.animation.out.duration === 0) return;
 
         this.setState({transitioning: true}, () => {
-            Object.keys(currentScene.nodes).forEach((id: string) => {
+            Object.keys(currentScene.nodes).map((id: string) => {
                 //if id exists in next scene
                 if (Object.keys(nextScene.nodes).includes(id)) {
                     const endInstance = nextScene.nodes[id].instance;
                     const startInstance = currentScene.nodes[id].instance;
+                    const transitionType = endInstance.transitionType || startInstance.transitionType || 'morph';
                     startInstance.hidden = true;
                     endInstance.hidden = true;
                     const startNode = currentScene.nodes[id].node;
                     const endNode = nextScene.nodes[id].node;
+                    const startChild = startNode.firstElementChild as HTMLElement;
+                    const endChild = endNode.firstElementChild as HTMLElement;
                     const startRect = startInstance.clientRect;
                     const endRect = endInstance.clientRect;
+
+                    const [startCSSText, startCSSObject] = startInstance.getCSSData;
+                    const [endCSSText, endCSSObject] = endInstance.getCSSData; 
+                    startChild.style.cssText = startCSSText;
+                    if (transitionType !== "morph") {
+                        endChild.style.cssText = endCSSText;
+                    }
+                    
+                    startNode.style.position = 'absolute';
+                    startChild.style.position = 'absolute';
+                    startNode.style.zIndex = startChild.style.zIndex;
+                    startNode.style.top = '0';
+                    startNode.style.left = '0';
+                    endNode.style.position = 'absolute';
+                    endChild.style.position = 'absolute';
+                    endNode.style.zIndex = endChild.style.zIndex;
+                    endNode.style.top = '0';
+                    endNode.style.left = '0';
 
                     const transitionState: TransitionState = {
                         id: startInstance.id,
@@ -99,7 +120,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 
                             },
                             y: {
-                                node: startNode.firstElementChild as HTMLElement,
+                                node: startChild,
                                 duration: startInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration,
                                 easingFunction: startInstance.props.config?.y?.easingFunction || startInstance.props.config?.easingFunction || 'ease',
                                 position: startRect.y - (this.state.playing ? 0 : currentScene.y)
@@ -113,7 +134,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 position: endRect.x - (this.state.playing ? nextScene.x : 0)
                             },
                             y: {
-                                node: endNode.firstElementChild as HTMLElement,
+                                node: endChild,
                                 duration: endInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration,
                                 easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
                                 position: endRect.y - (this.state.playing ? nextScene.y : 0)
@@ -130,7 +151,6 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
 
                     this.ref?.appendChild(startNode);
 
-                    const transitionType = endInstance.transitionType || startInstance.transitionType || 'morph';
 
                     if (transitionType !== "morph") {
                         this.ref?.appendChild(endNode);
@@ -162,10 +182,11 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         startYAnimation = transitionState.start.y.node.animate(
                             [
                                 {
+                                    ...startCSSObject,
                                     transform: `translate(0px, ${transitionState.start.y.position}px)`
                                 },
                                 {
-                                    ...getStyleObject(transitionState.end.y.node.style),
+                                    ...endCSSObject,
                                     transform: `translate(0px, ${transitionState.end.y.position}px)`
                                 }
                             ],

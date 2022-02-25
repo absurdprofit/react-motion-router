@@ -185,19 +185,19 @@ export interface Vec2 {
     y: number;
 }
 
-export function getCSSText(styles: CSSStyleDeclaration): string {
-    if (styles.cssText !== '') {
-        return styles.cssText;
-    } else {
-        const cssText = Object.values(styles).reduce(
-            (css, propertyName) =>
-                `${css}${propertyName}:${styles.getPropertyValue(
-                    propertyName
-                )};`
-        );
+export function getCSSData(styles: CSSStyleDeclaration): [string, {[key:string]:string}] {
+    const values = Object.values(styles).slice(0, styles.length - 1);
+    let cssText = '';
+    const styleObject: {[key:string]:string} = {};
+    values.map(
+        (propertyName) => {
+            const propertyValue = styles.getPropertyValue(propertyName)
+            cssText += `${propertyName}:${propertyValue};`;
+            styleObject[propertyName] = propertyValue;
+        }
+    );
 
-        return cssText;
-    }
+    return [cssText, styleObject];
 }
 
 export function getStyleObject(styles: CSSStyleDeclaration): {[key:string]: string} {
