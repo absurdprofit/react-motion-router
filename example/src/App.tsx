@@ -10,8 +10,8 @@ import "./css/App.css";
 
 const isPWA = getPWADisplayMode() === 'standalone';
 let animation: AnimationConfig = {
-  type: "zoom",
-  direction: "in",
+  type: "slide",
+  direction: "right",
   duration: 350,
 };
 
@@ -27,7 +27,7 @@ function App() {
     <div className="App">
       <Router config={{
         defaultRoute: '/',
-        disableDiscovery: false,
+        disableDiscovery: !isPWA,
         disableBrowserRouting: isPWA && iOS(),
         animation: animation
       }}>
