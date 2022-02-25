@@ -21,6 +21,7 @@
   line-height: 1.5rem;
   height: 70px;
   width: 313px;
+  max-width: 268px;
 }
 .cards .MuiPaper-root,
 .cards .MuiPaper-root p,

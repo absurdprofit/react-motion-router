@@ -93,6 +93,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
 
                     const [startCSSText, startCSSObject] = startInstance.getCSSData;
                     const [endCSSText, endCSSObject] = endInstance.getCSSData; 
+                    
                     startChild.style.cssText = startCSSText;
                     if (transitionType !== "morph") {
                         endChild.style.cssText = endCSSText;

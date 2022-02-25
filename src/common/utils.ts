@@ -191,9 +191,13 @@ export function getCSSData(styles: CSSStyleDeclaration): [string, {[key:string]:
     const styleObject: {[key:string]:string} = {};
     values.map(
         (propertyName) => {
-            const propertyValue = styles.getPropertyValue(propertyName)
+            const propertyValue = styles.getPropertyValue(propertyName);
+            const camelCasePropertyName = propertyName.replace(/^-/, '').replace(/-([a-z])/g,
+            function (m, s) {
+                return s.toUpperCase();
+            });
             cssText += `${propertyName}:${propertyValue};`;
-            styleObject[propertyName] = propertyValue;
+            styleObject[camelCasePropertyName] = propertyValue;
         }
     );
 
