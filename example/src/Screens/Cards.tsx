@@ -15,6 +15,7 @@ interface CardsProps {
 
 let inset = '';
 let textInset = '';
+let bgInset = '';
 let heroName = '';
 export default class Cards extends React.Component<CardsProps> {
     private ref: HTMLElement | null = null;
@@ -64,6 +65,7 @@ export default class Cards extends React.Component<CardsProps> {
                                     const imageRect = imageRef.getBoundingClientRect();
                                     const paraRect = paraRef.getBoundingClientRect();
                                     inset = `inset(${-imageRect.top+64}px ${-imageRect.right}px ${-imageRect.bottom}px ${-imageRect.left}px)`;
+                                    bgInset = `inset(${-imageRect.top+66}px ${-imageRect.right}px ${-imageRect.bottom}px ${-imageRect.left}px)`;
                                     textInset = `inset(${-paraRect.top+64}px ${-paraRect.right}px ${-paraRect.bottom}px ${-paraRect.left}px)`;
                                     heroName = hero.id;
                                 }
@@ -75,7 +77,7 @@ export default class Cards extends React.Component<CardsProps> {
                                     <div
                                         id={`${hero.id}-bg`}
                                         className="card-bg"
-                                        style={{ width: 345 > window.screen.width ? 300 : 345, clipPath: (heroName === hero.id ? inset : '') }}
+                                        style={{ width: 345 > window.screen.width ? 300 : 345, clipPath: (heroName === hero.id ? bgInset : '') }}
                                     ></div>
                                 </SharedElement>
                                 <Card sx={{ width: 345 > window.screen.width ? 300 : 345 }}>

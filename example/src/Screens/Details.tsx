@@ -17,6 +17,7 @@ export default function Details(props: DetailsProps) {
     if (props.route.params.profile) {
         return (
             <div className="details" style={{width: "100%", height: "100%"}}>
+                <div className="top"></div>
                 <SharedElement id={`${props.route.params.profile.id}-card-bg`}>
                     <div className="card-bg"></div>
                 </SharedElement>

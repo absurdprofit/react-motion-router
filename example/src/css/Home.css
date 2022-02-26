@@ -1,6 +1,7 @@
 .home {
     background-color: #efefef;
     flex: 1;
+    padding-top: 64px;
 }
 .home .list {
     background-color: white;

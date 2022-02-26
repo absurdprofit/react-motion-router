@@ -1,31 +1,55 @@
-import React, {useRef, useEffect} from 'react';
+import React from 'react';
 import {Hero} from '../assets/Heroes';
-import {SharedElement} from 'react-motion-router';
+import {Navigation, SharedElement} from 'react-motion-router';
 
 interface TileProps {
     hero: Hero;
     onClick?: () => void;
+    navigation: Navigation;
 }
-export default function Tile(props: TileProps) {
-    const ref = useRef<HTMLImageElement | null>(null);
 
-    useEffect(() => {
-        if (ref.current) {
-            // ref.current.src = ref.current.dataset.src || '';
+let inset = '';
+let heroID = '';
+export default class Tile extends React.Component<TileProps> {
+    private ref: HTMLElement | null = null;
+
+    pageAnimationEnd() {
+        if (this.props.navigation.location.pathname === '/tiles') {
+            inset = '';
+            this.forceUpdate();
         }
-    }, []);
-    return (
-        <div onClick={props.onClick} className="tile">
-            <SharedElement id={props.hero.id} config={{
-                duration: 200
-            }}>
-                <img
-                    ref={ref}
-                    // src={"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAQAAABKfvVzAAAAGklEQVR42mN8/5+BJMA4qmFUw6iGUQ201QAAzKYuaaLRYAgAAAAASUVORK5CYII="}
-                    src={props.hero.photo}
-                    alt={props.hero.name}
-                />
-            </SharedElement>
-        </div>
-    );
+    }
+
+    componentDidMount() {
+        window.addEventListener('page-animation-end', this.pageAnimationEnd.bind(this), {once: true});
+    }
+
+    render() {
+        return (
+            <div onClick={() => {
+                if (this.ref) {
+                    const imageRect = this.ref.getBoundingClientRect();
+                    inset = `inset(${-imageRect.top+64}px ${-imageRect.right}px ${-imageRect.bottom}px ${-imageRect.left}px)`;
+                }
+                heroID = this.props.hero.id;
+                if (this.props.onClick) {
+                    this.props.onClick();
+                }
+            }} className="tile">
+                <SharedElement id={this.props.hero.id} config={{
+                    duration: 200
+                }}>
+                    <img
+                        ref={c => this.ref = c}
+                        // src={"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAQAAABKfvVzAAAAGklEQVR42mN8/5+BJMA4qmFUw6iGUQ201QAAzKYuaaLRYAgAAAAASUVORK5CYII="}
+                        src={this.props.hero.photo}
+                        alt={this.props.hero.name}
+                        style={{
+                            clipPath: (heroID === this.props.hero.id ? inset : '')
+                        }}
+                    />
+                </SharedElement>
+            </div>
+        );
+    }
 }

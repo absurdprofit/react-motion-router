@@ -12,11 +12,13 @@ interface TilesProps {
 interface TilesState {
     heroes: Hero[];
 }
+
+
 export default class Tiles extends React.Component<TilesProps, TilesState> {
     state: TilesState = {
         heroes: Heroes
     }
-    
+
     render(): React.ReactNode {
         return(
             <div className="tiles">
@@ -27,7 +29,7 @@ export default class Tiles extends React.Component<TilesProps, TilesState> {
                     {this.state.heroes.map((hero: Hero, index: number) => {
                         return (
                             <Anchor key={index} href={`/slides?hero=${index}`}>
-                                <Tile hero={hero} onClick={() => {
+                                <Tile navigation={this.props.navigation} hero={hero} onClick={() => {
                                     this.props.navigation.navigate('/slides', {
                                         hero: index
                                     })

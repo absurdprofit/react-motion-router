@@ -1,5 +1,6 @@
 .cards {
   background-color: white;
+  padding-top: 64px;
 }
 .cards button {
   text-align: left;

@@ -36,6 +36,7 @@
     width: 100%;
     height: auto;
     object-fit: cover;
+    clip-path: inset(0px -100vw -100vh 0px);
 }
 .slides .slide .shared-element {
     width: 100%;
