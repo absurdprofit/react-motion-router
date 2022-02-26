@@ -178,7 +178,6 @@ namespace SharedElement {
         private _scene: Scene | null = null;
         private _hidden: boolean = false;
         private _isMounted: boolean = false;
-        private _mutationObserver = new MutationObserver(this.updateScene.bind(this));
         private onRef = this.setRef.bind(this);
         
         get scene() {
@@ -230,21 +229,12 @@ namespace SharedElement {
             if (this.ref !== ref) {
                 if (this.ref) {
                     this.scene?.removeNode(this._id);
-                    if (this.ref.firstElementChild) {
-                        this._mutationObserver.disconnect();
-                    }
                 }
                 this.ref = ref;
                 
                 if (ref) {
                     
                     this.scene?.addNode(nodeFromRef(this._id, ref, this));
-                    if (ref.firstElementChild) {
-                        this._mutationObserver.observe(ref.firstElementChild, {
-                            childList: true,
-                            attributes: true
-                        });
-                    }
                 }
             }
     

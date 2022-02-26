@@ -7,7 +7,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  box-shadow: 0px 1px 5px black;
+  /* box-shadow: 0px 1px 5px black; */
   backdrop-filter: saturate(180%) blur(20px);
   z-index: 1000;
 }

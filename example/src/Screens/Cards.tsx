@@ -13,6 +13,9 @@ interface CardsProps {
     navigation: Navigation;
 }
 
+let inset = '';
+let textInset = '';
+let heroName = '';
 export default class Cards extends React.Component<CardsProps> {
     private ref: HTMLElement | null = null;
     private static scrollPos = {
@@ -20,7 +23,16 @@ export default class Cards extends React.Component<CardsProps> {
         y: 0
     }
 
+    pageAnimationEnd() {
+        if (this.props.navigation.location.pathname === '/cards') {
+            inset = '';
+            textInset = '';
+            this.forceUpdate();
+        }
+    }
+
     componentDidMount() {
+        window.addEventListener('page-animation-end', this.pageAnimationEnd.bind(this), {once: true});
         if (this.ref) {
             this.ref.scrollTo(Cards.scrollPos.x, Cards.scrollPos.y); // scroll restoration
         } 
@@ -44,12 +56,27 @@ export default class Cards extends React.Component<CardsProps> {
                 <div className="card-list" ref={(ref: HTMLElement | null) => this.ref = ref}>
                 {
                     Heroes.map((hero: Hero, index) => {
+                        let imageRef: HTMLElement | null = null;
+                        let paraRef: HTMLElement | null = null;
                         return (
-                            <ButtonBase key={index} onClick={() => this.props.navigation.navigate('/details', {
-                                profile: hero
-                            })}>
+                            <ButtonBase key={index} onClick={() => {
+                                if (imageRef && paraRef) {
+                                    const imageRect = imageRef.getBoundingClientRect();
+                                    const paraRect = paraRef.getBoundingClientRect();
+                                    inset = `inset(${-imageRect.top+64}px ${-imageRect.right}px ${-imageRect.bottom}px ${-imageRect.left}px)`;
+                                    textInset = `inset(${-paraRect.top+64}px ${-paraRect.right}px ${-paraRect.bottom}px ${-paraRect.left}px)`;
+                                    heroName = hero.id;
+                                }
+                                this.props.navigation.navigate('/details', {
+                                    profile: hero
+                                });
+                            }}>
                                 <SharedElement id={`${hero.id}-card-bg`}>
-                                    <div className="card-bg" style={{ width: 345 > window.screen.width ? 300 : 345 }}></div>
+                                    <div
+                                        id={`${hero.id}-bg`}
+                                        className="card-bg"
+                                        style={{ width: 345 > window.screen.width ? 300 : 345, clipPath: (heroName === hero.id ? inset : '') }}
+                                    ></div>
                                 </SharedElement>
                                 <Card sx={{ width: 345 > window.screen.width ? 300 : 345 }}>
                                     <SharedElement id={hero.id}>
@@ -58,6 +85,11 @@ export default class Cards extends React.Component<CardsProps> {
                                             height="140"
                                             image={hero.photo}
                                             alt={hero.name}
+                                            id={`${hero.id}`}
+                                            ref={(c: HTMLElement | null) => imageRef = c}
+                                            style={{
+                                                clipPath: (heroName === hero.id ? inset : '')
+                                            }}
                                         />
                                     </SharedElement>
                                     <CardContent>
@@ -65,9 +97,13 @@ export default class Cards extends React.Component<CardsProps> {
                                             <Typography gutterBottom variant="h5" component="h5">{hero.name}</Typography>
                                         </SharedElement>
                                         <SharedElement id={`description-${hero.id}`}>
-                                            <p style={{
-                                                fontSize: '16px'
-                                            }}>{hero.description}</p>
+                                            <p 
+                                                ref={(c: HTMLElement | null) => paraRef = c}
+                                                style={{
+                                                    fontSize: '16px',
+                                                    clipPath: (heroName === hero.id ? textInset : '')
+                                                }}
+                                            >{hero.description}</p>
                                         </SharedElement>
                                     </CardContent>
                                 </Card>

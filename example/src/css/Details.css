@@ -17,11 +17,13 @@
   overflow: hidden;
   text-overflow: clip;
   width: 313px;
-  max-width: 268px;
+  max-width: calc(100vw - 52px);
+  clip-path: inset(0px -100vw -100vh 0px);
 }
 .details .card-bg {
   width: 100vw;
   height: 100vh;
+  clip-path: inset(0px -100vw -100vh 0px);
   position: absolute;
   top: 0;
   left: 0;
@@ -54,5 +56,5 @@
   height: auto;
   border-radius: 0;
   object-fit: cover;
-  clip: rect(0px, 100vw, 100vh, 0px);
+  clip-path: inset(0px -100vw -100vh 0px);
 }
