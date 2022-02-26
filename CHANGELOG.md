@@ -15,7 +15,7 @@
               }
               return { // Also in and out animations can be set independently
                   in: {
-                      type: 'slide',
+                        type: 'slide',
                         direction: 'right',
                         duration: 350
                   },
