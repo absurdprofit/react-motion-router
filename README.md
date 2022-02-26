@@ -24,9 +24,11 @@ Declarative routing library for React âš› with page transitions and animations ð
   - [Shared Element Transition](#shared-element-transition)
 - [API Documentation](#api-documentation)
   - [Stack.Screen](#stackscreen)
+  - [Stack.Screen Config](#stackscreen-config)
   - [Router Config](#router-config)
-  - [Animation Config](#animation-config)
-  - [Shared Element Config](#sharedelementconfig)
+  - [Animation Config](#animationconfig)
+  - [SharedElement](#sharedelement)
+  - [SharedElement Config](#sharedelement-config)
 - [Remarks](#remarks)
 - [Credits](#credits)
 
@@ -206,16 +208,20 @@ This way the X and Y axis are animated independently and can alter the path of t
 
 ## API Documentation
 #### Stack.Screen
-| Property | Type | Description |
+| Prop | Type | Description |
 | ------ | ------ | ------ |
 | path | string | Pathname of the screen.|
-| animation | AnimationConfig | Config object used to modify the router's transition behaviour. In and out animation can also be set independently.|
 | component | any | A valid React Component to be rendered. |
 | defaultParams | Object | A dictionary of parameters that can be accessed by the rendered component. |
+| config | Object | A dictionary of options to alter the behaviour of the screen. |
+
+#### Stack.Screen Config
+| Property | Type | Description |
+| ------ | ------ | ------ |
+| animation | AnimationConfig or AnimationConfigFactory | AnimationConfig object or function that returns an AnimationConfig object. This config object is used to modify the router's transition behaviour. In and out animation can also be set independently.|
 
 #### Router Config
 
-Config object used to modify the behaviour of the Router.
 | Property | Type | Description |
 | ------ | ------ | ------ |
 | defaultRoute | string | If the user navigates directly to a route other than the default and navigate.goBack() is called the app will navigate to the default route instead of leaving the website. |
@@ -226,24 +232,22 @@ Config object used to modify the behaviour of the Router.
 | hysteresis | number | Percent from 0-100 which specifies minimum gesture progress before navigation is triggered. |
 | minFlingVelocity | number | Minimum average velocity of swipe gesture before navigation is triggered even if hysteresis was not reached. |
 
-#### Animation Config
-
-Config object used to modify the router's transition behaviour.
+#### AnimationConfig
 | Property | Type | Description |
 | ------ | ------ | ------ |
 | type | "slide", "fade", "zoom" or "none" | The animation type used for page transitions. |
 | duration | number | The time in milliseconds for how long page transitions are from start to end. |
 | direction | "left", "right", "up", "down", "in" or "out" | The direction used for slide transitions. The direction is swapped automatically on back navigation. i.e. The user presses their browser back button or navigation.goBack() is called. |
 
-#### Shared Element Transitions
+#### SharedElement
 
-| Property | Type                | Description                                                         |
+| Prop | Type                | Description                                                         |
 | -------- | ------------------- | ------------------------------------------------------------------- |
 | id       | string or number    | The unique ID used to keep track of the element in the scene.       |
 | children | React.ReactChild    | A single React element which will be displayed between transitions. |
-| config   | SharedElementConfig | Config object used to alter the behaviour of the shared element.    |
+| config   | Object | Config object used to alter the behaviour of the shared element.    |
 
-#### SharedElementConfig
+#### SharedElement Config
 
 | Property |Type | Description |
 | ---------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
