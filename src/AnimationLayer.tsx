@@ -260,7 +260,7 @@ interface AnimationProviderProps {
     animation: {
         in: AnimationConfig;
         out: AnimationConfig;
-    };
+    } | (() => {in: AnimationConfig, out: AnimationConfig});
     backNavigating: boolean;
 }
 
@@ -338,16 +338,23 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
     }
 
     get inAnimation() {
-        let direction = this.props.animation.in.direction;
+        let animation;
+        if (typeof this.props.animation === "function") {
+            animation = this.props.animation();
+        } else {
+            animation = this.props.animation;
+        }
+
+        let direction = animation.in.direction;
         let directionPrefix = '';
         const backNavigating = this.props.backNavigating;
         if (backNavigating && direction) {
-            if (this.props.animation.in.type === "zoom" || this.props.animation.in.type === "slide") {
+            if (animation.in.type === "zoom" || animation.in.type === "slide") {
                 direction = OppositeDirection[direction];
                 directionPrefix = 'back-';
             }
         }
-        switch(this.props.animation.in.type) {
+        switch(animation.in.type) {
             case "slide":
                 return `slide-${directionPrefix + direction || 'left'}-in`;
 
@@ -363,16 +370,23 @@ export class AnimationProvider extends React.Component<AnimationProviderProps, A
     }
 
     get outAnimation(): string {
-        let direction = this.props.animation.out.direction;
+        let animation;
+        if (typeof this.props.animation === "function")  {
+            animation = this.props.animation();
+        } else {
+            animation = this.props.animation;
+        }
+
+        let direction = animation.out.direction;
         let directionPrefix = '';
         const backNavigating = this.props.backNavigating;
         if (backNavigating && direction) {
-            if (this.props.animation.out.type === "zoom" || this.props.animation.out.type === "slide") {
+            if (animation.out.type === "zoom" || animation.out.type === "slide") {
                 direction = OppositeDirection[direction];
                 directionPrefix = 'back-'
             }
         }
-        switch(this.props.animation.out.type) {
+        switch(animation.out.type) {
             case "slide":
                 return `slide-${directionPrefix + direction || 'left'}-out`;
 

@@ -3,31 +3,9 @@ import {Navigation, BackEvent, NavigateEvent} from './common/utils';
 import AnimationLayer from './AnimationLayer';
 import GhostLayer from './GhostLayer';
 import { ScreenChild, ScreenChildren } from '.';
+import {AnimationConfig} from './common/types';
 
-enum AnimationDirectionEnum {
-    up,
-    down,
-    left,
-    right,
-    in,
-    out
-}
 
-enum AnimationTypeEnum {
-    slide,
-    fade,
-    zoom,
-    none
-}
-
-type AnimationType = keyof typeof AnimationTypeEnum;
-type AnimationDirection = keyof typeof AnimationDirectionEnum;
-
-export interface AnimationConfig {
-    type: AnimationType;
-    direction?: AnimationDirection;
-    duration: number;
-}
 
 interface Config {
     animation: {
