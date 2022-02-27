@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {memo} from 'react';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import IconButton from '@mui/material/IconButton';
 import { SharedElement } from 'react-motion-router';
@@ -8,7 +8,7 @@ interface NavbarProps {
     title: string;
     onBack?: React.MouseEventHandler<HTMLButtonElement>;
 }
-export default function Navbar(props: NavbarProps) {
+function Navbar(props: NavbarProps) {
     return (
         <div className="navbar">
             <div className="back">
@@ -29,3 +29,5 @@ export default function Navbar(props: NavbarProps) {
         </div>
     );
 }
+
+export default memo(Navbar);

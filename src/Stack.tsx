@@ -107,6 +107,16 @@ export namespace Stack {
             this.forceUpdate();
         }
 
+        shouldComponentUpdate(nextProps: ScreenProps) {
+            if (nextProps.out && !nextProps.in) {
+                return true;
+            }
+            if (nextProps.in !== this.props.in || nextProps.out !== this.props.out) {
+                return true;
+            }
+            return false;
+        }
+
         onExit() {
             if (this.ref) {
                 this.scrollPos = {

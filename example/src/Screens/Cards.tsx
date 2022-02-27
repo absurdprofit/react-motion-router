@@ -42,6 +42,13 @@ export default class Cards extends React.Component<CardsProps> {
         } 
     }
 
+    shouldComponentUpdate() {
+        if (inset.length) {
+            return true;
+        }
+        return false;
+    }
+
     componentWillUnmount() {
         if (this.ref) {
             Cards.scrollPos = {
@@ -103,29 +110,13 @@ export default class Cards extends React.Component<CardsProps> {
                                         <CardMedia
                                             component="img"
                                             height="140"
-                                            src={"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAQAAABKfvVzAAAAGklEQVR42mN8/5+BJMA4qmFUw6iGUQ201QAAzKYuaaLRYAgAAAAASUVORK5CYII="}
+                                            src={heroName === hero.id ? hero.photo : "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAQAAABKfvVzAAAAGklEQVR42mN8/5+BJMA4qmFUw6iGUQ201QAAzKYuaaLRYAgAAAAASUVORK5CYII="}
                                             data-src={hero.photo}
                                             alt={hero.name}
                                             id={`${hero.id}`}
                                             ref={(ref: HTMLImageElement | null) => {
                                                 if (ref) {
                                                     this.observer.observe(ref);
-                                                    
-                                                    const rect = ref.getBoundingClientRect();
-                                                    if (rect.top > window.screen.height) {
-                                                        if (rect.top - Cards.scrollPos.y < window.screen.height
-                                                            && (rect.top + rect.height) - Cards.scrollPos.y > 0) {
-                                                            if (ref.dataset.src) {
-                                                                ref.src = ref.dataset.src;
-                                                            }
-                                                        }
-                                                    } else {
-                                                        if (Cards.scrollPos.y < rect.top) {
-                                                            if (ref.dataset.src) {
-                                                                ref.src = ref.dataset.src;
-                                                            }
-                                                        }
-                                                    }
                                                 }
                                                 imageRef = ref;
                                             }}
