@@ -28,6 +28,7 @@ export namespace Stack {
     export class Screen extends React.Component<ScreenProps> {
         private sharedElementScene: SharedElement.Scene = new SharedElement.Scene(this.props.component.name);
         private ref: HTMLElement | null = null;
+        private contextParams = this.context.routesData[this.props.path]?.params;
         private onRef = this.setRef.bind(this);
         private animation: {
             in: AnimationConfig;
@@ -108,6 +109,10 @@ export namespace Stack {
         }
 
         shouldComponentUpdate(nextProps: ScreenProps) {
+            if (this.context.routesData[this.props.path]?.params !== this.contextParams) {
+                this.contextParams = this.context.routesData[this.props.path]?.params;
+                return true;
+            }
             if (nextProps.out && !nextProps.in) {
                 return true;
             }
@@ -182,7 +187,7 @@ export namespace Stack {
                                 route={{
                                     params: {
                                         ...this.props.defaultParams,
-                                        ...this.context.routesData[this.props.path]?.params
+                                        ...this.contextParams
                                     },
                                 }}
                                 navigation={this.context.navigation}
