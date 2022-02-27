@@ -2,7 +2,7 @@ import React, { createContext } from 'react';
 import {Navigation, BackEvent, NavigateEvent} from './common/utils';
 import AnimationLayer from './AnimationLayer';
 import GhostLayer from './GhostLayer';
-import { ScreenChild, ScreenChildren } from '.';
+import { ScreenChild } from '.';
 import {AnimationConfig} from './common/types';
 
 
@@ -21,7 +21,7 @@ interface Config {
 }
 interface RouterProps {
     config: Config;
-    children: ScreenChild | ScreenChildren;
+    children: ScreenChild | ScreenChild[];
 }
 
 interface RoutesData {[key:string]: any}

@@ -1,4 +1,4 @@
-import { ScreenChild, ScreenChildren, SharedElement, AnimationConfig, AnimationConfigFactory } from './common/types';
+import { ScreenChild, SharedElement, AnimationConfig, AnimationConfigFactory } from './common/types';
 import Router from './Router';
 import {Stack} from './Stack';
 import {Navigation, History} from './common/utils';
@@ -8,5 +8,5 @@ import './css/index.css';
 import 'web-gesture-events';
 
 
-export type {AnimationConfig, AnimationConfigFactory, ScreenChild, ScreenChildren};
+export type {AnimationConfig, AnimationConfigFactory, ScreenChild};
 export {Router, Stack, SharedElement, Navigation, History, Anchor, Motion};

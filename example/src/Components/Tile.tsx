@@ -11,7 +11,7 @@ interface TileProps {
 let inset = '';
 let heroID = '';
 export default class Tile extends React.Component<TileProps> {
-    private ref: HTMLElement | null = null;
+    private ref: HTMLImageElement | null = null;
 
     pageAnimationEnd() {
         if (this.props.navigation.location.pathname === '/tiles') {
@@ -41,7 +41,6 @@ export default class Tile extends React.Component<TileProps> {
                 }}>
                     <img
                         ref={c => this.ref = c}
-                        // src={"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAQAAABKfvVzAAAAGklEQVR42mN8/5+BJMA4qmFUw6iGUQ201QAAzKYuaaLRYAgAAAAASUVORK5CYII="}
                         src={this.props.hero.photo}
                         alt={this.props.hero.name}
                         style={{

@@ -20,6 +20,7 @@ let heroName = '';
 let titleInset = '';
 export default class Cards extends React.Component<CardsProps> {
     private ref: HTMLElement | null = null;
+    private observer = new IntersectionObserver(this.observe.bind(this));
     private static scrollPos = {
         x: 0,
         y: 0
@@ -50,6 +51,18 @@ export default class Cards extends React.Component<CardsProps> {
         }
     }
 
+    observe(entries: IntersectionObserverEntry[]) {
+        entries.map((entry: IntersectionObserverEntry) => {
+            const target = entry.target as HTMLImageElement;
+            if (entry.isIntersecting) {
+                if (target.dataset.src) {
+                    target.src = target.dataset.src;
+                }
+            }
+
+            return undefined;
+        });
+    }
     render() {
         return (
             <div className="cards">
@@ -90,10 +103,32 @@ export default class Cards extends React.Component<CardsProps> {
                                         <CardMedia
                                             component="img"
                                             height="140"
-                                            image={hero.photo}
+                                            src={"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAQAAABKfvVzAAAAGklEQVR42mN8/5+BJMA4qmFUw6iGUQ201QAAzKYuaaLRYAgAAAAASUVORK5CYII="}
+                                            data-src={hero.photo}
                                             alt={hero.name}
                                             id={`${hero.id}`}
-                                            ref={(c: HTMLElement | null) => imageRef = c}
+                                            ref={(ref: HTMLImageElement | null) => {
+                                                if (ref) {
+                                                    this.observer.observe(ref);
+                                                    
+                                                    const rect = ref.getBoundingClientRect();
+                                                    if (rect.top > window.screen.height) {
+                                                        if (rect.top - Cards.scrollPos.y < window.screen.height
+                                                            && (rect.top + rect.height) - Cards.scrollPos.y > 0) {
+                                                            if (ref.dataset.src) {
+                                                                ref.src = ref.dataset.src;
+                                                            }
+                                                        }
+                                                    } else {
+                                                        if (Cards.scrollPos.y < rect.top) {
+                                                            if (ref.dataset.src) {
+                                                                ref.src = ref.dataset.src;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                imageRef = ref;
+                                            }}
                                             style={{
                                                 clipPath: (heroName === hero.id ? inset : '')
                                             }}

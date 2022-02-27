@@ -3,7 +3,7 @@ import SharedElement from './SharedElement';
 import { RouterDataContext } from './Router';
 import { AnimationConfig, AnimationConfigFactory } from './common/types';
 import {Vec2} from './common/utils';
-import { AnimationProvider } from './AnimationLayer';
+import AnimationProvider from './AnimationProvider';
 
 
 interface Animation {
@@ -15,7 +15,7 @@ interface Animation {
 export interface ScreenProps {
     out?: boolean;
     in?: boolean;
-    component: any;
+    component: React.JSXElementConstructor<any>;
     path: string;
     defaultParams?: {};
     config?: {

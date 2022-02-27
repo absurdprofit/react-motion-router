@@ -47,3 +47,7 @@
 .cards .MuiPaper-root img {
   border-radius: 15px 15px 0px 0px;
 }
+.cards .MuiPaper-root img:empty {
+  background-color: #efefef;
+  color: transparent;
+}

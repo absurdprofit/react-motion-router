@@ -1,8 +1,8 @@
 import React from 'react';
 import SharedElement from './SharedElement';
 import {clamp} from './common/utils';
-import { AnimationConfig } from './Router';
-import {Vec2, getStyleObject} from './common/utils';
+import { AnimationConfig } from './common/types';
+import {getStyleObject} from './common/utils';
 import {MotionProgressEvent} from './AnimationLayer';
 
 interface GhostLayerProps {

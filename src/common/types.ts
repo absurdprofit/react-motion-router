@@ -3,7 +3,6 @@ import _SharedElement from '../SharedElement';
 
 const SharedElement = _SharedElement.SharedElement;
 export type ScreenChild = React.ReactElement<React.ComponentProps<typeof Stack.Screen>,React.JSXElementConstructor<typeof Stack.Screen>>;
-export type ScreenChildren = React.ReactElement<React.ComponentProps<typeof Stack.Screen>,React.JSXElementConstructor<typeof Stack.Screen>>[];
 
 enum AnimationDirectionEnum {
     up,
@@ -21,8 +20,8 @@ enum AnimationTypeEnum {
     none
 }
 
-type AnimationType = keyof typeof AnimationTypeEnum;
-type AnimationDirection = keyof typeof AnimationDirectionEnum;
+export type AnimationType = keyof typeof AnimationTypeEnum;
+export type AnimationDirection = keyof typeof AnimationDirectionEnum;
 export interface AnimationConfig {
     type: AnimationType;
     direction?: AnimationDirection;
