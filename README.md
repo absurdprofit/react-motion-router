@@ -26,7 +26,7 @@ Declarative routing library for React âš› with page transitions and animations ð
   - [Stack.Screen](#stackscreen)
   - [Stack.Screen Config](#stackscreen-config)
   - [Router Config](#router-config)
-  - [Animation Config](#animationconfig)
+  - [AnimationConfig](#animationconfig)
   - [SharedElement](#sharedelement)
   - [SharedElement Config](#sharedelement-config)
 - [Remarks](#remarks)
