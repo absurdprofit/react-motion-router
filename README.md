@@ -8,9 +8,9 @@
 
 Declarative routing library for React ⚛ with page transitions and animations 🚀. Under Development 🧪. Based on React Router and React Navigation.
 
-#### [Demo](https://router.nxtetechnologies.com) 
+#### [Demo](https://router.nxtetechnologies.com)
 
-# [![version](https://img.shields.io/npm/v/react-motion-router)](https://www.npmjs.com/package/react-motion-router)  [![downloads](https://img.shields.io/npm/dm/react-motion-router)](https://www.npmjs.com/package/react-motion-router) [![license](https://img.shields.io/npm/l/react-motion-router)](https://github.com/nxtexe/react-motion-router/blob/main/LICENSE)
+# [![version](https://img.shields.io/npm/v/react-motion-router)](https://www.npmjs.com/package/react-motion-router) [![downloads](https://img.shields.io/npm/dm/react-motion-router)](https://www.npmjs.com/package/react-motion-router) [![license](https://img.shields.io/npm/l/react-motion-router)](https://github.com/nxtexe/react-motion-router/blob/main/LICENSE)
 
 ## Table of Contents
 
@@ -89,7 +89,8 @@ function Home(props) {
 }
 ...
 ```
-The navigation object also exposes information such as ```navigation.location```. It's the same as ```window.location``` but it will always be up to date and correct regardless of if browser routing has been disabled.
+
+The navigation object also exposes information such as `navigation.location`. It's the same as `window.location` but it will always be up to date and correct regardless of if browser routing has been disabled.
 
 #### Passing Parameters to Other Screens
 
@@ -207,54 +208,58 @@ That's it! The element will transition from one screen to the next seemlessly. T
 This way the X and Y axis are animated independently and can alter the path of the shared element while transitioning.
 
 ## API Documentation
+
 #### Stack.Screen
-| Prop | Type | Description |
-| ------ | ------ | ------ |
-| path | string | Pathname of the screen.|
-| component | any | A valid React Component to be rendered. |
+
+| Prop          | Type   | Description                                                                |
+| ------------- | ------ | -------------------------------------------------------------------------- |
+| path          | string | Pathname of the screen.                                                    |
+| component     | any    | A valid React Component to be rendered.                                    |
 | defaultParams | Object | A dictionary of parameters that can be accessed by the rendered component. |
-| config | Object | A dictionary of options to alter the behaviour of the screen. |
+| config        | Object | A dictionary of options to alter the behaviour of the screen.              |
 
 #### Stack.Screen Config
-| Property | Type | Description |
-| ------ | ------ | ------ |
-| animation | AnimationConfig or AnimationConfigFactory | AnimationConfig object or function that returns an AnimationConfig object. This config object is used to modify the router's transition behaviour. In and out animation can also be set independently.|
+
+| Property  | Type                                      | Description                                                                                                                                                                                            |
+| --------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| animation | AnimationConfig or AnimationConfigFactory | AnimationConfig object or function that returns an AnimationConfig object. This config object is used to modify the router's transition behaviour. In and out animation can also be set independently. |
 
 #### Router Config
 
-| Property | Type | Description |
-| ------ | ------ | ------ |
-| defaultRoute | string | If the user navigates directly to a route other than the default and navigate.goBack() is called the app will navigate to the default route instead of leaving the website. |
-| disableDiscovery | boolean | Option to disable gesture navigation. |
-| disableBrowserRouting | boolean | Option to avoid updating browser native history stack and rely completely on memory routing. |
-| animation | AnimationConfig | Config object used to modify the router's global transition behaviour. In and out animation can also be set independently. |
-| swipeAreaWidth | number | Area in pixels from the left edge of the screen that gesture navigation can be triggered from. |
-| hysteresis | number | Percent from 0-100 which specifies minimum gesture progress before navigation is triggered. |
-| minFlingVelocity | number | Minimum average velocity of swipe gesture before navigation is triggered even if hysteresis was not reached. |
+| Property              | Type            | Description                                                                                                                                                                 |
+| --------------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| defaultRoute          | string          | If the user navigates directly to a route other than the default and navigate.goBack() is called the app will navigate to the default route instead of leaving the website. |
+| disableDiscovery      | boolean         | Option to disable gesture navigation.                                                                                                                                       |
+| disableBrowserRouting | boolean         | Option to avoid updating browser native history stack and rely completely on memory routing.                                                                                |
+| animation             | AnimationConfig | Config object used to modify the router's global transition behaviour. In and out animation can also be set independently.                                                  |
+| swipeAreaWidth        | number          | Area in pixels from the left edge of the screen that gesture navigation can be triggered from.                                                                              |
+| hysteresis            | number          | Percent from 0-100 which specifies minimum gesture progress before navigation is triggered.                                                                                 |
+| minFlingVelocity      | number          | Minimum average velocity of swipe gesture before navigation is triggered even if hysteresis was not reached.                                                                |
 
 #### AnimationConfig
-| Property | Type | Description |
-| ------ | ------ | ------ |
-| type | "slide", "fade", "zoom" or "none" | The animation type used for page transitions. |
-| duration | number | The time in milliseconds for how long page transitions are from start to end. |
+
+| Property  | Type                                         | Description                                                                                                                                                                            |
+| --------- | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| type      | "slide", "fade", "zoom" or "none"            | The animation type used for page transitions.                                                                                                                                          |
+| duration  | number                                       | The time in milliseconds for how long page transitions are from start to end.                                                                                                          |
 | direction | "left", "right", "up", "down", "in" or "out" | The direction used for slide transitions. The direction is swapped automatically on back navigation. i.e. The user presses their browser back button or navigation.goBack() is called. |
 
 #### SharedElement
 
-| Prop | Type                | Description                                                         |
-| -------- | ------------------- | ------------------------------------------------------------------- |
-| id       | string or number    | The unique ID used to keep track of the element in the scene.       |
-| children | React.ReactChild    | A single React element which will be displayed between transitions. |
-| config   | Object | Config object used to alter the behaviour of the shared element.    |
+| Prop     | Type             | Description                                                                                                                |
+| -------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| id       | string or number | The unique ID used to keep track of the element in the scene. The IDs must match in each screen for a transition to occur. |
+| children | React.ReactChild | A single React element which will be displayed between transitions.                                                        |
+| config   | Object           | Config object used to alter the behaviour of the shared element.                                                           |
 
 #### SharedElement Config
 
-| Property |Type | Description |
-| ---------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| type | "morph", "fade", "fade-through" or "cross-fade" | Type of transition. |
-| transformOrigin | TransformOrigin | Changes transform alignment of shared element. |
-| duration | number | The time in milliseconds for how long the shared element transition is from start to end |
-| easingFunction  | CSS &lt;easing-function&gt; | Denotes a mathematical function that describes the rate at which a numerical value changes.<sup>[1](https://developer.mozilla.org/en-US/docs/Web/CSS/easing-function)</sup> |
+| Property        | Type                                            | Description                                                                                                                                                                 |
+| --------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| type            | "morph", "fade", "fade-through" or "cross-fade" | Type of transition.                                                                                                                                                         |
+| transformOrigin | TransformOrigin                                 | Changes transform alignment of shared element.                                                                                                                              |
+| duration        | number                                          | The time in milliseconds for how long the shared element transition is from start to end                                                                                    |
+| easingFunction  | CSS &lt;easing-function&gt;                     | Denotes a mathematical function that describes the rate at which a numerical value changes.<sup>[1](https://developer.mozilla.org/en-US/docs/Web/CSS/easing-function)</sup> |
 
 It is useful to note that the duration and easing function properties can also be set on the X and Y axis as independent values by specifying an X or Y property on the shared element config object.
 
