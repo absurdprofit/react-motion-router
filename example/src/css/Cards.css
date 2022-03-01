@@ -1,19 +1,22 @@
 .cards {
   background-color: white;
   padding-top: 64px;
+  padding-bottom: 15px;
+  overflow: hidden;
 }
 .cards button {
   text-align: left;
 }
 .cards .card-list {
   width: 100%;
+  height: calc(100vh - 94px);
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
   padding-top: 15px;
   padding-bottom: 15px;
   gap: 15px;
+  overflow: scroll;
 }
 .cards p {
   overflow: hidden;

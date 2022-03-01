@@ -40,7 +40,7 @@
   left: 0;
   background-color: white;
   z-index: 0;
-  box-shadow: 0px 2px 1px -1px rgb(0 0 0 / 20%);
+  box-shadow: 0px 2px 1px -1px rgb(0 0 0 / 0%);
 }
 .details .profile-info .text-content,
 .details .profile-info img {

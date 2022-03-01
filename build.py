@@ -12,22 +12,11 @@ def compile_func():
     return False
 
 def copy_assets():
-    print("Copying CSS files\n")
     try:
         os.remove('./build/README.md')
     except:
         pass
-    try:
-        shutil.rmtree('./build/css')
-    except:
-        pass
         
-    # copy css
-    source = "./src/css"
-    destination = "./build/css"
-
-    shutil.copytree(source, destination)
-
     #copy README.md
     source = "./README.md"
     destination = "./build"

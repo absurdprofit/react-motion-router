@@ -20,7 +20,9 @@ let heroName = '';
 let titleInset = '';
 export default class Cards extends React.Component<CardsProps> {
     private ref: HTMLElement | null = null;
-    private observer = new IntersectionObserver(this.observe.bind(this));
+    private observer = new IntersectionObserver(this.observe.bind(this), {
+        threshold: 0.1
+    });
     private static scrollPos = {
         x: 0,
         y: 0
