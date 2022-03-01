@@ -142,6 +142,12 @@ export class Navigation {
 
     implicitBack() {
         this._history.implicitBack();
+        let event = new CustomEvent<{replaceState:boolean}>('go-back', {
+            detail: {
+                replaceState: false
+            }
+        });
+        window.dispatchEvent(event);
     }
 
     goBack() {

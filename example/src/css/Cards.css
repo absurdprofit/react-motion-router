@@ -16,7 +16,7 @@
   padding-top: 15px;
   padding-bottom: 15px;
   gap: 15px;
-  overflow: scroll;
+  overflow-y: scroll;
 }
 .cards p {
   overflow: hidden;

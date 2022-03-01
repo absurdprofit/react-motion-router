@@ -13,7 +13,8 @@ interface AnimationLayerProps {
     duration: number;
     navigation: Navigation;
     backNavigating: boolean;
-    goBack: Function;
+    onGestureNavigationEnd: Function;
+    onGestureNavigationStart: Function;
     hysteresis: number;
     minFlingVelocity: number;
     swipeAreaWidth: number;
@@ -26,7 +27,7 @@ interface AnimationLayerState {
     children: ScreenChild | ScreenChild[];
     progress: number;
     shouldPlay: boolean;
-    gestureNavigation: boolean;
+    gestureNavigating: boolean;
     shouldAnimate: boolean;
 }
 
@@ -48,7 +49,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         children: this.props.children,
         progress: 0,
         shouldPlay: true,
-        gestureNavigation: false,
+        gestureNavigating: false,
         shouldAnimate: true
     }
 
@@ -86,7 +87,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
     componentDidMount() {
         this.animationLayerData.duration = this.props.duration;
         this.animationLayerData.onProgress = (_progress: number) => {
-            const progress = this.props.backNavigating && !this.state.gestureNavigation ? 99 - _progress : _progress;
+            const progress = this.props.backNavigating && !this.state.gestureNavigating ? 99 - _progress : _progress;
             this.setState({progress: clamp(progress, 0, 100)});
             
             const progressEvent = new CustomEvent<MotionProgressEventDetail>('motion-progress', {
@@ -108,7 +109,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
     componentDidUpdate(prevProps: AnimationLayerProps) {
         if (prevProps.currentPath !== this.state.currentPath) {
             this.animationLayerData.duration = this.props.duration;
-            if (!this.state.gestureNavigation) {
+            if (!this.state.gestureNavigating) {
                 this.animationLayerData.play = true;
                 this.animationLayerData.animate(); // children changes committed now animate
             }
@@ -146,10 +147,10 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
                 }
             ).sort((firstChild) => firstChild.props.path === this.props.currentPath ? -1 : 1);
             
-            
+            this.props.onGestureNavigationStart();
             this.setState({
                 shouldPlay: false,
-                gestureNavigation: true,
+                gestureNavigating: true,
                 children: children
             }, () => {
                 const motionStartEvent = new CustomEvent('motion-progress-start');
@@ -183,9 +184,9 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             onEnd = () => {
                 if(!this.props.disableBrowserRouting) this.animationLayerData.shouldAnimate = false;
                 this.animationLayerData.reset();
-                this.props.goBack();
+                this.props.onGestureNavigationEnd();
                 
-                this.setState({gestureNavigation: false});
+                this.setState({gestureNavigating: false});
 
                 window.dispatchEvent(motionEndEvent);
             }
@@ -197,7 +198,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
                 
                 window.dispatchEvent(motionEndEvent);
             }
-            this.setState({shouldPlay: true, gestureNavigation: false});
+            this.setState({shouldPlay: true, gestureNavigating: false});
         }
 
         this.animationLayerData.onEnd = onEnd;

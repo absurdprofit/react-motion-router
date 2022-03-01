@@ -1,6 +1,6 @@
 import React from 'react';
 import SharedElement from './SharedElement';
-import { RouterDataContext } from './Router';
+import { RouterDataContext } from './RouterData';
 import { AnimationConfig, AnimationConfigFactory } from './common/types';
 import {Vec2} from './common/utils';
 import AnimationProvider from './AnimationProvider';
@@ -105,15 +105,26 @@ export namespace Stack {
                 this.animation = this.context.animation;
             }
 
+            this.contextParams = this.context.routesData[this.props.path]?.params;
             this.forceUpdate();
         }
 
         shouldComponentUpdate(nextProps: ScreenProps) {
             if (this.context.routesData[this.props.path]?.params !== this.contextParams) {
+                
                 this.contextParams = this.context.routesData[this.props.path]?.params;
                 return true;
             }
+            if (this.context.gestureNavigating) {
+                return false;
+            }
             if (nextProps.out && !nextProps.in) {
+                if (this.props.path === '/cards') {
+                    console.log("Params Changed");
+                }
+                return true;
+            }
+            if (nextProps.in && !nextProps.out) {
                 return true;
             }
             if (nextProps.in !== this.props.in || nextProps.out !== this.props.out) {
@@ -121,6 +132,7 @@ export namespace Stack {
             }
             return false;
         }
+
 
         onExit() {
             if (this.ref) {
@@ -188,7 +200,7 @@ export namespace Stack {
                                     params: {
                                         ...this.props.defaultParams,
                                         ...this.contextParams
-                                    },
+                                    }
                                 }}
                                 navigation={this.context.navigation}
                             />

@@ -45,9 +45,6 @@ export default class Cards extends React.Component<CardsProps> {
     }
 
     shouldComponentUpdate() {
-        if (inset.length) {
-            return true;
-        }
         return false;
     }
 
@@ -84,16 +81,21 @@ export default class Cards extends React.Component<CardsProps> {
                         let imageRef: HTMLElement | null = null;
                         let paraRef: HTMLElement | null = null;
                         let titleRef: HTMLElement | null = null;
+                        let bgRef: HTMLElement | null = null;
                         return (
                             <ButtonBase key={index} onClick={() => {
-                                if (imageRef && paraRef && titleRef) {
+                                if (imageRef && paraRef && titleRef && bgRef) {
                                     const imageRect = imageRef.getBoundingClientRect();
                                     const paraRect = paraRef.getBoundingClientRect();
                                     const titleRect = titleRef.getBoundingClientRect();
                                     titleInset = `inset(${-titleRect.top+64}px ${-titleRect.right}px ${-titleRect.bottom}px ${-titleRect.left}px)`;
+                                    titleRef.style.clipPath = titleInset;
                                     inset = `inset(${-imageRect.top+64}px ${-imageRect.right}px ${-imageRect.bottom}px ${-imageRect.left}px)`;
+                                    imageRef.style.clipPath = inset;
                                     bgInset = `inset(${-imageRect.top+66}px ${-imageRect.right}px ${-imageRect.bottom}px ${-imageRect.left}px)`;
+                                    bgRef.style.clipPath = bgInset;
                                     textInset = `inset(${-paraRect.top+64}px ${-paraRect.right}px ${-paraRect.bottom}px ${-paraRect.left}px)`;
+                                    paraRef.style.clipPath = textInset;
                                     heroName = hero.id;
                                 }
                                 this.props.navigation.navigate('/details', {
@@ -104,6 +106,7 @@ export default class Cards extends React.Component<CardsProps> {
                                     <div
                                         id={`${hero.id}-bg`}
                                         className="card-bg"
+                                        ref={(ref: HTMLElement | null) => bgRef = ref}
                                         style={{ width: 345 > window.screen.width ? 300 : 345, clipPath: (heroName === hero.id ? bgInset : '') }}
                                     ></div>
                                 </SharedElement>

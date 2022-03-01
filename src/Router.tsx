@@ -4,8 +4,7 @@ import AnimationLayer from './AnimationLayer';
 import GhostLayer from './GhostLayer';
 import { ScreenChild } from '.';
 import {AnimationConfig} from './common/types';
-
-
+import RouterData, {RoutesData, RouterDataContext} from './RouterData';
 
 interface Config {
     animation: {
@@ -24,72 +23,17 @@ interface RouterProps {
     children: ScreenChild | ScreenChild[];
 }
 
-interface RoutesData {[key:string]: any}
+
 
 interface RouterState {
     currentPath: string;
     backNavigating: boolean;
+    gestureNavigating: boolean;
     routesData: RoutesData;
     implicitBack: boolean;
 }
 
-export class RouterData {
-    private _currentPath: string = '';
-    private _routesData: RoutesData = {};
-    private _navigation: Navigation = new Navigation(false);
-    private _backNavigating: boolean = false;
-    private _animation: {in: AnimationConfig; out: AnimationConfig} = {
-        in: {
-            type: "none",
-            duration: 0,
-        },
-        out: {
-            type: "none",
-            duration: 0
-        }
-    };
-    private _ghostLayer: GhostLayer| null = null;
 
-    set currentPath(_currentPath: string) {
-        this._currentPath = _currentPath;
-    }
-    set routesData(_routesData: RoutesData) {
-        this._routesData = _routesData;
-    }
-    set navigation(_navigation: Navigation) {
-        this._navigation = _navigation;
-    }
-    set animation(_animation: {in: AnimationConfig; out: AnimationConfig}) {
-        this._animation = _animation;
-    }
-    set ghostLayer(_ghostLayer: GhostLayer | null) {
-        this._ghostLayer = _ghostLayer;
-    }
-    set backNavigating(_backNavigating: boolean) {
-        this._backNavigating = _backNavigating;
-    }
-
-    get currentPath() {
-        return this._currentPath;
-    }
-    get routesData() {
-        return this._routesData;
-    }
-    get navigation() {
-        return this._navigation;
-    }
-    get animation() {
-        return this._animation;
-    }
-    get ghostLayer() {
-        return this._ghostLayer;
-    }
-    get backNavigating() {
-        return this._backNavigating;
-    }
-}
-
-export const RouterDataContext = createContext<RouterData>(new RouterData());
 export default class Router extends React.Component<RouterProps, RouterState> {
     private navigation = new Navigation(this.props.config.disableBrowserRouting || false, this.props.config.defaultRoute || null);
     private config: Config;
@@ -102,14 +46,8 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         config: {
             animation: {
                 in: {
-                    type: "fade",
-                    duration: 200,
-                    direction: "none"
-                },
-                out: {
-                    type: "fade",
-                    duration: 200,
-                    direction: "none"
+                    type: "none",
+                    duration: 0,
                 }
             }
         }
@@ -150,6 +88,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
     state: RouterState = {
         currentPath: "",
         backNavigating: false,
+        gestureNavigating: false,
         routesData: {},
         implicitBack: false
     }
@@ -171,9 +110,8 @@ export default class Router extends React.Component<RouterProps, RouterState> {
             this.navigation.navigate(this.props.config.defaultRoute);
             currentPath = this.props.config.defaultRoute;
         }
-        this.setState({currentPath: currentPath, routesData: routesData}, () => {
-            this._routerData.routesData = this.state.routesData;
-        });
+        this._routerData.routesData = this.state.routesData;
+        this.setState({currentPath: currentPath, routesData: routesData});
         this._routerData.currentPath = window.location.pathname;
         window.addEventListener('go-back', this.onBackListener, true);
         window.addEventListener('popstate', this.onPopStateListener, true);
@@ -207,6 +145,9 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         } else {
             if (!this.state.backNavigating && !this.state.implicitBack) {
                 this.navigation.implicitNavigate(window.location.pathname);
+            }
+            if (this.state.implicitBack) {
+                this.setState({implicitBack: false});
             }
         }
 
@@ -255,8 +196,8 @@ export default class Router extends React.Component<RouterProps, RouterState> {
             };
 
 
+            this._routerData.routesData = routesData;
             this.setState({routesData: routesData}, () => {
-                this._routerData.routesData = routesData;
                 this.setState({currentPath: currentPath});
             });
         } else {
@@ -286,8 +227,13 @@ export default class Router extends React.Component<RouterProps, RouterState> {
                         currentPath={this.state.currentPath}
                         backNavigating={this.state.backNavigating}
                         lastPath={this.navigation.history.previous}
-                        goBack={() => {
-                            this.setState({implicitBack: true}, () => {
+                        onGestureNavigationStart={() => {
+                            this._routerData.gestureNavigating = true;
+                            this.setState({gestureNavigating: true});
+                        }}
+                        onGestureNavigationEnd={() => {
+                            this._routerData.gestureNavigating = false;
+                            this.setState({implicitBack: true, gestureNavigating: false}, () => {
                                 this.navigation.goBack();
                             });
                         }}
