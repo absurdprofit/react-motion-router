@@ -111,12 +111,8 @@ export namespace Stack {
 
         shouldComponentUpdate(nextProps: ScreenProps) {
             if (this.context.routesData[this.props.path]?.params !== this.contextParams) {
-                
                 this.contextParams = this.context.routesData[this.props.path]?.params;
                 return true;
-            }
-            if (this.context.gestureNavigating) {
-                return false;
             }
             if (nextProps.out && !nextProps.in) {
                 return true;
