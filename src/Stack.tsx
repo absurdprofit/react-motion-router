@@ -119,9 +119,6 @@ export namespace Stack {
                 return false;
             }
             if (nextProps.out && !nextProps.in) {
-                if (this.props.path === '/cards') {
-                    console.log("Params Changed");
-                }
                 return true;
             }
             if (nextProps.in && !nextProps.out) {
