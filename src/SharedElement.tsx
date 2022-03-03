@@ -74,7 +74,8 @@ namespace SharedElement {
         private _scrollPos: Vec2 | null = null;
         private _x: number = 0;
         private _y: number = 0;
-
+        private _xRatio: number = 0;
+        private _yRatio: number = 0;
         constructor(name: string) {
             this._name = name;
         }
@@ -86,6 +87,14 @@ namespace SharedElement {
 
         removeNode(_id: string) {
             delete this._nodes[_id];
+        }
+
+        get xRatio() {
+            return this._xRatio;
+        }
+
+        get yRatio() {
+            return this._yRatio;
         }
 
         get nodes(): NodeMap {
@@ -121,6 +130,14 @@ namespace SharedElement {
 
         set y(_y: number) {
             this._y = _y;
+        }
+
+        set xRatio(_xRatio: number) {
+            this._xRatio = _xRatio;
+        }
+
+        set yRatio(_yRatio: number) {
+            this._yRatio = _yRatio;
         }
 
         isEmpty() {

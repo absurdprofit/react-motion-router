@@ -82,8 +82,6 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     const endInstance = nextScene.nodes[id].instance;
                     const startInstance = currentScene.nodes[id].instance;
                     const transitionType = endInstance.transitionType || startInstance.transitionType || 'morph';
-                    startInstance.hidden = true;
-                    endInstance.hidden = true;
                     const startNode = currentScene.nodes[id].node;
                     const endNode = nextScene.nodes[id].node;
                     const startChild = startNode.firstElementChild as HTMLElement;
@@ -143,6 +141,16 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         }
                     };
 
+
+                    // account for zoom animation transform scale factor
+                    if (this.state.playing) {
+                        transitionState.end.x.position = transitionState.end.x.position / nextScene.xRatio;
+                        transitionState.end.y.position = transitionState.end.y.position / nextScene.yRatio;
+                    } else {
+                        transitionState.start.x.position = transitionState.start.x.position / currentScene.xRatio;
+                        transitionState.start.y.position = transitionState.start.y.position / currentScene.yRatio;
+                    }
+
                     startNode.style.display = 'unset';
                     endNode.style.display = 'unset';
 
@@ -156,6 +164,9 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     if (transitionType !== "morph") {
                         this.ref?.appendChild(endNode);
                     }
+
+                    startInstance.hidden = true;
+                    endInstance.hidden = true;
                     
                     let startXAnimation;
                     let startYAnimation;
@@ -482,7 +493,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     position: 'absolute',
                     zIndex: 1000,
                     width: '100vw',
-                    height: '100vh',
+                    height: '100vh'
                 }}>
                 </div>
             );

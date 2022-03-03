@@ -169,8 +169,8 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
 
     onSwipe(ev: SwipeEvent) {
         if (this.state.shouldPlay) return;
-        const progress = (Math.abs(ev.x - window.innerWidth) / window.innerWidth) * 100;
-        this.animationLayerData.progress = progress;
+        const progress = (-(ev.x - window.innerWidth) / window.innerWidth) * 100;
+        this.animationLayerData.progress = clamp(progress, 0.1, 100);
     }
 
     onSwipeEnd(ev: SwipeEndEvent) {

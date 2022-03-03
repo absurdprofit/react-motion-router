@@ -144,7 +144,6 @@ export namespace Stack {
         onEnter(shouldScroll: boolean) {
             if (shouldScroll) this.ref?.scrollTo(this.scrollPos.x, this.scrollPos.y);
             
-            
             if (this.context.ghostLayer) {
                 this.context.ghostLayer.nextScene = this.sharedElementScene;
             }
@@ -156,8 +155,12 @@ export namespace Stack {
 
                 if (ref) {
                     const clientRect = ref.getBoundingClientRect();
+                    const xRatio = (clientRect.width / window.screen.width).toFixed(2); // transform scale factor due to zoom animation
+                    const yRatio = (clientRect.height / window.screen.height).toFixed(2);
                     this.sharedElementScene.x = clientRect.x;
                     this.sharedElementScene.y = clientRect.y;
+                    this.sharedElementScene.xRatio = parseFloat(xRatio);
+                    this.sharedElementScene.yRatio = parseFloat(yRatio);
                 }
             }
         }

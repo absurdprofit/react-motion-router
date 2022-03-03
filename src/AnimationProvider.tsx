@@ -177,19 +177,11 @@ export default class AnimationProvider extends React.Component<AnimationProvider
     }
 
     render() {
-        let gestureEndState = {};
-        if (this._animationLayerData?.gestureNavigating && this.props.in) {
-            gestureEndState = AnimationKeyframePresets[this.inAnimation as keyof typeof AnimationKeyframePresets][0];
-        }
-        if (this._animationLayerData?.gestureNavigating && this.props.out) {
-            gestureEndState = AnimationKeyframePresets[this.outAnimation as keyof typeof AnimationKeyframePresets][0];
-        }
         return (
             <div className="animation-provider" ref={this.setRef} style={{
                 position: 'absolute',
                 transformOrigin: 'center center',
                 zIndex: this.props.in && !this.props.backNavigating ? 1 : this.props.out && this.props.backNavigating ? 1 : 0,
-                ...gestureEndState // so the "old" nextScreen doesn't snap back to centre
             }}>
                 <AnimationLayerDataContext.Consumer>
                     {(animationLayerData) => {
