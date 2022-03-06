@@ -29,6 +29,7 @@ interface AnimationLayerState {
     shouldPlay: boolean;
     gestureNavigating: boolean;
     shouldAnimate: boolean;
+    startX: number;
 }
 
 interface MotionProgressEventDetail {
@@ -50,7 +51,8 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         progress: 0,
         shouldPlay: true,
         gestureNavigating: false,
-        shouldAnimate: true
+        shouldAnimate: true,
+        startX: 0
     }
 
     static getDerivedStateFromProps(nextProps: AnimationLayerProps, state: AnimationLayerState) {
@@ -151,7 +153,8 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             this.setState({
                 shouldPlay: false,
                 gestureNavigating: true,
-                children: children
+                children: children,
+                startX: ev.x
             }, () => {
                 const motionStartEvent = new CustomEvent('motion-progress-start');
 
@@ -169,7 +172,9 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
 
     onSwipe(ev: SwipeEvent) {
         if (this.state.shouldPlay) return;
-        const progress = (-(ev.x - window.innerWidth) / window.innerWidth) * 100;
+        const width = window.innerWidth;
+        const x = ev.x - this.state.startX;
+        const progress = (-(x - width) / width) * 100;
         this.animationLayerData.progress = clamp(progress, 0.1, 100);
     }
 
@@ -201,6 +206,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             this.setState({shouldPlay: true, gestureNavigating: false});
         }
 
+        this.setState({startX: 0});
         this.animationLayerData.onEnd = onEnd;
         this.animationLayerData.play = true;
         window.removeEventListener('swipe', this.onSwipeListener);
