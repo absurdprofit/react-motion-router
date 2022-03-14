@@ -6,6 +6,7 @@ import AnimationKeyframePresets from './Animations';
 export default class AnimationLayerData {
     private _progress: number = 0;
     private _play: boolean = true;
+    private _isPlaying: boolean = false;
     private _currentScreen: AnimationProvider | null = null;
     private _nextScreen: AnimationProvider | null = null;
     private _onExit: Function | undefined;
@@ -71,6 +72,13 @@ export default class AnimationLayerData {
     }
 
     async animate() {
+        if (this._isPlaying) {
+            // cancel playing animation
+            this.finish();
+            if (this._onEnd) this._onEnd();
+            if (this._nextScreen) await this._nextScreen.mounted(true);
+            return;
+        }
         if (this._currentScreen && this._nextScreen && this._shouldAnimate) {
             if (this._gestureNavigating) {
                 await this._currentScreen.mounted(true);
@@ -93,10 +101,12 @@ export default class AnimationLayerData {
                 easing: easingFunction
             });
 
+            this._isPlaying = true;
+
             if (this._inAnimation && this._outAnimation) {
                 if (!this._shouldAnimate) {
-                    this._inAnimation.finish();
-                    this._outAnimation.finish();
+                    this.finish();
+                    this._isPlaying = false;
                     this._shouldAnimate = true;
                     return;
                 }
@@ -112,6 +122,7 @@ export default class AnimationLayerData {
                 if (!this._play) {
                     this._inAnimation.pause();
                     this._outAnimation.pause();
+                    this._isPlaying = false;
                 }
 
                 this._outAnimation.ready.then(() => {
@@ -130,7 +141,7 @@ export default class AnimationLayerData {
                         if (this._currentScreen) {
                             // hotfix for weird bug that snaps screen to start position after gesture navigation
                             this._currentScreen.animate([
-                                {transform: 'translate(0vw, 0vh) scale(1)', opacity: 1}
+                                AnimationKeyframePresets[this._currentScreen.outAnimation as keyof typeof AnimationKeyframePresets][0]
                             ], {duration: 0, fill: 'forwards'});
                         }
                         if (this._nextScreen) {
@@ -140,6 +151,8 @@ export default class AnimationLayerData {
                     if (this._onEnd) {
                         this._onEnd();
                     }
+
+                    this._isPlaying = false;
 
                     const endAnimationEvent = new CustomEvent('page-animation-end');
                     window.dispatchEvent(endAnimationEvent);

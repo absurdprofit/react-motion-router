@@ -180,6 +180,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
 
     onSwipeEnd(ev: SwipeEndEvent) {
         if (this.state.shouldPlay) return;
+        
         let onEnd = null;
         const motionEndEvent = new CustomEvent('motion-progress-end');
         if (this.state.progress < this.props.hysteresis || ev.velocity > this.props.minFlingVelocity) {

@@ -69,12 +69,23 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
         this._nextScene = null;
     }
 
+    finish() {
+        Object.values(this._animationMap).map((xYAnimations: {[key:string]:Animation}) => {
+            Object.values(xYAnimations).map((animation: Animation) => animation.finish());
+        });
+    }
+
     sharedElementTransition(currentScene: SharedElement.Scene, nextScene: SharedElement.Scene) {
         if (this.props.animation.in.type === "none") return;
         if (this.props.backNavigating && this.props.animation.out.type === "none") return;
         if (this.props.animation.in.duration === 0) return;
         if (this.props.backNavigating && this.props.animation.out.duration === 0) return;
 
+        if (this.state.transitioning) {
+            this.finish(); // cancel playing animation
+            return;
+        }
+        
         this.setState({transitioning: true}, () => {
             Object.keys(currentScene.nodes).map((id: string) => {
                 //if id exists in next scene

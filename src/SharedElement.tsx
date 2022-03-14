@@ -196,6 +196,7 @@ namespace SharedElement {
         private _hidden: boolean = false;
         private _isMounted: boolean = false;
         private _mutationObserver = new MutationObserver(this.onMutation.bind(this));
+        private computedStyle: CSSStyleDeclaration | null = null;
         private onRef = this.setRef.bind(this);
         
         get scene() {
@@ -208,14 +209,6 @@ namespace SharedElement {
                 return clientRect;
             }
             return new DOMRect();
-        }
-    
-        get computedStyle() {
-            if (this.ref && this.ref.firstChild) {
-                const computedStyles = window.getComputedStyle((this.ref.firstChild as Element));
-                
-                return computedStyles;
-            }
         }
     
         get getCSSData(): [string, {[key:string]:string}] {
@@ -248,12 +241,14 @@ namespace SharedElement {
                 if (this.ref) {
                     this.scene?.removeNode(this._id);
                     this._mutationObserver.disconnect();
+                    this.computedStyle = null;
                 }
                 this.ref = ref;
                 
                 if (ref) {
                     this.scene?.addNode(nodeFromRef(this._id, ref, this));
                     if (ref.firstElementChild) {
+                        this.computedStyle = window.getComputedStyle(ref.firstElementChild);
                         this._mutationObserver.observe(ref.firstElementChild, {
                             attributes: true,
                             childList: true,
