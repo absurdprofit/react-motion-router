@@ -1,3 +1,12 @@
+# [V2.3.0-alpha](https://github.com/nxtexe/react-motion-router/blob/main/CHANGELOG.md#v230-alpha)
+## Features
+- Added RegExp as possible path prop to ```Stack.Screen```. Now you can create a route that matches multiple pathnames for example:
+```
+  <Stack.Screen component={EmailPage} path={/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/} />
+```
+Will match any pathname that resembles an email. Unlike React Router V6 the order of components inside the Router component matters. Smart route matching should be in a future release.
+- Path prop to ```Stack.Screen``` is now also optional meaning if you omit defining a valid path prop the component is only rendered when all other possible pathname matches fail. This would be useful for defining 404 pages for example.
+
 # [V2.2.0-alpha](https://github.com/nxtexe/react-motion-router/blob/main/CHANGELOG.md#v220-alpha)
 ## Features
 - Added AnimationConfigFactory to ```Stack.Screen``` animation config prop. This is a function that returns an AnimationConfig object whose parameters are the pathname for the now outgoing element and the pathname for the now incoming element. Now you can dyanically create animations based on the outgoing pathname and the incoming pathname. E.g.
