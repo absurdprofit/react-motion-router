@@ -5,12 +5,10 @@ import { AnimationConfig, AnimationConfigFactory } from './common/types';
 import {Vec2} from './common/utils';
 import AnimationProvider from './AnimationProvider';
 
-
 interface Animation {
     in: AnimationConfig;
     out?: AnimationConfig;
 }
-
 
 export interface ScreenProps {
     out?: boolean;

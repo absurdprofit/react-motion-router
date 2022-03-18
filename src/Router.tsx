@@ -18,12 +18,11 @@ interface Config {
     disableDiscovery?: boolean;
     disableBrowserRouting?: boolean;
 }
+
 interface RouterProps {
     config: Config;
     children: ScreenChild | ScreenChild[];
 }
-
-
 
 interface RouterState {
     currentPath: string;
@@ -32,7 +31,6 @@ interface RouterState {
     routesData: RoutesData;
     implicitBack: boolean;
 }
-
 
 export default class Router extends React.Component<RouterProps, RouterState> {
     private navigation = new Navigation(this.props.config.disableBrowserRouting || false, this.props.config.defaultRoute || null);
@@ -52,6 +50,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
             }
         }
     }
+
     constructor(props: RouterProps) {
         super(props);
         if (props.config) {
@@ -85,6 +84,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
             };
         }
     }
+    
     state: RouterState = {
         currentPath: "",
         backNavigating: false,
@@ -99,20 +99,20 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         const routesData = this.state.routesData;
         
         if (searchParams) {
-            routesData[window.location.pathname] = {
-                ...this.state.routesData[window.location.pathname],
+            routesData[this.navigation.location.pathname] = {
+                ...this.state.routesData[this.navigation.location.pathname],
                 params: searchParams
             };
         }
 
-        let currentPath = window.location.pathname;
-        if (this.props.config.defaultRoute && window.location.pathname === '/' && this.props.config.defaultRoute !== '/') {
+        let currentPath = this.navigation.location.pathname;
+        if (this.props.config.defaultRoute && this.navigation.location.pathname === '/' && this.props.config.defaultRoute !== '/') {
             this.navigation.navigate(this.props.config.defaultRoute);
             currentPath = this.props.config.defaultRoute;
         }
         this._routerData.routesData = this.state.routesData;
         this.setState({currentPath: currentPath, routesData: routesData});
-        this._routerData.currentPath = window.location.pathname;
+        this._routerData.currentPath = this.navigation.location.pathname;
         window.addEventListener('go-back', this.onBackListener, true);
         window.addEventListener('popstate', this.onPopStateListener, true);
         window.addEventListener('navigate', this.onNavigateListener, true);
@@ -133,7 +133,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
 
     onPopstate(e: Event) {
         e.preventDefault();
-        if (window.location.pathname === this.navigation.history.previous) {
+        if (this.navigation.location.pathname === this.navigation.history.previous) {
             if (!this.state.implicitBack) {
                 this.setState({backNavigating: true});
                 this._routerData.backNavigating = true;
@@ -144,7 +144,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
             this.navigation.implicitBack();
         } else {
             if (!this.state.backNavigating && !this.state.implicitBack) {
-                this.navigation.implicitNavigate(window.location.pathname);
+                this.navigation.implicitNavigate(this.navigation.location.pathname);
             }
             if (this.state.implicitBack) {
                 this.setState({implicitBack: false});
@@ -152,17 +152,17 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         }
 
         window.addEventListener('page-animation-end', this.onAnimationEnd.bind(this), {once: true});
-        this._routerData.currentPath = window.location.pathname;
-        this.setState({currentPath: window.location.pathname});
+        this._routerData.currentPath = this.navigation.location.pathname;
+        this.setState({currentPath: this.navigation.location.pathname});
     }
 
     onBack(e: BackEvent) {
         this.setState({backNavigating: true});
 
-        let pathname = window.location.pathname;
-        if (this.config.disableBrowserRouting) {
-            pathname = this.navigation.history.current || pathname;
-        }
+        let pathname = this.navigation.location.pathname;
+        // if (this.config.disableBrowserRouting) {
+        //     pathname = this.navigation.history.current || pathname;
+        // }
 
         if (e.detail.replaceState && !this.config.disableBrowserRouting) { // replaced state with default route
             this._routerData.currentPath = pathname;

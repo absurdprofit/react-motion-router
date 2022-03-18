@@ -115,11 +115,16 @@ export default class Cards extends React.Component<CardsProps> {
                                         <CardMedia
                                             component="img"
                                             height="140"
+                                            loading="lazy"
+                                            decoding="async"
                                             src={heroName === hero.id ? hero.photo : "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAQAAABKfvVzAAAAGklEQVR42mN8/5+BJMA4qmFUw6iGUQ201QAAzKYuaaLRYAgAAAAASUVORK5CYII="}
                                             data-src={hero.photo}
                                             alt={hero.name}
                                             id={`${hero.id}`}
                                             ref={(ref: HTMLImageElement | null) => {
+                                                if (imageRef) {
+                                                    this.observer.unobserve(imageRef);
+                                                }
                                                 if (ref) {
                                                     this.observer.observe(ref);
                                                 }

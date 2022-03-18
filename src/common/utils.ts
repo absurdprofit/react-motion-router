@@ -181,7 +181,8 @@ export class Navigation {
     get location() {
         return {
             ...window.location,
-            pathname: this._history.current
+            pathname: this._history.current,
+            href: window.location.href + this._history.current.substring(1)
         }
     }
 }
