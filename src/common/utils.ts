@@ -231,10 +231,17 @@ export function clamp(num: number, min: number, max?: number) {
     return num;
 }
 
-export function testRoute(routeTest: string | RegExp | undefined, routeString: string | undefined): boolean {
+export function matchRoute(routeTest: string | RegExp | undefined, routeString: string | undefined): boolean {
+    if (typeof routeTest === "string" || typeof routeTest === "undefined") {
+        return routeTest === routeString;
+    }
     if (routeTest instanceof RegExp && routeString) {
         return routeTest.test(routeString);
     } else {
-        return routeTest === routeString;
+        return false;
     }
+}
+
+export function includesRoute(routeString: string | undefined, routeTests: (string | RegExp | undefined)[]) {
+    return routeTests.some((routeTest) => matchRoute(routeTest, routeString));
 }

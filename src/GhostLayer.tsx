@@ -37,11 +37,13 @@ interface TransitionState {
     }
 }
 
+type AnimationMap = Map<string, {[key:string]: Animation}>;
+
 export default class GhostLayer extends React.Component<GhostLayerProps, GhostLayerState> {
     private ref: HTMLDivElement | null = null;
     private _currentScene: SharedElement.Scene | null = null;
     private _nextScene: SharedElement.Scene | null = null;
-    private _animationMap: {[key:string]:{[key:string]:Animation}} = {};
+    private _animationMap = new Map<string, {[key:string]: Animation}>();
     private onProgressStartListener = this.onProgressStart.bind(this) as EventListener;
     private onProgressListener = this.onProgress.bind(this) as EventListener;
     private onProgressEndListener = this.onProgressEnd.bind(this) as EventListener;
@@ -70,9 +72,9 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
     }
 
     finish() {
-        Object.values(this._animationMap).map((xYAnimations: {[key:string]:Animation}) => {
+        for (const [_, xYAnimations] of this._animationMap) {
             Object.values(xYAnimations).map((animation: Animation) => animation.finish());
-        });
+        }
     }
 
     sharedElementTransition(currentScene: SharedElement.Scene, nextScene: SharedElement.Scene) {
@@ -87,14 +89,14 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
         }
         
         this.setState({transitioning: true}, () => {
-            Object.keys(currentScene.nodes).map((id: string) => {
+            for (const [id, start] of currentScene.nodes) {
                 //if id exists in next scene
-                if (Object.keys(nextScene.nodes).includes(id)) {
-                    const endInstance = nextScene.nodes[id].instance;
-                    const startInstance = currentScene.nodes[id].instance;
+                if (nextScene.nodes.has(id)) {
+                    const endInstance = nextScene.nodes.get(id)!.instance;
+                    const startInstance = start.instance;
                     const transitionType = endInstance.transitionType || startInstance.transitionType || 'morph';
-                    const startNode = currentScene.nodes[id].node;
-                    const endNode = nextScene.nodes[id].node;
+                    const startNode = start.node;
+                    const endNode = nextScene.nodes.get(id)!.node;
                     const startChild = startNode.firstElementChild as HTMLElement;
                     const endChild = endNode.firstElementChild as HTMLElement;
                     const startRect = startInstance.clientRect;
@@ -219,7 +221,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 duration: clamp(transitionState.end.y.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
                             }
                         );
-                        this._animationMap[startInstance.id] = {startXAnimation, startYAnimation};
+                        this._animationMap.set(startInstance.id, {startXAnimation, startYAnimation});
                     } else if (transitionType === "fade") {
                         startXAnimation = transitionState.start.x.node.animate([
                             {
@@ -280,7 +282,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 duration: clamp(transitionState.end.y.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
                             }
                         );
-                        this._animationMap[startInstance.id] = {startXAnimation, startYAnimation, endXAnimation, endYAnimation};
+                        this._animationMap.set(startInstance.id, {startXAnimation, startYAnimation, endXAnimation, endYAnimation});
                     } else if (transitionType === "fade-through") {
                         startXAnimation = transitionState.start.x.node.animate([
                             {
@@ -351,7 +353,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 duration: clamp(transitionState.end.y.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
                             }
                         );
-                        this._animationMap[startInstance.id] = {startXAnimation, startYAnimation, endXAnimation, endYAnimation};
+                        this._animationMap.set(startInstance.id, {startXAnimation, startYAnimation, endXAnimation, endYAnimation});
                     } else { // cross-fade
                         startXAnimation = transitionState.start.x.node.animate([
                             {
@@ -414,11 +416,11 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 duration: clamp(transitionState.end.y.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
                             }
                         );
-                        this._animationMap[startInstance.id] = {startXAnimation, startYAnimation, endXAnimation, endYAnimation};
+                        this._animationMap.set(startInstance.id, {startXAnimation, startYAnimation, endXAnimation, endYAnimation});
                     }
                     
                     if (!this.state.playing) {
-                        Object.values(this._animationMap[startInstance.id]).map((animation: Animation) => {
+                        Object.values(this._animationMap.get(startInstance.id)!).map((animation: Animation) => {
                             const defaultDuration = this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration;
                             let duration = animation.effect?.getComputedTiming().duration;
                             if (typeof duration === "string") {
@@ -442,7 +444,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         }
                     }, {once:true});
                 }
-            });
+            }
         });
 
         window.addEventListener('page-animation-end', () => {
@@ -475,7 +477,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
 
     onProgress(e: MotionProgressEvent) {
         if (!this.state.playing) {
-            Object.values(this._animationMap).map((xYAnimations: {[key:string]:Animation}) => {
+            for (const [_, xYAnimations] of this._animationMap) {
                 Object.values(xYAnimations).map((animation: Animation) => {
                     const progress = e.detail.progress;
                     const defaultDuration = this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration;
@@ -489,7 +491,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     const currentTime = (progress / 100) * duration;
                     animation.currentTime = currentTime;
                 });
-            });
+            }
         }
     }
 

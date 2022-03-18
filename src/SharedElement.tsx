@@ -64,12 +64,10 @@ namespace SharedElement {
         instance: SharedElement;
     }
 
-    export interface NodeMap {
-        [key:string]: SharedElementNode;
-    }
+    export type NodeMap = Map<string, SharedElementNode>;
 
     export class Scene {
-        private _nodes: NodeMap = {};
+        private _nodes: NodeMap = new Map<string, SharedElementNode>();
         private _name: string = '';
         private _scrollPos: Vec2 | null = null;
         private _x: number = 0;
@@ -81,12 +79,12 @@ namespace SharedElement {
         }
         addNode(node: SharedElementNode | null) {
             if (!node) return;
-            assert(!Object.keys(this.nodes).includes(node.id), `Duplicate Shared Element ID: ${node.id} in ${this._name}`);
-            this._nodes[node.id] = node;
+            assert(!this.nodes.has(node.id), `Duplicate Shared Element ID: ${node.id} in ${this._name}`);
+            this._nodes.set(node.id, node);
         }
 
         removeNode(_id: string) {
-            delete this._nodes[_id];
+            this._nodes.delete(_id);
         }
 
         get xRatio() {
@@ -141,7 +139,7 @@ namespace SharedElement {
         }
 
         isEmpty() {
-            return !Object.keys(this._nodes).length ? true : false;
+            return !Boolean(this._nodes.size);
         }
     }
 

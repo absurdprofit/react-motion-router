@@ -1,12 +1,15 @@
-import React from 'react';
+import React, {Suspense} from 'react';
 import {Router, Stack, AnimationConfig} from 'react-motion-router';
+import { matchRoute } from 'react-motion-router/common/utils';
 import Home from './Screens/Home';
 import Details from './Screens/Details';
 import Tiles from './Screens/Tiles';
 import Slides from './Screens/Slides';
-import Cards from './Screens/Cards';
+import NotFound from './Screens/NotFound';
 import { getPWADisplayMode, iOS } from './common/utils';
 import "./css/App.css";
+
+const Cards = React.lazy(() => import('./Screens/Cards'));
 
 const isPWA = getPWADisplayMode() === 'standalone';
 let animation: AnimationConfig = {
@@ -33,10 +36,10 @@ if (iOS() && !isPWA) {
 
 function App() {
   return (
-    <div className="App">
+    <Suspense fallback={<div className='app'></div>}>
       <Router config={{
         defaultRoute: '/',
-        disableDiscovery: false,
+        disableDiscovery: !isPWA,
         disableBrowserRouting: isPWA && iOS(),
         animation: animation
       }}>
@@ -62,21 +65,22 @@ function App() {
           component={Home}
         />
         <Stack.Screen
-          path={/tiles/}
+          path={/^\/tiles/}
           component={Tiles}
           defaultParams={{params: "data"}}
           config={{
             animation: (currentPath, nextPath) => {
-              if ((currentPath === "/tiles" && nextPath === "/slides")
-              || (currentPath === "/slides" && nextPath === "/tiles")) {
+              if ((matchRoute(currentPath, "/tiles") && matchRoute(nextPath, "/slides"))
+              || (matchRoute(currentPath, "/slides") && matchRoute(nextPath, "/tiles"))) {
                 return fadeAnimation;
               }
               return animation;
             }
           }}
         />
+        <Stack.Screen component={NotFound} />
       </Router>
-    </div>  
+    </Suspense>  
   );
 }
 

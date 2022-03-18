@@ -133,7 +133,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
 
     onPopstate(e: Event) {
         e.preventDefault();
-        if (this.navigation.location.pathname === this.navigation.history.previous) {
+        if (window.location.pathname === this.navigation.history.previous) {
             if (!this.state.implicitBack) {
                 this.setState({backNavigating: true});
                 this._routerData.backNavigating = true;
@@ -144,7 +144,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
             this.navigation.implicitBack();
         } else {
             if (!this.state.backNavigating && !this.state.implicitBack) {
-                this.navigation.implicitNavigate(this.navigation.location.pathname);
+                this.navigation.implicitNavigate(window.location.pathname);
             }
             if (this.state.implicitBack) {
                 this.setState({implicitBack: false});
@@ -152,8 +152,8 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         }
 
         window.addEventListener('page-animation-end', this.onAnimationEnd.bind(this), {once: true});
-        this._routerData.currentPath = this.navigation.location.pathname;
-        this.setState({currentPath: this.navigation.location.pathname});
+        this._routerData.currentPath = window.location.pathname;
+        this.setState({currentPath: window.location.pathname});
     }
 
     onBack(e: BackEvent) {

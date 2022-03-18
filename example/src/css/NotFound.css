@@ -1,0 +1,30 @@
+.not-found {
+    width: 100vw;
+    height: 100vh;
+    background-color: #efefef;
+    display: flex;
+    flex-direction: column;
+}
+.page-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+}
+.page-content button {
+    color: rgb(214 179 111);
+}
+.page-content h1 {
+    animation: blink 2s ease alternate infinite;
+}
+
+@keyframes blink {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
