@@ -230,3 +230,11 @@ export function clamp(num: number, min: number, max?: number) {
     }
     return num;
 }
+
+export function testRoute(routeTest: string | RegExp | undefined, routeString: string | undefined): boolean {
+    if (routeTest instanceof RegExp && routeString) {
+        return routeTest.test(routeString);
+    } else {
+        return routeTest === routeString;
+    }
+}

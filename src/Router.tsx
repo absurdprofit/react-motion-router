@@ -89,7 +89,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         currentPath: "",
         backNavigating: false,
         gestureNavigating: false,
-        routesData: {},
+        routesData: new Map<string | RegExp, any>(),
         implicitBack: false
     }
 
@@ -99,10 +99,10 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         const routesData = this.state.routesData;
         
         if (searchParams) {
-            routesData[this.navigation.location.pathname] = {
-                ...this.state.routesData[this.navigation.location.pathname],
+            routesData.set(this.navigation.location.pathname, {
+                ...this.state.routesData.get(this.navigation.location.pathname),
                 params: searchParams
-            };
+            });
         }
 
         let currentPath = this.navigation.location.pathname;
@@ -191,9 +191,9 @@ export default class Router extends React.Component<RouterProps, RouterState> {
 
             //store per route data in object
             //with pathname as key and route data as value
-            routesData[currentPath] = {
+            routesData.set(currentPath, {
                 params: e.detail.routeParams
-            };
+            });
 
 
             this._routerData.routesData = routesData;

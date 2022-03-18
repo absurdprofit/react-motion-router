@@ -14,7 +14,7 @@ export interface ScreenProps {
     out?: boolean;
     in?: boolean;
     component: React.JSXElementConstructor<any>;
-    path: string;
+    path?: string | RegExp;
     defaultParams?: {};
     config?: {
         animation?: Animation | AnimationConfig | AnimationConfigFactory;
@@ -26,7 +26,7 @@ export namespace Stack {
     export class Screen extends React.Component<ScreenProps> {
         private sharedElementScene: SharedElement.Scene = new SharedElement.Scene(this.props.component.name);
         private ref: HTMLElement | null = null;
-        private contextParams = this.context.routesData[this.props.path]?.params;
+        private contextParams = this.context.routesData.get(this.props.path)?.params;
         private onRef = this.setRef.bind(this);
         private animation: {
             in: AnimationConfig;
@@ -103,13 +103,13 @@ export namespace Stack {
                 this.animation = this.context.animation;
             }
 
-            this.contextParams = this.context.routesData[this.props.path]?.params;
+            this.contextParams = this.context.routesData.get(this.props.path)?.params;
             this.forceUpdate();
         }
 
         shouldComponentUpdate(nextProps: ScreenProps) {
-            if (this.context.routesData[this.props.path]?.params !== this.contextParams) {
-                this.contextParams = this.context.routesData[this.props.path]?.params;
+            if (this.context.routesData.get(this.props.path)?.params !== this.contextParams) {
+                this.contextParams = this.context.routesData.get(this.props.path)?.params;
                 return true;
             }
             if (nextProps.out && !nextProps.in) {
@@ -170,7 +170,7 @@ export namespace Stack {
                     onEnter={this.onEnter.bind(this)}
                     in={this.props.in || false}
                     out={this.props.out || false}
-                    name={this.props.path}
+                    name={this.props.component.name}
                     animation={this.animation}
                     backNavigating={this.context!.backNavigating}
                 >

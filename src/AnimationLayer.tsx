@@ -1,6 +1,6 @@
 import React, { createContext } from 'react';
 import {SwipeEndEvent, SwipeEvent, SwipeStartEvent} from 'web-gesture-events';
-import { clamp, Navigation } from './common/utils';
+import { clamp, Navigation, testRoute } from './common/utils';
 import {ScreenChild} from './index';
 import AnimationLayerData, {AnimationLayerDataContext} from './AnimationLayerData';
 
@@ -63,23 +63,29 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
                     shouldAnimate: true
                 };
             }
-            return {
-                children: React.Children.map(
-                    nextProps.children,
-                    (child: ScreenChild) => {
-                        if (React.isValidElement(child)) {
-                            if (child.props.path === nextProps.currentPath) {
-                                const element = React.cloneElement(child, {...child.props, in: true, out: false});
-                                return element;
-                            } else if (child.props.path === state.currentPath) {
-                                const element = React.cloneElement(child, {...child.props, out: true, in: false});
-                                return element;
-                            } else {
-                                return undefined;
-                            }
+
+            let children = React.Children.map(
+                nextProps.children,
+                (child: ScreenChild) => {
+                    if (React.isValidElement(child)) {
+                        if (testRoute(child.props.path, nextProps.currentPath)) {
+                            const element = React.cloneElement(child, {...child.props, in: true, out: false});
+                            return element;
+                        } else if (testRoute(child.props.path, state.currentPath)) {
+                            const element = React.cloneElement(child, {...child.props, out: true, in: false});
+                            return element;
+                        } else if (!child.props.path) {
+                            const element = React.cloneElement(child, {...child.props, out: false, in: false});
+                            return element;
+                        } else {
+                            return undefined;
                         }
                     }
-                ).sort((child, _) => child.props.path === nextProps.currentPath ? 1 : -1), // current screen mounts first
+                }
+            ).sort((child, _) => testRoute(child.props.path, nextProps.currentPath) ? 1 : -1)
+
+            return {
+                children: children, // current screen mounts first
                 currentPath: nextProps.currentPath
             }
         }
@@ -133,9 +139,12 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             const children = React.Children.map(
                 this.props.children,
                 (child: ScreenChild) => {
+                    if (!this.props.lastPath) return undefined;
+
                     if (React.isValidElement(child)) {
-                        if (child.props.path === this.props.currentPath || child.props.path === this.props.lastPath) {
-                            const _in = child.props.path === this.props.currentPath ? true : false;
+                        if (testRoute(child.props.path, this.props.currentPath)
+                            || testRoute(child.props.path, this.props.lastPath)) {
+                            const _in = testRoute(child.props.path, this.props.currentPath) ? true : false;
                             const element = React.cloneElement(child, {
                                 ...child.props,
                                 in: _in,
@@ -147,7 +156,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
                         return undefined;
                     }
                 }
-            ).sort((firstChild) => firstChild.props.path === this.props.currentPath ? -1 : 1);
+            ).sort((firstChild) => testRoute(firstChild.props.path, this.props.currentPath) ? -1 : 1);
             
             this.props.onGestureNavigationStart();
             this.setState({

@@ -36,7 +36,7 @@ function App() {
     <div className="App">
       <Router config={{
         defaultRoute: '/',
-        disableDiscovery: !isPWA,
+        disableDiscovery: false,
         disableBrowserRouting: isPWA && iOS(),
         animation: animation
       }}>
@@ -62,7 +62,7 @@ function App() {
           component={Home}
         />
         <Stack.Screen
-          path={"/tiles"}
+          path={/tiles/}
           component={Tiles}
           defaultParams={{params: "data"}}
           config={{
