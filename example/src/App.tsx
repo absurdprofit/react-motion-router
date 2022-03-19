@@ -48,7 +48,12 @@ function App() {
           component={Slides}
           defaultParams={{hero: 0}}
           config={{
-            animation: fadeAnimation
+            animation: (currentPath, nextPath) => {
+              if (matchRoute(currentPath, "/slides") && matchRoute(nextPath, "/")) {
+                return animation;
+              }
+              return fadeAnimation;
+            }
           }} 
         />
         <Stack.Screen

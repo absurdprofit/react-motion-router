@@ -3,13 +3,14 @@ export class History {
     private _next: string | null = null;
     private _defaultRoute: string | null = null;
     constructor(_defaultRoute: string | null) {
-        const pathname = window.location.pathname + window.location.search;
+        const pathname = window.location.pathname;
+        const searchPart = window.location.search;
         if (_defaultRoute) {
             this._defaultRoute = _defaultRoute;
             if (this._defaultRoute !== window.location.pathname) {
                 this._stack.push(this._defaultRoute);
                 window.history.replaceState({}, "", this._defaultRoute);
-                window.history.pushState({}, "", pathname);
+                window.history.pushState({}, "", pathname + searchPart);
             }
         }
         this._stack.push(pathname);
