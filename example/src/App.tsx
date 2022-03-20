@@ -36,10 +36,10 @@ if (iOS() && !isPWA) {
 
 function App() {
   return (
-    <Suspense fallback={<div className='app'></div>}>
+    <Suspense fallback={<div className='cards-demo-loading'></div>}>
       <Router config={{
         defaultRoute: '/',
-        disableDiscovery: !isPWA,
+        disableDiscovery: false,
         disableBrowserRouting: isPWA && iOS(),
         animation: animation
       }}>

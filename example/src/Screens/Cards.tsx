@@ -61,8 +61,15 @@ export default class Cards extends React.Component<CardsProps> {
         entries.map((entry: IntersectionObserverEntry) => {
             const target = entry.target as HTMLImageElement;
             if (entry.isIntersecting) {
-                if (target.dataset.src) {
+                if (target.dataset.src && target.src.substring(0, 4) === "data") {
                     target.src = target.dataset.src;
+                    target.onload = () => {
+                        target.decoding = "sync";
+                        target.loading = "eager";
+                    }
+                } else {
+                    target.decoding = "sync";
+                    target.loading = "eager";
                 }
             }
 
@@ -115,8 +122,8 @@ export default class Cards extends React.Component<CardsProps> {
                                         <CardMedia
                                             component="img"
                                             height="140"
-                                            loading="lazy"
-                                            decoding="async"
+                                            loading={heroName === hero.id ? "eager" : "lazy"}
+                                            decoding={heroName === hero.id ? "sync" : "async"}
                                             src={heroName === hero.id ? hero.photo : "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAQAAABKfvVzAAAAGklEQVR42mN8/5+BJMA4qmFUw6iGUQ201QAAzKYuaaLRYAgAAAAASUVORK5CYII="}
                                             data-src={hero.photo}
                                             alt={hero.name}

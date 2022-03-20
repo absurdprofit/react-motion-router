@@ -173,13 +173,12 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
 
                     this.ref?.appendChild(startNode);
 
-
                     if (transitionType !== "morph") {
                         this.ref?.appendChild(endNode);
                     }
 
-                    startInstance.hidden = true;
-                    endInstance.hidden = true;
+                    startInstance.hidden(true);
+                    endInstance.hidden(true);
                     
                     let startXAnimation;
                     let startYAnimation;
@@ -433,11 +432,11 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         });
                     }
 
-                    window.addEventListener('page-animation-end', ()=>{
+                    window.addEventListener('page-animation-end', async ()=>{
                         startNode.style.willChange = 'auto';
                         endNode.style.willChange = 'auto';
-                        startInstance.hidden = false;
-                        endInstance.hidden = false;
+                        startInstance.hidden(false);
+                        await endInstance.hidden(false);
                         this.ref?.removeChild(startNode);
                         if (transitionType !== "morph") {
                             this.ref?.removeChild(endNode);

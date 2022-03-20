@@ -147,10 +147,10 @@ namespace SharedElement {
 
     function nodeFromRef(
         id: string,
-        ref: Element,
+        _ref: Element,
         instance: SharedElement.SharedElement
     ): SharedElementNode | null {
-        const node: HTMLElement = ref.cloneNode(true) as HTMLElement;
+        const node: HTMLElement = _ref.cloneNode(true) as HTMLElement;
         const firstChild = node.firstElementChild as HTMLElement | null;
         
         if (!firstChild) return null;
@@ -187,31 +187,38 @@ namespace SharedElement {
         config?: SharedElementConfig;
     }
 
-    export class SharedElement extends React.Component<SharedElementProps> {
+    interface SharedElementState {
+        hidden: boolean;
+    }
+
+    export class SharedElement extends React.Component<SharedElementProps, SharedElementState> {
         private _id : string = this.props.id.toString();
-        private ref: HTMLDivElement | null = null;
+        private _ref: HTMLDivElement | null = null;
         private _scene: Scene | null = null;
-        private _hidden: boolean = false;
-        private _isMounted: boolean = false;
         private _mutationObserver = new MutationObserver(this.onMutation.bind(this));
-        private computedStyle: CSSStyleDeclaration | null = null;
+        private _computedStyle: CSSStyleDeclaration | null = null;
+        private _isMounted = false;
         private onRef = this.setRef.bind(this);
         
+        state: SharedElementState = {
+            hidden: false
+        }
+
         get scene() {
             return this._scene;
         }
         
         get clientRect() {
-            if (this.ref && this.ref.firstElementChild) {
-                const clientRect = this.ref.firstElementChild.getBoundingClientRect();
+            if (this._ref && this._ref.firstElementChild) {
+                const clientRect = this._ref.firstElementChild.getBoundingClientRect();
                 return clientRect;
             }
             return new DOMRect();
         }
     
         get getCSSData(): [string, {[key:string]:string}] {
-            const computedStyle = this.computedStyle;
-            if (computedStyle) return getCSSData(computedStyle);
+            const _computedStyle = this._computedStyle;
+            if (_computedStyle) return getCSSData(_computedStyle);
             return ['', {}];
         }
     
@@ -219,35 +226,36 @@ namespace SharedElement {
             return this._id;
         }
 
-        get hidden() {
-            return this._hidden;
-        }
-
         get transitionType() {
             return this.props.config?.type;
         }
 
-        set hidden(_hidden: boolean) {
-            this._hidden = _hidden;
-            if (this._isMounted) {
-                this.forceUpdate();
-            }
+        hidden(_hidden: boolean): Promise<void> {
+            return new Promise((resolve, _) => {
+                if (!this._isMounted) {
+                    resolve();
+                    return false;
+                }
+                this.setState({hidden: _hidden}, () => {
+                    resolve();
+                });
+            });
         }
 
-        private setRef(ref: HTMLDivElement | null) {
-            if (this.ref !== ref) {
-                if (this.ref) {
+        private setRef(_ref: HTMLDivElement | null) {
+            if (this._ref !== _ref) {
+                if (this._ref) {
                     this.scene?.removeNode(this._id);
                     this._mutationObserver.disconnect();
-                    this.computedStyle = null;
+                    this._computedStyle = null;
                 }
-                this.ref = ref;
+                this._ref = _ref;
                 
-                if (ref) {
-                    this.scene?.addNode(nodeFromRef(this._id, ref, this));
-                    if (ref.firstElementChild) {
-                        this.computedStyle = window.getComputedStyle(ref.firstElementChild);
-                        this._mutationObserver.observe(ref.firstElementChild, {
+                if (_ref) {
+                    this.scene?.addNode(nodeFromRef(this._id, _ref, this));
+                    if (_ref.firstElementChild) {
+                        this._computedStyle = window.getComputedStyle(_ref.firstElementChild);
+                        this._mutationObserver.observe(_ref.firstElementChild, {
                             attributes: true,
                             childList: true,
                             subtree: true
@@ -264,9 +272,9 @@ namespace SharedElement {
 
         updateScene() {
             queueMicrotask(() => {
-                if (this.ref) {
+                if (this._ref) {
                     this.scene?.removeNode(this._id);
-                    this.scene?.addNode(nodeFromRef(this._id, this.ref, this));
+                    this.scene?.addNode(nodeFromRef(this._id, this._ref, this));
                 }
             });
         }
@@ -274,21 +282,21 @@ namespace SharedElement {
         componentDidMount() {
             this._isMounted = true;
         }
-        
+
         componentDidUpdate() {
             if (this._id !== this.props.id.toString()) {
-                if (this.ref) {
+                if (this._ref) {
                     this.scene?.removeNode(this._id);
                     this._id = this.props.id.toString();
-                    this.scene?.addNode(nodeFromRef(this._id, this.ref, this));
+                    this.scene?.addNode(nodeFromRef(this._id, this._ref, this));
                 }
             }
         }
-        
+
         componentWillUnmount() {
             this._isMounted = false;
         }
-
+        
         render() {
             return (
                 <SceneContext.Consumer>
@@ -299,10 +307,10 @@ namespace SharedElement {
                                 ref={this.onRef}
                                 id={`shared-element-${this._id}`}
                                 style={{
-                                    display: this._hidden ? 'block' : 'contents',
-                                    visibility: this._hidden ? 'hidden': 'visible'
-                                }
-                            }>
+                                    display: this.state.hidden ? 'block' : 'contents',
+                                    visibility: this.state.hidden ? 'hidden': 'visible'
+                                }}
+                            >
                                 {this.props.children}
                             </div>
                         );
