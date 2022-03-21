@@ -30,7 +30,8 @@ namespace SharedElement {
         "ease",
         "ease-in",
         "ease-in-out",
-        "ease-out"
+        "ease-out",
+        "linear"
     }
 
     enum TransitionAnimationEnum {
@@ -44,7 +45,7 @@ namespace SharedElement {
 
     type EasingFunctionKeyword = keyof typeof EasingFunctionKeywordEnum;
 
-    export type EasingFunction = EasingFunctionKeyword | `cubic-bezier(${number},${' ' | ''}${number},${' ' | ''}${number},${' ' | ''}${number})`;
+    export type EasingFunction = EasingFunctionKeyword  | `cubic-bezier(${number},${' ' | ''}${number},${' ' | ''}${number},${' ' | ''}${number})`;
 
     type TransformOriginGlobal = keyof typeof TransformOriginGlobalEnum;
 
@@ -232,13 +233,13 @@ namespace SharedElement {
 
         hidden(_hidden: boolean): Promise<void> {
             return new Promise((resolve, _) => {
-                if (!this._isMounted) {
+                if (this._isMounted) {
+                    this.setState({hidden: _hidden}, () => {
+                        resolve();
+                    });
+                } else {
                     resolve();
-                    return false;
                 }
-                this.setState({hidden: _hidden}, () => {
-                    resolve();
-                });
             });
         }
 

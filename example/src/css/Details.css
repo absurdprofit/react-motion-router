@@ -66,3 +66,17 @@
   object-fit: cover;
   clip-path: inset(0px -100vw -100vh 0px);
 }
+.details .gradient-overlay {
+  color: transparent;
+  height: 100%;
+  width: 100%;
+  z-index: 5;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  position: absolute;
+  background: black; /* css can't animate background linear-gradient */
+  opacity: 0;
+  clip-path: inset(0px -100vw -100vh 0px);
+}

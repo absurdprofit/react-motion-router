@@ -15,10 +15,9 @@ interface CardsProps {
 
 let inset = '';
 let textInset = '';
-let bgInset = '';
 let heroName = '';
 let titleInset = '';
-export default class Cards extends React.Component<CardsProps> {
+export default class Cards2 extends React.Component<CardsProps> {
     private ref: HTMLElement | null = null;
     private observer = new IntersectionObserver(this.observe.bind(this), {
         threshold: 0.1
@@ -29,7 +28,7 @@ export default class Cards extends React.Component<CardsProps> {
     }
 
     pageAnimationEnd() {
-        if (this.props.navigation.location.pathname === '/cards') {
+        if (this.props.navigation.location.pathname === '/cards-2') {
             inset = '';
             textInset = '';
             titleInset = '';
@@ -40,7 +39,7 @@ export default class Cards extends React.Component<CardsProps> {
     componentDidMount() {
         window.addEventListener('page-animation-end', this.pageAnimationEnd.bind(this), {once: true});
         if (this.ref) {
-            this.ref.scrollTo(Cards.scrollPos.x, Cards.scrollPos.y); // scroll restoration
+            this.ref.scrollTo(Cards2.scrollPos.x, Cards2.scrollPos.y); // scroll restoration
         } 
     }
 
@@ -50,7 +49,7 @@ export default class Cards extends React.Component<CardsProps> {
 
     componentWillUnmount() {
         if (this.ref) {
-            Cards.scrollPos = {
+            Cards2.scrollPos = {
                 x: this.ref.scrollLeft,
                 y: this.ref.scrollTop
             }
@@ -81,9 +80,9 @@ export default class Cards extends React.Component<CardsProps> {
     }
     render() {
         return (
-            <div className="cards">
+            <div className="cards cards-2">
                 <SharedElement id="navbar">
-                    <Navbar title="Cards Demo" onBack={() => this.props.navigation.goBack()} />
+                    <Navbar title="Cards Demo 2" onBack={() => this.props.navigation.goBack()} />
                 </SharedElement>
                 <div className="card-list" ref={(ref: HTMLElement | null) => this.ref = ref}>
                 {
@@ -91,10 +90,10 @@ export default class Cards extends React.Component<CardsProps> {
                         let imageRef: HTMLElement | null = null;
                         let paraRef: HTMLElement | null = null;
                         let titleRef: HTMLElement | null = null;
-                        let bgRef: HTMLElement | null = null;
+                        let gradientRef: HTMLElement | null = null;
                         return (
-                            <ButtonBase key={index} disableTouchRipple onClick={() => {
-                                if (imageRef && paraRef && titleRef && bgRef) {
+                            <ButtonBase key={index} onClick={() => {
+                                if (imageRef && paraRef && titleRef && gradientRef) {
                                     const imageRect = imageRef.getBoundingClientRect();
                                     const paraRect = paraRef.getBoundingClientRect();
                                     const titleRect = titleRef.getBoundingClientRect();
@@ -102,33 +101,34 @@ export default class Cards extends React.Component<CardsProps> {
                                     titleRef.style.clipPath = titleInset;
                                     inset = `inset(${-imageRect.top+64}px ${-imageRect.right}px ${-imageRect.bottom}px ${-imageRect.left}px)`;
                                     imageRef.style.clipPath = inset;
-                                    bgInset = `inset(${-imageRect.top+66}px ${-imageRect.right}px ${-imageRect.bottom}px ${-imageRect.left}px)`;
-                                    bgRef.style.clipPath = bgInset;
+                                    gradientRef.style.clipPath = inset;
                                     textInset = `inset(${-paraRect.top+64}px ${-paraRect.right}px ${-paraRect.bottom}px ${-paraRect.left}px)`;
                                     paraRef.style.clipPath = textInset;
                                     heroName = hero.id;
                                 }
                                 this.props.navigation.navigate('/details', {
-                                    profile: hero
+                                    profile: hero,
+                                    noBg: true
                                 });
                             }}>
-                                <SharedElement id={`${hero.id}-card-bg`} config={{
-                                        easingFunction: 'linear'
-                                }}>
-                                    <div
-                                        id={`${hero.id}-bg`}
-                                        className="card-bg"
-                                        ref={(ref: HTMLElement | null) => bgRef = ref}
-                                        style={{ width: 345 > window.screen.width ? 300 : 345, clipPath: (heroName === hero.id ? bgInset : '') }}
-                                    ></div>
-                                </SharedElement>
                                 <Card sx={{ width: 345 > window.screen.width ? 300 : 345 }}>
+                                    <SharedElement id={`${hero.id}-gradient-overlay`} config={{
+                                        easingFunction: 'linear'
+                                    }}>
+                                        <div
+                                            ref={ref => gradientRef = ref}
+                                            className="gradient-overlay"
+                                            style={{
+                                                clipPath: (heroName === hero.id ? inset : '')
+                                            }}
+                                        ></div>
+                                    </SharedElement>
                                     <SharedElement id={hero.id} config={{
                                         easingFunction: 'linear'
                                     }}>
                                         <CardMedia
                                             component="img"
-                                            height="140"
+                                            height={345}
                                             loading={heroName === hero.id ? "eager" : "lazy"}
                                             decoding={heroName === hero.id ? "sync" : "async"}
                                             src={heroName === hero.id ? hero.photo : "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAQAAABKfvVzAAAAGklEQVR42mN8/5+BJMA4qmFUw6iGUQ201QAAzKYuaaLRYAgAAAAASUVORK5CYII="}
@@ -149,13 +149,17 @@ export default class Cards extends React.Component<CardsProps> {
                                             }}
                                         />
                                     </SharedElement>
-                                    <CardContent>
-                                        <SharedElement id={`title-${hero.id}`}>
+                                    <CardContent style={{position: 'absolute', bottom: '0', color: 'white'}}>
+                                        <SharedElement id={`title-${hero.id}`} config={{
+                                            type: 'fade-through'
+                                        }}>
                                             <Typography
                                                 style={{
                                                     clipPath: (heroName === hero.id ? titleInset : ''),
                                                     fontWeight: 'bold',
+                                                    zIndex: 10,
                                                     margin: 0,
+                                                    position: 'relative',
                                                     fontSize: '28px'
                                                 }}
                                                 ref={(c: HTMLElement | null) => titleRef = c}
@@ -164,11 +168,15 @@ export default class Cards extends React.Component<CardsProps> {
                                                 component="h4"
                                             >{hero.name}</Typography>
                                         </SharedElement>
-                                        <SharedElement id={`description-${hero.id}`}>
+                                        <SharedElement id={`description-${hero.id}`} config={{
+                                            type: 'fade-through'
+                                        }}>
                                             <p 
                                                 ref={(c: HTMLElement | null) => paraRef = c}
                                                 style={{
                                                     fontSize: '16px',
+                                                    zIndex: 10,
+                                                    position: 'relative',
                                                     clipPath: (heroName === hero.id ? textInset : '')
                                                 }}
                                             >{hero.description}</p>

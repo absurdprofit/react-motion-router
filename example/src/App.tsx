@@ -6,6 +6,7 @@ import Details from './Screens/Details';
 import Tiles from './Screens/Tiles';
 import Slides from './Screens/Slides';
 import NotFound from './Screens/NotFound';
+import Cards2 from './Screens/Cards2';
 import { getPWADisplayMode, iOS } from './common/utils';
 import "./css/App.css";
 
@@ -39,7 +40,7 @@ function App() {
     <Suspense fallback={<div className='cards-demo-loading'></div>}>
       <Router config={{
         defaultRoute: '/',
-        disableDiscovery: false,
+        disableDiscovery: !isPWA,
         disableBrowserRouting: isPWA && iOS(),
         animation: animation
       }}>
@@ -60,6 +61,7 @@ function App() {
           path={'/cards'}
           component={Cards}
         />
+        <Stack.Screen path={'/cards-2'} component={Cards2} />
         <Stack.Screen
           path={"/details"}
           component={Details}

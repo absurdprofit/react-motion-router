@@ -21,9 +21,14 @@ export default function Home(props: HomeProps) {
             onClick: () => props.navigation.navigate('/tiles')
         },
         {
-            title: 'Card Demo',
+            title: 'Cards Demo',
             description: 'Card reveal with shared element transitions',
             onClick: () => props.navigation.navigate('/cards')
+        },
+        {
+            title: 'Cards Demo 2',
+            description: 'Heavier card demo with fading gradient overlay and cross-fading texts',
+            onClick: () => props.navigation.navigate('/cards-2')
         }
     ]
 
