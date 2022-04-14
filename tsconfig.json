@@ -3,7 +3,7 @@
     "outDir": "./build",
     "declaration": true,
     "sourceMap": true,
-    "target": "es2015",
+    "target": "ES2016",
     "lib": [
       "dom",
       "dom.iterable",
@@ -24,8 +24,7 @@
   },
   "include": [
     "src/**/*.tsx",
-    "src/**/*.ts",
-    "src/**/*.css"
+    "src/**/*.ts"
   ],
   "exclude": [
     "node_modules"

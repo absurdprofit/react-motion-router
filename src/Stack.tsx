@@ -15,7 +15,7 @@ export interface ScreenProps {
     in?: boolean;
     component: React.JSXElementConstructor<any>;
     path?: string | RegExp;
-    defaultParams?: {};
+    defaultParams?: {[key:string]: any};
     config?: {
         animation?: Animation | AnimationConfig | AnimationConfigFactory;
     }

@@ -86,7 +86,7 @@ export class History {
             try {
                 parsedValue = JSON.parse(value);
             } catch (e) {
-                console.warn("Non JSON seralisable value was passed as URL route param.");
+                console.warn("Non JSON serialisable value was passed as URL route param.");
                 parsedValue = value;
             }
             result[key] = parsedValue;
@@ -193,23 +193,30 @@ export interface Vec2 {
     y: number;
 }
 
-export function getCSSData(styles: CSSStyleDeclaration): [string, {[key:string]:string}] {
+export function getCSSData(styles: CSSStyleDeclaration, object: boolean = true): [string, {[key:string]:string}] {
     const values = Object.values(styles).slice(0, styles.length - 1);
     let cssText = '';
     const styleObject: {[key:string]:string} = {};
     values.map(
         (propertyName) => {
             const propertyValue = styles.getPropertyValue(propertyName);
-            const camelCasePropertyName = propertyName.replace(/^-/, '').replace(/-([a-z])/g,
-            function (m, s) {
-                return s.toUpperCase();
-            });
             cssText += `${propertyName}:${propertyValue};`;
-            styleObject[camelCasePropertyName] = propertyValue;
+            
+            if (object) {
+                const camelCasePropertyName = propertyName.replace(/^-/, '').replace(/-([a-z])/g,
+                function (m, s) {
+                    return s.toUpperCase();
+                });
+                styleObject[camelCasePropertyName] = propertyValue;
+            }
         }
     );
 
-    return [cssText, styleObject];
+    if (object) {
+        return [cssText, styleObject];
+    } else {
+        return [cssText, {}];
+    }
 }
 
 export function getStyleObject(styles: CSSStyleDeclaration): {[key:string]: string} {
@@ -245,4 +252,10 @@ export function matchRoute(routeTest: string | RegExp | undefined, routeString: 
 
 export function includesRoute(routeString: string | undefined, routeTests: (string | RegExp | undefined)[]) {
     return routeTests.some((routeTest) => matchRoute(routeTest, routeString));
+}
+
+export function sleep(duration: number): Promise<void> {
+    return new Promise((resolve) => {
+        setTimeout(() => resolve, duration);
+    });
 }

@@ -87,16 +87,18 @@ export default class Cards2 extends React.Component<CardsProps> {
                 <div className="card-list" ref={(ref: HTMLElement | null) => this.ref = ref}>
                 {
                     Heroes.map((hero: Hero, index) => {
-                        let imageRef: HTMLElement | null = null;
+                        let imageRef: HTMLImageElement | null = null;
                         let paraRef: HTMLElement | null = null;
                         let titleRef: HTMLElement | null = null;
                         let gradientRef: HTMLElement | null = null;
                         return (
                             <ButtonBase key={index} onClick={() => {
+                                let imageAspect;
                                 if (imageRef && paraRef && titleRef && gradientRef) {
                                     const imageRect = imageRef.getBoundingClientRect();
                                     const paraRect = paraRef.getBoundingClientRect();
                                     const titleRect = titleRef.getBoundingClientRect();
+                                    imageAspect = imageRef.naturalWidth / imageRef.naturalHeight;
                                     titleInset = `inset(${-titleRect.top+64}px ${-titleRect.right}px ${-titleRect.bottom}px ${-titleRect.left}px)`;
                                     titleRef.style.clipPath = titleInset;
                                     inset = `inset(${-imageRect.top+64}px ${-imageRect.right}px ${-imageRect.bottom}px ${-imageRect.left}px)`;
@@ -108,13 +110,12 @@ export default class Cards2 extends React.Component<CardsProps> {
                                 }
                                 this.props.navigation.navigate('/details', {
                                     profile: hero,
-                                    noBg: true
+                                    noBg: true,
+                                    aspect: imageAspect
                                 });
                             }}>
                                 <Card sx={{ width: 345 > window.screen.width ? 300 : 345 }}>
-                                    <SharedElement id={`${hero.id}-gradient-overlay`} config={{
-                                        easingFunction: 'linear'
-                                    }}>
+                                    <SharedElement id={`${hero.id}-gradient-overlay`}>
                                         <div
                                             ref={ref => gradientRef = ref}
                                             className="gradient-overlay"
@@ -123,9 +124,7 @@ export default class Cards2 extends React.Component<CardsProps> {
                                             }}
                                         ></div>
                                     </SharedElement>
-                                    <SharedElement id={hero.id} config={{
-                                        easingFunction: 'linear'
-                                    }}>
+                                    <SharedElement id={hero.id}>
                                         <CardMedia
                                             component="img"
                                             height={345}

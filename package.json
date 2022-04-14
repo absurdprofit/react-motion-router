@@ -1,46 +1,47 @@
 {
   "name": "react-motion-router",
-  "version": "0.1.0",
-  "private": true,
-  "dependencies": {
-    "@testing-library/jest-dom": "^5.15.0",
-    "@testing-library/react": "^11.2.7",
-    "@testing-library/user-event": "^12.8.3",
-    "@types/jest": "^26.0.24",
-    "@types/node": "^12.20.37",
-    "@types/react": "^17.0.35",
-    "@types/react-dom": "^17.0.11",
-    "assert": "^2.0.0",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "react-scripts": "4.0.3",
-    "typescript": "^4.4.4",
-    "web-gesture-events": "0.0.10",
-    "web-vitals": "^1.1.2"
-  },
+  "version": "2.3.2",
+  "browser": "index.js",
+  "description": "Declarative routing library for ReactJS ⚛ with transitions ⏮",
   "scripts": {
-    "build": "rm -rf ./build && tsc"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rimraf ./build/* && tsc && python3 ./post_build.py",
+    "dev": "tsc -w"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nxtexe/react-motion-router.git"
   },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+  "keywords": [
+    "react",
+    "router",
+    "route",
+    "routing",
+    "history",
+    "shared element",
+    "shared element transition",
+    "navigation",
+    "animation",
+    "transition"
+  ],
+  "author": "nxtexe",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/nxtexe/react-motion-router/issues"
+  },
+  "homepage": "https://github.com/nxtexe/react-motion-router#readme",
+  "dependencies": {
+    "assert": "^2.0.0",
+    "web-gesture-events": "0.0.10"
   },
   "devDependencies": {
-    "@types/react-transition-group": "^4.4.4",
-    "@types/styled-components": "^5.1.15"
+    "@types/node": "^17.0.23",
+    "@types/react": "^18.0.4",
+    "@types/react-dom": "^18.0.0",
+    "node": "^17.7.2",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.6.3"
   }
 }

@@ -15,7 +15,6 @@ interface DetailsProps {
 }
 
 export default function Details(props: DetailsProps) {
-    const [height, setHeight] = React.useState(0);
     if (props.route.params.profile) {
         return (
             <div className="details" style={{width: "100%", height: "100%", backgroundColor: Boolean(props.route.params.noBg) ? 'white' : undefined}}>
@@ -40,14 +39,10 @@ export default function Details(props: DetailsProps) {
                 </IconButton>
                 <div className="profile-info">
                     <SharedElement id={`${props.route.params.profile.id}-gradient-overlay`}>
-                        <div className="gradient-overlay" style={{height: height}}></div>
+                        <div className="gradient-overlay" style={{height: (window.innerWidth / props.route.params.aspect) || 'auto'}}></div>
                     </SharedElement>
                     <SharedElement id={props.route.params.profile.id}>
-                        <img src={props.route.params.profile.photo} alt="profile-details" ref={(ref) => {
-                            if (ref && !height) {
-                                setHeight(ref.getBoundingClientRect().height);
-                            }
-                        }} />
+                        <img src={props.route.params.profile.photo} alt="profile-details" />
                     </SharedElement>
                     <div className="text-content">
                         <SharedElement id={`title-${props.route.params.profile.id}`}>

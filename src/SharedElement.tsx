@@ -217,10 +217,19 @@ namespace SharedElement {
             return new DOMRect();
         }
     
-        get getCSSData(): [string, {[key:string]:string}] {
+        get CSSData(): [string, {[key:string]:string}] {
             const _computedStyle = this._computedStyle;
             if (_computedStyle) return getCSSData(_computedStyle);
             return ['', {}];
+        }
+
+        get CSSText(): string {
+            const _computedStyle = this._computedStyle;
+            if (_computedStyle) {
+                const [CSSText] = getCSSData(_computedStyle, false);
+                return CSSText;
+            };
+            return '';
         }
     
         get id() {

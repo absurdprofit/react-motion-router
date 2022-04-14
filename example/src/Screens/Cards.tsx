@@ -112,9 +112,7 @@ export default class Cards extends React.Component<CardsProps> {
                                     profile: hero
                                 });
                             }}>
-                                <SharedElement id={`${hero.id}-card-bg`} config={{
-                                        easingFunction: 'linear'
-                                }}>
+                                <SharedElement id={`${hero.id}-card-bg`}>
                                     <div
                                         id={`${hero.id}-bg`}
                                         className="card-bg"
@@ -123,9 +121,7 @@ export default class Cards extends React.Component<CardsProps> {
                                     ></div>
                                 </SharedElement>
                                 <Card sx={{ width: 345 > window.screen.width ? 300 : 345 }}>
-                                    <SharedElement id={hero.id} config={{
-                                        easingFunction: 'linear'
-                                    }}>
+                                    <SharedElement id={hero.id}>
                                         <CardMedia
                                             component="img"
                                             height="140"

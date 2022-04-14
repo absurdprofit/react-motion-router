@@ -35,7 +35,7 @@
   z-index: 1;
 }
 .cards .card-bg {
-  height: 291px;
+  height: 100%;
   position: absolute;
   border-radius: 15px;
   background-color: white;

@@ -4,11 +4,11 @@ import { AnimationConfig } from './common/types';
 import GhostLayer from './GhostLayer';
 
 // export interface RoutesData {[key:string]: any}
-export type RoutesData = Map<string | RegExp | undefined, any>;
+export type RoutesData = Map<string | RegExp | undefined, {[key:string]: any}>;
 
 export default class RouterData {
     private _currentPath: string | undefined = '';
-    private _routesData: RoutesData = new Map<string | RegExp, any>();
+    private _routesData: RoutesData = new Map();
     private _navigation: Navigation = new Navigation(false);
     private _backNavigating: boolean = false;
     private _gestureNavigating: boolean = false;

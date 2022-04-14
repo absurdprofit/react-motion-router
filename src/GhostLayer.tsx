@@ -102,8 +102,19 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     const startRect = startInstance.clientRect;
                     const endRect = endInstance.clientRect;
 
-                    const [startCSSText, startCSSObject] = startInstance.getCSSData;
-                    const [endCSSText, endCSSObject] = endInstance.getCSSData; 
+                    let startCSSText: string;
+                    let startCSSObject: {[key:string]: string} = {};
+                    let endCSSText: string;
+                    let endCSSObject: {[key:string]: string} = {};
+
+                    // only get css object when transition type is morph
+                    if (transitionType === "morph") {
+                        [startCSSText, startCSSObject] = startInstance.CSSData;
+                        [endCSSText, endCSSObject] = endInstance.CSSData;
+                    }
+                    
+                    startCSSText = startInstance.CSSText;
+                    endCSSText = endInstance.CSSText;
                     
                     startChild.style.cssText = startCSSText;
                     if (transitionType !== "morph") {
@@ -194,7 +205,6 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 transform: `translate(${transitionState.start.x.position}px, 0px)`
                             },
                             {
-                                ...getStyleObject(transitionState.end.x.node.style),
                                 transform: `translate(${transitionState.end.x.position}px, 0px)`
                             }
                         ],

@@ -14,6 +14,7 @@ interface AnimationProviderProps {
         out: AnimationConfig;
     } | (() => {in: AnimationConfig, out: AnimationConfig});
     backNavigating: boolean;
+    children: React.ReactNode;
 }
 
 interface AnimationProviderState {

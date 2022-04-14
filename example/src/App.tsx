@@ -24,24 +24,24 @@ let fadeAnimation: AnimationConfig = {
   duration: 350
 }
 
-if (iOS() && !isPWA) {
-  animation = {
-    type: 'none',
-    duration: 0
-  }
-  fadeAnimation = {
-    type: "none",
-    duration: 0
-  }
-}
+// if (iOS() && !isPWA) {
+//   animation = {
+//     type: 'none',
+//     duration: 0
+//   }
+//   fadeAnimation = {
+//     type: "none",
+//     duration: 0
+//   }
+// }
 
 function App() {
   return (
     <Suspense fallback={<div className='cards-demo-loading'></div>}>
       <Router config={{
         defaultRoute: '/',
-        disableDiscovery: !isPWA,
-        disableBrowserRouting: isPWA && iOS(),
+        disableDiscovery: false,
+        disableBrowserRouting: true,
         animation: animation
       }}>
         <Stack.Screen
