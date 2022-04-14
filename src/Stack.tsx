@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import SharedElement from './SharedElement';
 import { RouterDataContext } from './RouterData';
 import { AnimationConfig, AnimationConfigFactory } from './common/types';
@@ -14,6 +14,7 @@ export interface ScreenProps {
     out?: boolean;
     in?: boolean;
     component: React.JSXElementConstructor<any>;
+    fallback?: React.ReactNode;
     path?: string | RegExp;
     defaultParams?: {[key:string]: any};
     config?: {
@@ -125,7 +126,7 @@ export namespace Stack {
         }
 
 
-        onExit() {
+        onExit = () => {
             if (this.ref) {
                 this.scrollPos = {
                     x: this.ref.scrollLeft,
@@ -139,7 +140,7 @@ export namespace Stack {
             }
         }
 
-        onEnter(shouldScroll: boolean) {
+        onEnter = (shouldScroll: boolean) => {
             if (shouldScroll) this.ref?.scrollTo(this.scrollPos.x, this.scrollPos.y);
             
             if (this.context.ghostLayer) {
@@ -166,8 +167,8 @@ export namespace Stack {
         render() {
             return (
                 <AnimationProvider
-                    onExit={this.onExit.bind(this)}
-                    onEnter={this.onEnter.bind(this)}
+                    onExit={this.onExit}
+                    onEnter={this.onEnter}
                     in={this.props.in || false}
                     out={this.props.out || false}
                     name={this.props.component.name}
@@ -189,15 +190,17 @@ export namespace Stack {
                         }}
                     >
                         <SharedElement.SceneContext.Provider value={this.sharedElementScene}>
-                            <this.props.component
-                                route={{
-                                    params: {
-                                        ...this.props.defaultParams,
-                                        ...this.contextParams
-                                    }
-                                }}
-                                navigation={this.context.navigation}
-                            />
+                            <Suspense fallback={this.props.fallback}>
+                                <this.props.component
+                                    route={{
+                                        params: {
+                                            ...this.props.defaultParams,
+                                            ...this.contextParams
+                                        }
+                                    }}
+                                    navigation={this.context.navigation}
+                                />
+                            </Suspense>
                         </SharedElement.SceneContext.Provider>
                     </div>
                 </AnimationProvider>

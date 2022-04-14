@@ -212,11 +212,7 @@ export function getCSSData(styles: CSSStyleDeclaration, object: boolean = true):
         }
     );
 
-    if (object) {
-        return [cssText, styleObject];
-    } else {
-        return [cssText, {}];
-    }
+    return [cssText, styleObject];
 }
 
 export function getStyleObject(styles: CSSStyleDeclaration): {[key:string]: string} {

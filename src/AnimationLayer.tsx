@@ -1,4 +1,4 @@
-import React, { createContext } from 'react';
+import React, { createContext, startTransition } from 'react';
 import {SwipeEndEvent, SwipeEvent, SwipeStartEvent} from 'web-gesture-events';
 import { clamp, Navigation, matchRoute, includesRoute } from './common/utils';
 import {ScreenChild} from './index';
@@ -133,7 +133,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         }
     }
 
-    componentDidUpdate(prevProps: AnimationLayerProps) {
+    componentDidUpdate(prevProps: AnimationLayerProps, prevState: AnimationLayerState) {
         if (!React.Children.count(this.state.children)) {
             const children = React.Children.map(this.props.children, (child: ScreenChild) => {
                 if (!React.isValidElement(child)) return undefined;
@@ -144,7 +144,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         }
         if (prevProps.currentPath !== this.state.currentPath) {
             this.animationLayerData.duration = this.props.duration;
-            if (!this.state.gestureNavigating) {
+            if (!this.state.gestureNavigating && prevState.shouldAnimate) {
                 this.animationLayerData.play = true;
                 this.animationLayerData.animate(); // children changes committed now animate
             }
@@ -158,61 +158,62 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
     }
 
     onSwipeStart(ev: SwipeStartEvent) {
-        // if only one child return
-        if (!this.props.lastPath) return;
-
         if (ev.direction === "right" && ev.x < this.props.swipeAreaWidth) {
-            let currentPath: string | undefined = this.props.currentPath;
-            let lastPath: string | undefined = this.props.lastPath;
-            let currentMatched = false;
-            let lastMatched = false;
-            const children = React.Children.map(
-                this.props.children,
-                (child: ScreenChild) => {
-                    if (!this.props.lastPath) return undefined;
-                    
-                    if (!includesRoute(currentPath, this.state.paths) && this.state.paths.includes(undefined)) {
-                        currentPath = undefined;
-                    }
-                    if (!includesRoute(lastPath, this.state.paths) && this.state.paths.includes(undefined)) {
-                        lastPath = undefined;
-                    }
-                    if (React.isValidElement(child)) {
-                        if (matchRoute(child.props.path, currentPath)) {
-                            if (!currentMatched) {
-                                currentMatched = true;
-                                const element = React.cloneElement(child, {...child.props, in: true, out: false});
-                                return element as ScreenChild;
+            startTransition(() => {
+            // if only one child return
+            if (!this.props.lastPath) return;
+                let currentPath: string | undefined = this.props.currentPath;
+                let lastPath: string | undefined = this.props.lastPath;
+                let currentMatched = false;
+                let lastMatched = false;
+                const children = React.Children.map(
+                    this.props.children,
+                    (child: ScreenChild) => {
+                        if (!this.props.lastPath) return undefined;
+                        
+                        if (!includesRoute(currentPath, this.state.paths) && this.state.paths.includes(undefined)) {
+                            currentPath = undefined;
+                        }
+                        if (!includesRoute(lastPath, this.state.paths) && this.state.paths.includes(undefined)) {
+                            lastPath = undefined;
+                        }
+                        if (React.isValidElement(child)) {
+                            if (matchRoute(child.props.path, currentPath)) {
+                                if (!currentMatched) {
+                                    currentMatched = true;
+                                    const element = React.cloneElement(child, {...child.props, in: true, out: false});
+                                    return element as ScreenChild;
+                                }
+                            }
+                            if (matchRoute(child.props.path, lastPath)) {
+                                if (!lastMatched) {
+                                    lastMatched = true;
+                                    const element = React.cloneElement(child, {...child.props, in: false, out: true});
+                                    return element as ScreenChild;
+                                }
                             }
                         }
-                        if (matchRoute(child.props.path, lastPath)) {
-                            if (!lastMatched) {
-                                lastMatched = true;
-                                const element = React.cloneElement(child, {...child.props, in: false, out: true});
-                                return element as ScreenChild;
-                            }
-                        }
                     }
-                }
-            ).sort((firstChild) => matchRoute(firstChild.props.path, currentPath) ? -1 : 1);
-            
-            this.props.onGestureNavigationStart();
-            this.setState({
-                shouldPlay: false,
-                gestureNavigating: true,
-                children: children,
-                startX: ev.x
-            }, () => {
-                const motionStartEvent = new CustomEvent('motion-progress-start');
-
-                this.animationLayerData.gestureNavigating = true;
-                this.animationLayerData.playbackRate = -1;
-                this.animationLayerData.play = false;
-                this.animationLayerData.animate();
+                ).sort((firstChild) => matchRoute(firstChild.props.path, currentPath) ? -1 : 1);
                 
-                window.dispatchEvent(motionStartEvent);
-                window.addEventListener('swipe', this.onSwipeListener);
-                window.addEventListener('swipeend', this.onSwipeEndListener);
+                this.props.onGestureNavigationStart();
+                this.setState({
+                    shouldPlay: false,
+                    gestureNavigating: true,
+                    children: children,
+                    startX: ev.x
+                }, () => {
+                    const motionStartEvent = new CustomEvent('motion-progress-start');
+
+                    this.animationLayerData.gestureNavigating = true;
+                    this.animationLayerData.playbackRate = -1;
+                    this.animationLayerData.play = false;
+                    this.animationLayerData.animate();
+                    
+                    window.dispatchEvent(motionStartEvent);
+                    window.addEventListener('swipe', this.onSwipeListener);
+                    window.addEventListener('swipeend', this.onSwipeEndListener);
+                });
             });
         }
     }

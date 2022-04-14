@@ -16,4 +16,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  animation: back-fade-in .5s ease forwards;
+}
+@keyframes back-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

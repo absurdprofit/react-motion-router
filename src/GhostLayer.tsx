@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { startTransition } from 'react';
 import SharedElement from './SharedElement';
-import {clamp} from './common/utils';
+import {clamp, sleep} from './common/utils';
 import { AnimationConfig } from './common/types';
 import {getStyleObject} from './common/utils';
 import {MotionProgressEvent} from './AnimationLayer';
@@ -59,16 +59,18 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
     }
 
     set nextScene(scene: SharedElement.Scene) {
-        this._nextScene = scene;
+        startTransition(() => {
+            this._nextScene = scene;
 
-        if (this._currentScene) {
-            if (!this._currentScene.isEmpty() && !this._nextScene.isEmpty()) {
-                this.sharedElementTransition(this._currentScene, this._nextScene);
-                return;
+            if (this._currentScene) {
+                if (!this._currentScene.isEmpty() && !this._nextScene.isEmpty()) {
+                    this.sharedElementTransition(this._currentScene, this._nextScene);
+                    return;
+                }
             }
-        }
-        this._currentScene = null;
-        this._nextScene = null;
+            this._currentScene = null;
+            this._nextScene = null;
+        });
     }
 
     finish() {
@@ -88,7 +90,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
             return;
         }
         
-        this.setState({transitioning: true}, () => {
+        this.setState({transitioning: true}, async () => {
             for (const [id, start] of currentScene.nodes) {
                 //if id exists in next scene
                 if (nextScene.nodes.has(id)) {
@@ -445,8 +447,8 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     window.addEventListener('page-animation-end', async ()=>{
                         startNode.style.willChange = 'auto';
                         endNode.style.willChange = 'auto';
-                        startInstance.hidden(false);
                         await endInstance.hidden(false);
+                        await startInstance.hidden(false);
                         this.ref?.removeChild(startNode);
                         if (transitionType !== "morph") {
                             this.ref?.removeChild(endNode);
@@ -515,7 +517,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     position: 'absolute',
                     zIndex: 1000,
                     width: '100vw',
-                    height: '100vh'
+                    height: '100vh',
                 }}>
                 </div>
             );

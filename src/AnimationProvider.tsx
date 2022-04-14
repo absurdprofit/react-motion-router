@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { startTransition } from 'react';
 import { AnimationConfig } from './common/types';
 import AnimationLayerData, {AnimationLayerDataContext} from './AnimationLayerData';
 import AnimationKeyframePresets from './Animations';
@@ -158,21 +158,23 @@ export default class AnimationProvider extends React.Component<AnimationProvider
 
     mounted(_mounted: boolean, willAnimate: boolean = true): Promise<void> {
         return new Promise((resolve, _) => {
-            this.setState({mounted: _mounted}, () => {
-                if (_mounted) {
-                    if (willAnimate) {
-                        if (this.ref) this.ref.style.willChange = 'transform, opacity';
+            startTransition(() => {
+                this.setState({mounted: _mounted}, () => {
+                    if (_mounted) {
+                        if (willAnimate) {
+                            if (this.ref) this.ref.style.willChange = 'transform, opacity';
+                        }
+                        const shouldScroll = Boolean(
+                            (this.props.in && !this._animationLayerData?.gestureNavigating)
+                            || (this.props.out && this._animationLayerData?.gestureNavigating)
+                        );
+                        if (this.props.onEnter) {
+                            this.props.onEnter(shouldScroll);
+                        }
                     }
-                    const shouldScroll = Boolean(
-                        (this.props.in && !this._animationLayerData?.gestureNavigating)
-                        || (this.props.out && this._animationLayerData?.gestureNavigating)
-                    );
-                    if (this.props.onEnter) {
-                        this.props.onEnter(shouldScroll);
-                    }
-                }
-
-                resolve();
+    
+                    resolve();
+                });
             });
         });
     }

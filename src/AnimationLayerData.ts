@@ -128,7 +128,7 @@ export default class AnimationLayerData {
                 this._outAnimation.ready.then(() => {
                     this.updateProgress();
                 });
-                this._outAnimation.onfinish = () => {
+                this._outAnimation.onfinish = async () => {
                     if (this._outAnimation) {
                         this._outAnimation.onfinish = null;
                     }
@@ -145,7 +145,10 @@ export default class AnimationLayerData {
                             ], {duration: 0, fill: 'forwards'});
                         }
                         if (this._nextScreen) {
-                            this._nextScreen.mounted(false);
+                            this._nextScreen.animate([
+                                AnimationKeyframePresets[this._nextScreen.inAnimation as keyof typeof AnimationKeyframePresets][0]
+                            ], {duration: 0, fill: 'forwards'});
+                            await this._nextScreen.mounted(false);
                         }
                     }
                     if (this._onEnd) {

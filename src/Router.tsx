@@ -204,6 +204,20 @@ export default class Router extends React.Component<RouterProps, RouterState> {
             this.setState({currentPath: currentPath});
         }
     }
+
+    onGestureNavigationStart = () => {
+        this._routerData.gestureNavigating = true;
+        this.setState({gestureNavigating: true});
+    }
+
+    onGestureNavigationEnd = () => {
+        this._routerData.gestureNavigating = false;
+        this.setState({implicitBack: true, gestureNavigating: false}, () => {
+            this.navigation.goBack();
+            this.setState({backNavigating: false});
+            this._routerData.backNavigating = false;
+        });
+    }
     
     render() {
         return (
@@ -227,16 +241,8 @@ export default class Router extends React.Component<RouterProps, RouterState> {
                         currentPath={this.state.currentPath}
                         backNavigating={this.state.backNavigating}
                         lastPath={this.navigation.history.previous}
-                        onGestureNavigationStart={() => {
-                            this._routerData.gestureNavigating = true;
-                            this.setState({gestureNavigating: true});
-                        }}
-                        onGestureNavigationEnd={() => {
-                            this._routerData.gestureNavigating = false;
-                            this.setState({implicitBack: true, gestureNavigating: false}, () => {
-                                this.navigation.goBack();
-                            });
-                        }}
+                        onGestureNavigationStart={this.onGestureNavigationStart}
+                        onGestureNavigationEnd={this.onGestureNavigationEnd}
                     >
                         {this.props.children}
                     </AnimationLayer>

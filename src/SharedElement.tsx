@@ -1,4 +1,4 @@
-import React, {createContext} from 'react';
+import React, {createContext, startTransition} from 'react';
 import {getCSSData, Vec2} from './common/utils';
 import assert from 'assert';
 
@@ -242,13 +242,15 @@ namespace SharedElement {
 
         hidden(_hidden: boolean): Promise<void> {
             return new Promise((resolve, _) => {
-                if (this._isMounted) {
-                    this.setState({hidden: _hidden}, () => {
+                startTransition(() => {
+                    if (this._isMounted) {
+                        this.setState({hidden: _hidden}, () => {
+                            resolve();
+                        });
+                    } else {
                         resolve();
-                    });
-                } else {
-                    resolve();
-                }
+                    }
+                });
             });
         }
 
