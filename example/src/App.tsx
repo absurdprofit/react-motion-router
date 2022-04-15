@@ -1,4 +1,4 @@
-import React, {Suspense, useEffect} from 'react';
+import React from 'react';
 import {Router, Stack, AnimationConfig} from 'react-motion-router';
 import { matchRoute } from 'react-motion-router/common/utils';
 import Home from './Screens/Home';
