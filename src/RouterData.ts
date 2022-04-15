@@ -12,6 +12,8 @@ export default class RouterData {
     private _navigation: Navigation = new Navigation(false);
     private _backNavigating: boolean = false;
     private _gestureNavigating: boolean = false;
+    private _paramsSerialiser?: (params: {[key:string]: any}) => string;
+    private _paramsDeserialiser?:(queryString: string) => {[key:string]: any};
     private _animation: {in: AnimationConfig; out: AnimationConfig} = {
         in: {
             type: "none",
@@ -45,6 +47,12 @@ export default class RouterData {
     set gestureNavigating(_gestureNavigating: boolean) {
         this._gestureNavigating = _gestureNavigating;
     }
+    set paramsSerialiser(_paramsSerialiser: ((params: {[key:string]: any}) => string) | undefined) {
+        this._paramsSerialiser = _paramsSerialiser;
+    }
+    set paramsDeserialiser(_paramsDeserialiser: ((queryString: string) => {[key:string]: any}) | undefined) {
+        this._paramsDeserialiser = _paramsDeserialiser;
+    }
 
     get currentPath() {
         return this._currentPath;
@@ -66,6 +74,12 @@ export default class RouterData {
     }
     get gestureNavigating() {
         return this._gestureNavigating;
+    }
+    get paramsSerialiser(): ((params: {[key:string]: any}) => string) | undefined {
+        return this._paramsSerialiser;
+    }
+    get paramsDeserialiser():( (queryString: string) => {[key:string]: any}) | undefined {
+        return this._paramsDeserialiser;
     }
 }
 

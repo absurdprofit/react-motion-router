@@ -21,7 +21,6 @@ export default class AnimationLayerData {
     private _shouldAnimate: boolean = true;
 
     private updateProgress() {
-        
         if (this._gestureNavigating && !this._play) {
             // update in set progress() instead
             window.cancelAnimationFrame(this._progressUpdateID);
@@ -244,7 +243,7 @@ export default class AnimationLayerData {
     }
 
     set duration(_duration: number) {
-        this._duration = _duration;
+        this._duration = _duration || 1;
     }
     get progress() {
         return this._progress;

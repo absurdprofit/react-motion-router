@@ -17,6 +17,8 @@ interface Config {
     hysteresis?: number;
     disableDiscovery?: boolean;
     disableBrowserRouting?: boolean;
+    paramsSerialiser?(params: {[key:string]: any}): string;
+    paramsDeserialiser?(queryString: string): {[key:string]: any};
 }
 
 interface RouterProps {
@@ -95,7 +97,8 @@ export default class Router extends React.Component<RouterProps, RouterState> {
 
     componentDidMount() {
         // get url search params and append to existing route params
-        const searchParams = this.navigation.history.searchParamsToObject(window.location.search);
+        const parser = this.config.paramsDeserialiser || this.navigation.history.searchParamsToObject;
+        const searchParams = parser(window.location.search);
         const routesData = this.state.routesData;
         
         if (searchParams) {
@@ -111,6 +114,8 @@ export default class Router extends React.Component<RouterProps, RouterState> {
             currentPath = this.props.config.defaultRoute;
         }
         this._routerData.routesData = this.state.routesData;
+        this._routerData.paramsDeserialiser = this.props.config.paramsDeserialiser;
+        this._routerData.paramsSerialiser = this.props.config.paramsSerialiser;
         this.setState({currentPath: currentPath, routesData: routesData});
         this._routerData.currentPath = this.navigation.location.pathname;
         window.addEventListener('go-back', this.onBackListener, true);

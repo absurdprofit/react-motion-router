@@ -196,7 +196,8 @@ namespace SharedElement {
         private _id : string = this.props.id.toString();
         private _ref: HTMLDivElement | null = null;
         private _scene: Scene | null = null;
-        private _mutationObserver = new MutationObserver(this.onMutation.bind(this));
+        private _mutationObserver = new MutationObserver(this.updateScene.bind(this));
+        private _idleCallbackID: number = 0;
         private _computedStyle: CSSStyleDeclaration | null = null;
         private _isMounted = false;
         private onRef = this.setRef.bind(this);
@@ -278,16 +279,14 @@ namespace SharedElement {
     
         }
 
-        onMutation() {
-            this.updateScene();
-        }
-
         updateScene() {
-            queueMicrotask(() => {
+            cancelIdleCallback(this._idleCallbackID);
+            this._idleCallbackID = requestIdleCallback(() => {
                 if (this._ref) {
                     this.scene?.removeNode(this._id);
                     this.scene?.addNode(nodeFromRef(this._id, this._ref, this));
                 }
+                this._idleCallbackID = 0;
             });
         }
 

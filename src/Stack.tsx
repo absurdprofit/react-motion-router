@@ -42,10 +42,7 @@ export namespace Stack {
                 duration: 0
             }
         }
-        private scrollPos: Vec2 = {
-            x: 0,
-            y: 0
-        }
+        private scrollPos: Vec2 = {x: 0, y: 0};
         static contextType = RouterDataContext;
         context!: React.ContextType<typeof RouterDataContext>;
         static defaultProps = {

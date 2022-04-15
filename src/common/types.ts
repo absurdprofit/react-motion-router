@@ -20,6 +20,9 @@ enum AnimationTypeEnum {
     none
 }
 
+export type ParamsSerialiser = (params: {[key:string]: any}) => string;
+export type ParamsDeserialiser = (queryString: string) => {[key:string]: any};
+
 export type AnimationType = keyof typeof AnimationTypeEnum;
 export type AnimationDirection = keyof typeof AnimationDirectionEnum;
 export interface AnimationConfig {

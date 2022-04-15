@@ -4,6 +4,9 @@ const TerserPlugin = require("terser-webpack-plugin");
 
 module.exports = {
     mode: "production",
+    experiments: {
+        outputModule: true
+    },
     entry: {
         index: './src/index.ts',
         utils: './src/common/utils.ts'
@@ -27,8 +30,7 @@ module.exports = {
         filename: '[name].js',
         path: path.resolve(__dirname, 'build'),
         clean: true,
-        library: 'react-motion-router',
-        libraryTarget: 'umd'
+        libraryTarget: 'module'
     },
     plugins: [
         new webpack.ProvidePlugin({

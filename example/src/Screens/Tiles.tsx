@@ -28,7 +28,9 @@ export default class Tiles extends React.Component<TilesProps, TilesState> {
                 <div className="content">
                     {this.state.heroes.map((hero: Hero, index: number) => {
                         return (
-                            <Anchor key={index} href={`/slides?hero=${index}`}>
+                            <Anchor key={index} href="/slides" params={{
+                                hero: index
+                            }}>
                                 <Tile navigation={this.props.navigation} hero={hero} onClick={() => {
                                     this.props.navigation.navigate('/slides', {
                                         hero: index

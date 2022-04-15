@@ -108,7 +108,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
                 currentPath: nextProps.currentPath
             }
         }
-        return state;
+        return null;
     }
 
     componentDidMount() {
