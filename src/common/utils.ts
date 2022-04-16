@@ -1,3 +1,6 @@
+import { useContext } from "react";
+import { RouterDataContext } from "../RouterData";
+
 export class History {
     private _stack: string[] = [];
     private _next: string | null = null;

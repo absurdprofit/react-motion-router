@@ -22,9 +22,13 @@ export interface ScreenProps {
     }
 }
 
+interface ScreenState {
+    fallback?: React.ReactNode;
+}
+
 export namespace Stack {
     
-    export class Screen extends React.Component<ScreenProps> {
+    export class Screen extends React.Component<ScreenProps, ScreenState> {
         private sharedElementScene: SharedElement.Scene = new SharedElement.Scene(this.props.component.name);
         private ref: HTMLElement | null = null;
         private contextParams = this.context.routesData.get(this.props.path)?.params;
@@ -51,36 +55,16 @@ export namespace Stack {
             }
         }
 
-        animationFactory() {
-            if (typeof this.props.config?.animation === "function") {
-                let currentPath = this.context.navigation.history.next;
-                if (!this.context.backNavigating) {
-                    currentPath = this.context.navigation.history.previous;
-                }
-                let nextPath = this.context.navigation.history.current;
-
-                const animationConfig = this.props.config.animation(
-                    currentPath || '',
-                    nextPath
-                );
-
-                if ('in' in animationConfig) {
-                    return {
-                        in: animationConfig.in,
-                        out: animationConfig.out || animationConfig.in
-                    };
-                } else {
-                    return {
-                        in: animationConfig,
-                        out: animationConfig
-                    };
-                }
-            }
-
-            return this.context.animation;
-        }
+        state: ScreenState = {}
 
         componentDidMount() {
+            if (this.props.fallback && React.isValidElement(this.props.fallback)) {
+                this.setState({
+                    fallback: React.cloneElement<any>(this.props.fallback, {navigation: this.context.navigation})
+                });
+            } else {
+                this.setState({fallback: this.props.fallback});
+            }
             if (this.props.config?.animation) {
                 if (typeof this.props.config.animation === "function") {
                     this.animation = this.animationFactory.bind(this);
@@ -122,7 +106,47 @@ export namespace Stack {
             return false;
         }
 
+        componentDidUpdate(prevProps: ScreenProps) {
+            if (prevProps.fallback !== this.props.fallback) {
+                if (this.props.fallback && React.isValidElement(this.props.fallback)) {
+                    this.setState({
+                        fallback: React.cloneElement<any>(this.props.fallback, {navigation: this.context.navigation})
+                    });
+                } else {
+                    this.setState({fallback: this.props.fallback});
+                }
+            }
+        }
 
+        animationFactory() {
+            if (typeof this.props.config?.animation === "function") {
+                let currentPath = this.context.navigation.history.next;
+                if (!this.context.backNavigating) {
+                    currentPath = this.context.navigation.history.previous;
+                }
+                let nextPath = this.context.navigation.history.current;
+
+                const animationConfig = this.props.config.animation(
+                    currentPath || '',
+                    nextPath
+                );
+
+                if ('in' in animationConfig) {
+                    return {
+                        in: animationConfig.in,
+                        out: animationConfig.out || animationConfig.in
+                    };
+                } else {
+                    return {
+                        in: animationConfig,
+                        out: animationConfig
+                    };
+                }
+            }
+
+            return this.context.animation;
+        }
+        
         onExit = () => {
             if (this.ref) {
                 this.scrollPos = {
@@ -187,7 +211,7 @@ export namespace Stack {
                         }}
                     >
                         <SharedElement.SceneContext.Provider value={this.sharedElementScene}>
-                            <Suspense fallback={this.props.fallback}>
+                            <Suspense fallback={this.state.fallback}>
                                 <this.props.component
                                     route={{
                                         params: {
