@@ -57,14 +57,6 @@ export default class Anchor extends React.Component<AnchorProps, AnchorState> {
                                 e.preventDefault();
                                 if (this.props.onClick) this.props.onClick(e)
                             }}
-                            style={{
-                                color: 'inherit',
-                                cursor: 'inherit',
-                                textDecoration: 'none',
-                                width: 'max-content',
-                                height: 'max-content',
-                                display: 'contents'
-                            }}
                         >{this.props.children}</a>
                     );
                 }}
@@ -72,8 +64,3 @@ export default class Anchor extends React.Component<AnchorProps, AnchorState> {
         );
     }
 }
-
-    // useEffect(() => {
-    //     
-    // }, [props.href, props.params]);
-    

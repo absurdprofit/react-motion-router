@@ -194,25 +194,32 @@ export interface Vec2 {
 }
 
 export function getCSSData(styles: CSSStyleDeclaration, object: boolean = true): [string, {[key:string]:string}] {
-    const values = Object.values(styles).slice(0, styles.length - 1);
-    let cssText = '';
-    const styleObject: {[key:string]:string} = {};
-    values.map(
-        (propertyName) => {
+    let text = '';
+    const styleObject: {[key:string]: string} = {};
+    let j = 0;
+    for (let property in styles) {
+        if (j < styles.length) {
+            const propertyName = styles[property];
             const propertyValue = styles.getPropertyValue(propertyName);
-            cssText += `${propertyName}:${propertyValue};`;
-            
-            if (object) {
-                const camelCasePropertyName = propertyName.replace(/^-/, '').replace(/-([a-z])/g,
-                function (m, s) {
-                    return s.toUpperCase();
-                });
-                styleObject[camelCasePropertyName] = propertyValue;
+            text += `${propertyName}:${propertyValue};`;
+        } else {
+            if (!object) break;
+            let propertyName = property;
+            const propertyValue = styles[propertyName as any];
+            if (
+                typeof propertyValue === "string"
+                && propertyName !== "cssText"
+                && !propertyName.includes('webkit')
+                && !propertyName.includes('grid')
+            ) {
+                if (propertyName === "offset") propertyName = "cssOffset";
+                if (propertyName === "float") propertyName = "cssFloat";
+                styleObject[propertyName] = propertyValue;
             }
         }
-    );
-
-    return [cssText, styleObject];
+        j++;
+    }
+    return [text, styleObject];
 }
 
 export function getStyleObject(styles: CSSStyleDeclaration): {[key:string]: string} {

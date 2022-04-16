@@ -19,9 +19,6 @@ let heroName = '';
 let titleInset = '';
 export default class Cards2 extends React.Component<CardsProps> {
     private ref: HTMLElement | null = null;
-    private observer = new IntersectionObserver(this.observe.bind(this), {
-        threshold: 0.1
-    });
     private static scrollPos = {
         x: 0,
         y: 0
@@ -55,29 +52,6 @@ export default class Cards2 extends React.Component<CardsProps> {
             }
         }
     }
-
-    observe(entries: IntersectionObserverEntry[]) {
-        entries.map((entry: IntersectionObserverEntry) => {
-            const target = entry.target as HTMLImageElement;
-            if (entry.isIntersecting) {
-                if (target.dataset.src && target.src.substring(0, 4) === "data") {
-                    target.style.transition = 'opacity 0.3s ease';
-                    target.style.opacity = '0';
-                    target.src = target.dataset.src;
-                    target.onload = () => {
-                        target.decoding = "sync";
-                        target.loading = "eager";
-                        target.style.opacity = '1';
-                    }
-                } else {
-                    target.decoding = "sync";
-                    target.loading = "eager";
-                }
-            }
-
-            return undefined;
-        });
-    }
     render() {
         return (
             <div className="cards cards-2">
@@ -92,7 +66,7 @@ export default class Cards2 extends React.Component<CardsProps> {
                         let titleRef: HTMLElement | null = null;
                         let gradientRef: HTMLElement | null = null;
                         return (
-                            <ButtonBase key={index} onClick={() => {
+                            <ButtonBase key={index} disableRipple onClick={() => {
                                 let imageAspect;
                                 if (imageRef && paraRef && titleRef && gradientRef) {
                                     const imageRect = imageRef.getBoundingClientRect();
@@ -130,17 +104,10 @@ export default class Cards2 extends React.Component<CardsProps> {
                                             height={345}
                                             loading={heroName === hero.id ? "eager" : "lazy"}
                                             decoding={heroName === hero.id ? "sync" : "async"}
-                                            src={heroName === hero.id ? hero.photo : "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAQAAABKfvVzAAAAGklEQVR42mN8/5+BJMA4qmFUw6iGUQ201QAAzKYuaaLRYAgAAAAASUVORK5CYII="}
-                                            data-src={hero.photo}
+                                            src={hero.photo}
                                             alt={hero.name}
                                             id={`${hero.id}`}
                                             ref={(ref: HTMLImageElement | null) => {
-                                                if (imageRef) {
-                                                    this.observer.unobserve(imageRef);
-                                                }
-                                                if (ref) {
-                                                    this.observer.observe(ref);
-                                                }
                                                 imageRef = ref;
                                             }}
                                             style={{
