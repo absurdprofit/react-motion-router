@@ -1,3 +1,21 @@
+# [V3.0.0-alpha](https://github.com/nxtexe/react-motion-router/blob/main/CHANGELOG.md#v300-alpha)
+# Breaking Changes
+#### We've upgraded to React 18! 🎉
+I haven't taken full advantage of the new features available in the latest version of React. I was primarily focused on migrating the existing library to the new version of React. This included some breaking changes of course.
+
+If you find any bugs you think may be related to migration feel free to open an issue.
+
+## Features
+- `Stack.Screen` now supports components imported using `React.lazy()`. You can pass a fallback component similar to how you pass a fallback component to `React.Suspense`. What happens is screens now use `React.Suspense` under the hood. The fallback component will animate while the lazy component loads over the network. Essentially you can now split your projects up on a page by page basis. Once each page has been routed to once however they typically stay in memory just as if they were all downloaded on page load. What is downloaded on the client on page load is essentially only what is absolutely necessary (using this pattern).
+
+- You can now pass a `paramsSerialiser` and `paramsDeserialiser` function to the `Router` config prop. This is useful for when you want to have your screen parameters in a specific format when they are parsed from the search part of the page url on page load. 
+
+## Enhancements
+
+- When animation was set to none the progress was `NaN`. This has been rectified in version 3.0.0.
+- SharedElement updates are now cancelable ensuring only the latest updates are processed.
+- The library has been bundled using webpack such that packaging is a little tighter. There is still a long way to go here so be sure to look out for the latest version.
+
 # [V2.3.0-alpha](https://github.com/nxtexe/react-motion-router/blob/main/CHANGELOG.md#v230-alpha)
 ## Features
 - Added RegExp as possible path prop to ```Stack.Screen```. Now you can create a route that matches multiple pathnames for example:
