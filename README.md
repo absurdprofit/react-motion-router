@@ -285,7 +285,7 @@ Shoutout to [@IzjerenHein](https://github.com/IjzerenHein) whose [react-native-s
 
 #### Other Relevant Resources
 
-1. [materio.io](https://material.io/design/motion/the-motion-system.html)
+1. [material.io](https://material.io/design/motion/the-motion-system.html)
 2. [react-native-magic-move](https://github.com/IjzerenHein/react-native-magic-move)
 3. [Hein Rutjes React Europe Talk](https://www.youtube.com/watch?v=Uj7aWfrtey8&list=FLsxiG7-SUK8s8xReSGAH4lQ)
 4. [Shared Element Transitions for Web](https://medium.com/@prateekbh/shared-elements-transitions-for-web-6fa9d31d4d6a)
