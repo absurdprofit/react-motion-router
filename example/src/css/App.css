@@ -48,6 +48,9 @@ div.cards.screen-fallback::before {
 div.cards-2.screen-fallback::before {
   content: "Cards Demo 2";
 }
+div.home.screen-fallback::before {
+  content: "React Motion Router";
+}
 div.screen-fallback {
   background-color: white;
   width: 100vw;

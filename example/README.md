@@ -29,6 +29,10 @@ Your app is ready to be deployed!
 
 See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
+### `npm run analyse`
+Runs a bunder analyser using the .map files in the build directory.
+NOTE: You muse set `GENERATE_SOURCEMAP` to true then run `npm run build` before analysing.
+
 ### `npm run eject`
 
 **Note: this is a one-way operation. Once you `eject`, you can’t go back!**

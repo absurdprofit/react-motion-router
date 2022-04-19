@@ -1,11 +1,11 @@
 import React from 'react';
 import {Router, Stack, AnimationConfig} from 'react-motion-router';
 import { matchRoute } from 'react-motion-router/common/utils';
-import Home from './Screens/Home';
-import NotFound from './Screens/NotFound';
 import { getPWADisplayMode, iOS } from './common/utils';
 import "./css/App.css";
 
+const NotFound = React.lazy(() => import('./Screens/NotFound'));
+const Home = React.lazy(() => import('./Screens/Home'));
 const Cards = React.lazy(() => import('./Screens/Cards'));
 const Cards2 = React.lazy(() => import('./Screens/Cards2'));
 const Slides = React.lazy(() => import('./Screens/Slides'));
@@ -76,6 +76,7 @@ function App() {
         <Stack.Screen
           path={"/"}
           component={Home}
+          fallback={<div className='screen-fallback home'></div>}
         />
         <Stack.Screen
           path={/^\/tiles/}
