@@ -48,15 +48,15 @@ export default class Anchor extends React.Component<AnchorProps, AnchorState> {
     render() {
         return (
             <RouterDataContext.Consumer>
-                {({paramsSerialiser}) => {
+                {({paramsSerialiser, navigation}) => {
                     this.paramsSerialiser = paramsSerialiser;
                     return(
                         <a
                             href={this.state.url}
                             onClick={(e)=>{
-                                if (!this.props.onClick) return;
                                 e.preventDefault();
-                                this.props.onClick(e)
+                                if(this.props.onClick) this.props.onClick(e);
+                                navigation.navigate(this.props.href, this.props.params);  
                             }}
                         >{this.props.children}</a>
                     );

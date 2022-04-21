@@ -114,7 +114,7 @@ export class Navigation {
         this._history = new History(_defaultRoute || null);
     }
 
-    navigate(route: string, routeParams?: any) {
+    navigate(route: string, routeParams?: {[key:string]: any}) {
         if (this._disableBrowserRouting) {
             this._history.implicitPush(route);
         } else {
@@ -131,7 +131,7 @@ export class Navigation {
         window.dispatchEvent(event);
     }
 
-    implicitNavigate(route: string, routeParams?: any) {
+    implicitNavigate(route: string, routeParams?: {[key:string]: any}) {
         this._history.implicitPush(route);
         
         const event = new CustomEvent<NavigateEventDetail>('navigate', {
