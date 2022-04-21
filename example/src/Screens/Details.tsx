@@ -4,24 +4,28 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import ClearIcon from '@mui/icons-material/Clear';
 import '../css/Details.css';
+import { Hero } from '../assets/Heroes';
 
 interface DetailsProps {
     navigation: Navigation;
     route: {
         params: {
-            [key:string]:any;
+            hero: Hero;
+            noBg?: boolean;
         }
     };
 }
 
 export default function Details(props: DetailsProps) {
-    if (props.route.params.profile) {
+    const {hero, noBg} = props.route.params;
+    const photoAspect = (hero.photo.width / hero.photo.height);
+    if (hero) {
         return (
-            <div className="details" style={{width: "100%", height: "100%", backgroundColor: Boolean(props.route.params.noBg) ? 'white' : undefined}}>
+            <div className="details" style={{width: "100%", height: "100%", backgroundColor: Boolean(noBg) ? 'white' : undefined}}>
                 <div className="top"></div>
-                {!Boolean(props.route.params.noBg)
+                {!Boolean(noBg)
                 &&
-                <SharedElement id={`${props.route.params.profile.id}-card-bg`}>
+                <SharedElement id={`${hero.id}-card-bg`}>
                     <div className="card-bg"></div>
                 </SharedElement>}
                 <IconButton style={{
@@ -38,26 +42,26 @@ export default function Details(props: DetailsProps) {
                     </SharedElement>
                 </IconButton>
                 <div className="profile-info">
-                    <SharedElement id={`${props.route.params.profile.id}-gradient-overlay`}>
-                        <div className="gradient-overlay" style={{height: (window.innerWidth / props.route.params.aspect) || 'auto'}}></div>
+                    <SharedElement id={`${hero.id}-gradient-overlay`}>
+                        <div className="gradient-overlay" style={{height: window.innerWidth / photoAspect, width: window.innerWidth}}></div>
                     </SharedElement>
-                    <SharedElement id={props.route.params.profile.id}>
-                        <img src={props.route.params.profile.photo} alt="profile-details" />
+                    <SharedElement id={hero.id}>
+                        <img src={hero.photo.url} alt="profile-details" width={hero.photo.width} height={hero.photo.height} />
                     </SharedElement>
                     <div className="text-content">
-                        <SharedElement id={`title-${props.route.params.profile.id}`}>
+                        <SharedElement id={`title-${hero.id}`}>
                             <Typography
                                 style={{fontWeight: 'bold', fontSize: '28px', zIndex: 10}}
                                 gutterBottom
                                 variant="h4"
                                 component="h4"
                             >
-                                {props.route.params.profile.name}
+                                {hero.name}
                             </Typography>
                         </SharedElement>
                         <div className="description">
-                            <SharedElement id={`description-${props.route.params.profile.id}`}>
-                                <p style={{zIndex: 10}}>{props.route.params.profile.description}</p>
+                            <SharedElement id={`description-${hero.id}`}>
+                                <p style={{zIndex: 10}}>{hero.description}</p>
                             </SharedElement>
                         </div>
                     </div>

@@ -233,7 +233,9 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         const motionEndEvent = new CustomEvent('motion-progress-end');
         if (this.state.progress < this.props.hysteresis || ev.velocity > this.props.minFlingVelocity) {
             if (ev.velocity >= this.props.minFlingVelocity) {
-                this.animationLayerData.playbackRate = -4;
+                this.animationLayerData.playbackRate = -5;
+            } else {
+                this.animationLayerData.playbackRate = -1;
             }
             onEnd = () => {
                 if(!this.props.disableBrowserRouting) this.animationLayerData.shouldAnimate = false;

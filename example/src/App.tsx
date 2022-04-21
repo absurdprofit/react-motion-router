@@ -41,7 +41,8 @@ function App() {
         defaultRoute: '/',
         disableDiscovery: !isPWA,
         disableBrowserRouting: isPWA && iOS(),
-        animation: animation
+        animation: animation,
+        minFlingVelocity: 1000
       }}>
         <Stack.Screen
           path={'/slides'}

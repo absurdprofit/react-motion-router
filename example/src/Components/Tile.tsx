@@ -41,7 +41,7 @@ export default class Tile extends React.Component<TileProps> {
                 }}>
                     <img
                         ref={c => this.ref = c}
-                        src={this.props.hero.photo}
+                        src={this.props.hero.photo.url}
                         alt={this.props.hero.name}
                         style={{
                             clipPath: (heroID === this.props.hero.id ? inset : '')

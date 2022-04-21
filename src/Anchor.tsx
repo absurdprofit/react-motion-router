@@ -54,8 +54,9 @@ export default class Anchor extends React.Component<AnchorProps, AnchorState> {
                         <a
                             href={this.state.url}
                             onClick={(e)=>{
+                                if (!this.props.onClick) return;
                                 e.preventDefault();
-                                if (this.props.onClick) this.props.onClick(e)
+                                this.props.onClick(e)
                             }}
                         >{this.props.children}</a>
                     );

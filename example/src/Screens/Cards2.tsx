@@ -83,9 +83,9 @@ export default class Cards2 extends React.Component<CardsProps> {
                                     heroName = hero.id;
                                 }
                                 this.props.navigation.navigate('/details', {
-                                    profile: hero,
+                                    hero,
                                     noBg: true,
-                                    aspect: imageAspect
+                                    photoAspect: imageAspect
                                 });
                             }}>
                                 <Card sx={{ width: 345 > window.screen.width ? 300 : 345 }}>
@@ -104,7 +104,7 @@ export default class Cards2 extends React.Component<CardsProps> {
                                             height={345}
                                             loading={heroName === hero.id ? "eager" : "lazy"}
                                             decoding={heroName === hero.id ? "sync" : "async"}
-                                            src={hero.photo}
+                                            src={hero.photo.url}
                                             alt={hero.name}
                                             id={`${hero.id}`}
                                             ref={(ref: HTMLImageElement | null) => {

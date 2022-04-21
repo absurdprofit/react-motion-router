@@ -83,9 +83,7 @@ export default class Cards extends React.Component<CardsProps> {
                                     paraRef.style.clipPath = textInset;
                                     heroName = hero.id;
                                 }
-                                this.props.navigation.navigate('/details', {
-                                    profile: hero
-                                });
+                                this.props.navigation.navigate('/details', {hero});
                             }}>
                                 <SharedElement id={`${hero.id}-card-bg`}>
                                     <div
@@ -102,7 +100,7 @@ export default class Cards extends React.Component<CardsProps> {
                                             height="140"
                                             loading={heroName === hero.id ? "eager" : "lazy"}
                                             decoding={heroName === hero.id ? "sync" : "async"}
-                                            src={hero.photo}
+                                            src={hero.photo.url}
                                             alt={hero.name}
                                             id={`${hero.id}`}
                                             ref={(ref: HTMLImageElement | null) => {
