@@ -1,5 +1,4 @@
-import { useContext } from "react";
-import { RouterDataContext } from "../RouterData";
+import { ParamsDeserialiser, ParamsSerialiser } from "./types";
 
 export class History {
     private _stack: string[] = [];
@@ -46,20 +45,30 @@ export class History {
         return !this._stack.length ? true : false;
     }
     
-    push(route: string) {
+    push(route: string, replace: boolean = false) {
         this._next = null;
         
-        window.history.pushState({}, "", route);
-
-        this._stack.push(route);
+        if (replace) {
+            window.history.replaceState({}, "", route);
+            this._stack.pop();
+            this._stack.push(route);
+        } else {
+            window.history.pushState({}, "", route);
+            this._stack.push(route);
+        }
     }
 
-    implicitPush(route: string) {
+    implicitPush(route: string, replace: boolean = false) {
         this._next = null; 
-        this._stack.push(route);
+        if (replace) {
+            this._stack.pop();
+            this._stack.push(route);
+        } else {
+            this._stack.push(route);
+        }
     }
 
-    back(replaceState: boolean): string;
+    back(replaceState: boolean): string; // used so the default route will be at the top of the browser stack
     back(): string;
     back(replaceState?: boolean) {
         this._next = this._stack.pop() || null;
@@ -108,17 +117,20 @@ export type NavigateEvent = CustomEvent<NavigateEventDetail>;
 export class Navigation {
     private _history;
     private _disableBrowserRouting: boolean;
+    private _currentParams: {[key:string]: any} = {};
+    private _paramsSerialiser?: ParamsSerialiser;
+    private _paramsDeserialiser?: ParamsDeserialiser;
 
     constructor(_disableBrowserRouting: boolean, _defaultRoute?: string | null) {
         this._disableBrowserRouting = _disableBrowserRouting;
         this._history = new History(_defaultRoute || null);
     }
 
-    navigate(route: string, routeParams?: {[key:string]: any}) {
+    navigate(route: string, routeParams?: {[key:string]: any}, replace?: boolean) {
         if (this._disableBrowserRouting) {
             this._history.implicitPush(route);
         } else {
-            this._history.push(route);
+            this._history.push(route, Boolean(replace));
         }
 
         const event = new CustomEvent<NavigateEventDetail>('navigate', {
@@ -129,6 +141,7 @@ export class Navigation {
         });
 
         window.dispatchEvent(event);
+        this._currentParams = routeParams || {};
     }
 
     implicitNavigate(route: string, routeParams?: {[key:string]: any}) {
@@ -142,6 +155,7 @@ export class Navigation {
         });
 
         window.dispatchEvent(event);
+        this._currentParams = routeParams || {};
     }
 
     implicitBack() {
@@ -178,15 +192,82 @@ export class Navigation {
         window.dispatchEvent(event);
     }
 
+    searchParamsToObject(searchPart: string) {
+        const deserialiser = this._paramsDeserialiser || this._history.searchParamsToObject;
+        this._currentParams = deserialiser(searchPart) || {};
+        return this._currentParams;
+    }
+
+    searchParamsFromObject(params: {[key: string]: any}) {
+        try {
+            const serialiser = this._paramsSerialiser || function(paramsObj) {
+                return new URLSearchParams(paramsObj).toString();
+            }
+            return serialiser(params);
+        } catch (e) {
+            console.error(e);
+            console.warn("Non JSON serialisable value was passed as route param to Anchor.");
+        }
+        return '';
+    }
+
+    private assign(url: string | URL) {
+        url = new URL(url, window.location.origin);
+        if (url.origin === location.origin) {
+            this.navigate(url.pathname);
+        } else {
+            location.assign(url);
+        }
+    }
+
+    private replace(url: string | URL) {
+        url = new URL(url, window.location.origin);
+        if (url.origin === location.origin) {
+            this.navigate(url.pathname, {}, true);
+        } else {
+            location.replace(url);
+        }
+    }
+
+    set paramsDeserialiser(_paramsDeserialiser: ParamsDeserialiser | undefined) {
+        this._paramsDeserialiser = _paramsDeserialiser;
+    }
+
+    set paramsSerialiser(_paramsSerialiser: ParamsSerialiser | undefined) {
+        this._paramsSerialiser = _paramsSerialiser;
+    }
+
+    get paramsDeserialiser(): ParamsDeserialiser | undefined {
+        return this._paramsDeserialiser;
+    }
+
+    get paramsSerialiser(): ParamsSerialiser | undefined {
+        return this._paramsSerialiser;
+    }
+
     get history() {
         return this._history;
     }
 
-    get location() {
+    get location(): Location {
+        const {location} = window;
+        
         return {
-            ...window.location,
+            ancestorOrigins: location.ancestorOrigins,
             pathname: this._history.current,
-            href: window.location.href + this._history.current.substring(1)
+            href: `${window.location.origin}/${this._history.current.substring(1)}`,
+            host: location.host,
+            hash: location.hash,
+            hostname: location.hostname,
+            port: location.port,
+            protocol: location.protocol,
+            search: this.searchParamsFromObject(this._currentParams),
+            origin: location.origin,
+            replace: this.replace.bind(this),
+            reload() {
+                location.reload();
+            },
+            assign: this.assign.bind(this)
         }
     }
 }

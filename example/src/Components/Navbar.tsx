@@ -1,20 +1,25 @@
 import React, {memo} from 'react';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import IconButton from '@mui/material/IconButton';
-import { SharedElement } from 'react-motion-router';
+import { SharedElement, useNavigation } from 'react-motion-router';
 import '../css/Navbar.css';
 
 interface NavbarProps {
     title: string;
-    onBack?: React.MouseEventHandler<HTMLButtonElement>;
+    backButton?: boolean;
 }
 function Navbar(props: NavbarProps) {
+    const navigation = useNavigation();
+    
+    const onClick = () => {
+        navigation.goBack();
+    }
     return (
         <div className="navbar">
             <div className="back">
                 {
-                    props.onBack ?
-                    <IconButton onClick={props.onBack}>
+                    props.backButton ?
+                    <IconButton onClick={onClick}>
                         <SharedElement id="back">
                             <ChevronLeftIcon style={{zIndex: 100}} />
                         </SharedElement>

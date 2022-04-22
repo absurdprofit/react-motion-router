@@ -58,7 +58,7 @@ export default class Cards extends React.Component<CardsProps> {
         return (
             <div className="cards">
                 <SharedElement id="navbar">
-                    <Navbar title="Cards Demo" onBack={() => this.props.navigation.goBack()} />
+                    <Navbar title="Cards Demo" backButton />
                 </SharedElement>
                 <div className="card-list" ref={(ref: HTMLElement | null) => this.ref = ref}>
                 {

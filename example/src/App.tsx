@@ -94,7 +94,7 @@ function App() {
             }
           }}
         />
-        <Stack.Screen component={NotFound} />
+        <Stack.Screen component={NotFound} fallback={<div className='screen-fallback not-found'></div>} />
       </Router>
   );
 }

@@ -1,8 +1,7 @@
-import React, { startTransition } from 'react';
+import React from 'react';
 import SharedElement from './SharedElement';
-import {clamp, sleep} from './common/utils';
+import {clamp} from './common/utils';
 import { AnimationConfig } from './common/types';
-import {getStyleObject} from './common/utils';
 import {MotionProgressEvent} from './AnimationLayer';
 
 interface GhostLayerProps {
@@ -59,8 +58,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
     }
 
     set nextScene(scene: SharedElement.Scene) {
-        startTransition(() => {
-            this._nextScene = scene;
+        this._nextScene = scene;
 
             if (this._currentScene) {
                 if (!this._currentScene.isEmpty() && !this._nextScene.isEmpty()) {
@@ -70,7 +68,6 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
             }
             this._currentScene = null;
             this._nextScene = null;
-        });
     }
 
     finish() {

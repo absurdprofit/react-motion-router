@@ -51,6 +51,9 @@ div.cards-2.screen-fallback::before {
 div.home.screen-fallback::before {
   content: "React Motion Router";
 }
+div.not-found.screen-fallback::before {
+  content: "Not Found";
+}
 div.screen-fallback {
   background-color: white;
   width: 100vw;

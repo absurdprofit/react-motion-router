@@ -1,67 +1,35 @@
-import React from 'react';
-import { ParamsSerialiser } from './common/types';
-import { RouterDataContext } from './RouterData';
+import React, { useEffect, useState } from 'react';
+import { useNavigation } from './Router';
 
-interface AnchorProps {
-    children: any;
+interface AnchorProps extends React.DetailedHTMLProps<React.AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
     href: string;
     params?: {[key:string]: any};
     onClick?: React.MouseEventHandler<HTMLAnchorElement>;
 }
 
-interface AnchorState {
-    url: string;
-}
-
-export default class Anchor extends React.Component<AnchorProps, AnchorState> {
-    private paramsSerialiser?: ParamsSerialiser;
-
-    state: AnchorState = {
-        url: ''
-    }
-
-    updateHref() {
-        if (!this.props.params) return this.setState({url: this.props.href});
-        try {
-            const serialiser = this.paramsSerialiser || ((params: {[key:string]: any}) => new URLSearchParams(params).toString());
-            const searchParams = serialiser(this.props.params);
-            
-            this.setState({
-                url: `${this.props.href}?${searchParams}`
-            });
-        } catch (e) {
-            console.error(e);
-            console.warn("Non JSON serialisable value was passed as route param to Anchor.");
+export default function Anchor(props: AnchorProps) {
+    const navigation = useNavigation();
+    const [url, setURL] = useState('');
+    useEffect(() => {
+        const uri = new URL(props.href, navigation.location.origin);
+        uri.search = navigation.searchParamsFromObject(props.params || {});
+        if (uri.origin === navigation.location.origin) {
+            setURL(uri.href.replace(navigation.location.origin, ''));
+        } else {
+            setURL(uri.href);
         }
-    }
-
-    componentDidMount() {
-        this.updateHref();
-    }
-
-    componentDidUpdate(prevProps: AnchorProps) {
-        if (prevProps.params !== this.props.params) {
-            this.updateHref();
-        }
-    }
-
-    render() {
-        return (
-            <RouterDataContext.Consumer>
-                {({paramsSerialiser, navigation}) => {
-                    this.paramsSerialiser = paramsSerialiser;
-                    return(
-                        <a
-                            href={this.state.url}
-                            onClick={(e)=>{
-                                e.preventDefault();
-                                if(this.props.onClick) this.props.onClick(e);
-                                navigation.navigate(this.props.href, this.props.params);  
-                            }}
-                        >{this.props.children}</a>
-                    );
-                }}
-            </RouterDataContext.Consumer>
-        );
-    }
+    }, [props.href, props.params]);
+    
+    const {onClick, href, params, ...aProps} = props;
+    return(
+        <a
+            href={url}
+            onClick={(e)=>{
+                e.preventDefault();
+                if(props.onClick) props.onClick(e);
+                navigation.navigate(props.href, props.params);  
+            }}
+            {...aProps}
+        >{props.children}</a>
+    );
 }

@@ -1,5 +1,5 @@
 import { ScreenChild, SharedElement, AnimationConfig, AnimationConfigFactory } from './common/types';
-import Router from './Router';
+import Router, { useNavigation } from './Router';
 import {Stack} from './Stack';
 import {Navigation, History} from './common/utils';
 import Anchor from './Anchor';
@@ -13,4 +13,4 @@ document.body.style.right = '0';
 document.body.style.bottom = '0';
 
 export type {AnimationConfig, AnimationConfigFactory, ScreenChild};
-export {Router, Stack, SharedElement, Navigation, History, Anchor, Motion};
+export {Router, Stack, SharedElement, Navigation, History, Anchor, Motion, useNavigation};

@@ -1,4 +1,4 @@
-import React, { createContext } from 'react';
+import React from 'react';
 import {Navigation, BackEvent, NavigateEvent} from './common/utils';
 import AnimationLayer from './AnimationLayer';
 import GhostLayer from './GhostLayer';
@@ -32,6 +32,11 @@ interface RouterState {
     gestureNavigating: boolean;
     routesData: RoutesData;
     implicitBack: boolean;
+}
+
+export function useNavigation() {
+    const routerData = React.useContext(RouterDataContext);
+    return routerData.navigation;
 }
 
 export default class Router extends React.Component<RouterProps, RouterState> {
@@ -97,8 +102,9 @@ export default class Router extends React.Component<RouterProps, RouterState> {
 
     componentDidMount() {
         // get url search params and append to existing route params
-        const parser = this.config.paramsDeserialiser || this.navigation.history.searchParamsToObject;
-        const searchParams = parser(window.location.search);
+        this.navigation.paramsDeserialiser = this.config.paramsDeserialiser;
+        this.navigation.paramsSerialiser = this.config.paramsSerialiser;
+        const searchParams = this.navigation.searchParamsToObject(window.location.search);
         const routesData = this.state.routesData;
         
         if (searchParams) {
