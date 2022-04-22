@@ -3,7 +3,7 @@
 - new `useNavigation` hook for accessing the navigation object anywhere in your component tree.
 
 ## Enhancements
-- Changed the location property on the navigation object to better reflect the capabilities of the navigation object rather than the global location object defined on window. This means you can still use methods like `'assign'`, `'replace'` etc. but under the hood they will now use the navigation primitives provided by the navigation object. For you this will mean you get smooth transitions even when using methods like replace on `navigation.location`.
+- Changed the location property on the navigation object to better reflect the capabilities of the navigation object rather than the window. This means you can still use methods like `'assign'`, `'replace'` etc. but under the hood they will now use the navigation primitives provided by the navigation object. For you this will mean you get smooth transitions even when using methods like replace on `navigation.location`.
 - The search part of `navigation.location` will now mirror the current screen's params.
 - The `Anchor` component has been changed to more cloesly mirror the HTML `a` tag. You can pass route name strings or fully qualified URLs to its href prop. In the latter case it will behave as a normal link if and only if the origin that it points to is not the same as the app's origin. You can also pass route params directly to the component as an object to the optional params prop. These params will be automatically serialised and appended as the search part of the URL.
 
