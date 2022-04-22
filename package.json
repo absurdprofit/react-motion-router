@@ -1,6 +1,6 @@
 {
   "name": "react-motion-router",
-  "version": "3.2.3",
+  "version": "3.3.0",
   "browser": "index.js",
   "description": "Declarative routing library for ReactJS ⚛ with transitions ⏮",
   "scripts": {
