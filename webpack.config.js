@@ -12,16 +12,16 @@ module.exports = {
         utils: './src/common/utils.ts'
     },
     module: {
-    rules: [
-        {
-            test: /\.tsx?$/,
-            use: 'ts-loader',
-            exclude: [
-                /node_modules/,
-                /example/
-            ],
-        },
-    ],
+        rules: [
+            {
+                test: /\.tsx?$/,
+                use: 'ts-loader',
+                exclude: [
+                    /node_modules/,
+                    /example/
+                ],
+            },
+        ],
     },
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],
