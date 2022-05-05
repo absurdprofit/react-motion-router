@@ -1,6 +1,6 @@
 import React from 'react';
 import { Heroes, Hero } from '../assets/Heroes';
-import {Navigation, Anchor, SharedElement, GestureRegion} from 'react-motion-router';
+import {Navigation, Anchor, SharedElement} from 'react-motion-router';
 import Navbar from '../Components/Navbar';
 import Tile from '../Components/Tile';
 import '../css/Tiles.css';
@@ -31,9 +31,7 @@ export default class Tiles extends React.Component<TilesProps, TilesState> {
                             <Anchor key={index} href="/slides" params={{
                                 hero: index
                             }}>
-                                <GestureRegion>
-                                    <Tile navigation={this.props.navigation} hero={hero} />
-                                </GestureRegion>
+                                <Tile navigation={this.props.navigation} hero={hero} />
                             </Anchor>
                         );
                     })}

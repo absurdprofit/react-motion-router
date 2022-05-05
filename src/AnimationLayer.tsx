@@ -1,9 +1,8 @@
-import React, { createContext, startTransition } from 'react';
+import React, { createContext } from 'react';
 import {SwipeEndEvent, SwipeEvent, SwipeStartEvent} from 'web-gesture-events';
 import { clamp, Navigation, matchRoute, includesRoute } from './common/utils';
 import {ScreenChild} from './index';
 import AnimationLayerData, {AnimationLayerDataContext} from './AnimationLayerData';
-import GestureRegionRegistryContext, { GestureRegionRegistry } from './GestureRegionRegistry';
 
 export const Motion = createContext(0);
 
@@ -46,7 +45,6 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
     private onSwipeListener = this.onSwipe.bind(this);
     private onSwipeEndListener = this.onSwipeEnd.bind(this);
     private animationLayerData = new AnimationLayerData();
-    private gestureRegionRegistry: GestureRegionRegistry | null = null;
 
     state: AnimationLayerState = {
         currentPath: this.props.currentPath,
@@ -161,14 +159,16 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
 
     onSwipeStart(ev: SwipeStartEvent) {
         if (ev.direction === "right" && ev.x < this.props.swipeAreaWidth) {
-            console.log(ev.x, ev.y);
-            if (this.gestureRegionRegistry) {
-                if (this.gestureRegionRegistry.isIntersecting(ev.x, ev.y)) {
-                    return;
-                }
-            }
             // if only one child return
             if (!this.props.lastPath) return;
+
+            // if gesture region in touch path return
+            for (let target of ev.composedPath()) {
+                if ('classList' in target && (target as HTMLElement).classList.length) {
+                    if ((target as HTMLElement).classList.contains('gesture-region')) return;
+                }
+            }
+
             let currentPath: string | undefined = this.props.currentPath;
             let lastPath: string | undefined = this.props.lastPath;
             let currentMatched = false;
@@ -275,12 +275,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         return (
             <AnimationLayerDataContext.Provider value={this.animationLayerData}>
                 <Motion.Provider value={this.state.progress}>
-                    <GestureRegionRegistryContext.Consumer>
-                        {(gestureRegionRegistry) => {
-                            this.gestureRegionRegistry = gestureRegionRegistry;
-                            return this.state.children;
-                        }}
-                    </GestureRegionRegistryContext.Consumer>
+                    {this.state.children}
                 </Motion.Provider>
             </AnimationLayerDataContext.Provider>
         );
