@@ -39,8 +39,8 @@ function App() {
   return (
       <Router config={{
         defaultRoute: '/',
-        disableDiscovery: !isPWA,
-        disableBrowserRouting: isPWA && iOS(),
+        disableDiscovery: false,
+        disableBrowserRouting: true,
         animation: animation,
         minFlingVelocity: 1000
       }}>
