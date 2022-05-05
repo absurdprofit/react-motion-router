@@ -283,6 +283,8 @@ namespace SharedElement {
                 if (this._ref) {
                     this.scene?.removeNode(this._id);
                     this.scene?.addNode(nodeFromRef(this._id, this._ref, this));
+                    if (this._ref.firstElementChild)
+                        this._computedStyle = window.getComputedStyle(this._ref.firstElementChild);
                 }
                 this._idleCallbackID = 0;
             });

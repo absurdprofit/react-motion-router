@@ -5,6 +5,7 @@ import GhostLayer from './GhostLayer';
 import { ScreenChild } from '.';
 import {AnimationConfig} from './common/types';
 import RouterData, {RoutesData, RouterDataContext} from './RouterData';
+import GestureRegionRegistryContext, { GestureRegionRegistry } from './GestureRegionRegistry';
 
 interface Config {
     animation: {
@@ -43,6 +44,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
     private navigation = new Navigation(this.props.config.disableBrowserRouting || false, this.props.config.defaultRoute || null);
     private config: Config;
     private _routerData: RouterData;
+    private _gestureRegionRegistry = new GestureRegionRegistry();
     private onBackListener = this.onBack.bind(this) as EventListener;
     private onNavigateListener = this.onNavigate.bind(this) as EventListener;
     private onPopStateListener = this.onPopstate.bind(this);
@@ -241,22 +243,24 @@ export default class Router extends React.Component<RouterProps, RouterState> {
                         }}
                         backNavigating={this.state.backNavigating}
                     />
-                    <AnimationLayer
-                        disableBrowserRouting={this.props.config.disableBrowserRouting || false}
-                        disableDiscovery={this.props.config.disableDiscovery || false}
-                        hysteresis={this.props.config.hysteresis || 50}
-                        minFlingVelocity={this.props.config.minFlingVelocity || 400}
-                        swipeAreaWidth={this.props.config.swipeAreaWidth || 100}
-                        navigation={this._routerData.navigation}
-                        duration={this._routerData.animation.in.duration}
-                        currentPath={this.state.currentPath}
-                        backNavigating={this.state.backNavigating}
-                        lastPath={this.navigation.history.previous}
-                        onGestureNavigationStart={this.onGestureNavigationStart}
-                        onGestureNavigationEnd={this.onGestureNavigationEnd}
-                    >
-                        {this.props.children}
-                    </AnimationLayer>
+                    <GestureRegionRegistryContext.Provider value={this._gestureRegionRegistry}>
+                        <AnimationLayer
+                            disableBrowserRouting={this.props.config.disableBrowserRouting || false}
+                            disableDiscovery={this.props.config.disableDiscovery || false}
+                            hysteresis={this.props.config.hysteresis || 50}
+                            minFlingVelocity={this.props.config.minFlingVelocity || 400}
+                            swipeAreaWidth={this.props.config.swipeAreaWidth || 100}
+                            navigation={this._routerData.navigation}
+                            duration={this._routerData.animation.in.duration}
+                            currentPath={this.state.currentPath}
+                            backNavigating={this.state.backNavigating}
+                            lastPath={this.navigation.history.previous}
+                            onGestureNavigationStart={this.onGestureNavigationStart}
+                            onGestureNavigationEnd={this.onGestureNavigationEnd}
+                        >
+                            {this.props.children}
+                        </AnimationLayer>
+                    </GestureRegionRegistryContext.Provider>
                 </RouterDataContext.Provider>
             </div>
         );
