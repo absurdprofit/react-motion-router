@@ -4,6 +4,7 @@ import {Stack} from './Stack';
 import {Navigation, History} from './common/utils';
 import Anchor from './Anchor';
 import {Motion} from './AnimationLayer';
+import GestureRegion from './GestureRegion';
 import 'web-gesture-events';
 
 document.body.style.position = 'fixed';
@@ -12,5 +13,5 @@ document.body.style.left = '0';
 document.body.style.right = '0';
 document.body.style.bottom = '0';
 
-export type {AnimationConfig, AnimationConfigFactory, ScreenChild};
-export {Router, Stack, SharedElement, Navigation, History, Anchor, Motion, useNavigation};
+export type {AnimationConfig, AnimationConfigFactory, ScreenChild, Navigation, History};
+export {Router, Stack, SharedElement, Anchor, Motion, useNavigation, GestureRegion};

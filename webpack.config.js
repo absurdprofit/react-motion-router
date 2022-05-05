@@ -12,16 +12,16 @@ module.exports = {
         utils: './src/common/utils.ts'
     },
     module: {
-    rules: [
-        {
-            test: /\.tsx?$/,
-            use: 'ts-loader',
-            exclude: [
-                /node_modules/,
-                /example/
-            ],
-        },
-    ],
+        rules: [
+            {
+                test: /\.tsx?$/,
+                use: 'ts-loader',
+                exclude: [
+                    /node_modules/,
+                    /example/
+                ],
+            },
+        ],
     },
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],
@@ -38,10 +38,10 @@ module.exports = {
         })
     ],
     devtool: 'source-map',
-    optimization: {
-        minimize: true,
-        minimizer: [new TerserPlugin()]
-    },
+    // optimization: {
+    //     minimize: true,
+    //     minimizer: [new TerserPlugin()]
+    // },
     externals: {
         react: 'commonjs react',
         'react-dom': 'commonjs react-dom'

@@ -101,6 +101,9 @@ export default class AnimationLayerData {
             });
 
             this._isPlaying = true;
+            
+            const startAnimationEvent = new CustomEvent('page-animation-start');
+            window.dispatchEvent(startAnimationEvent);
 
             if (this._inAnimation && this._outAnimation) {
                 if (!this._shouldAnimate) {

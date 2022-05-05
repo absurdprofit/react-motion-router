@@ -1,4 +1,4 @@
-import React, { createContext, startTransition } from 'react';
+import React, { createContext } from 'react';
 import {SwipeEndEvent, SwipeEvent, SwipeStartEvent} from 'web-gesture-events';
 import { clamp, Navigation, matchRoute, includesRoute } from './common/utils';
 import {ScreenChild} from './index';
@@ -161,6 +161,14 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         if (ev.direction === "right" && ev.x < this.props.swipeAreaWidth) {
             // if only one child return
             if (!this.props.lastPath) return;
+
+            // if gesture region in touch path return
+            for (let target of ev.composedPath()) {
+                if ('classList' in target && (target as HTMLElement).classList.length) {
+                    if ((target as HTMLElement).classList.contains('gesture-region')) return;
+                }
+            }
+
             let currentPath: string | undefined = this.props.currentPath;
             let lastPath: string | undefined = this.props.lastPath;
             let currentMatched = false;
