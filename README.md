@@ -6,7 +6,7 @@
     React Motion Router
 </h1>
 
-Declarative routing library for React ⚛ with page transitions and animations 🚀. Under Development 🧪. Based on React Router and React Navigation.
+Declarative routing library for React ⚛ with 60FPS page transitions and animations 🚀. Out of the box support for Shared Element Transitions 🤩. Under Development 🧪. Based on React Router and React Navigation.
 
 #### [Demo](https://router.nxtetechnologies.com)
 
@@ -45,7 +45,7 @@ npm install react-motion-router
 Use the `Router` component to render your screens. Pass a React component to the component prop of `Stack.Screen` to be rendered when the path prop of the screen has been navigated to.
 
 ```
-...
+// ...
 import {Router, Stack} from 'react-motion-router';
 
 function Home() {
@@ -58,24 +58,39 @@ function Home() {
 function App() {
     return(
         <div className="app">
-            <Stack.Screen path="/" component={Home} />
+            <Router>
+                <Stack.Screen path="/" component={Home} />
+            </Router>
         </div>
     ):
 }
 
-...
+// ...
 ```
+
+You can also pass lazy loaded components to the screen along with an optional fallback component to be rendered while your component loads.
+
+```
+// ...
+const Home = React.lazy(() => import('./Screens/Home'));
+<Router>
+    <Stack.Screen path="/" component={Home} fallback={<div className='screen-fallback home'></div>}>
+</Router>
+// ...
+```
+
+If a fallback component is provided the fallback component is animated in just like the actual component would and is even able to do gesture navigation all while your screen is loaded in asynchronously.
 
 #### Navigation
 
 Navigation is done through the navigation object exposed on your screen's props.
 
 ```
-...
+// ...
 function Home(props) {
     return(
         <div>
-            ...
+            // ...
             <button onClick={() => {
                 props.navigation.goBack();
             }}>BACK</button>
@@ -83,16 +98,16 @@ function Home(props) {
                 onClick={() => {
                     props.navigation.navigate('/posts');
                 }}>Posts</button>
-            ...
+            // ...
         </div>
     );
 }
-...
+// ...
 ```
 
 The navigation object also exposes information such as `navigation.location`. It's the same as `window.location` but it will always be up to date and correct regardless of if browser routing has been disabled.
 
-#### Passing Parameters to Other Screens
+#### Passing Parameters to Screens
 
 To pass data to the next screen, pass a value to the navigate function.
 
@@ -108,30 +123,59 @@ To access this data on the next screen:
 
 ```
 // Screen: POSTS
-...
+// ...
 <h1>{props.route.params.post.title}</h1>
-...
+// ...
 ```
 
 All data passed to the navigate function is accessible on the target screen through the route prop.
+
+Parameters can also be parsed from URL parameters for example a pathname with a search part such as `/slides?hero=0` will be parsed into an object with key `hero` and value `0`. To customise this behaviour you can pass a custom deserialiser or serialiser function to the `Router` component which will be used to convert between URL parameters and React Motion Router parameters and vice-versa.
+
+```
+<Router
+    config={{
+        paramsSerialiser: (params) => {
+            const searchPart = new URLSearchParams(params).toString()
+
+            return btoa(searchPart); // search encoded as Base64 string
+        },
+        paramsDeserialiser: (b64SearchPart) => {
+            const searchPart = atob(b64SearchPart.slice(1)); // start after the ?
+            const searchParams = new URLSearchParams(searchPart);
+
+            const params = {};
+            for (let [key, value] of searchParams) {
+                params[key] = value;
+            }
+
+            return params;
+        }
+    }}
+>
+// ...
+</Router>
+```
+
+In this example `/slides?hero=0` becomes `/slides?aGVybz0w`.
 
 #### Default Parameters
 
 A default parameter can be passed to the screen by passing a value to the defaultParams prop on `Stack.Screen` component.
 
 ```
-...
+// ...
 <Stack.Screen path="/posts" component={Posts} defaultParams={{
     post: {
         title: "Default Title"
     }
 }}/>
-...
+// ...
 ```
 
 #### Transitions
 
-Transitions are a feature baked into react-motion-router; hence the name... To transition between pages do:
+Transitions are a feature baked into react-motion-router; hence the name... To transition between screens do:
 
 ```
 <Router config={{
@@ -141,7 +185,7 @@ Transitions are a feature baked into react-motion-router; hence the name... To t
         duration: 300
     }
 }}>
-...
+// ...
 </Router>
 ```
 
@@ -150,7 +194,7 @@ You can subscribe to the transition progress by using the motion consumer compon
 ```
 import {Motion} from 'react-motion-router';
 
-...
+// ...
 <Motion.Consumer>
     {(progress) => {
         return (
@@ -164,7 +208,7 @@ import {Motion} from 'react-motion-router';
 static contextType = Motion;
 ```
 
-The progress is updated as the animation plays and can be used to update DOM style attributes or control playback of an animation.
+The progress is updated as the animation plays and can be used to interpolate DOM style attributes or control playback of an animation.
 
 #### Shared Element Transition
 
@@ -172,22 +216,22 @@ To do a shared element transition wrap the component you would like shared betwe
 
 ```
 // Screen: HOME
-...
+// ...
 <SharedElement id="post">
     <h1>Post</h1>
 </SharedElement>
-...
+// ...
 ```
 
 and on another screen:
 
 ```
 Screen: POSTS
-...
+// ...
 <SharedElement id="post">
     <h1>Post</h1>
 </SharedElement>
-...
+// ...
 ```
 
 That's it! The element will transition from one screen to the next seemlessly. They can even do layered animations.
@@ -205,18 +249,19 @@ That's it! The element will transition from one screen to the next seemlessly. T
 </SharedElement>
 ```
 
-This way the X and Y axis are animated independently and can alter the path of the shared element while transitioning.
+This way the X and Y axis are animated independently and can alter the path of the shared element while transitioning. Note that these durations are clamped to the overall router transition duration.
 
 ## API Documentation
 
 #### Stack.Screen
 
-| Prop          | Type   | Description                                                                |
-| ------------- | ------ | -------------------------------------------------------------------------- |
-| path          | string | Pathname of the screen.                                                    |
-| component     | any    | A valid React Component to be rendered.                                    |
-| defaultParams | Object | A dictionary of parameters that can be accessed by the rendered component. |
-| config        | Object | A dictionary of options to alter the behaviour of the screen.              |
+| Prop          | Type                  | Description                                                                             |
+| ------------- | --------------------- | --------------------------------------------------------------------------------------- |
+| path          | string                | Pathname of the screen.                                                                 |
+| component     | JSXElementConstructor | A valid React Component or React lazy loaded Component to be rendered.                  |
+| fallback      | ReactNode             | A valid React Node to be rendered while the real component is suspended (lazy loading). |
+| defaultParams | Object                | A dictionary of parameters that can be accessed by the rendered component.              |
+| config        | Object                | A dictionary of options to alter the behaviour of the screen.                           |
 
 #### Stack.Screen Config
 
@@ -235,6 +280,8 @@ This way the X and Y axis are animated independently and can alter the path of t
 | swipeAreaWidth        | number          | Area in pixels from the left edge of the screen that gesture navigation can be triggered from.                                                                              |
 | hysteresis            | number          | Percent from 0-100 which specifies minimum gesture progress before navigation is triggered.                                                                                 |
 | minFlingVelocity      | number          | Minimum average velocity of swipe gesture before navigation is triggered even if hysteresis was not reached.                                                                |
+| paramsDeserialiser    | Function        | A function that takes a URL search part string as input and outputs a valid JavaScript object.                                                                              |
+| paramsSerialiser      | Function        | A function that takes a valid JavaScript object as input and outputs a URL search part string.                                                                              |
 
 #### AnimationConfig
 
@@ -264,20 +311,23 @@ This way the X and Y axis are animated independently and can alter the path of t
 It is useful to note that the duration and easing function properties can also be set on the X and Y axis as independent values by specifying an X or Y property on the shared element config object.
 
 ```
-...
+// ...
 config={{
     x: {
         easingFunction: "ease-in-out",
         duration: 500
     }
 }}
-...
+// ...
 ```
 
 ## Remarks
 
 This is a work in progress and elements of this solution are subject to change.
-There are a few limitations to be aware of for example there is no analogue for HashRouter in this solution.
+There are a few limitations to be aware of for example there is:
+
+- no analogue for HashRouter in this solution
+- no nested routing although there are plans to add this eventually.
 
 ## Credits
 

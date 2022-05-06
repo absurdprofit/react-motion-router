@@ -1,3 +1,20 @@
+# [V3.4.0-alpha](https://github.com/nxtexe/react-motion-router/blob/main/CHANGELOG.md#v340-alpha)
+## Features
+- New `GestureRegion` component for wrapping gesture sensitive components. React Motion Router will ignore navigation gestures that overlap these regions.
+
+## Enhancements
+- Added React Motion Router events to the global event listeners interface. Meaning now you get code completion when writing any of these event handlers:
+  - `page-animation-start`
+  - `page-animation-end`
+  - `motion-progress-start`
+  - `motion-progress`
+  - `motion-progress-end`
+- Fallback components now have access to route parameters just like the actual component.
+
+## Bug Fixes
+- Fixed a bug that made navigation impossible after a gesture navigation when browser routing is enabled.
+
+
 # [V3.3.0-alpha](https://github.com/nxtexe/react-motion-router/blob/main/CHANGELOG.md#v330-alpha)
 ## Features
 - new `useNavigation` hook for accessing the navigation object anywhere in your component tree.
