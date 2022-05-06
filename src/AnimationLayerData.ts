@@ -90,12 +90,12 @@ export default class AnimationLayerData {
             let easingFunction = 'ease-out';
             if (this._gestureNavigating) easingFunction = 'linear';
             this._outAnimation = this._currentScreen.animate(AnimationKeyframePresets[this._currentScreen.outAnimation as keyof typeof AnimationKeyframePresets], {
-                fill: 'forwards',
+                fill: 'both',
                 duration: this._duration,
                 easing: easingFunction
             });
             this._inAnimation = this._nextScreen.animate(AnimationKeyframePresets[this._nextScreen.inAnimation as keyof typeof AnimationKeyframePresets], {
-                fill: 'forwards',
+                fill: 'both',
                 duration: this._duration,
                 easing: easingFunction
             });

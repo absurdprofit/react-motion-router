@@ -18,6 +18,7 @@ let textInset = '';
 let heroName = '';
 let titleInset = '';
 export default class Cards2 extends React.Component<CardsProps> {
+    static isLoaded = false;
     private ref: HTMLElement | null = null;
     private static scrollPos = {
         x: 0,
@@ -25,6 +26,10 @@ export default class Cards2 extends React.Component<CardsProps> {
     }
 
     pageAnimationEnd() {
+        if (!Cards2.isLoaded) {
+            Cards2.isLoaded = true;
+            this.forceUpdate();
+        }
         if (this.props.navigation.location.pathname === '/cards-2') {
             inset = '';
             textInset = '';
@@ -54,7 +59,7 @@ export default class Cards2 extends React.Component<CardsProps> {
     }
     render() {
         return (
-            <div className="cards cards-2">
+            <div className={`cards cards-2 ${Cards2.isLoaded ? 'loaded' : 'suspense'}`}>
                 <SharedElement id="navbar">
                     <Navbar title="Cards Demo 2" backButton />
                 </SharedElement>

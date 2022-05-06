@@ -38,6 +38,11 @@ div.screen-fallback::before {
 }
 div.details.screen-fallback::before {
   content: "Details";
+  opacity: 0;
+}
+div.details.screen-fallback img:empty {
+  background-color: #efefef;
+  color: transparent;
 }
 div.tiles.screen-fallback::before {
   content: "Tiles Demo";

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {Navigation, SharedElement} from 'react-motion-router';
 import ListItemComponent from '../Components/ListItem';
 import Navbar from '../Components/Navbar';
@@ -13,6 +13,8 @@ interface ListItem {
     description: string;
     onClick: () => void;
 }
+
+let isLoaded = false;
 export default function Home(props: HomeProps) {
     const list = [
         {
@@ -30,10 +32,16 @@ export default function Home(props: HomeProps) {
             description: 'Heavier card demo with fading gradient overlay and cross-fading texts',
             onClick: () => props.navigation.navigate('/cards-2')
         }
-    ]
+    ];
+
+    useEffect(() => {
+        window.addEventListener('page-animation-end', () => {
+            isLoaded = true;
+        }, {once: true});
+    });
 
     return (
-        <div className="home">
+        <div className={`home ${isLoaded ? 'loaded' : 'suspense'}`}>
             <SharedElement id="navbar" config={{
                 type: 'fade'
             }}>

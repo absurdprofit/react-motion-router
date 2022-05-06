@@ -3,6 +3,7 @@ import {SwipeEndEvent, SwipeEvent, SwipeStartEvent} from 'web-gesture-events';
 import { clamp, Navigation, matchRoute, includesRoute } from './common/utils';
 import {ScreenChild} from './index';
 import AnimationLayerData, {AnimationLayerDataContext} from './AnimationLayerData';
+import { MotionProgressDetail } from './MotionEvents';
 
 export const Motion = createContext(0);
 
@@ -32,12 +33,6 @@ interface AnimationLayerState {
     startX: number;
     paths: (string | RegExp | undefined)[]
 }
-
-interface MotionProgressEventDetail {
-    progress: number;
-}
-
-export type MotionProgressEvent = CustomEvent<MotionProgressEventDetail>;
 
 // type of children coerces type in React.Children.map such that 'path' is available on props
 export default class AnimationLayer extends React.Component<AnimationLayerProps, AnimationLayerState> {
@@ -117,7 +112,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             const progress = this.props.backNavigating && !this.state.gestureNavigating ? 99 - _progress : _progress;
             this.setState({progress: clamp(progress, 0, 100)});
             
-            const progressEvent = new CustomEvent<MotionProgressEventDetail>('motion-progress', {
+            const progressEvent = new CustomEvent<MotionProgressDetail>('motion-progress', {
                 detail: {
                     progress: progress
                 }
@@ -244,7 +239,6 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
                 this.animationLayerData.playbackRate = -1;
             }
             onEnd = () => {
-                if(!this.props.disableBrowserRouting) this.animationLayerData.shouldAnimate = false;
                 this.animationLayerData.reset();
                 this.props.onGestureNavigationEnd();
                 

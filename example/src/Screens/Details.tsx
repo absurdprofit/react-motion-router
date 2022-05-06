@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {Navigation, SharedElement} from 'react-motion-router';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
@@ -16,12 +16,19 @@ interface DetailsProps {
     };
 }
 
+let isLoaded = false;
 export default function Details(props: DetailsProps) {
     const {hero, noBg} = props.route.params;
     const photoAspect = (hero.photo.width / hero.photo.height);
+
+    useEffect(() => {
+        window.addEventListener('page-animation-end', () => {
+            isLoaded = true;
+        }, {once: true});
+    });
     if (hero) {
         return (
-            <div className="details" style={{width: "100%", height: "100%", backgroundColor: Boolean(noBg) ? 'white' : undefined}}>
+            <div className={`details ${isLoaded ? 'loaded' : 'suspense'}`} style={{width: "100%", height: "100%", backgroundColor: Boolean(noBg) ? 'white' : undefined}}>
                 <div className="top"></div>
                 {!Boolean(noBg)
                 &&

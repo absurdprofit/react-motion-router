@@ -1,14 +1,14 @@
-import OnePunch from "./onepunch.jpg";
-import Garou from "./garou.png";
-import Genos from "./genos.jpg";
-import Silverfang from "./silverfang.png";
-import MetalKnight from "./metalknight.jpg";
-import Tatsumaki from "./tatsumaki.png";
-import WatchDog from "./watchdog.png";
-import King from "./king.jpg";
-import AtomicSamurai from "./atomicsamurai.jpg";
-import PuriPuri from "./puripuri.png";
-import MetalBat from "./metalbat.jpg";
+import OnePunch from "./onepunch.webp";
+import Garou from "./garou.webp";
+import Genos from "./genos.webp";
+import Silverfang from "./silverfang.webp";
+import MetalKnight from "./metalknight.webp";
+import Tatsumaki from "./tatsumaki.webp";
+import WatchDog from "./watchdog.webp";
+import King from "./king.webp";
+import AtomicSamurai from "./atomicsamurai.webp";
+import PuriPuri from "./puripuri.webp";
+import MetalBat from "./metalbat.webp";
 
 export interface Hero {
   id: string;

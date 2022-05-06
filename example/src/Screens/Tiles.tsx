@@ -15,13 +15,23 @@ interface TilesState {
 
 
 export default class Tiles extends React.Component<TilesProps, TilesState> {
+    static isLoaded = false;
     state: TilesState = {
         heroes: Heroes
     }
 
+    componentDidMount() {
+        window.addEventListener('page-animation-end', () => {
+            if (!Tiles.isLoaded) {
+                Tiles.isLoaded = true;
+                this.forceUpdate();
+            }
+        }, {once: true});
+    }
+
     render(): React.ReactNode {
         return(
-            <div className="tiles">
+            <div className={`tiles ${Tiles.isLoaded ? 'loaded' : 'suspense'}`}>
                 <SharedElement id="navbar">
                     <Navbar title="Tiles Demo" backButton />
                 </SharedElement>

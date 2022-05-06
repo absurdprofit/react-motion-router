@@ -16,6 +16,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.suspense .navbar .back {
   animation: back-fade-in .5s ease forwards;
 }
 @keyframes back-fade-in {

@@ -17,6 +17,9 @@
 }
 .details .text-content {
   padding: 15px;
+}
+.details.suspense .text-content,
+.details.suspense button {
   animation: details-fade-in .5s ease forwards;
 }
 @keyframes details-fade-in {
@@ -74,6 +77,10 @@
   border-radius: 0;
   object-fit: cover;
   clip-path: inset(0px -100vw -100vh 0px);
+}
+.profile-info img:empty {
+  background-color: #efefef;
+  color: transparent;
 }
 .details .gradient-overlay {
   color: transparent;

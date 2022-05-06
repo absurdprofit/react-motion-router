@@ -60,7 +60,15 @@ export namespace Stack {
         componentDidMount() {
             if (this.props.fallback && React.isValidElement(this.props.fallback)) {
                 this.setState({
-                    fallback: React.cloneElement<any>(this.props.fallback, {navigation: this.context.navigation})
+                    fallback: React.cloneElement<any>(this.props.fallback, {
+                        navigation: this.context.navigation,
+                        route: {
+                            params: {
+                                ...this.props.defaultParams,
+                                ...this.contextParams
+                            }
+                        }
+                    })
                 });
             } else {
                 this.setState({fallback: this.props.fallback});
@@ -110,7 +118,15 @@ export namespace Stack {
             if (prevProps.fallback !== this.props.fallback) {
                 if (this.props.fallback && React.isValidElement(this.props.fallback)) {
                     this.setState({
-                        fallback: React.cloneElement<any>(this.props.fallback, {navigation: this.context.navigation})
+                        fallback: React.cloneElement<any>(this.props.fallback, {
+                            navigation: this.context.navigation,
+                            route: {
+                                params: {
+                                    ...this.props.defaultParams,
+                                    ...this.contextParams
+                                }
+                            }
+                        })
                     });
                 } else {
                     this.setState({fallback: this.props.fallback});

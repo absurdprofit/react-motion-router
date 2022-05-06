@@ -2,7 +2,7 @@ import React from 'react';
 import SharedElement from './SharedElement';
 import {clamp} from './common/utils';
 import { AnimationConfig } from './common/types';
-import {MotionProgressEvent} from './AnimationLayer';
+import { MotionProgressEvent } from './MotionEvents';
 
 interface GhostLayerProps {
     instance?: (instance: GhostLayer | null) => any;
@@ -208,7 +208,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             }
                         ],
                         {
-                            fill: 'forwards',
+                            fill: 'both',
                             easing: transitionState.end.x.easingFunction,
                             duration: clamp(transitionState.end.x.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
                         });
@@ -224,7 +224,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 }
                             ],
                             {
-                                fill: 'forwards',
+                                fill: 'both',
                                 easing: transitionState.end.y.easingFunction,
                                 duration: clamp(transitionState.end.y.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
                             }
@@ -242,7 +242,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             }
                         ],
                         {
-                            fill: 'forwards',
+                            fill: 'both',
                             easing: transitionState.end.x.easingFunction,
                             duration: clamp(transitionState.end.x.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
                         });
@@ -256,7 +256,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 }
                             ],
                             {
-                                fill: 'forwards',
+                                fill: 'both',
                                 easing: transitionState.end.y.easingFunction,
                                 duration: clamp(transitionState.end.y.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
                             }
@@ -271,7 +271,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             }
                         ],
                         {
-                            fill: 'forwards',
+                            fill: 'both',
                             easing: transitionState.end.x.easingFunction,
                             duration: clamp(transitionState.end.x.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
                         });
@@ -285,7 +285,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 }
                             ],
                             {
-                                fill: 'forwards',
+                                fill: 'both',
                                 easing: transitionState.end.y.easingFunction,
                                 duration: clamp(transitionState.end.y.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
                             }
@@ -307,7 +307,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             }
                         ],
                         {
-                            fill: 'forwards',
+                            fill: 'both',
                             easing: transitionState.end.x.easingFunction,
                             duration: clamp(transitionState.end.x.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
                         });
@@ -321,7 +321,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 }
                             ],
                             {
-                                fill: 'forwards',
+                                fill: 'both',
                                 easing: transitionState.end.y.easingFunction,
                                 duration: clamp(transitionState.end.y.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
                             }
@@ -342,7 +342,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             }
                         ],
                         {
-                            fill: 'forwards',
+                            fill: 'both',
                             easing: transitionState.end.x.easingFunction,
                             duration: clamp(transitionState.end.x.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
                         });
@@ -356,7 +356,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 }
                             ],
                             {
-                                fill: 'forwards',
+                                fill: 'both',
                                 easing: transitionState.end.y.easingFunction,
                                 duration: clamp(transitionState.end.y.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
                             }
@@ -374,7 +374,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             }
                         ],
                         {
-                            fill: 'forwards',
+                            fill: 'both',
                             easing: transitionState.end.x.easingFunction,
                             duration: clamp(transitionState.end.x.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
                         });
@@ -388,7 +388,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 }
                             ],
                             {
-                                fill: 'forwards',
+                                fill: 'both',
                                 easing: transitionState.end.y.easingFunction,
                                 duration: clamp(transitionState.end.y.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
                             }
@@ -405,7 +405,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             }
                         ],
                         {
-                            fill: 'forwards',
+                            fill: 'both',
                             easing: transitionState.end.x.easingFunction,
                             duration: clamp(transitionState.end.x.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
                         });
@@ -419,7 +419,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 }
                             ],
                             {
-                                fill: 'forwards',
+                                fill: 'both',
                                 easing: transitionState.end.y.easingFunction,
                                 duration: clamp(transitionState.end.y.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
                             }

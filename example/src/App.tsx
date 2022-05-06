@@ -12,6 +12,25 @@ const Slides = React.lazy(() => import('./Screens/Slides'));
 const Tiles = React.lazy(() => import('./Screens/Tiles'));
 const Details = React.lazy(() => import('./Screens/Details'));
 
+function DetailsFallback({route}: any) {
+  const {hero} = route.params;
+  return (
+    <div className='screen-fallback details'>
+      <img
+        src={hero.photo.url}
+        alt="profile-details"
+        width={hero.photo.width}
+        height={hero.photo.height}
+        style={{
+          width: '100%',
+          maxWidth: '1000px',
+          height: 'auto'
+        }}
+      />
+    </div>
+  );
+}
+
 const isPWA = getPWADisplayMode() === 'standalone';
 let animation: AnimationConfig = {
   type: "slide",
@@ -39,8 +58,8 @@ function App() {
   return (
       <Router config={{
         defaultRoute: '/',
-        disableDiscovery: false,
-        disableBrowserRouting: true,
+        disableDiscovery: !isPWA,
+        disableBrowserRouting: isPWA && iOS(),
         animation: animation,
         minFlingVelocity: 1000
       }}>
@@ -72,7 +91,7 @@ function App() {
           path={"/details"}
           component={Details}
           defaultParams={{data: "Default"}}
-          fallback={<div className='screen-fallback details'></div>}
+          fallback={<DetailsFallback />}
         />
         <Stack.Screen
           path={"/"}

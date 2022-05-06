@@ -9,6 +9,8 @@
     flex-wrap: wrap;
     justify-content: space-around;
     row-gap: 1vw;
+}
+.tiles.suspense .content {
     animation: tiles-fade-in .5s ease forwards;
 }
 @keyframes tiles-fade-in {

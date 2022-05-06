@@ -18,6 +18,8 @@ interface SlidesProps {
         }
     }
 }
+
+let isLoaded = false;
 export default function Slides(props: SlidesProps) {
     const [index, setIndex] = useState(props.route.params.hero);
     let y = 0;
@@ -49,6 +51,9 @@ export default function Slides(props: SlidesProps) {
     }
 
     useEffect(() => {
+        window.addEventListener('page-animation-end', () => {
+            isLoaded = true;
+        }, {once: true});
         window.addEventListener('swipestart', onSwipeStart);
     
 
@@ -59,7 +64,7 @@ export default function Slides(props: SlidesProps) {
 
     return (
         <GestureRegion>
-            <div className="slides">
+            <div className={`slides ${isLoaded ? 'loaded' : 'suspense'}`}>
                 <div className="back">
                     <IconButton style={{color: 'white'}} onClick={() => props.navigation.goBack()}>
                         <SharedElement id="back" config={{

@@ -9,6 +9,8 @@
     left: 15px;
     color: white!important;
     z-index: 1;
+}
+.slides.suspense .back {
     animation: back-fade-in .5s ease forwards;
 }
 .slides .title {
@@ -25,6 +27,8 @@
     display: flex;
     justify-content: center;
     align-items: center;
+}
+.slides.suspense .slide {
     animation: slide-fade-in .5s ease forwards;
 }
 @keyframes slide-fade-in {
