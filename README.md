@@ -18,7 +18,7 @@ Declarative routing library for React ⚛ with 60FPS page transitions and animat
 - [Usage](#usage)
   - [Basic](#basic)
   - [Navigation](#navigation)
-  - [Passing Params](#passing-parameters-to-other-screens)
+  - [Passing Params](#passing-parameters-to-screens)
   - [Default Params](#default-parameters)
   - [Transitions](#transitions)
   - [Shared Element Transition](#shared-element-transition)
@@ -104,6 +104,10 @@ function Home(props) {
 }
 // ...
 ```
+OR for a more declarative approach opt for the `Anchor` compoennt
+```
+<Anchor href="/posts">Posts</Anchor>
+```
 
 The navigation object also exposes information such as `navigation.location`. It's the same as `window.location` but it will always be up to date and correct regardless of if browser routing has been disabled.
 
@@ -117,6 +121,13 @@ props.navigation.navigate('/posts', {
         title: "Post"
     }
 });
+
+// Or with Anchor component
+<Anchor href="/posts" params={{
+    post: {
+        title: "Post"
+    }
+}}>Posts</Anchor> // For cross domain URLs the params are appended as search parameters.
 ```
 
 To access this data on the next screen:
@@ -326,7 +337,7 @@ config={{
 This is a work in progress and elements of this solution are subject to change.
 There are a few limitations to be aware of for example there is:
 
-- no analogue for HashRouter in this solution
+- no analogue for HashRouter in this solution.
 - no nested routing although there are plans to add this eventually.
 
 ## Credits
