@@ -31,9 +31,24 @@ export interface AnimationConfig {
     duration: number;
 }
 
-export type AnimationConfigFactory = (currentPath: string, nextPath: string)=> AnimationConfig | {
-    in: AnimationConfig;
-    out?: AnimationConfig;
-};
+export interface AnimationKeyframeEffectConfig {
+    keyframes: Keyframe[] | PropertyIndexedKeyframes | null;
+    options?: number | KeyframeEffectOptions;
+}
+
+export interface AnimationConfigSet {
+    in: AnimationConfig | AnimationKeyframeEffectConfig;
+    out: AnimationConfig | AnimationKeyframeEffectConfig;
+}
+
+export type ReducedAnimationConfigSet = Partial<AnimationConfigSet> & Pick<AnimationConfigSet, 'in'>;
+
+export type AnimationConfigFactory = (currentPath: string, nextPath: string)=> AnimationConfig | AnimationKeyframeEffectConfig | ReducedAnimationConfigSet;
 
 export {SharedElement};
+
+export interface Vec2 {
+    x: number;
+    y: number;
+}
+

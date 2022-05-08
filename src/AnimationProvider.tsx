@@ -1,7 +1,6 @@
 import React, { startTransition } from 'react';
-import { AnimationConfig } from './common/types';
+import { AnimationConfig, AnimationConfigSet, AnimationKeyframeEffectConfig } from './common/types';
 import AnimationLayerData, {AnimationLayerDataContext} from './AnimationLayerData';
-import AnimationKeyframePresets from './Animations';
 
 interface AnimationProviderProps {
     onExit: Function;
@@ -9,10 +8,7 @@ interface AnimationProviderProps {
     in: boolean;
     out: boolean;
     name: string;
-    animation: {
-        in: AnimationConfig;
-        out: AnimationConfig;
-    } | (() => {in: AnimationConfig, out: AnimationConfig});
+    animation: AnimationConfigSet | (() => AnimationConfigSet);
     backNavigating: boolean;
     children: React.ReactNode;
 }
@@ -88,7 +84,7 @@ export default class AnimationProvider extends React.Component<AnimationProvider
         window.removeEventListener('page-animation-end', this.onAnimationEnd);
     }
 
-    get inAnimation() {
+    get inAnimation(): AnimationKeyframeEffectConfig | string {
         let animation;
         if (typeof this.props.animation === "function") {
             animation = this.props.animation();
@@ -96,31 +92,35 @@ export default class AnimationProvider extends React.Component<AnimationProvider
             animation = this.props.animation;
         }
 
-        let direction = animation.in.direction;
-        let directionPrefix = '';
-        const backNavigating = this.props.backNavigating;
-        if (backNavigating && direction) {
-            if (animation.in.type === "zoom" || animation.in.type === "slide") {
-                direction = OppositeDirection[direction];
-                directionPrefix = 'back-';
+        if ('type' in animation.in) {
+            let direction = animation.in.direction;
+            let directionPrefix = '';
+            const backNavigating = this.props.backNavigating;
+            if (backNavigating && direction) {
+                if (animation.in.type === "zoom" || animation.in.type === "slide") {
+                    direction = OppositeDirection[direction];
+                    directionPrefix = 'back-';
+                }
             }
-        }
-        switch(animation.in.type) {
-            case "slide":
-                return `slide-${directionPrefix + direction || 'left'}-in`;
-
-            case "zoom":
-                return `zoom-${direction || 'in'}-in`;
-            
-            case "fade":
-                return "fade-in";
-            
-            default:
-                return "none";
+            switch(animation.in.type) {
+                case "slide":
+                    return `slide-${directionPrefix + direction || 'left'}-in`;
+    
+                case "zoom":
+                    return `zoom-${direction || 'in'}-in`;
+                
+                case "fade":
+                    return "fade-in";
+                
+                default:
+                    return "none";
+            }
+        } else {
+            return animation.in;
         }
     }
 
-    get outAnimation(): string {
+    get outAnimation(): AnimationKeyframeEffectConfig | string {
         let animation;
         if (typeof this.props.animation === "function")  {
             animation = this.props.animation();
@@ -128,27 +128,31 @@ export default class AnimationProvider extends React.Component<AnimationProvider
             animation = this.props.animation;
         }
 
-        let direction = animation.out.direction;
-        let directionPrefix = '';
-        const backNavigating = this.props.backNavigating;
-        if (backNavigating && direction) {
-            if (animation.out.type === "zoom" || animation.out.type === "slide") {
-                direction = OppositeDirection[direction];
-                directionPrefix = 'back-'
+        if ('type' in animation.out) {
+            let direction = animation.out.direction;
+            let directionPrefix = '';
+            const backNavigating = this.props.backNavigating;
+            if (backNavigating && direction) {
+                if (animation.out.type === "zoom" || animation.out.type === "slide") {
+                    direction = OppositeDirection[direction];
+                    directionPrefix = 'back-'
+                }
             }
-        }
-        switch(animation.out.type) {
-            case "slide":
-                return `slide-${directionPrefix + direction || 'left'}-out`;
+            switch(animation.out.type) {
+                case "slide":
+                    return `slide-${directionPrefix + direction || 'left'}-out`;
 
-            case "zoom":
-                return `zoom-${direction || 'in'}-out`;
-            
-            case "fade":
-                return "fade-out";
-            
-            default:
-                return "none";
+                case "zoom":
+                    return `zoom-${direction || 'in'}-out`;
+                
+                case "fade":
+                    return "fade-out";
+                
+                default:
+                    return "none";
+            }
+        } else {
+            return animation.out;
         }
     }
 
@@ -158,23 +162,21 @@ export default class AnimationProvider extends React.Component<AnimationProvider
 
     mounted(_mounted: boolean, willAnimate: boolean = true): Promise<void> {
         return new Promise((resolve, _) => {
-            startTransition(() => {
-                this.setState({mounted: _mounted}, () => {
-                    if (_mounted) {
-                        if (willAnimate) {
-                            if (this.ref) this.ref.style.willChange = 'transform, opacity';
-                        }
-                        const shouldScroll = Boolean(
-                            (this.props.in && !this._animationLayerData?.gestureNavigating)
-                            || (this.props.out && this._animationLayerData?.gestureNavigating)
-                        );
-                        if (this.props.onEnter) {
-                            this.props.onEnter(shouldScroll);
-                        }
+            this.setState({mounted: _mounted}, () => {
+                if (_mounted) {
+                    if (willAnimate) {
+                        if (this.ref) this.ref.style.willChange = 'transform, opacity';
                     }
-    
-                    resolve();
-                });
+                    const shouldScroll = Boolean(
+                        (this.props.in && !this._animationLayerData?.gestureNavigating)
+                        || (this.props.out && this._animationLayerData?.gestureNavigating)
+                    );
+                    if (this.props.onEnter) {
+                        this.props.onEnter(shouldScroll);
+                    }
+                }
+
+                resolve();
             });
         });
     }

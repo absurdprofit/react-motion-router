@@ -87,18 +87,27 @@ export default class AnimationLayerData {
             if (this._onExit && this._shouldAnimate) this._onExit();
             await this._nextScreen.mounted(true);
 
-            let easingFunction = 'ease-out';
-            if (this._gestureNavigating) easingFunction = 'linear';
-            this._outAnimation = this._currentScreen.animate(AnimationKeyframePresets[this._currentScreen.outAnimation as keyof typeof AnimationKeyframePresets], {
-                fill: 'both',
-                duration: this._duration,
-                easing: easingFunction
-            });
-            this._inAnimation = this._nextScreen.animate(AnimationKeyframePresets[this._nextScreen.inAnimation as keyof typeof AnimationKeyframePresets], {
-                fill: 'both',
-                duration: this._duration,
-                easing: easingFunction
-            });
+            let easingFunction = this._gestureNavigating ? 'linear' : 'ease-out';
+            if (typeof this._currentScreen.outAnimation === "string") {
+                this._outAnimation = this._currentScreen.animate(AnimationKeyframePresets[this._currentScreen.outAnimation as keyof typeof AnimationKeyframePresets], {
+                    fill: 'both',
+                    duration: this._duration,
+                    easing: easingFunction
+                });
+            } else {
+                const {outAnimation} = this._currentScreen;
+                this._outAnimation = this._currentScreen.animate(outAnimation.keyframes, outAnimation.options);
+            }
+            if (typeof this._nextScreen.inAnimation === "string") {
+                this._inAnimation = this._nextScreen.animate(AnimationKeyframePresets[this._nextScreen.inAnimation as keyof typeof AnimationKeyframePresets], {
+                    fill: 'both',
+                    duration: this._duration,
+                    easing: easingFunction
+                });
+            } else {
+                const {inAnimation} = this._nextScreen;
+                this._inAnimation = this._nextScreen.animate(inAnimation.keyframes, inAnimation.options);
+            }
 
             this._isPlaying = true;
             

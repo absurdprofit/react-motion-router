@@ -1,6 +1,7 @@
 import React, { createContext } from 'react';
 import {SwipeEndEvent, SwipeEvent, SwipeStartEvent} from 'web-gesture-events';
-import { clamp, Navigation, matchRoute, includesRoute } from './common/utils';
+import { clamp, matchRoute, includesRoute } from './common/utils';
+import Navigation from './Navigation';
 import {ScreenChild} from './index';
 import AnimationLayerData, {AnimationLayerDataContext} from './AnimationLayerData';
 import { MotionProgressDetail } from './MotionEvents';

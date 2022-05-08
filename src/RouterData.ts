@@ -1,5 +1,5 @@
 import React, {createContext} from 'react';
-import { Navigation } from './common/utils';
+import Navigation from './Navigation';
 import { AnimationConfig } from './common/types';
 import GhostLayer from './GhostLayer';
 

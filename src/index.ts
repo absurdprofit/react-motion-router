@@ -1,7 +1,8 @@
 import { ScreenChild, SharedElement, AnimationConfig, AnimationConfigFactory } from './common/types';
 import Router, { useNavigation } from './Router';
 import {Stack} from './Stack';
-import {Navigation, History} from './common/utils';
+import Navigation from './Navigation';
+import History from './History';
 import Anchor from './Anchor';
 import {Motion} from './AnimationLayer';
 import GestureRegion from './GestureRegion';

@@ -1,14 +1,9 @@
 import React, { Suspense } from 'react';
 import SharedElement from './SharedElement';
 import { RouterDataContext } from './RouterData';
-import { AnimationConfig, AnimationConfigFactory } from './common/types';
-import {Vec2} from './common/utils';
+import { AnimationConfig, AnimationConfigFactory, AnimationConfigSet, ReducedAnimationConfigSet } from './common/types';
+import {Vec2} from './common/types';
 import AnimationProvider from './AnimationProvider';
-
-interface Animation {
-    in: AnimationConfig;
-    out?: AnimationConfig;
-}
 
 export interface ScreenProps {
     out?: boolean;
@@ -18,7 +13,7 @@ export interface ScreenProps {
     path?: string | RegExp;
     defaultParams?: {[key:string]: any};
     config?: {
-        animation?: Animation | AnimationConfig | AnimationConfigFactory;
+        animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationConfigFactory;
     }
 }
 
@@ -33,10 +28,7 @@ export namespace Stack {
         private ref: HTMLElement | null = null;
         private contextParams = this.context.routesData.get(this.props.path)?.params;
         private onRef = this.setRef.bind(this);
-        private animation: {
-            in: AnimationConfig;
-            out: AnimationConfig;
-        } | (() => {in: AnimationConfig, out: AnimationConfig}) = {
+        private animation: AnimationConfigSet | (() => AnimationConfigSet) = {
             in: {
                 type: 'none',
                 duration: 0
@@ -134,7 +126,7 @@ export namespace Stack {
             }
         }
 
-        animationFactory() {
+        animationFactory(): AnimationConfigSet {
             if (typeof this.props.config?.animation === "function") {
                 let currentPath = this.context.navigation.history.next;
                 if (!this.context.backNavigating) {

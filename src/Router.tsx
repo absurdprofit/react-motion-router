@@ -1,5 +1,5 @@
 import React from 'react';
-import {Navigation, BackEvent, NavigateEvent} from './common/utils';
+import Navigation, { NavigateEvent, BackEvent } from './Navigation';
 import AnimationLayer from './AnimationLayer';
 import GhostLayer from './GhostLayer';
 import { ScreenChild } from '.';

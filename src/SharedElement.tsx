@@ -1,5 +1,6 @@
 import React, {createContext} from 'react';
-import {getCSSData, Vec2} from './common/utils';
+import {getCSSData} from './common/utils';
+import { Vec2 } from './common/types';
 import assert from 'assert';
 
 namespace SharedElement {
