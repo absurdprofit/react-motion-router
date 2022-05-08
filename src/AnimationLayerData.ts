@@ -90,49 +90,51 @@ export default class AnimationLayerData {
             let easingFunction = this._gestureNavigating ? 'linear' : 'ease-out';
             if (Array.isArray(this._currentScreen.outAnimation)) {
                 const [animation, userDefinedEasingFunction] = this._currentScreen.outAnimation;
-                this._outAnimation = this._currentScreen.animate(AnimationKeyframePresets[animation as keyof typeof AnimationKeyframePresets], {
+                this._outAnimation = this._currentScreen.animate(AnimationKeyframePresets[animation], {
                     fill: 'both',
                     duration: this._duration,
                     easing: this._gestureNavigating ? easingFunction : userDefinedEasingFunction || easingFunction
                 });
             } else {
                 let {keyframes, options} = this._currentScreen.outAnimation;
-                if (this._gestureNavigating) {
-                    if (typeof options === "number") {
-                        options = {
-                            duration: options,
-                            easing: easingFunction
-                        };
-                    } else {
-                        options = {
-                            ...options,
-                            easing: easingFunction
-                        };
-                    }
+                if (typeof options === "number") {
+                    options = {
+                        duration: options,
+                        easing: easingFunction,
+                        fill: 'both'
+                    };
+                } else {
+                    options = {
+                        ...options,
+                        easing: this._gestureNavigating ? easingFunction : options?.easing || easingFunction,
+                        duration: options?.duration || this.duration,
+                        fill: options?.fill || 'both'
+                    };
                 }
                 this._outAnimation = this._currentScreen.animate(keyframes, options);
             }
             if (Array.isArray(this._nextScreen.inAnimation)) {
                 const [animation, userDefinedEasingFunction] = this._nextScreen.inAnimation;
-                this._inAnimation = this._nextScreen.animate(AnimationKeyframePresets[animation as keyof typeof AnimationKeyframePresets], {
+                this._inAnimation = this._nextScreen.animate(AnimationKeyframePresets[animation], {
                     fill: 'both',
                     duration: this._duration,
                     easing: this._gestureNavigating ? easingFunction : userDefinedEasingFunction || easingFunction
                 });
             } else {
                 let {keyframes, options} = this._nextScreen.inAnimation;
-                if (this._gestureNavigating) {
-                    if (typeof options === "number") {
-                        options = {
-                            duration: options,
-                            easing: easingFunction
-                        };
-                    } else {
-                        options = {
-                            ...options,
-                            easing: easingFunction
-                        };
-                    }
+                if (typeof options === "number") {
+                    options = {
+                        duration: options,
+                        easing: easingFunction,
+                        fill: 'both'
+                    };
+                } else {
+                    options = {
+                        ...options,
+                        fill: options?.fill ? options.fill : 'both',
+                        duration: options?.duration || this.duration,
+                        easing: this._gestureNavigating ? easingFunction : options?.easing || easingFunction
+                    };
                 }
                 this._inAnimation = this._nextScreen.animate(keyframes, options);
             }
@@ -173,22 +175,11 @@ export default class AnimationLayerData {
                     }
                     // if playback rate is 2 then gesture navigation was aborted
                     if (!this._gestureNavigating || this._playbackRate === 0.5) {
-                        if (this._currentScreen) {
+                        if (this._currentScreen)
                             this._currentScreen.mounted(false);
-                        }
                     } else {
-                        if (this._currentScreen) {
-                            // hotfix for weird bug that snaps screen to start position after gesture navigation
-                            // this._currentScreen.animate([
-                            //     AnimationKeyframePresets[this._currentScreen.outAnimation as keyof typeof AnimationKeyframePresets][0]
-                            // ], {duration: 0, fill: 'forwards'});
-                        }
-                        if (this._nextScreen) {
-                            // this._nextScreen.animate([
-                            //     AnimationKeyframePresets[this._nextScreen.inAnimation as keyof typeof AnimationKeyframePresets][0]
-                            // ], {duration: 0, fill: 'forwards'});
+                        if (this._nextScreen) 
                             await this._nextScreen.mounted(false);
-                        }
                     }
                     if (this._onEnd) {
                         this._onEnd();

@@ -1,6 +1,7 @@
 import React, { startTransition } from 'react';
-import { AnimationConfig, AnimationConfigSet, AnimationKeyframeEffectConfig, EasingFunction } from './common/types';
+import { AnimationConfig, AnimationConfigSet, AnimationDirection, AnimationKeyframeEffectConfig, EasingFunction } from './common/types';
 import AnimationLayerData, {AnimationLayerDataContext} from './AnimationLayerData';
+import AnimationKeyframePresets from './Animations';
 
 interface AnimationProviderProps {
     onExit: Function;
@@ -84,7 +85,7 @@ export default class AnimationProvider extends React.Component<AnimationProvider
         window.removeEventListener('page-animation-end', this.onAnimationEnd);
     }
 
-    get inAnimation(): AnimationKeyframeEffectConfig | [string, EasingFunction | undefined] {
+    get inAnimation(): AnimationKeyframeEffectConfig | [keyof typeof AnimationKeyframePresets, EasingFunction | undefined] {
         let animation;
         if (typeof this.props.animation === "function") {
             animation = this.props.animation();
@@ -93,20 +94,22 @@ export default class AnimationProvider extends React.Component<AnimationProvider
         }
 
         if ('type' in animation.in) {
-            let direction = animation.in.direction;
-            let directionPrefix = '';
+            let direction: AnimationDirection | undefined = animation.in.direction;
+            let directionPrefix: '' | 'back-' = '' as const;
             const backNavigating = this.props.backNavigating;
             if (backNavigating && direction) {
                 if (animation.in.type === "zoom" || animation.in.type === "slide") {
                     direction = OppositeDirection[direction];
-                    directionPrefix = 'back-';
+                    directionPrefix = 'back-' as const;
                 }
             }
             switch(animation.in.type) {
                 case "slide":
-                    return [`slide-${directionPrefix + direction || 'left'}-in`, animation.in.easingFunction];
+                    if (direction === 'in' || direction === 'out') direction = 'left';
+                    return [`slide-${directionPrefix}${direction || 'left'}-in`, animation.in.easingFunction];
     
                 case "zoom":
+                    if (direction !== 'in' && direction !== 'out') direction = 'in';
                     return [`zoom-${direction || 'in'}-in`, animation.in.easingFunction];
                 
                 case "fade":
@@ -120,7 +123,7 @@ export default class AnimationProvider extends React.Component<AnimationProvider
         }
     }
 
-    get outAnimation(): AnimationKeyframeEffectConfig | [string, EasingFunction | undefined] {
+    get outAnimation(): AnimationKeyframeEffectConfig | [keyof typeof AnimationKeyframePresets, EasingFunction | undefined] {
         let animation;
         if (typeof this.props.animation === "function")  {
             animation = this.props.animation();
@@ -129,20 +132,22 @@ export default class AnimationProvider extends React.Component<AnimationProvider
         }
 
         if ('type' in animation.out) {
-            let direction = animation.out.direction;
-            let directionPrefix = '';
+            let direction: AnimationDirection | undefined = animation.out.direction;
+            let directionPrefix: '' | 'back-' = '' as const;
             const backNavigating = this.props.backNavigating;
             if (backNavigating && direction) {
                 if (animation.out.type === "zoom" || animation.out.type === "slide") {
                     direction = OppositeDirection[direction];
-                    directionPrefix = 'back-'
+                    directionPrefix = 'back-' as const;
                 }
             }
             switch(animation.out.type) {
                 case "slide":
-                    return [`slide-${directionPrefix + direction || 'left'}-out`, animation.out.easingFunction];
+                    if (direction === "in" || direction === "out") direction = 'left';
+                    return [`slide-${directionPrefix}${direction || 'left'}-out`, animation.out.easingFunction];
 
                 case "zoom":
+                    if (direction !== "in" && direction !== "out") direction = 'in';
                     return [`zoom-${direction || 'in'}-out`, animation.out.easingFunction];
                 
                 case "fade":
