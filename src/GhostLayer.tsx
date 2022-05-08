@@ -1,7 +1,7 @@
 import React from 'react';
 import SharedElement from './SharedElement';
 import {clamp} from './common/utils';
-import { AnimationConfig } from './common/types';
+import { AnimationConfig, EasingFunction } from './common/types';
 import { MotionProgressEvent } from './MotionEvents';
 
 interface GhostLayerProps {
@@ -19,7 +19,7 @@ interface GhostLayerState {
 
 interface TransitionXYState {
     duration: number;
-    easingFunction: SharedElement.EasingFunction;
+    easingFunction: EasingFunction;
     position: number;
     node: HTMLElement;
 }

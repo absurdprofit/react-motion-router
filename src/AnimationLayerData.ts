@@ -88,25 +88,53 @@ export default class AnimationLayerData {
             await this._nextScreen.mounted(true);
 
             let easingFunction = this._gestureNavigating ? 'linear' : 'ease-out';
-            if (typeof this._currentScreen.outAnimation === "string") {
-                this._outAnimation = this._currentScreen.animate(AnimationKeyframePresets[this._currentScreen.outAnimation as keyof typeof AnimationKeyframePresets], {
+            if (Array.isArray(this._currentScreen.outAnimation)) {
+                const [animation, userDefinedEasingFunction] = this._currentScreen.outAnimation;
+                this._outAnimation = this._currentScreen.animate(AnimationKeyframePresets[animation as keyof typeof AnimationKeyframePresets], {
                     fill: 'both',
                     duration: this._duration,
-                    easing: easingFunction
+                    easing: this._gestureNavigating ? easingFunction : userDefinedEasingFunction || easingFunction
                 });
             } else {
-                const {outAnimation} = this._currentScreen;
-                this._outAnimation = this._currentScreen.animate(outAnimation.keyframes, outAnimation.options);
+                let {keyframes, options} = this._currentScreen.outAnimation;
+                if (this._gestureNavigating) {
+                    if (typeof options === "number") {
+                        options = {
+                            duration: options,
+                            easing: easingFunction
+                        };
+                    } else {
+                        options = {
+                            ...options,
+                            easing: easingFunction
+                        };
+                    }
+                }
+                this._outAnimation = this._currentScreen.animate(keyframes, options);
             }
-            if (typeof this._nextScreen.inAnimation === "string") {
-                this._inAnimation = this._nextScreen.animate(AnimationKeyframePresets[this._nextScreen.inAnimation as keyof typeof AnimationKeyframePresets], {
+            if (Array.isArray(this._nextScreen.inAnimation)) {
+                const [animation, userDefinedEasingFunction] = this._nextScreen.inAnimation;
+                this._inAnimation = this._nextScreen.animate(AnimationKeyframePresets[animation as keyof typeof AnimationKeyframePresets], {
                     fill: 'both',
                     duration: this._duration,
-                    easing: easingFunction
+                    easing: this._gestureNavigating ? easingFunction : userDefinedEasingFunction || easingFunction
                 });
             } else {
-                const {inAnimation} = this._nextScreen;
-                this._inAnimation = this._nextScreen.animate(inAnimation.keyframes, inAnimation.options);
+                let {keyframes, options} = this._nextScreen.inAnimation;
+                if (this._gestureNavigating) {
+                    if (typeof options === "number") {
+                        options = {
+                            duration: options,
+                            easing: easingFunction
+                        };
+                    } else {
+                        options = {
+                            ...options,
+                            easing: easingFunction
+                        };
+                    }
+                }
+                this._inAnimation = this._nextScreen.animate(keyframes, options);
             }
 
             this._isPlaying = true;
@@ -151,14 +179,14 @@ export default class AnimationLayerData {
                     } else {
                         if (this._currentScreen) {
                             // hotfix for weird bug that snaps screen to start position after gesture navigation
-                            this._currentScreen.animate([
-                                AnimationKeyframePresets[this._currentScreen.outAnimation as keyof typeof AnimationKeyframePresets][0]
-                            ], {duration: 0, fill: 'forwards'});
+                            // this._currentScreen.animate([
+                            //     AnimationKeyframePresets[this._currentScreen.outAnimation as keyof typeof AnimationKeyframePresets][0]
+                            // ], {duration: 0, fill: 'forwards'});
                         }
                         if (this._nextScreen) {
-                            this._nextScreen.animate([
-                                AnimationKeyframePresets[this._nextScreen.inAnimation as keyof typeof AnimationKeyframePresets][0]
-                            ], {duration: 0, fill: 'forwards'});
+                            // this._nextScreen.animate([
+                            //     AnimationKeyframePresets[this._nextScreen.inAnimation as keyof typeof AnimationKeyframePresets][0]
+                            // ], {duration: 0, fill: 'forwards'});
                             await this._nextScreen.mounted(false);
                         }
                     }

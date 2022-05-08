@@ -35,7 +35,7 @@ const isPWA = getPWADisplayMode() === 'standalone';
 let animation: AnimationConfig = {
   type: "slide",
   direction: "right",
-  duration: 350,
+  duration: 350
 };
 
 let fadeAnimation: AnimationConfig = {
@@ -58,7 +58,7 @@ function App() {
   return (
       <Router config={{
         defaultRoute: '/',
-        disableDiscovery: false,
+        disableDiscovery: !isPWA,
         disableBrowserRouting: isPWA && iOS(),
         animation: animation,
         minFlingVelocity: 1000
@@ -81,40 +81,6 @@ function App() {
           path={'/cards'}
           component={Cards}
           fallback={<div className='screen-fallback cards'></div>}
-          config={{
-            animation: {
-              in: {
-                keyframes: [
-                  {
-                      transform: 'translateX(100vw)',
-                  },
-                  {
-                      transform: 'translateX(0vw)'
-                  }
-                ],
-                options: {
-                  duration: 350,
-                  fill: 'both',
-                  easing: 'ease-out'
-                }
-              },
-              out: {
-                keyframes: [
-                  {
-                      transform: 'translateX(0vw)'
-                  },
-                  {
-                      transform: 'translateX(100vw)'
-                  }
-              ],
-                options: {
-                  duration: 350,
-                  fill: 'both',
-                  easing: 'ease-out'
-                }
-              }
-            }
-          }}
         />
         <Stack.Screen
           path={'/cards-2'}

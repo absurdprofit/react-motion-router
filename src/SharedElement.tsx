@@ -1,6 +1,6 @@
 import React, {createContext} from 'react';
 import {getCSSData} from './common/utils';
-import { Vec2 } from './common/types';
+import { EasingFunction, EasingFunctionKeyword, Vec2 } from './common/types';
 import assert from 'assert';
 
 namespace SharedElement {
@@ -27,13 +27,7 @@ namespace SharedElement {
         unset
     }
 
-    enum EasingFunctionKeywordEnum {
-        "ease",
-        "ease-in",
-        "ease-in-out",
-        "ease-out",
-        "linear"
-    }
+    
 
     enum TransitionAnimationEnum {
         "morph",
@@ -44,9 +38,6 @@ namespace SharedElement {
 
     type TransitionAnimation = keyof typeof TransitionAnimationEnum;
 
-    type EasingFunctionKeyword = keyof typeof EasingFunctionKeywordEnum;
-
-    export type EasingFunction = EasingFunctionKeyword  | `cubic-bezier(${number},${' ' | ''}${number},${' ' | ''}${number},${' ' | ''}${number})`;
 
     type TransformOriginGlobal = keyof typeof TransformOriginGlobalEnum;
 

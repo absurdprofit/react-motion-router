@@ -1,5 +1,5 @@
 import React, { startTransition } from 'react';
-import { AnimationConfig, AnimationConfigSet, AnimationKeyframeEffectConfig } from './common/types';
+import { AnimationConfig, AnimationConfigSet, AnimationKeyframeEffectConfig, EasingFunction } from './common/types';
 import AnimationLayerData, {AnimationLayerDataContext} from './AnimationLayerData';
 
 interface AnimationProviderProps {
@@ -84,7 +84,7 @@ export default class AnimationProvider extends React.Component<AnimationProvider
         window.removeEventListener('page-animation-end', this.onAnimationEnd);
     }
 
-    get inAnimation(): AnimationKeyframeEffectConfig | string {
+    get inAnimation(): AnimationKeyframeEffectConfig | [string, EasingFunction | undefined] {
         let animation;
         if (typeof this.props.animation === "function") {
             animation = this.props.animation();
@@ -104,23 +104,23 @@ export default class AnimationProvider extends React.Component<AnimationProvider
             }
             switch(animation.in.type) {
                 case "slide":
-                    return `slide-${directionPrefix + direction || 'left'}-in`;
+                    return [`slide-${directionPrefix + direction || 'left'}-in`, animation.in.easingFunction];
     
                 case "zoom":
-                    return `zoom-${direction || 'in'}-in`;
+                    return [`zoom-${direction || 'in'}-in`, animation.in.easingFunction];
                 
                 case "fade":
-                    return "fade-in";
+                    return ["fade-in", animation.in.easingFunction];
                 
                 default:
-                    return "none";
+                    return ["none", undefined];
             }
         } else {
             return animation.in;
         }
     }
 
-    get outAnimation(): AnimationKeyframeEffectConfig | string {
+    get outAnimation(): AnimationKeyframeEffectConfig | [string, EasingFunction | undefined] {
         let animation;
         if (typeof this.props.animation === "function")  {
             animation = this.props.animation();
@@ -140,16 +140,16 @@ export default class AnimationProvider extends React.Component<AnimationProvider
             }
             switch(animation.out.type) {
                 case "slide":
-                    return `slide-${directionPrefix + direction || 'left'}-out`;
+                    return [`slide-${directionPrefix + direction || 'left'}-out`, animation.out.easingFunction];
 
                 case "zoom":
-                    return `zoom-${direction || 'in'}-out`;
+                    return [`zoom-${direction || 'in'}-out`, animation.out.easingFunction];
                 
                 case "fade":
-                    return "fade-out";
+                    return ["fade-out", animation.out.easingFunction];
                 
                 default:
-                    return "none";
+                    return ["none", undefined];
             }
         } else {
             return animation.out;

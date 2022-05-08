@@ -20,6 +20,17 @@ enum AnimationTypeEnum {
     none
 }
 
+enum EasingFunctionKeywordEnum {
+    "ease",
+    "ease-in",
+    "ease-in-out",
+    "ease-out",
+    "linear"
+}
+
+export type EasingFunctionKeyword = keyof typeof EasingFunctionKeywordEnum;
+export type EasingFunction = EasingFunctionKeyword  | `cubic-bezier(${number},${' ' | ''}${number},${' ' | ''}${number},${' ' | ''}${number})`;
+
 export type ParamsSerialiser = (params: {[key:string]: any}) => string;
 export type ParamsDeserialiser = (queryString: string) => {[key:string]: any};
 
@@ -29,6 +40,7 @@ export interface AnimationConfig {
     type: AnimationType;
     direction?: AnimationDirection;
     duration: number;
+    easingFunction?: EasingFunction;
 }
 
 export interface AnimationKeyframeEffectConfig {
