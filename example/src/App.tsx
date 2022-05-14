@@ -3,6 +3,8 @@ import {Router, Stack, AnimationConfig} from 'react-motion-router';
 import { matchRoute } from 'react-motion-router/common/utils';
 import { getPWADisplayMode, iOS } from './common/utils';
 import "./css/App.css";
+import VideoTest from './Screens/VideoTest';
+import VideoTest2 from './Screens/VideoTest2';
 
 const NotFound = React.lazy(() => import('./Screens/NotFound'));
 const Home = React.lazy(() => import('./Screens/Home'));
@@ -35,7 +37,7 @@ const isPWA = getPWADisplayMode() === 'standalone';
 let animation: AnimationConfig = {
   type: "slide",
   direction: "right",
-  duration: 350
+  duration: 350,
 };
 
 let fadeAnimation: AnimationConfig = {
@@ -58,7 +60,7 @@ function App() {
   return (
       <Router config={{
         defaultRoute: '/',
-        disableDiscovery: !isPWA,
+        disableDiscovery: false,
         disableBrowserRouting: isPWA && iOS(),
         animation: animation,
         minFlingVelocity: 1000
@@ -96,6 +98,16 @@ function App() {
         <Stack.Screen
           path={"/"}
           component={Home}
+          fallback={<div className='screen-fallback home'></div>}
+        />
+        <Stack.Screen
+          path={"/video"}
+          component={VideoTest2}
+          fallback={<div className='screen-fallback home'></div>}
+        />
+        <Stack.Screen
+          path={"/video-test"}
+          component={VideoTest}
           fallback={<div className='screen-fallback home'></div>}
         />
         <Stack.Screen

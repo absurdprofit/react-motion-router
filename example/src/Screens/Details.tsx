@@ -29,7 +29,6 @@ export default function Details(props: DetailsProps) {
     if (hero) {
         return (
             <div className={`details ${isLoaded ? 'loaded' : 'suspense'}`} style={{width: "100%", height: "100%", backgroundColor: Boolean(noBg) ? 'white' : undefined}}>
-                <div className="top"></div>
                 {!Boolean(noBg)
                 &&
                 <SharedElement id={`${hero.id}-card-bg`}>

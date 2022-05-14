@@ -10,15 +10,23 @@ export function getCSSData(styles: CSSStyleDeclaration, object: boolean = true):
         } else {
             if (!object) break;
             let propertyName = property;
-            const propertyValue = styles[propertyName as any];
+            let propertyValue = styles[propertyName as any];
             if (
                 typeof propertyValue === "string"
                 && propertyName !== "cssText"
                 && !propertyName.includes('webkit')
                 && !propertyName.includes('grid')
             ) {
-                if (propertyName === "offset") propertyName = "cssOffset";
-                if (propertyName === "float") propertyName = "cssFloat";
+                switch(propertyName) {
+                    case "offset":
+                        propertyName = "cssOffset";
+                        break;
+                    
+                    case "float":
+                        propertyName = "cssFloat";
+                        break;
+                }
+                
                 styleObject[propertyName] = propertyValue;
             }
         }

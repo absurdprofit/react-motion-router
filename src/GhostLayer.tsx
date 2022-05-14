@@ -62,6 +62,9 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
 
             if (this._currentScene) {
                 if (!this._currentScene.isEmpty() && !this._nextScene.isEmpty()) {
+                    // if ('requestIdleCallback' in window)
+                    //     requestIdleCallback(this.sharedElementTransition.bind(this, this._currentScene, this._nextScene));
+                    // else
                     this.sharedElementTransition(this._currentScene, this._nextScene);
                     return;
                 }
@@ -76,7 +79,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
         }
     }
 
-    sharedElementTransition(currentScene: SharedElement.Scene, nextScene: SharedElement.Scene) {
+    sharedElementTransition(currentScene: SharedElement.Scene, nextScene: SharedElement.Scene, deadline?: IdleDeadline) {
         if (this.props.animation.in.type === "none") return;
         if (this.props.backNavigating && this.props.animation.out.type === "none") return;
         if (this.props.animation.in.duration === 0) return;
@@ -89,6 +92,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
         
         this.setState({transitioning: true}, async () => {
             for (const [id, start] of currentScene.nodes) {
+                if (deadline && !deadline.timeRemaining()) return;
                 //if id exists in next scene
                 if (nextScene.nodes.has(id)) {
                     const endInstance = nextScene.nodes.get(id)!.instance;
@@ -515,6 +519,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     zIndex: 1000,
                     width: '100vw',
                     height: '100vh',
+                    contain: 'paint'
                 }}>
                 </div>
             );

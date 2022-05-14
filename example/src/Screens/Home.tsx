@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import {Navigation, SharedElement} from 'react-motion-router';
+import {Anchor, Navigation, SharedElement} from 'react-motion-router';
 import ListItemComponent from '../Components/ListItem';
 import Navbar from '../Components/Navbar';
 import '../css/Home.css';
@@ -59,6 +59,9 @@ export default function Home(props: HomeProps) {
                     })
                 }
             </div>
+            {/* <Anchor href="/video-test">
+                Video Text
+            </Anchor> */}
         </div>
     )
 }

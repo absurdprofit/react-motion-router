@@ -3,7 +3,6 @@ const Presets = {
     "slide-right-in": [
         {
             transform: 'translateX(100vw)',
-            
         },
         {
             transform: 'translateX(0vw)'

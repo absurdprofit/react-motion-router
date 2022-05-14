@@ -17,7 +17,7 @@ export default class AnimationLayerData {
     private _playbackRate: number = 1;
     private _gestureNavigating: boolean = false;
     private _onEnd: Function | null = null;
-    private _onProgress: Function | null = null;
+    private _onProgress: ((progress: number) => void) | null = null;
     private _shouldAnimate: boolean = true;
 
     private updateProgress() {
@@ -88,52 +88,52 @@ export default class AnimationLayerData {
             await this._nextScreen.mounted(true);
 
             let easingFunction = this._gestureNavigating ? 'linear' : 'ease-out';
-            if (Array.isArray(this._currentScreen.outAnimation)) {
+            if (Array.isArray(this._currentScreen.outAnimation)) { // predefined animation
                 const [animation, userDefinedEasingFunction] = this._currentScreen.outAnimation;
                 this._outAnimation = this._currentScreen.animate(AnimationKeyframePresets[animation], {
-                    fill: 'both',
+                    fill: this._gestureNavigating ? 'backwards' : 'both',
                     duration: this._duration,
-                    easing: this._gestureNavigating ? easingFunction : userDefinedEasingFunction || easingFunction
+                    easing: userDefinedEasingFunction || easingFunction
                 });
-            } else {
+            } else { // user provided animation
                 let {keyframes, options} = this._currentScreen.outAnimation;
                 if (typeof options === "number") {
                     options = {
                         duration: options,
                         easing: easingFunction,
-                        fill: 'both'
+                        fill: this._gestureNavigating ? 'backwards' : 'both'
                     };
                 } else {
                     options = {
                         ...options,
-                        easing: this._gestureNavigating ? easingFunction : options?.easing || easingFunction,
+                        easing: options?.easing || easingFunction,
                         duration: options?.duration || this.duration,
-                        fill: options?.fill || 'both'
+                        fill: options?.fill || this._gestureNavigating ? 'backwards' : 'both'
                     };
                 }
                 this._outAnimation = this._currentScreen.animate(keyframes, options);
             }
-            if (Array.isArray(this._nextScreen.inAnimation)) {
+            if (Array.isArray(this._nextScreen.inAnimation)) { // predefined animation
                 const [animation, userDefinedEasingFunction] = this._nextScreen.inAnimation;
                 this._inAnimation = this._nextScreen.animate(AnimationKeyframePresets[animation], {
-                    fill: 'both',
+                    fill: this._gestureNavigating ? 'backwards' : 'both',
                     duration: this._duration,
-                    easing: this._gestureNavigating ? easingFunction : userDefinedEasingFunction || easingFunction
+                    easing: userDefinedEasingFunction || easingFunction
                 });
-            } else {
+            } else { // user provided animation
                 let {keyframes, options} = this._nextScreen.inAnimation;
                 if (typeof options === "number") {
                     options = {
                         duration: options,
                         easing: easingFunction,
-                        fill: 'both'
+                        fill: this._gestureNavigating ? 'backwards' : 'both'
                     };
                 } else {
                     options = {
                         ...options,
-                        fill: options?.fill ? options.fill : 'both',
+                        fill: options?.fill || this._gestureNavigating ? 'backwards' : 'both',
                         duration: options?.duration || this.duration,
-                        easing: this._gestureNavigating ? easingFunction : options?.easing || easingFunction
+                        easing: options?.easing || easingFunction
                     };
                 }
                 this._inAnimation = this._nextScreen.animate(keyframes, options);
@@ -178,8 +178,19 @@ export default class AnimationLayerData {
                         if (this._currentScreen)
                             this._currentScreen.mounted(false);
                     } else {
-                        if (this._nextScreen) 
+                        if (this._outAnimation) {
+                            // apply final computed style
+                            this._outAnimation.playbackRate = 1;
+                            this._outAnimation.effect?.updateTiming({duration: 0, fill: 'forwards', direction: 'reverse'});
+                            this._outAnimation.play();
+                        }
+                        if (this._inAnimation && this._nextScreen) {
+                            // apply final computed style
+                            this._inAnimation.playbackRate = 1;
+                            this._inAnimation.effect?.updateTiming({duration: 0, fill: 'forwards', direction: 'reverse'});
+                            this._inAnimation.play();
                             await this._nextScreen.mounted(false);
+                        }
                     }
                     if (this._onEnd) {
                         this._onEnd();
@@ -196,7 +207,7 @@ export default class AnimationLayerData {
         }
     }
 
-    set onProgress(_onProgress: Function | null) {
+    set onProgress(_onProgress: ((progress: number) => void) | null) {
         this._onProgress = _onProgress;
     }
 
@@ -210,11 +221,6 @@ export default class AnimationLayerData {
 
     set playbackRate(_playbackRate: number) {
         this._playbackRate = _playbackRate;
-        if (_playbackRate > 0) {
-            // aborted gesture navigation so set pointer events back to correct setting
-            if (this._currentScreen && this._nextScreen) {
-            }
-        }
         if (this._inAnimation && this._outAnimation) {
             this._inAnimation.playbackRate = this._playbackRate;
             this._outAnimation.playbackRate = this._playbackRate;
