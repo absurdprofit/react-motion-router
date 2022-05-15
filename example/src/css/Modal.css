@@ -1,0 +1,29 @@
+.modal {
+    width: 100vw;
+    height: 90vh;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    background-color: rgba(46, 46, 46, 0.5);
+    backdrop-filter: blur(15px);
+    border-radius: 10px 10px 0px 0px;
+}
+.modal:before {
+    content: "A";
+    color: transparent;
+    background-color: rgba(46, 46, 46, 1);
+    width: 30px;
+    height: 7px;
+    border-radius: 5px;
+    position: absolute;
+    left: 50%;
+    top: 15px;
+    transform: translate(-50%, -50%);
+}
+div[role="presentation"] {
+    position: absolute;
+}
+.modal-presentation {
+    width: 100vw;
+    height: 100vh;
+}

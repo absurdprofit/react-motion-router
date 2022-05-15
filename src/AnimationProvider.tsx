@@ -187,9 +187,7 @@ export default class AnimationProvider extends React.Component<AnimationProvider
             if (this.props.keepAlive && !_mounted) { // keep screen in the DOM
                 resolve();
             } else {
-                requestAnimationFrame(() => {
-                    this.setState({mounted: _mounted}, onMountChange);
-                });
+                this.setState({mounted: _mounted}, onMountChange);
             }
         });
     }

@@ -88,55 +88,61 @@ export default class AnimationLayerData {
             await this._nextScreen.mounted(true);
 
             let easingFunction = this._gestureNavigating ? 'linear' : 'ease-out';
+            let inKeyframes: Keyframe[] | PropertyIndexedKeyframes | null;
+            let outKeyframes: Keyframe[] | PropertyIndexedKeyframes | null;
             if (Array.isArray(this._currentScreen.outAnimation)) { // predefined animation
                 const [animation, userDefinedEasingFunction] = this._currentScreen.outAnimation;
                 this._outAnimation = this._currentScreen.animate(AnimationKeyframePresets[animation], {
-                    fill: this._gestureNavigating ? 'backwards' : 'both',
+                    fill: 'both',
                     duration: this._duration,
                     easing: userDefinedEasingFunction || easingFunction
                 });
+                outKeyframes = AnimationKeyframePresets[animation];
             } else { // user provided animation
                 let {keyframes, options} = this._currentScreen.outAnimation;
                 if (typeof options === "number") {
                     options = {
                         duration: options,
                         easing: easingFunction,
-                        fill: this._gestureNavigating ? 'backwards' : 'both'
+                        fill: 'both'
                     };
                 } else {
                     options = {
                         ...options,
                         easing: options?.easing || easingFunction,
                         duration: options?.duration || this.duration,
-                        fill: options?.fill || this._gestureNavigating ? 'backwards' : 'both'
+                        fill: options?.fill || 'both'
                     };
                 }
                 this._outAnimation = this._currentScreen.animate(keyframes, options);
+                outKeyframes = keyframes;
             }
             if (Array.isArray(this._nextScreen.inAnimation)) { // predefined animation
                 const [animation, userDefinedEasingFunction] = this._nextScreen.inAnimation;
                 this._inAnimation = this._nextScreen.animate(AnimationKeyframePresets[animation], {
-                    fill: this._gestureNavigating ? 'backwards' : 'both',
+                    fill: 'both',
                     duration: this._duration,
                     easing: userDefinedEasingFunction || easingFunction
                 });
+                outKeyframes = AnimationKeyframePresets[animation];
             } else { // user provided animation
                 let {keyframes, options} = this._nextScreen.inAnimation;
                 if (typeof options === "number") {
                     options = {
                         duration: options,
                         easing: easingFunction,
-                        fill: this._gestureNavigating ? 'backwards' : 'both'
+                        fill: 'both'
                     };
                 } else {
                     options = {
                         ...options,
-                        fill: options?.fill || this._gestureNavigating ? 'backwards' : 'both',
+                        fill: options?.fill || 'both',
                         duration: options?.duration || this.duration,
                         easing: options?.easing || easingFunction
                     };
                 }
                 this._inAnimation = this._nextScreen.animate(keyframes, options);
+                outKeyframes = keyframes;
             }
 
             this._isPlaying = true;
@@ -178,17 +184,12 @@ export default class AnimationLayerData {
                         if (this._currentScreen)
                             this._currentScreen.mounted(false);
                     } else {
-                        if (this._outAnimation) {
+                        if (this._currentScreen) {
                             // apply final computed style
-                            this._outAnimation.playbackRate = 1;
-                            this._outAnimation.effect?.updateTiming({duration: 0, fill: 'forwards', direction: 'reverse'});
-                            this._outAnimation.play();
+                            this._currentScreen.animate(outKeyframes, {duration: 0, fill: 'forwards'});
                         }
-                        if (this._inAnimation && this._nextScreen) {
-                            // apply final computed style
-                            this._inAnimation.playbackRate = 1;
-                            this._inAnimation.effect?.updateTiming({duration: 0, fill: 'forwards', direction: 'reverse'});
-                            this._inAnimation.play();
+                        if (this._nextScreen) {
+                            this._nextScreen.animate(inKeyframes, {duration: 0, fill: 'forwards'});
                             await this._nextScreen.mounted(false);
                         }
                     }

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import {Anchor, Navigation, SharedElement} from 'react-motion-router';
+import {Navigation, SharedElement} from 'react-motion-router';
 import ListItemComponent from '../Components/ListItem';
 import Navbar from '../Components/Navbar';
 import '../css/Home.css';
@@ -31,6 +31,11 @@ export default function Home(props: HomeProps) {
             title: 'Cards Demo 2',
             description: 'Heavier card demo with fading gradient overlay and cross-fading texts',
             onClick: () => props.navigation.navigate('/cards-2')
+        },
+        {
+            title: 'Overlay Demo',
+            description: 'Various Overlays such as modals',
+            onClick: () => props.navigation.navigate('/overlays')
         }
     ];
 

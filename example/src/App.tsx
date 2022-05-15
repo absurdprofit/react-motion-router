@@ -3,6 +3,8 @@ import {Router, Stack, AnimationConfig} from 'react-motion-router';
 import { matchRoute } from 'react-motion-router/common/utils';
 import { getPWADisplayMode, iOS } from './common/utils';
 import "./css/App.css";
+import ModalExample, { ModalAnimation } from './Screens/Modal';
+import Overlays, { OverlaysAnimation } from './Screens/Overlays';
 import VideoTest from './Screens/VideoTest';
 import VideoTest2 from './Screens/VideoTest2';
 
@@ -60,11 +62,26 @@ function App() {
   return (
       <Router config={{
         defaultRoute: '/',
-        disableDiscovery: !isPWA,
+        disableDiscovery: false,
         disableBrowserRouting: isPWA && iOS(),
         animation: animation,
         minFlingVelocity: 1000
       }}>
+        <Stack.Screen
+          path='/overlays'
+          component={Overlays}
+          config={{
+            keepAlive: true,
+            animation: OverlaysAnimation
+          }}
+        />
+        <Stack.Screen
+          path='/modal'
+          component={ModalExample}
+          config={{
+            animation: ModalAnimation
+          }}
+        />
         <Stack.Screen
           path={'/slides'}
           component={Slides}
