@@ -1,6 +1,6 @@
 import React, {createContext} from 'react';
 import {getCSSData} from './common/utils';
-import { EasingFunction, EasingFunctionKeyword, Vec2 } from './common/types';
+import { EasingFunction, Vec2 } from './common/types';
 import assert from 'assert';
 
 namespace SharedElement {
@@ -67,6 +67,8 @@ namespace SharedElement {
         private _y: number = 0;
         private _xRatio: number = 0;
         private _yRatio: number = 0;
+        private _keepAlive: boolean = false;
+
         constructor(name: string) {
             this._name = name;
         }
@@ -111,6 +113,10 @@ namespace SharedElement {
             return this._y;
         }
 
+        get keepAlive() {
+            return this._keepAlive;
+        }
+
         set scrollPos(_scrollPos: Vec2) {
             this._scrollPos = _scrollPos;
         }
@@ -129,6 +135,10 @@ namespace SharedElement {
 
         set yRatio(_yRatio: number) {
             this._yRatio = _yRatio;
+        }
+        
+        set keepAlive(_keepAlive: boolean) {
+            this._keepAlive = _keepAlive
         }
 
         isEmpty() {
@@ -182,6 +192,7 @@ namespace SharedElement {
 
     interface SharedElementState {
         hidden: boolean;
+        keepAlive: boolean;
     }
 
     export class SharedElement extends React.Component<SharedElementProps, SharedElementState> {
@@ -195,7 +206,8 @@ namespace SharedElement {
         private onRef = this.setRef.bind(this);
         
         state: SharedElementState = {
-            hidden: false
+            hidden: false,
+            keepAlive: false
         }
 
         get scene() {
@@ -231,6 +243,12 @@ namespace SharedElement {
 
         get transitionType() {
             return this.props.config?.type;
+        }
+
+        keepAlive(_keepAlive: boolean): Promise<void> {
+            return new Promise((resolve) => {
+                this.setState({keepAlive: _keepAlive}, () => resolve());
+            });
         }
 
         hidden(_hidden: boolean): Promise<void> {
@@ -310,7 +328,7 @@ namespace SharedElement {
                                 ref={this.onRef}
                                 id={`shared-element-${this._id}`}
                                 style={{
-                                    display: this.state.hidden ? 'block' : 'contents',
+                                    display: this.state.hidden && !this.keepAlive ? 'block' : 'contents',
                                     visibility: this.state.hidden ? 'hidden': 'visible'
                                 }}
                             >

@@ -1,5 +1,5 @@
-import React, { startTransition } from 'react';
-import { AnimationConfig, AnimationConfigSet, AnimationDirection, AnimationKeyframeEffectConfig, EasingFunction } from './common/types';
+import React from 'react';
+import { AnimationConfigSet, AnimationDirection, AnimationKeyframeEffectConfig, EasingFunction } from './common/types';
 import AnimationLayerData, {AnimationLayerDataContext} from './AnimationLayerData';
 import AnimationKeyframePresets from './Animations';
 
@@ -11,6 +11,7 @@ interface AnimationProviderProps {
     name: string;
     animation: AnimationConfigSet | (() => AnimationConfigSet);
     backNavigating: boolean;
+    keepAlive: boolean;
     children: React.ReactNode;
 }
 
@@ -167,7 +168,7 @@ export default class AnimationProvider extends React.Component<AnimationProvider
 
     mounted(_mounted: boolean, willAnimate: boolean = true): Promise<void> {
         return new Promise((resolve, _) => {
-            this.setState({mounted: _mounted}, () => {
+            const onMountChange = () => {
                 if (_mounted) {
                     if (willAnimate) {
                         if (this.ref) this.ref.style.willChange = 'transform, opacity';
@@ -182,7 +183,14 @@ export default class AnimationProvider extends React.Component<AnimationProvider
                 }
 
                 resolve();
-            });
+            };
+            if (this.props.keepAlive && !_mounted) { // keep screen in the DOM
+                resolve();
+            } else {
+                requestAnimationFrame(() => {
+                    this.setState({mounted: _mounted}, onMountChange);
+                });
+            }
         });
     }
 

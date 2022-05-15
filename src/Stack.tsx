@@ -14,11 +14,13 @@ export interface ScreenProps {
     defaultParams?: {[key:string]: any};
     config?: {
         animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationConfigFactory;
+        keepAlive?: boolean;
     }
 }
 
 interface ScreenState {
     fallback?: React.ReactNode;
+    shouldKeepAlive: boolean;
 }
 
 export namespace Stack {
@@ -37,7 +39,7 @@ export namespace Stack {
                 type: 'none',
                 duration: 0
             }
-        }
+        };
         private scrollPos: Vec2 = {x: 0, y: 0};
         static contextType = RouterDataContext;
         context!: React.ContextType<typeof RouterDataContext>;
@@ -45,11 +47,14 @@ export namespace Stack {
             route: {
                 params: {}
             }
+        };
+
+        state: ScreenState = {
+            shouldKeepAlive: false
         }
 
-        state: ScreenState = {}
-
         componentDidMount() {
+            this.sharedElementScene.keepAlive = this.props.config?.keepAlive || false;
             if (this.props.fallback && React.isValidElement(this.props.fallback)) {
                 this.setState({
                     fallback: React.cloneElement<any>(this.props.fallback, {
@@ -107,6 +112,9 @@ export namespace Stack {
         }
 
         componentDidUpdate(prevProps: ScreenProps) {
+            if (prevProps.config?.keepAlive !== this.props.config?.keepAlive) {
+                this.sharedElementScene.keepAlive = this.props.config?.keepAlive || false;
+            }
             if (prevProps.fallback !== this.props.fallback) {
                 if (this.props.fallback && React.isValidElement(this.props.fallback)) {
                     this.setState({
@@ -156,6 +164,18 @@ export namespace Stack {
         }
         
         onExit = () => {
+            if (this.context.backNavigating)
+                this.setState({shouldKeepAlive: false});
+            else {
+                if (this.ref) {
+                    this.setTransforms(this.ref); // replace stale transforms
+                    window.addEventListener('page-animation-end', () => { // scale transforms were stale after animation
+                        if (this.ref) this.setTransforms(this.ref);
+                    }, {once: true});
+                }
+                this.setState({shouldKeepAlive: true});
+            }
+
             if (this.ref) {
                 this.scrollPos = {
                     x: this.ref.scrollLeft,
@@ -177,18 +197,22 @@ export namespace Stack {
             }
         }
 
+        private setTransforms(ref: HTMLElement) {
+            const clientRect = ref.getBoundingClientRect();
+            const xRatio = (clientRect.width / window.innerWidth).toFixed(2); // transform scale factor due to zoom animation
+            const yRatio = (clientRect.height / window.innerHeight).toFixed(2);
+            this.sharedElementScene.x = clientRect.x;
+            this.sharedElementScene.y = clientRect.y;
+            this.sharedElementScene.xRatio = parseFloat(xRatio);
+            this.sharedElementScene.yRatio = parseFloat(yRatio);
+        }
+
         private setRef(ref: HTMLElement | null) {
             if (this.ref !== ref) {
                 this.ref = ref;
 
                 if (ref) {
-                    const clientRect = ref.getBoundingClientRect();
-                    const xRatio = (clientRect.width / window.innerWidth).toFixed(2); // transform scale factor due to zoom animation
-                    const yRatio = (clientRect.height / window.innerHeight).toFixed(2);
-                    this.sharedElementScene.x = clientRect.x;
-                    this.sharedElementScene.y = clientRect.y;
-                    this.sharedElementScene.xRatio = parseFloat(xRatio);
-                    this.sharedElementScene.yRatio = parseFloat(yRatio);
+                    this.setTransforms(ref);
                 }
             }
         }
@@ -203,6 +227,7 @@ export namespace Stack {
                     name={this.props.component.name}
                     animation={this.animation}
                     backNavigating={this.context!.backNavigating}
+                    keepAlive={this.state.shouldKeepAlive ? this.props.config?.keepAlive || false : false}
                 >
                     <div
                         ref={this.onRef}

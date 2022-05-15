@@ -1,4 +1,9 @@
-import { ScreenChild, SharedElement, AnimationConfig, AnimationConfigFactory } from './common/types';
+import {
+    ScreenChild,
+    SharedElement,
+    AnimationConfig,
+    AnimationConfigFactory
+} from './common/types';
 import Router, { useNavigation } from './Router';
 import {Stack} from './Stack';
 import Navigation from './Navigation';
@@ -7,7 +12,13 @@ import Anchor from './Anchor';
 import {Motion} from './AnimationLayer';
 import GestureRegion from './GestureRegion';
 import 'web-gesture-events';
-import { MotionProgressEndEvent, MotionProgressEvent, MotionProgressStartEvent, PageAnimationEndEvent, PageAnimationStartEvent } from './MotionEvents';
+import {
+    MotionProgressEndEvent,
+    MotionProgressEvent,
+    MotionProgressStartEvent,
+    PageAnimationEndEvent,
+    PageAnimationStartEvent
+} from './MotionEvents';
 
 document.body.style.position = 'fixed';
 document.body.style.top = '0';

@@ -5,7 +5,12 @@ export function getCSSData(styles: CSSStyleDeclaration, object: boolean = true):
     for (let property in styles) {
         if (j < styles.length) {
             const propertyName = styles[property];
-            const propertyValue = styles.getPropertyValue(propertyName);
+            let propertyValue = styles.getPropertyValue(propertyName);
+            switch (propertyName) {
+                case "visibility":
+                    propertyValue = 'visible';
+                    break;
+            }
             text += `${propertyName}:${propertyValue};`;
         } else {
             if (!object) break;
@@ -24,6 +29,10 @@ export function getCSSData(styles: CSSStyleDeclaration, object: boolean = true):
                     
                     case "float":
                         propertyName = "cssFloat";
+                        break;
+                    
+                    case "visibility":
+                        propertyValue = "visible";
                         break;
                 }
                 

@@ -62,9 +62,6 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
 
             if (this._currentScene) {
                 if (!this._currentScene.isEmpty() && !this._nextScene.isEmpty()) {
-                    // if ('requestIdleCallback' in window)
-                    //     requestIdleCallback(this.sharedElementTransition.bind(this, this._currentScene, this._nextScene));
-                    // else
                     this.sharedElementTransition(this._currentScene, this._nextScene);
                     return;
                 }
@@ -79,7 +76,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
         }
     }
 
-    sharedElementTransition(currentScene: SharedElement.Scene, nextScene: SharedElement.Scene, deadline?: IdleDeadline) {
+    sharedElementTransition(currentScene: SharedElement.Scene, nextScene: SharedElement.Scene) {
         if (this.props.animation.in.type === "none") return;
         if (this.props.backNavigating && this.props.animation.out.type === "none") return;
         if (this.props.animation.in.duration === 0) return;
@@ -92,7 +89,6 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
         
         this.setState({transitioning: true}, async () => {
             for (const [id, start] of currentScene.nodes) {
-                if (deadline && !deadline.timeRemaining()) return;
                 //if id exists in next scene
                 if (nextScene.nodes.has(id)) {
                     const endInstance = nextScene.nodes.get(id)!.instance;
@@ -449,7 +445,13 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         startNode.style.willChange = 'auto';
                         endNode.style.willChange = 'auto';
                         await endInstance.hidden(false);
-                        await startInstance.hidden(false);
+                        if (!currentScene.keepAlive) {
+                            startInstance.keepAlive(false);
+                            await startInstance.hidden(false); // if current scene is kept alive do not show start element
+                        } else {
+                            startInstance.keepAlive(true);
+                        }
+                            
                         this.ref?.removeChild(startNode);
                         if (transitionType !== "morph") {
                             this.ref?.removeChild(endNode);
