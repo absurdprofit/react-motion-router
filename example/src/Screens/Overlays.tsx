@@ -1,7 +1,8 @@
 import { Button } from '@mui/material';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Anchor, AnimationConfigFactory, Motion, Navigation } from 'react-motion-router';
 import { matchRoute } from 'react-motion-router/common/utils';
+import { iOS, isPWA } from '../common/utils';
 import ModalExample from './Modal';
 
 interface OverlaysProps {
@@ -9,6 +10,12 @@ interface OverlaysProps {
 }
 
 export const OverlaysAnimation: AnimationConfigFactory = (currentPath: string, nextPath: string) => {
+    if (iOS() && !isPWA) {
+        return {
+          type: 'none',
+          duration: 0
+        }
+    }
     if ((matchRoute(currentPath, '/overlays') && matchRoute(nextPath, '/modal'))
     || (matchRoute(currentPath, '/modal') && matchRoute(nextPath, '/overlays'))) {
         return {
@@ -47,18 +54,23 @@ export const OverlaysAnimation: AnimationConfigFactory = (currentPath: string, n
     };
 }
 
-export default function Overlays(props: OverlaysProps) {
+export default function Overlays({navigation}: OverlaysProps) {
+    const [shouldAnimate, setShouldAnimate] = useState(false);
     const openModal = () => {
-        props.navigation.navigate('/modal');
+        navigation.navigate('/modal');
     }
-    const shouldAnimate = props.navigation.history.previous === '/overlays' || props.navigation.history.next === '/modal';
+
     useEffect(() => {
         document.body.style.backgroundColor = 'rgba(254, 226, 85)';
 
         return () => {
             document.body.style.backgroundColor = 'unset';
         }
-    })
+    });
+
+    useEffect(() => {
+        setShouldAnimate(navigation.history.previous === '/overlays');
+    }, [navigation.history.previous, navigation.history.next]);
     return (
         <Motion.Consumer>
             {(progress) => {

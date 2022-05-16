@@ -5,6 +5,7 @@ import { ClickAwayListener } from '@mui/material';
 import { createSpringAnimation } from 'springframes';
 import { AnimationConfigFactory, AnimationConfig, AnimationKeyframeEffectConfig } from 'react-motion-router/common/types';
 import { matchRoute } from 'react-motion-router/common/utils';
+import { iOS, isPWA } from '../common/utils';
 
 interface ModalScreenProps {
     navigation: Navigation;
@@ -42,6 +43,12 @@ export const ModalAnimation: AnimationConfigFactory = (c, n, gestureNavigating) 
         }
     };
     if (matchRoute(n, '/')) return {...slideDefaultAnimation, direction: 'right'};
+    if (iOS() && !isPWA) {
+        return {
+          type: 'none',
+          duration: 0
+        }
+    }
     return {
         in: gestureNavigating ? slideDefaultAnimation : springAnimation,
         out: slideDefaultAnimation

@@ -6,7 +6,7 @@ import {
 } from './common/types';
 import Router, { useNavigation } from './Router';
 import {Stack} from './Stack';
-import Navigation from './Navigation';
+import Navigation, { BackEvent, NavigateEvent } from './Navigation';
 import History from './History';
 import Anchor from './Anchor';
 import {Motion} from './AnimationLayer';
@@ -32,6 +32,8 @@ interface MotionEventsMap {
     "motion-progress-start": MotionProgressStartEvent;
     "motion-progress": MotionProgressEvent;
     "motion-progress-end": MotionProgressEndEvent;
+    "go-back": BackEvent;
+    "navigate": NavigateEvent;
 }
 
 declare global {

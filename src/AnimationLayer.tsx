@@ -185,6 +185,10 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         }
     }
 
+    onGestureSuccess(state: Pick<AnimationLayerState, 'swipeAreaWidth' | 'swipeDirection' | 'hysteresis' | 'disableDiscovery' | 'minFlingVelocity'>) {
+        this.setState(state);
+    }
+
     onSwipeStart(ev: SwipeStartEvent) {
         let swipePos: number; // 1D
         switch(this.state.swipeDirection) {
@@ -214,6 +218,11 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             let lastPath: string | undefined = this.props.lastPath;
             let currentMatched = false;
             let lastMatched = false;
+            let swipeDirection: SwipeDirection | undefined;
+            let swipeAreaWidth: number | undefined;
+            let minFlingVelocity: number | undefined;
+            let hysteresis: number | undefined;
+            let disableDiscovery: boolean | undefined;
             const children = React.Children.map(
                 this.props.children,
                 (child: ScreenChild) => {
@@ -236,6 +245,12 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
                         if (matchRoute(child.props.path, lastPath)) {
                             if (!lastMatched) {
                                 lastMatched = true;
+                                const {config} = child.props;
+                                swipeDirection = config?.swipeDirection;
+                                swipeAreaWidth = config?.swipeAreaWidth;
+                                hysteresis = config?.hysteresis;
+                                disableDiscovery = config?.disableDiscovery;
+                                minFlingVelocity = config?.minFlingVelocity;
                                 const element = React.cloneElement(child, {...child.props, in: false, out: true});
                                 return element as ScreenChild;
                             }
@@ -243,7 +258,16 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
                     }
                 }
             ).sort((firstChild) => matchRoute(firstChild.props.path, currentPath) ? -1 : 1);
-            
+
+            this.onGestureSuccess = this.onGestureSuccess.bind(this, {
+                swipeDirection: swipeDirection || this.props.swipeDirection,
+                swipeAreaWidth: swipeAreaWidth || this.props.swipeAreaWidth,
+                hysteresis: hysteresis || this.props.hysteresis,
+                disableDiscovery: disableDiscovery || this.props.disableDiscovery,
+                minFlingVelocity: minFlingVelocity || this.props.minFlingVelocity
+            });
+            window.addEventListener('go-back', this.onGestureSuccess as unknown as EventListener, {once: true});
+
             this.props.onGestureNavigationStart();
             this.setState({
                 shouldPlay: false,
@@ -316,6 +340,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         } else {
             this.animationLayerData.playbackRate = 0.5;
             onEnd = () => {
+                window.removeEventListener('go-back', this.onGestureSuccess as unknown as EventListener);
                 this.animationLayerData.reset();
                 
                 window.dispatchEvent(motionEndEvent);

@@ -1,7 +1,7 @@
 import React from 'react';
 import {Router, Stack, AnimationConfig} from 'react-motion-router';
 import { matchRoute } from 'react-motion-router/common/utils';
-import { getPWADisplayMode, iOS } from './common/utils';
+import { iOS, isPWA } from './common/utils';
 import "./css/App.css";
 import ModalExample, { ModalAnimation } from './Screens/Modal';
 import Overlays, { OverlaysAnimation } from './Screens/Overlays';
@@ -33,7 +33,7 @@ function DetailsFallback({route}: any) {
   );
 }
 
-const isPWA = getPWADisplayMode() === 'standalone';
+
 let animation: AnimationConfig = {
   type: "slide",
   direction: "right",
