@@ -194,7 +194,7 @@ export default class AnimationProvider extends React.Component<AnimationProvider
 
     render() {
         return (
-            <div className="animation-provider" ref={this.setRef} style={{
+            <div id={this.props.name} className="animation-provider" ref={this.setRef} style={{
                 position: 'absolute',
                 transformOrigin: 'center center',
                 zIndex: this.props.in && !this.props.backNavigating ? 1 : this.props.out && this.props.backNavigating ? 1 : 0,

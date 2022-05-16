@@ -5,8 +5,6 @@ import { getPWADisplayMode, iOS } from './common/utils';
 import "./css/App.css";
 import ModalExample, { ModalAnimation } from './Screens/Modal';
 import Overlays, { OverlaysAnimation } from './Screens/Overlays';
-import VideoTest from './Screens/VideoTest';
-import VideoTest2 from './Screens/VideoTest2';
 
 const NotFound = React.lazy(() => import('./Screens/NotFound'));
 const Home = React.lazy(() => import('./Screens/Home'));
@@ -79,6 +77,8 @@ function App() {
           path='/modal'
           component={ModalExample}
           config={{
+            swipeDirection: 'down',
+            swipeAreaWidth: window.innerHeight / 3,
             animation: ModalAnimation
           }}
         />
@@ -115,16 +115,6 @@ function App() {
         <Stack.Screen
           path={"/"}
           component={Home}
-          fallback={<div className='screen-fallback home'></div>}
-        />
-        <Stack.Screen
-          path={"/video"}
-          component={VideoTest2}
-          fallback={<div className='screen-fallback home'></div>}
-        />
-        <Stack.Screen
-          path={"/video-test"}
-          component={VideoTest}
           fallback={<div className='screen-fallback home'></div>}
         />
         <Stack.Screen

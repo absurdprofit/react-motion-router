@@ -3,7 +3,7 @@ import Navigation, { NavigateEvent, BackEvent } from './Navigation';
 import AnimationLayer from './AnimationLayer';
 import GhostLayer from './GhostLayer';
 import { ScreenChild } from '.';
-import {AnimationConfig} from './common/types';
+import {AnimationConfig, SwipeDirection} from './common/types';
 import RouterData, {RoutesData, RouterDataContext} from './RouterData';
 
 interface Config {
@@ -16,6 +16,7 @@ interface Config {
     minFlingVelocity?: number;
     hysteresis?: number;
     disableDiscovery?: boolean;
+    swipeDirection?: SwipeDirection;
     disableBrowserRouting?: boolean;
     paramsSerialiser?(params: {[key:string]: any}): string;
     paramsDeserialiser?(queryString: string): {[key:string]: any};
@@ -247,6 +248,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
                         hysteresis={this.props.config.hysteresis || 50}
                         minFlingVelocity={this.props.config.minFlingVelocity || 400}
                         swipeAreaWidth={this.props.config.swipeAreaWidth || 100}
+                        swipeDirection={this.props.config.swipeDirection || 'right'}
                         navigation={this._routerData.navigation}
                         duration={this._routerData.animation.in.duration}
                         currentPath={this.state.currentPath}

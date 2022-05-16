@@ -5,6 +5,7 @@ import Navigation from './Navigation';
 import {ScreenChild} from './index';
 import AnimationLayerData, {AnimationLayerDataContext} from './AnimationLayerData';
 import { MotionProgressDetail } from './MotionEvents';
+import { SwipeDirection } from './common/types';
 
 export const Motion = createContext(0);
 
@@ -17,6 +18,7 @@ interface AnimationLayerProps {
     backNavigating: boolean;
     onGestureNavigationEnd: Function;
     onGestureNavigationStart: Function;
+    swipeDirection: SwipeDirection;
     hysteresis: number;
     minFlingVelocity: number;
     swipeAreaWidth: number;
@@ -32,7 +34,13 @@ interface AnimationLayerState {
     gestureNavigating: boolean;
     shouldAnimate: boolean;
     startX: number;
-    paths: (string | RegExp | undefined)[]
+    startY: number;
+    paths: (string | RegExp | undefined)[],
+    swipeDirection: SwipeDirection;
+    swipeAreaWidth: number;
+    minFlingVelocity: number;
+    hysteresis: number;
+    disableDiscovery: boolean;
 }
 
 // type of children coerces type in React.Children.map such that 'path' is available on props
@@ -50,13 +58,20 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         gestureNavigating: false,
         shouldAnimate: true,
         startX: 0,
-        paths: []
+        startY: 0,
+        paths: [],
+        swipeDirection: 'right',
+        swipeAreaWidth: 100,
+        minFlingVelocity: 400,
+        hysteresis: 50,
+        disableDiscovery: false
     }
 
-    static getDerivedStateFromProps(nextProps: AnimationLayerProps, state: AnimationLayerState) {
+    static getDerivedStateFromProps(nextProps: AnimationLayerProps, state: AnimationLayerState): AnimationLayerState | null {
         if (nextProps.currentPath !== state.currentPath) {
             if (!state.shouldAnimate) {
                 return {
+                    ...state,
                     currentPath: nextProps.currentPath,
                     shouldAnimate: true
                 };
@@ -67,6 +82,11 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             let currentPath: string | undefined = state.currentPath; // === '' when AnimationLayer first mounts
             let nextMatched = false;
             let currentMatched = false;
+            let swipeDirection: SwipeDirection | undefined;
+            let swipeAreaWidth: number | undefined;
+            let minFlingVelocity: number | undefined;
+            let hysteresis: number | undefined;
+            let disableDiscovery: boolean | undefined;
             let children = React.Children.map(
                 nextProps.children,
                 (child: ScreenChild) => {
@@ -85,13 +105,19 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
                         if (matchRoute(child.props.path, nextPath)) {
                             if (!nextMatched) {
                                 nextMatched = true;
-                                return React.cloneElement(child, {...child.props, in: true, out: false});
+                                const {config} = child.props;
+                                swipeDirection = config?.swipeDirection;
+                                swipeAreaWidth = config?.swipeAreaWidth;
+                                hysteresis = config?.hysteresis;
+                                disableDiscovery = config?.disableDiscovery;
+                                minFlingVelocity = config?.minFlingVelocity;
+                                return React.cloneElement(child, {...child.props, in: true, out: false}) as ScreenChild;
                             }
                         }
                         if (matchRoute(child.props.path, currentPath)) {
                             if (!currentMatched) {
                                 currentMatched = true;
-                                return React.cloneElement(child, {...child.props, out: true, in: false});
+                                return React.cloneElement(child, {...child.props, out: true, in: false}) as ScreenChild;
                             }
                         }
                     }
@@ -99,9 +125,15 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             ).sort((child, _) => matchRoute(child.props.path, nextPath) ? 1 : -1); // current screen mounts first
 
             return {
+                ...state,
                 paths: paths,
                 children: children,
-                currentPath: nextProps.currentPath
+                currentPath: nextProps.currentPath,
+                swipeDirection: swipeDirection || nextProps.swipeDirection,
+                swipeAreaWidth: swipeAreaWidth || nextProps.swipeAreaWidth,
+                hysteresis: hysteresis || nextProps.hysteresis,
+                disableDiscovery: disableDiscovery || nextProps.disableDiscovery,
+                minFlingVelocity: minFlingVelocity || nextProps.minFlingVelocity
             }
         }
         return null;
@@ -124,7 +156,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             });
         }
 
-        if (!this.props.disableDiscovery) {
+        if (!this.state.disableDiscovery) {
             window.addEventListener('swipestart', this.onSwipeStartListener);
         }
     }
@@ -148,13 +180,25 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
     }
 
     componentWillUnmount() {
-        if (!this.props.disableDiscovery) {
+        if (!this.state.disableDiscovery) {
             window.removeEventListener('swipestart', this.onSwipeStartListener);
         }
     }
 
     onSwipeStart(ev: SwipeStartEvent) {
-        if (ev.direction === "right" && ev.x < this.props.swipeAreaWidth) {
+        let swipePos: number; // 1D
+        switch(this.state.swipeDirection) {
+            case "left":
+            case "right":
+                swipePos = ev.x;
+            break;
+            
+            case "up":
+            case "down":
+                swipePos = ev.y; // x or y depending on if swipe direction is horizontal or vertical
+            break;
+        }
+        if (ev.direction === this.state.swipeDirection && swipePos < this.state.swipeAreaWidth) {
             // if only one child return
             if (!this.props.lastPath) return;
 
@@ -162,6 +206,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             for (let target of ev.composedPath()) {
                 if ('classList' in target && (target as HTMLElement).classList.length) {
                     if ((target as HTMLElement).classList.contains('gesture-region')) return;
+                    if (target === ev.gestureTarget) break;
                 }
             }
 
@@ -204,7 +249,8 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
                 shouldPlay: false,
                 gestureNavigating: true,
                 children: children,
-                startX: ev.x
+                startX: ev.x,
+                startY: ev.y
             }, () => {
                 const motionStartEvent = new CustomEvent('motion-progress-start');
 
@@ -222,9 +268,28 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
 
     onSwipe(ev: SwipeEvent) {
         if (this.state.shouldPlay) return;
-        const width = window.innerWidth;
-        const x = ev.x - this.state.startX;
-        const progress = (-(x - width) / width) * 100;
+        let progress: number;
+        switch(this.state.swipeDirection) {
+            case "left":
+            case "right": {
+                // left or right
+                const width = window.innerWidth;
+                const x = ev.x - this.state.startX;
+                progress = (-(x - width) / width) * 100;
+                if (this.state.swipeDirection === "left") progress = 100 - progress;
+                break;
+            }
+
+            case "up":
+            case "down": {
+                const height = window.innerHeight;
+                const y = ev.y - this.state.startY;
+                progress = (-(y - height) / height) * 100;
+                if (this.state.swipeDirection === "up") progress = 100 - progress;
+                break;
+            }
+                
+        }
         this.animationLayerData.progress = clamp(progress, 0.1, 100);
     }
 
@@ -233,8 +298,8 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         
         let onEnd = null;
         const motionEndEvent = new CustomEvent('motion-progress-end');
-        if (this.state.progress < this.props.hysteresis || ev.velocity > this.props.minFlingVelocity) {
-            if (ev.velocity >= this.props.minFlingVelocity) {
+        if (this.state.progress < this.state.hysteresis || ev.velocity > this.state.minFlingVelocity) {
+            if (ev.velocity >= this.state.minFlingVelocity) {
                 this.animationLayerData.playbackRate = -5;
             } else {
                 this.animationLayerData.playbackRate = -1;

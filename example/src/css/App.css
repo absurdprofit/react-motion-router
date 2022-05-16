@@ -7,7 +7,6 @@ body {
   position: fixed;
   right: 0;
   top: 0;
-  background-color: rgba(254, 226, 85);
 }
 * {
   margin: 0;
@@ -65,6 +64,9 @@ div.screen-fallback {
   width: 100vw;
   height: 100vh;
   position: absolute;
+}
+div.screen-fallback.home {
+  background-color: #efefef;
 }
 div.screen-fallback.slides {
   background-color: rgb(46, 46, 46);

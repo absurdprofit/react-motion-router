@@ -34,7 +34,7 @@ export default function Home(props: HomeProps) {
         },
         {
             title: 'Overlay Demo',
-            description: 'Various Overlays such as modals',
+            description: 'Various Overlays such as modals with spring and default timing functions',
             onClick: () => props.navigation.navigate('/overlays')
         }
     ];

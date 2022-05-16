@@ -1,7 +1,8 @@
 import { Button } from '@mui/material';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Anchor, AnimationConfigFactory, Motion, Navigation } from 'react-motion-router';
 import { matchRoute } from 'react-motion-router/common/utils';
+import ModalExample from './Modal';
 
 interface OverlaysProps {
     navigation: Navigation;
@@ -51,6 +52,13 @@ export default function Overlays(props: OverlaysProps) {
         props.navigation.navigate('/modal');
     }
     const shouldAnimate = props.navigation.history.previous === '/overlays' || props.navigation.history.next === '/modal';
+    useEffect(() => {
+        document.body.style.backgroundColor = 'rgba(254, 226, 85)';
+
+        return () => {
+            document.body.style.backgroundColor = 'unset';
+        }
+    })
     return (
         <Motion.Consumer>
             {(progress) => {
@@ -71,3 +79,5 @@ export default function Overlays(props: OverlaysProps) {
         </Motion.Consumer>
     );
 }
+
+export {ModalExample};

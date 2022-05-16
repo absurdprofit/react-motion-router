@@ -55,7 +55,7 @@ export interface AnimationConfigSet {
 
 export type ReducedAnimationConfigSet = Partial<AnimationConfigSet> & Pick<AnimationConfigSet, 'in'>;
 
-export type AnimationConfigFactory = (currentPath: string, nextPath: string)=> AnimationConfig | AnimationKeyframeEffectConfig | ReducedAnimationConfigSet;
+export type AnimationConfigFactory = (currentPath: string, nextPath: string, gestureNavigating: boolean) => AnimationConfig | AnimationKeyframeEffectConfig | ReducedAnimationConfigSet;
 
 export {SharedElement};
 
@@ -64,3 +64,4 @@ export interface Vec2 {
     y: number;
 }
 
+export type SwipeDirection = 'up' | 'down' | 'left' | 'right';

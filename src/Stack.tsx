@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import SharedElement from './SharedElement';
 import { RouterDataContext } from './RouterData';
-import { AnimationConfig, AnimationConfigFactory, AnimationConfigSet, ReducedAnimationConfigSet } from './common/types';
+import { AnimationConfig, AnimationConfigFactory, AnimationConfigSet, ReducedAnimationConfigSet, SwipeDirection } from './common/types';
 import {Vec2} from './common/types';
 import AnimationProvider from './AnimationProvider';
 
@@ -15,6 +15,11 @@ export interface ScreenProps {
     config?: {
         animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationConfigFactory;
         keepAlive?: boolean;
+        swipeDirection?: SwipeDirection;
+        swipeAreaWidth?: number;
+        minFlingVelocity?: number;
+        hysteresis?: number;
+        disableDiscovery?: boolean;
     }
 }
 
@@ -26,7 +31,8 @@ interface ScreenState {
 export namespace Stack {
     
     export class Screen extends React.Component<ScreenProps, ScreenState> {
-        private sharedElementScene: SharedElement.Scene = new SharedElement.Scene(this.props.component.name);
+        private sharedElementScene: SharedElement.Scene = new SharedElement.Scene(this.props.component.name || this.props.path?.toString() || 'not-found');
+        private name = this.props.component.name || this.props.path?.toString() || 'not-found';
         private ref: HTMLElement | null = null;
         private contextParams = this.context.routesData.get(this.props.path)?.params;
         private onRef = this.setRef.bind(this);
@@ -144,7 +150,8 @@ export namespace Stack {
 
                 const animationConfig = this.props.config.animation(
                     currentPath || '',
-                    nextPath
+                    nextPath,
+                    this.context.gestureNavigating
                 );
 
                 if ('in' in animationConfig) {
@@ -224,7 +231,7 @@ export namespace Stack {
                     onEnter={this.onEnter}
                     in={this.props.in || false}
                     out={this.props.out || false}
-                    name={this.props.component.name}
+                    name={this.name}
                     animation={this.animation}
                     backNavigating={this.context!.backNavigating}
                     keepAlive={this.state.shouldKeepAlive ? this.props.config?.keepAlive || false : false}
