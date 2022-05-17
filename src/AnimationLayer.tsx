@@ -295,7 +295,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             case "right": {
                 // left or right
                 const width = window.innerWidth;
-                const x = ev.x - this.state.startX;
+                const x = clamp(ev.x - this.state.startX, 10);
                 progress = (-(x - width) / width) * 100;
                 if (this.state.swipeDirection === "left") progress = 100 - progress;
                 break;
@@ -304,7 +304,8 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             case "up":
             case "down": {
                 const height = window.innerHeight;
-                const y = ev.y - this.state.startY;
+                const y = clamp(ev.y - this.state.startY, 10);
+                if (y < 0) alert(y);
                 progress = (-(y - height) / height) * 100;
                 if (this.state.swipeDirection === "up") progress = 100 - progress;
                 break;
