@@ -45,7 +45,7 @@ let fadeAnimation: AnimationConfig = {
   duration: 350
 }
 
-if (iOS() && !isPWA) {
+if (iOS() && !isPWA()) {
   animation = {
     type: 'none',
     duration: 0
@@ -60,8 +60,8 @@ function App() {
   return (
       <Router config={{
         defaultRoute: '/',
-        disableDiscovery: !isPWA,
-        disableBrowserRouting: isPWA && iOS(),
+        disableDiscovery: isPWA(),
+        disableBrowserRouting: isPWA() && iOS(),
         animation: animation,
         minFlingVelocity: 1000
       }}>
@@ -78,8 +78,10 @@ function App() {
           component={ModalExample}
           config={{
             swipeDirection: 'down',
-            swipeAreaWidth: window.innerHeight / 3,
-            animation: ModalAnimation
+            swipeAreaWidth: window.innerHeight / 1.5,
+            animation: ModalAnimation,
+            disableDiscovery: iOS() && !isPWA() ? true : false,
+            hysteresis: 15
           }}
         />
         <Stack.Screen

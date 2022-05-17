@@ -10,7 +10,7 @@ interface OverlaysProps {
 }
 
 export const OverlaysAnimation: AnimationConfigFactory = (currentPath: string, nextPath: string) => {
-    if (iOS() && !isPWA) {
+    if (iOS() && !isPWA()) {
         return {
           type: 'none',
           duration: 0

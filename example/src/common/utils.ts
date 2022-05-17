@@ -20,4 +20,4 @@ export function iOS() : boolean {
   || (navigator.userAgent.includes("Mac") && "ontouchend" in document)
 }
 
-export const isPWA = getPWADisplayMode() === 'standalone';
+export const isPWA = () => getPWADisplayMode() === 'standalone';

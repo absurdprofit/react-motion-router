@@ -162,8 +162,8 @@ export default class AnimationProvider extends React.Component<AnimationProvider
         }
     }
 
-    animate(keyframes: Keyframe[] | PropertyIndexedKeyframes | null, options?: number | KeyframeAnimationOptions | undefined): Animation | undefined {
-        return this.ref?.animate(keyframes, options);
+    animate(keyframes: Keyframe[] | PropertyIndexedKeyframes | null, options?: number | KeyframeAnimationOptions | undefined): Animation | null {
+        return this.ref?.animate(keyframes, options) || null;
     }
 
     mounted(_mounted: boolean, willAnimate: boolean = true): Promise<void> {

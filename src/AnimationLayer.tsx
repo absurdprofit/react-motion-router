@@ -132,7 +132,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
                 swipeDirection: swipeDirection || nextProps.swipeDirection,
                 swipeAreaWidth: swipeAreaWidth || nextProps.swipeAreaWidth,
                 hysteresis: hysteresis || nextProps.hysteresis,
-                disableDiscovery: disableDiscovery || nextProps.disableDiscovery,
+                disableDiscovery: disableDiscovery === undefined ? nextProps.disableDiscovery : disableDiscovery,
                 minFlingVelocity: minFlingVelocity || nextProps.minFlingVelocity
             }
         }
@@ -156,9 +156,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             });
         }
 
-        if (!this.state.disableDiscovery) {
-            window.addEventListener('swipestart', this.onSwipeStartListener);
-        }
+        window.addEventListener('swipestart', this.onSwipeStartListener);
     }
 
     componentDidUpdate(prevProps: AnimationLayerProps, prevState: AnimationLayerState) {
@@ -180,9 +178,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
     }
 
     componentWillUnmount() {
-        if (!this.state.disableDiscovery) {
-            window.removeEventListener('swipestart', this.onSwipeStartListener);
-        }
+        window.removeEventListener('swipestart', this.onSwipeStartListener);
     }
 
     onGestureSuccess(state: Pick<AnimationLayerState, 'swipeAreaWidth' | 'swipeDirection' | 'hysteresis' | 'disableDiscovery' | 'minFlingVelocity'>) {
@@ -190,6 +186,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
     }
 
     onSwipeStart(ev: SwipeStartEvent) {
+        if (this.state.disableDiscovery) return;
         let swipePos: number; // 1D
         switch(this.state.swipeDirection) {
             case "left":
@@ -263,7 +260,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
                 swipeDirection: swipeDirection || this.props.swipeDirection,
                 swipeAreaWidth: swipeAreaWidth || this.props.swipeAreaWidth,
                 hysteresis: hysteresis || this.props.hysteresis,
-                disableDiscovery: disableDiscovery || this.props.disableDiscovery,
+                disableDiscovery: disableDiscovery === undefined ? this.props.disableDiscovery : disableDiscovery,
                 minFlingVelocity: minFlingVelocity || this.props.minFlingVelocity
             });
             window.addEventListener('go-back', this.onGestureSuccess as unknown as EventListener, {once: true});
@@ -322,7 +319,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         
         let onEnd = null;
         const motionEndEvent = new CustomEvent('motion-progress-end');
-        if (this.state.progress < this.state.hysteresis || ev.velocity > this.state.minFlingVelocity) {
+        if ((100 - this.state.progress) > this.state.hysteresis || ev.velocity > this.state.minFlingVelocity) {
             if (ev.velocity >= this.state.minFlingVelocity) {
                 this.animationLayerData.playbackRate = -5;
             } else {

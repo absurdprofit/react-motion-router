@@ -12,8 +12,8 @@ export default class AnimationLayerData {
     private _onExit: Function | undefined;
     private _progressUpdateID: number = 0;
     private _duration: number = 0;
-    private _inAnimation: Animation | undefined;
-    private _outAnimation: Animation | undefined;
+    private _inAnimation: Animation | null = null;
+    private _outAnimation: Animation | null = null;
     private _playbackRate: number = 1;
     private _gestureNavigating: boolean = false;
     private _onEnd: Function | null = null;
@@ -177,21 +177,23 @@ export default class AnimationLayerData {
                 });
                 this._outAnimation.onfinish = async () => {
                     if (this._outAnimation) {
+                        this._outAnimation.commitStyles();
+                        this._outAnimation.cancel();
                         this._outAnimation.onfinish = null;
+                        this._outAnimation = null;
+                    }
+                    if (this._inAnimation) {
+                        this._inAnimation.commitStyles();
+                        this._inAnimation.cancel();
+                        this._inAnimation = null;
                     }
                     // if playback rate is 2 then gesture navigation was aborted
                     if (!this._gestureNavigating || this._playbackRate === 0.5) {
                         if (this._currentScreen)
                             this._currentScreen.mounted(false);
                     } else {
-                        if (this._currentScreen) {
-                            // apply final computed style
-                            this._currentScreen.animate(outKeyframes, {duration: 0, fill: 'forwards'});
-                        }
-                        if (this._nextScreen) {
-                            this._nextScreen.animate(inKeyframes, {duration: 0, fill: 'forwards'});
+                        if (this._nextScreen)
                             await this._nextScreen.mounted(false);
-                        }
                     }
                     if (this._onEnd) {
                         this._onEnd();

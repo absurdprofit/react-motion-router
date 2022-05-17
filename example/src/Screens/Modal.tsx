@@ -43,7 +43,7 @@ export const ModalAnimation: AnimationConfigFactory = (c, n, gestureNavigating) 
         }
     };
     if (matchRoute(n, '/')) return {...slideDefaultAnimation, direction: 'right'};
-    if (iOS() && !isPWA) {
+    if (iOS() && !isPWA()) {
         return {
           type: 'none',
           duration: 0
