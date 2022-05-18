@@ -86,7 +86,7 @@ export default class AnimationProvider extends React.Component<AnimationProvider
         window.removeEventListener('page-animation-end', this.onAnimationEnd);
     }
 
-    get inAnimation(): AnimationKeyframeEffectConfig | [keyof typeof AnimationKeyframePresets, EasingFunction | undefined] {
+    get inAnimation(): AnimationKeyframeEffectConfig | [keyof typeof AnimationKeyframePresets, number, EasingFunction | undefined] {
         let animation;
         if (typeof this.props.animation === "function") {
             animation = this.props.animation();
@@ -107,24 +107,24 @@ export default class AnimationProvider extends React.Component<AnimationProvider
             switch(animation.in.type) {
                 case "slide":
                     if (direction === 'in' || direction === 'out') direction = 'left';
-                    return [`slide-${directionPrefix}${direction || 'left'}-in`, animation.in.easingFunction];
+                    return [`slide-${directionPrefix}${direction || 'left'}-in`, animation.in.duration, animation.in.easingFunction];
     
                 case "zoom":
                     if (direction !== 'in' && direction !== 'out') direction = 'in';
-                    return [`zoom-${direction || 'in'}-in`, animation.in.easingFunction];
+                    return [`zoom-${direction || 'in'}-in`, animation.in.duration, animation.in.easingFunction];
                 
                 case "fade":
-                    return ["fade-in", animation.in.easingFunction];
+                    return ["fade-in", animation.in.duration, animation.in.easingFunction];
                 
                 default:
-                    return ["none", undefined];
+                    return ["none", animation.in.duration, undefined];
             }
         } else {
             return animation.in;
         }
     }
 
-    get outAnimation(): AnimationKeyframeEffectConfig | [keyof typeof AnimationKeyframePresets, EasingFunction | undefined] {
+    get outAnimation(): AnimationKeyframeEffectConfig | [keyof typeof AnimationKeyframePresets, number, EasingFunction | undefined] {
         let animation;
         if (typeof this.props.animation === "function")  {
             animation = this.props.animation();
@@ -145,17 +145,17 @@ export default class AnimationProvider extends React.Component<AnimationProvider
             switch(animation.out.type) {
                 case "slide":
                     if (direction === "in" || direction === "out") direction = 'left';
-                    return [`slide-${directionPrefix}${direction || 'left'}-out`, animation.out.easingFunction];
+                    return [`slide-${directionPrefix}${direction || 'left'}-out`, animation.out.duration, animation.out.easingFunction];
 
                 case "zoom":
                     if (direction !== "in" && direction !== "out") direction = 'in';
-                    return [`zoom-${direction || 'in'}-out`, animation.out.easingFunction];
+                    return [`zoom-${direction || 'in'}-out`, animation.out.duration, animation.out.easingFunction];
                 
                 case "fade":
-                    return ["fade-out", animation.out.easingFunction];
+                    return ["fade-out", animation.out.duration, animation.out.easingFunction];
                 
                 default:
-                    return ["none", undefined];
+                    return ["none", animation.out.duration, undefined];
             }
         } else {
             return animation.out;

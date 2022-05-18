@@ -3,14 +3,12 @@ import Navigation, { NavigateEvent, BackEvent } from './Navigation';
 import AnimationLayer from './AnimationLayer';
 import GhostLayer from './GhostLayer';
 import { ScreenChild } from '.';
-import {AnimationConfig, SwipeDirection} from './common/types';
+import {AnimationConfig, ReducedAnimationConfigSet, SwipeDirection} from './common/types';
 import RouterData, {RoutesData, RouterDataContext} from './RouterData';
+import AnimationLayerData, {AnimationLayerDataContext} from './AnimationLayerData';
 
 interface Config {
-    animation: {
-        in: AnimationConfig;
-        out?: AnimationConfig;
-    } | AnimationConfig;
+    animation: ReducedAnimationConfigSet | AnimationConfig;
     defaultRoute?: string;
     swipeAreaWidth?: number;
     minFlingVelocity?: number;
@@ -44,6 +42,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
     private navigation = new Navigation(this.props.config.disableBrowserRouting || false, this.props.config.defaultRoute || null);
     private config: Config;
     private _routerData: RouterData;
+    private animationLayerData = new AnimationLayerData();
     private onBackListener = this.onBack.bind(this) as EventListener;
     private onNavigateListener = this.onNavigate.bind(this) as EventListener;
     private onPopStateListener = this.onPopstate.bind(this);
@@ -235,30 +234,30 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         return (
             <div className="react-motion-router">
                 <RouterDataContext.Provider value={this._routerData}>
-                    <GhostLayer
-                        animation={this._routerData.animation}
-                        instance={(instance: GhostLayer | null) => {
-                            this._routerData.ghostLayer = instance;
-                        }}
-                        backNavigating={this.state.backNavigating}
-                    />
-                    <AnimationLayer
-                        disableBrowserRouting={this.props.config.disableBrowserRouting || false}
-                        disableDiscovery={this.props.config.disableDiscovery || false}
-                        hysteresis={this.props.config.hysteresis || 50}
-                        minFlingVelocity={this.props.config.minFlingVelocity || 400}
-                        swipeAreaWidth={this.props.config.swipeAreaWidth || 100}
-                        swipeDirection={this.props.config.swipeDirection || 'right'}
-                        navigation={this._routerData.navigation}
-                        duration={this._routerData.animation.in.duration}
-                        currentPath={this.state.currentPath}
-                        backNavigating={this.state.backNavigating}
-                        lastPath={this.navigation.history.previous}
-                        onGestureNavigationStart={this.onGestureNavigationStart}
-                        onGestureNavigationEnd={this.onGestureNavigationEnd}
-                    >
-                        {this.props.children}
-                    </AnimationLayer>
+                    <AnimationLayerDataContext.Provider value={this.animationLayerData}>
+                        <GhostLayer
+                            instance={(instance: GhostLayer | null) => {
+                                this._routerData.ghostLayer = instance;
+                            }}
+                            backNavigating={this.state.backNavigating}
+                        />
+                        <AnimationLayer
+                            disableBrowserRouting={this.props.config.disableBrowserRouting || false}
+                            disableDiscovery={this.props.config.disableDiscovery || false}
+                            hysteresis={this.props.config.hysteresis || 50}
+                            minFlingVelocity={this.props.config.minFlingVelocity || 400}
+                            swipeAreaWidth={this.props.config.swipeAreaWidth || 100}
+                            swipeDirection={this.props.config.swipeDirection || 'right'}
+                            navigation={this._routerData.navigation}
+                            currentPath={this.state.currentPath}
+                            backNavigating={this.state.backNavigating}
+                            lastPath={this.navigation.history.previous}
+                            onGestureNavigationStart={this.onGestureNavigationStart}
+                            onGestureNavigationEnd={this.onGestureNavigationEnd}
+                        >
+                            {this.props.children}
+                        </AnimationLayer>
+                    </AnimationLayerDataContext.Provider>
                 </RouterDataContext.Provider>
             </div>
         );

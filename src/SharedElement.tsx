@@ -51,7 +51,7 @@ namespace SharedElement {
     type ThreeValueTransformOrigin = `${OneValueTransformOrigin} ${OneValueTransformOrigin} ${TransformOriginLength}`;
     type TransformOrigin = TransformOriginGlobal | OneValueTransformOrigin | TwoValueTransformOrigin | ThreeValueTransformOrigin;
 
-    interface SharedElementNode {
+    export interface SharedElementNode {
         id: string;
         node: HTMLElement;
         instance: SharedElement;

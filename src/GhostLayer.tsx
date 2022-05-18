@@ -1,16 +1,13 @@
 import React from 'react';
 import SharedElement from './SharedElement';
 import {clamp} from './common/utils';
-import { AnimationConfig, EasingFunction } from './common/types';
+import { EasingFunction } from './common/types';
 import { MotionProgressEvent } from './MotionEvents';
+import { AnimationLayerDataContext } from './AnimationLayerData';
 
 interface GhostLayerProps {
     instance?: (instance: GhostLayer | null) => any;
     backNavigating: boolean;
-    animation: {
-        in: AnimationConfig;
-        out: AnimationConfig;
-    };
 }
 interface GhostLayerState {
     transitioning: boolean;
@@ -42,7 +39,9 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
     private ref: HTMLDivElement | null = null;
     private _currentScene: SharedElement.Scene | null = null;
     private _nextScene: SharedElement.Scene | null = null;
-    private _animationMap = new Map<string, {[key:string]: Animation}>();
+    private _animationMap: AnimationMap = new Map<string, {[key:string]: Animation}>();
+    static contextType = AnimationLayerDataContext;
+    context!: React.ContextType<typeof AnimationLayerDataContext>;
     private onProgressStartListener = this.onProgressStart.bind(this) as EventListener;
     private onProgressListener = this.onProgress.bind(this) as EventListener;
     private onProgressEndListener = this.onProgressEnd.bind(this) as EventListener;
@@ -77,10 +76,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
     }
 
     sharedElementTransition(currentScene: SharedElement.Scene, nextScene: SharedElement.Scene) {
-        if (this.props.animation.in.type === "none") return;
-        if (this.props.backNavigating && this.props.animation.out.type === "none") return;
-        if (this.props.animation.in.duration === 0) return;
-        if (this.props.backNavigating && this.props.animation.out.duration === 0) return;
+        if (this.context.duration === 0) return;
 
         if (this.state.transitioning) {
             this.finish(); // cancel playing animation
@@ -91,7 +87,8 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
             for (const [id, start] of currentScene.nodes) {
                 //if id exists in next scene
                 if (nextScene.nodes.has(id)) {
-                    const endInstance = nextScene.nodes.get(id)!.instance;
+                    const end = nextScene.nodes.get(id) as SharedElement.SharedElementNode;
+                    const endInstance = end.instance;
                     const startInstance = start.instance;
                     const transitionType = endInstance.transitionType || startInstance.transitionType || 'morph';
                     const startNode = start.node;
@@ -136,14 +133,14 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         start: {
                             x: {
                                 node: startNode,
-                                duration: startInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration,
+                                duration: startInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.context.duration,
                                 easingFunction: startInstance.props.config?.x?.easingFunction || startInstance.props.config?.easingFunction ||'ease',
                                 position: startRect.x - (this.state.playing ? 0 : currentScene.x),
                                 
                             },
                             y: {
                                 node: startChild,
-                                duration: startInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration,
+                                duration: startInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.context.duration,
                                 easingFunction: startInstance.props.config?.y?.easingFunction || startInstance.props.config?.easingFunction || 'ease',
                                 position: startRect.y - (this.state.playing ? 0 : currentScene.y)
                             }
@@ -151,13 +148,13 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         end: {
                             x: {
                                 node: endNode,
-                                duration: endInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration,
+                                duration: endInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.context.duration,
                                 easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
                                 position: endRect.x - (this.state.playing ? nextScene.x : 0)
                             },
                             y: {
                                 node: endChild,
-                                duration: endInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration,
+                                duration: endInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.context.duration,
                                 easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
                                 position: endRect.y - (this.state.playing ? nextScene.y : 0)
                             }
@@ -210,7 +207,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         {
                             fill: 'both',
                             easing: transitionState.end.x.easingFunction,
-                            duration: clamp(transitionState.end.x.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                            duration: clamp(transitionState.end.x.duration, 0, this.context.duration)
                         });
                         startYAnimation = transitionState.start.y.node.animate(
                             [
@@ -226,7 +223,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             {
                                 fill: 'both',
                                 easing: transitionState.end.y.easingFunction,
-                                duration: clamp(transitionState.end.y.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                                duration: clamp(transitionState.end.y.duration, 0, this.context.duration)
                             }
                         );
                         this._animationMap.set(startInstance.id, {startXAnimation, startYAnimation});
@@ -244,7 +241,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         {
                             fill: 'both',
                             easing: transitionState.end.x.easingFunction,
-                            duration: clamp(transitionState.end.x.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                            duration: clamp(transitionState.end.x.duration, 0, this.context.duration)
                         });
                         startYAnimation = transitionState.start.y.node.animate(
                             [
@@ -258,7 +255,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             {
                                 fill: 'both',
                                 easing: transitionState.end.y.easingFunction,
-                                duration: clamp(transitionState.end.y.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                                duration: clamp(transitionState.end.y.duration, 0, this.context.duration)
                             }
                         );
 
@@ -273,7 +270,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         {
                             fill: 'both',
                             easing: transitionState.end.x.easingFunction,
-                            duration: clamp(transitionState.end.x.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                            duration: clamp(transitionState.end.x.duration, 0, this.context.duration)
                         });
                         endYAnimation = transitionState.end.y.node.animate(
                             [
@@ -287,7 +284,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             {
                                 fill: 'both',
                                 easing: transitionState.end.y.easingFunction,
-                                duration: clamp(transitionState.end.y.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                                duration: clamp(transitionState.end.y.duration, 0, this.context.duration)
                             }
                         );
                         this._animationMap.set(startInstance.id, {startXAnimation, startYAnimation, endXAnimation, endYAnimation});
@@ -309,7 +306,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         {
                             fill: 'both',
                             easing: transitionState.end.x.easingFunction,
-                            duration: clamp(transitionState.end.x.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                            duration: clamp(transitionState.end.x.duration, 0, this.context.duration)
                         });
                         startYAnimation = transitionState.start.y.node.animate(
                             [
@@ -323,7 +320,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             {
                                 fill: 'both',
                                 easing: transitionState.end.y.easingFunction,
-                                duration: clamp(transitionState.end.y.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                                duration: clamp(transitionState.end.y.duration, 0, this.context.duration)
                             }
                         );
 
@@ -344,7 +341,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         {
                             fill: 'both',
                             easing: transitionState.end.x.easingFunction,
-                            duration: clamp(transitionState.end.x.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                            duration: clamp(transitionState.end.x.duration, 0, this.context.duration)
                         });
                         endYAnimation = transitionState.end.y.node.animate(
                             [
@@ -358,7 +355,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             {
                                 fill: 'both',
                                 easing: transitionState.end.y.easingFunction,
-                                duration: clamp(transitionState.end.y.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                                duration: clamp(transitionState.end.y.duration, 0, this.context.duration)
                             }
                         );
                         this._animationMap.set(startInstance.id, {startXAnimation, startYAnimation, endXAnimation, endYAnimation});
@@ -376,7 +373,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         {
                             fill: 'both',
                             easing: transitionState.end.x.easingFunction,
-                            duration: clamp(transitionState.end.x.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                            duration: clamp(transitionState.end.x.duration, 0, this.context.duration)
                         });
                         startYAnimation = transitionState.start.y.node.animate(
                             [
@@ -390,7 +387,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             {
                                 fill: 'both',
                                 easing: transitionState.end.y.easingFunction,
-                                duration: clamp(transitionState.end.y.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                                duration: clamp(transitionState.end.y.duration, 0, this.context.duration)
                             }
                         );
 
@@ -407,7 +404,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         {
                             fill: 'both',
                             easing: transitionState.end.x.easingFunction,
-                            duration: clamp(transitionState.end.x.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                            duration: clamp(transitionState.end.x.duration, 0, this.context.duration)
                         });
                         endYAnimation = transitionState.end.y.node.animate(
                             [
@@ -421,7 +418,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             {
                                 fill: 'both',
                                 easing: transitionState.end.y.easingFunction,
-                                duration: clamp(transitionState.end.y.duration, 0, this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration)
+                                duration: clamp(transitionState.end.y.duration, 0, this.context.duration)
                             }
                         );
                         this._animationMap.set(startInstance.id, {startXAnimation, startYAnimation, endXAnimation, endYAnimation});
@@ -429,7 +426,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     
                     if (!this.state.playing) {
                         Object.values(this._animationMap.get(startInstance.id)!).map((animation: Animation) => {
-                            const defaultDuration = this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration;
+                            const defaultDuration = this.context.duration;
                             let duration = animation.effect?.getComputedTiming().duration;
                             if (typeof duration === "string") {
                                 duration = parseFloat(duration);
@@ -493,8 +490,9 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
         if (!this.state.playing) {
             for (const [_, xYAnimations] of this._animationMap) {
                 Object.values(xYAnimations).map((animation: Animation) => {
+                    if (animation.playState === "running") animation.pause();
                     const progress = e.detail.progress;
-                    const defaultDuration = this.props.backNavigating ? this.props.animation.out.duration : this.props.animation.in.duration;
+                    const defaultDuration = this.context.duration;
                     let duration = animation.effect?.getComputedTiming().duration;
                     if (typeof duration === "string") {
                         duration = parseFloat(duration);

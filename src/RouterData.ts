@@ -1,6 +1,6 @@
 import React, {createContext} from 'react';
 import Navigation from './Navigation';
-import { AnimationConfig } from './common/types';
+import { AnimationConfig, AnimationConfigSet } from './common/types';
 import GhostLayer from './GhostLayer';
 
 // export interface RoutesData {[key:string]: any}
@@ -14,7 +14,7 @@ export default class RouterData {
     private _gestureNavigating: boolean = false;
     private _paramsSerialiser?: (params: {[key:string]: any}) => string;
     private _paramsDeserialiser?:(queryString: string) => {[key:string]: any};
-    private _animation: {in: AnimationConfig; out: AnimationConfig} = {
+    private _animation: AnimationConfigSet = {
         in: {
             type: "none",
             duration: 0,
@@ -35,7 +35,7 @@ export default class RouterData {
     set navigation(_navigation: Navigation) {
         this._navigation = _navigation;
     }
-    set animation(_animation: {in: AnimationConfig; out: AnimationConfig}) {
+    set animation(_animation: AnimationConfigSet) {
         this._animation = _animation;
     }
     set ghostLayer(_ghostLayer: GhostLayer | null) {

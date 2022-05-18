@@ -3,7 +3,7 @@ import {SwipeEndEvent, SwipeEvent, SwipeStartEvent} from 'web-gesture-events';
 import { clamp, matchRoute, includesRoute } from './common/utils';
 import Navigation from './Navigation';
 import {ScreenChild} from './index';
-import AnimationLayerData, {AnimationLayerDataContext} from './AnimationLayerData';
+import {AnimationLayerDataContext} from './AnimationLayerData';
 import { MotionProgressDetail } from './MotionEvents';
 import { SwipeDirection } from './common/types';
 
@@ -13,7 +13,6 @@ interface AnimationLayerProps {
     children: ScreenChild | ScreenChild[];
     currentPath: string;
     lastPath: string | null;
-    duration: number;
     navigation: Navigation;
     backNavigating: boolean;
     onGestureNavigationEnd: Function;
@@ -48,7 +47,8 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
     private onSwipeStartListener = this.onSwipeStart.bind(this);
     private onSwipeListener = this.onSwipe.bind(this);
     private onSwipeEndListener = this.onSwipeEnd.bind(this);
-    private animationLayerData = new AnimationLayerData();
+    static contextType = AnimationLayerDataContext;
+    context!: React.ContextType<typeof AnimationLayerDataContext>;
 
     state: AnimationLayerState = {
         currentPath: this.props.currentPath,
@@ -140,8 +140,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
     }
 
     componentDidMount() {
-        this.animationLayerData.duration = this.props.duration;
-        this.animationLayerData.onProgress = (_progress: number) => {
+        this.context.onProgress = (_progress: number) => {
             const progress = this.props.backNavigating && !this.state.gestureNavigating ? 99 - _progress : _progress;
             this.setState({progress: clamp(progress, 0, 100)});
             
@@ -169,10 +168,9 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             this.setState({children: children});
         }
         if (prevProps.currentPath !== this.state.currentPath) {
-            this.animationLayerData.duration = this.props.duration;
             if (!this.state.gestureNavigating && prevState.shouldAnimate) {
-                this.animationLayerData.play = true;
-                this.animationLayerData.animate(); // children changes committed now animate
+                this.context.play = true;
+                this.context.animate(); // children changes committed now animate
             }
         }
     }
@@ -275,10 +273,10 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             }, () => {
                 const motionStartEvent = new CustomEvent('motion-progress-start');
 
-                this.animationLayerData.gestureNavigating = true;
-                this.animationLayerData.playbackRate = -1;
-                this.animationLayerData.play = false;
-                this.animationLayerData.animate();
+                this.context.gestureNavigating = true;
+                this.context.playbackRate = -1;
+                this.context.play = false;
+                this.context.animate();
                 
                 window.dispatchEvent(motionStartEvent);
                 window.addEventListener('swipe', this.onSwipeListener);
@@ -312,7 +310,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             }
                 
         }
-        this.animationLayerData.progress = clamp(progress, 0.1, 100);
+        this.context.progress = clamp(progress, 0.1, 100);
     }
 
     onSwipeEnd(ev: SwipeEndEvent) {
@@ -322,12 +320,12 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         const motionEndEvent = new CustomEvent('motion-progress-end');
         if ((100 - this.state.progress) > this.state.hysteresis || ev.velocity > this.state.minFlingVelocity) {
             if (ev.velocity >= this.state.minFlingVelocity) {
-                this.animationLayerData.playbackRate = -5;
+                this.context.playbackRate = -5;
             } else {
-                this.animationLayerData.playbackRate = -1;
+                this.context.playbackRate = -1;
             }
             onEnd = () => {
-                this.animationLayerData.reset();
+                this.context.reset();
                 this.props.onGestureNavigationEnd();
                 
                 this.setState({gestureNavigating: false});
@@ -336,19 +334,19 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             }
             this.setState({shouldPlay: true, shouldAnimate: false});
         } else {
-            this.animationLayerData.playbackRate = 0.5;
+            this.context.playbackRate = 0.5;
             onEnd = () => {
                 window.removeEventListener('go-back', this.onGestureSuccess as unknown as EventListener);
-                this.animationLayerData.reset();
+                this.context.reset();
                 
                 window.dispatchEvent(motionEndEvent);
             }
             this.setState({shouldPlay: true, gestureNavigating: false});
         }
 
-        this.setState({startX: 0});
-        this.animationLayerData.onEnd = onEnd;
-        this.animationLayerData.play = true;
+        this.setState({startX: 0, startY: 0});
+        this.context.onEnd = onEnd;
+        this.context.play = true;
         window.removeEventListener('swipe', this.onSwipeListener);
         window.removeEventListener('swipeend', this.onSwipeEndListener);
         
@@ -356,11 +354,9 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
 
     render() {
         return (
-            <AnimationLayerDataContext.Provider value={this.animationLayerData}>
-                <Motion.Provider value={this.state.progress}>
-                    {this.state.children}
-                </Motion.Provider>
-            </AnimationLayerDataContext.Provider>
+            <Motion.Provider value={this.state.progress}>
+                {this.state.children}
+            </Motion.Provider>
         );
     }
 }

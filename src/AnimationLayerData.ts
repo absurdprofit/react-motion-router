@@ -27,7 +27,7 @@ export default class AnimationLayerData {
             return;
         }
         const update = () => {
-            const currentTime = this._outAnimation?.currentTime || 0;
+            const currentTime = this._inAnimation?.currentTime  || 0;
             const progress = clamp((currentTime / this._duration) * 100, 0, 100);
 
             this._progress = progress;
@@ -40,7 +40,7 @@ export default class AnimationLayerData {
         update();
 
         this._progressUpdateID = window.requestAnimationFrame(this.updateProgress.bind(this));
-        this._outAnimation?.finished.then(() => {
+        this._inAnimation?.finished.then(() => {
             window.cancelAnimationFrame(this._progressUpdateID);
             if (this._progress !== 100) {
                 update();
@@ -72,11 +72,22 @@ export default class AnimationLayerData {
 
     async animate() {
         if (this._isPlaying) {
-            // cancel playing animation
-            this.finish();
-            if (this._onEnd) this._onEnd();
-            if (this._nextScreen) await this._nextScreen.mounted(true);
-            return;
+            if (!this._gestureNavigating) {
+                // cancel playing animation
+                this.finish();
+                if (this._onEnd) this._onEnd();
+                if (this._nextScreen) await this._nextScreen.mounted(true);
+                return;
+            } else {
+                cancelAnimationFrame(this._progressUpdateID);
+                [this._outAnimation, this._inAnimation] = [this._inAnimation, this._outAnimation];
+                if (!this._play) {
+                    this._inAnimation?.pause();
+                    this._outAnimation?.pause();
+                    this._isPlaying = false;
+                }
+                return;
+            }
         }
         if (this._currentScreen && this._nextScreen && this._shouldAnimate) {
             if (this._gestureNavigating) {
@@ -88,16 +99,14 @@ export default class AnimationLayerData {
             await this._nextScreen.mounted(true);
 
             let easingFunction = this._gestureNavigating ? 'linear' : 'ease-out';
-            let inKeyframes: Keyframe[] | PropertyIndexedKeyframes | null;
-            let outKeyframes: Keyframe[] | PropertyIndexedKeyframes | null;
             if (Array.isArray(this._currentScreen.outAnimation)) { // predefined animation
-                const [animation, userDefinedEasingFunction] = this._currentScreen.outAnimation;
+                const [animation, duration, userDefinedEasingFunction] = this._currentScreen.outAnimation;
                 this._outAnimation = this._currentScreen.animate(AnimationKeyframePresets[animation], {
                     fill: 'both',
-                    duration: this._duration,
+                    duration: duration,
                     easing: userDefinedEasingFunction || easingFunction
                 });
-                outKeyframes = AnimationKeyframePresets[animation];
+                if (this._gestureNavigating) this._duration = duration;
             } else { // user provided animation
                 let {keyframes, options} = this._currentScreen.outAnimation;
                 if (typeof options === "number") {
@@ -115,16 +124,20 @@ export default class AnimationLayerData {
                     };
                 }
                 this._outAnimation = this._currentScreen.animate(keyframes, options);
-                outKeyframes = keyframes;
+                if (this._gestureNavigating) {
+                    let duration = this._outAnimation?.effect?.getTiming().duration;
+                    if (typeof duration === "string") duration = parseFloat(duration);
+                    this._duration = duration || this._duration;
+                }
             }
             if (Array.isArray(this._nextScreen.inAnimation)) { // predefined animation
-                const [animation, userDefinedEasingFunction] = this._nextScreen.inAnimation;
+                const [animation, duration, userDefinedEasingFunction] = this._nextScreen.inAnimation;
                 this._inAnimation = this._nextScreen.animate(AnimationKeyframePresets[animation], {
                     fill: 'both',
-                    duration: this._duration,
+                    duration: duration,
                     easing: userDefinedEasingFunction || easingFunction
                 });
-                outKeyframes = AnimationKeyframePresets[animation];
+                if (!this.gestureNavigating) this._duration = duration;
             } else { // user provided animation
                 let {keyframes, options} = this._nextScreen.inAnimation;
                 if (typeof options === "number") {
@@ -142,7 +155,11 @@ export default class AnimationLayerData {
                     };
                 }
                 this._inAnimation = this._nextScreen.animate(keyframes, options);
-                outKeyframes = keyframes;
+                if (!this._gestureNavigating) {
+                    let duration = this._inAnimation?.effect?.getTiming().duration;
+                    if (typeof duration === "string") duration = parseFloat(duration);
+                    this._duration = duration || this._duration;
+                }
             }
 
             this._isPlaying = true;
@@ -162,8 +179,13 @@ export default class AnimationLayerData {
                 this._outAnimation.playbackRate = this._playbackRate;
                 
                 if (this._gestureNavigating) {
-                    this._inAnimation.currentTime = this._duration;
-                    this._outAnimation.currentTime = this._duration;
+                    let inDuration = this._inAnimation.effect?.getTiming().duration || this._duration;
+                    if (typeof inDuration === "string") inDuration = parseFloat(inDuration);
+
+                    let outDuration = this._outAnimation.effect?.getTiming().duration || this._duration;
+                    if (typeof outDuration === "string") outDuration = parseFloat(outDuration);
+                    this._inAnimation.currentTime = inDuration;
+                    this._outAnimation.currentTime = outDuration;
                 }
 
                 if (!this._play) {
@@ -172,38 +194,35 @@ export default class AnimationLayerData {
                     this._isPlaying = false;
                 }
 
-                this._outAnimation.ready.then(() => {
-                    this.updateProgress();
-                });
-                this._outAnimation.onfinish = async () => {
-                    if (this._outAnimation) {
-                        this._outAnimation.commitStyles();
-                        this._outAnimation.cancel();
-                        this._outAnimation.onfinish = null;
-                        this._outAnimation = null;
-                    }
-                    if (this._inAnimation) {
-                        this._inAnimation.commitStyles();
-                        this._inAnimation.cancel();
-                        this._inAnimation = null;
-                    }
-                    // if playback rate is 2 then gesture navigation was aborted
-                    if (!this._gestureNavigating || this._playbackRate === 0.5) {
-                        if (this._currentScreen)
-                            this._currentScreen.mounted(false);
-                    } else {
-                        if (this._nextScreen)
-                            await this._nextScreen.mounted(false);
-                    }
-                    if (this._onEnd) {
-                        this._onEnd();
-                    }
+                await Promise.all([this._inAnimation.ready, this._outAnimation.ready])
+                this.updateProgress();
 
-                    this._isPlaying = false;
-
-                    const endAnimationEvent = new CustomEvent('page-animation-end');
-                    window.dispatchEvent(endAnimationEvent);
+                await Promise.all([this._outAnimation.finished, this._inAnimation.finished])
+                if (this._inAnimation) {
+                    this._inAnimation.commitStyles();
+                    this._inAnimation.cancel();
+                    this._inAnimation = null;
                 }
+                if (this._outAnimation) {
+                    this._outAnimation.commitStyles();
+                    this._outAnimation.cancel();
+                    this._outAnimation.onfinish = null;
+                    this._outAnimation = null;
+                }
+                // if playback rate is 2 then gesture navigation was aborted
+                if (!this._gestureNavigating || this._playbackRate === 0.5) {
+                    if (this._currentScreen)
+                        this._currentScreen.mounted(false);
+                } else {
+                    if (this._nextScreen)
+                        await this._nextScreen.mounted(false);
+                }
+                if (this._onEnd) {
+                    this._onEnd();
+                }
+                this._isPlaying = false;
+                const endAnimationEvent = new CustomEvent('page-animation-end');
+                window.dispatchEvent(endAnimationEvent);
             }
         } else {
             this._shouldAnimate = true;
@@ -259,10 +278,16 @@ export default class AnimationLayerData {
         if (this._onProgress) {
             this._onProgress(this._progress);
         }
-        const currentTime = (this._progress / 100) * this._duration;
+        let inDuration = this._inAnimation?.effect?.getTiming().duration || this._duration;
+        if (typeof inDuration === "string") inDuration = parseFloat(inDuration);
+        const inCurrentTime = (this._progress / 100) * inDuration;
+
+        let outDuration = this._outAnimation?.effect?.getTiming().duration || this._duration;
+        if (typeof outDuration === "string") outDuration = parseFloat(outDuration);
+        const outCurrentTime = (this._progress / 100) * outDuration;
         if (this._inAnimation && this._outAnimation) {
-            this._inAnimation.currentTime = currentTime;
-            this._outAnimation.currentTime = currentTime;
+            this._inAnimation.currentTime = inCurrentTime;
+            this._outAnimation.currentTime = outCurrentTime;
         }
     }
 
@@ -282,9 +307,10 @@ export default class AnimationLayerData {
         this._onExit = _onExit;
     }
 
-    set duration(_duration: number) {
-        this._duration = _duration || 1;
+    get duration() {
+        return this._duration;
     }
+
     get progress() {
         return this._progress;
     }

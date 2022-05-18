@@ -199,6 +199,29 @@ Transitions are a feature baked into react-motion-router; hence the name... To t
 // ...
 </Router>
 ```
+You can provide custom keyframes and options to customise and extend the types of animations available.
+```
+<Router config={{
+    animation: {
+        in: {
+            keyframes: [{opacity: 0}, {opacity: 1}],
+            options: {
+                duration: 350,
+                easing: 'ease'
+            }
+        },
+        out: {
+            keyframes: [{opacity: 1}, {opacity: 0}],
+            options: {
+                duration: 350,
+                easing: 'ease-out'
+            }
+        }
+    }
+}}>
+// ...
+</Router>
+```
 
 You can subscribe to the transition progress by using the motion consumer component.
 
@@ -279,6 +302,12 @@ This way the X and Y axis are animated independently and can alter the path of t
 | Property  | Type                                      | Description                                                                                                                                                                                            |
 | --------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | animation | AnimationConfig or AnimationConfigFactory | AnimationConfig object or function that returns an AnimationConfig object. This config object is used to modify the router's transition behaviour. In and out animation can also be set independently. |
+| disableDiscovery      | boolean         | Option to disable gesture navigation.                                                                                                                                       |
+| swipeAreaWidth        | number          | Area in pixels from the left edge of the screen that gesture navigation can be triggered from.                                                                              |
+| hysteresis            | number          | Percent from 0-100 which specifies minimum gesture progress before navigation is triggered.                                                                                 |
+| minFlingVelocity      | number          | Minimum average velocity of swipe gesture before navigation is triggered even if hysteresis was not reached.                                                                |
+| keepAlive      | boolean          | If true the current screen will remain in the DOM tree after you navigate to another screen.                                                                |
+| swipeDirection      | "left", "right", "up" or "down"          | The direction to swipe in order to trigger a gesture navigation.                                                                |
 
 #### Router Config
 
@@ -291,6 +320,7 @@ This way the X and Y axis are animated independently and can alter the path of t
 | swipeAreaWidth        | number          | Area in pixels from the left edge of the screen that gesture navigation can be triggered from.                                                                              |
 | hysteresis            | number          | Percent from 0-100 which specifies minimum gesture progress before navigation is triggered.                                                                                 |
 | minFlingVelocity      | number          | Minimum average velocity of swipe gesture before navigation is triggered even if hysteresis was not reached.                                                                |
+| swipeDirection      | "left", "right", "up" or "down"          | The direction to swipe in order to trigger a gesture navigation.                                                                |
 | paramsDeserialiser    | Function        | A function that takes a URL search part string as input and outputs a valid JavaScript object.                                                                              |
 | paramsSerialiser      | Function        | A function that takes a valid JavaScript object as input and outputs a URL search part string.                                                                              |
 
