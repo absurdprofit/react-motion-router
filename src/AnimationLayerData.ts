@@ -72,22 +72,11 @@ export default class AnimationLayerData {
 
     async animate() {
         if (this._isPlaying) {
-            if (!this._gestureNavigating) {
-                // cancel playing animation
-                this.finish();
-                if (this._onEnd) this._onEnd();
-                if (this._nextScreen) await this._nextScreen.mounted(true);
-                return;
-            } else {
-                cancelAnimationFrame(this._progressUpdateID);
-                [this._outAnimation, this._inAnimation] = [this._inAnimation, this._outAnimation];
-                if (!this._play) {
-                    this._inAnimation?.pause();
-                    this._outAnimation?.pause();
-                    this._isPlaying = false;
-                }
-                return;
-            }
+            // cancel playing animation
+            this.finish();
+            if (this._onEnd) this._onEnd();
+            if (this._nextScreen) await this._nextScreen.mounted(true);
+            return;
         }
         if (this._currentScreen && this._nextScreen && this._shouldAnimate) {
             if (this._gestureNavigating) {
@@ -317,6 +306,10 @@ export default class AnimationLayerData {
 
     get gestureNavigating() {
         return this._gestureNavigating;
+    }
+
+    get isPlying() {
+        return this._isPlaying;
     }
 }
 

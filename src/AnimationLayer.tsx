@@ -185,6 +185,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
 
     onSwipeStart(ev: SwipeStartEvent) {
         if (this.state.disableDiscovery) return;
+        if (this.context.isPlying) return;
         let swipePos: number; // 1D
         switch(this.state.swipeDirection) {
             case "left":
