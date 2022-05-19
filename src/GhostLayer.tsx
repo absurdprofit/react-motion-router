@@ -490,7 +490,6 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
         if (!this.state.playing) {
             for (const [_, xYAnimations] of this._animationMap) {
                 Object.values(xYAnimations).map((animation: Animation) => {
-                    if (animation.playState === "running") animation.pause();
                     const progress = e.detail.progress;
                     const defaultDuration = this.context.duration;
                     let duration = animation.effect?.getComputedTiming().duration;

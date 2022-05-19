@@ -203,7 +203,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             if (!this.props.lastPath) return;
 
             // if gesture region in touch path return
-            for (let target of ev.composedPath()) {
+            for (let target of ev.composedPath().reverse()) {
                 if ('classList' in target && (target as HTMLElement).classList.length) {
                     if ((target as HTMLElement).classList.contains('gesture-region')) return;
                     if (target === ev.gestureTarget) break;

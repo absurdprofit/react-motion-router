@@ -90,6 +90,7 @@ function App() {
           defaultParams={{hero: 0}}
           fallback={<div className='screen-fallback slides'></div>}
           config={{
+            disableDiscovery: true,
             animation: (currentPath, nextPath) => {
               if (matchRoute(currentPath, "/slides") && matchRoute(nextPath, "/")) {
                 return animation;

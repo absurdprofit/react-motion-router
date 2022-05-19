@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import { Hero, Heroes } from '../assets/Heroes';
 import ClearIcon from '@mui/icons-material/Clear';
-import { Navigation, SharedElement, Motion, GestureRegion } from 'react-motion-router';
+import { Navigation, SharedElement, Motion } from 'react-motion-router';
 import SwipeableViews from 'react-swipeable-views';
 import { bindKeyboard } from 'react-swipeable-views-utils';
 import IconButton from '@mui/material/IconButton';
@@ -63,47 +63,45 @@ export default function Slides(props: SlidesProps) {
     });
 
     return (
-        <GestureRegion>
-            <div className={`slides ${isLoaded ? 'loaded' : 'suspense'}`}>
-                <div className="back">
-                    <IconButton style={{color: 'white'}} onClick={() => props.navigation.goBack()}>
-                        <SharedElement id="back" config={{
-                            type: 'fade-through'
-                        }}>
-                            <ClearIcon />
-                        </SharedElement>
-                    </IconButton>
-                </div>
-                <Motion.Consumer>
-                    {(progress) => {
-                        return (
-                            <div className="title" style={{transform: `translate(-50%, ${-100 + progress}px)`, opacity: progress / 100}}>
-                                <h2>{Heroes[index].name}</h2>
-                            </div>
-                        );
-                    }}
-                </Motion.Consumer>
-                <KeyboardSwipeableViews onChangeIndex={(index: number) => setIndex(index)} index={index}>
-                {
-                    Heroes.map((hero: Hero, _index: number) => {
-                        return (
-                            <div className="slide" key={_index}>
-                                {
-                                    <SharedElement id={`${_index !== index ? 'no-transition-' : ''}${hero.id}`}>
-                                        <img
-                                            src={hero.photo.url}
-                                            alt={hero.name}
-                                            style={{transition: '0.2s transform ease'}}
-                                            {...{"data-gesturetarget": true}}
-                                        />
-                                    </SharedElement>
-                                }
-                            </div>
-                        );
-                    })
-                }
-                </KeyboardSwipeableViews>
+        <div className={`slides ${isLoaded ? 'loaded' : 'suspense'}`}>
+            <div className="back">
+                <IconButton style={{color: 'white'}} onClick={() => props.navigation.goBack()}>
+                    <SharedElement id="back" config={{
+                        type: 'fade-through'
+                    }}>
+                        <ClearIcon />
+                    </SharedElement>
+                </IconButton>
             </div>
-        </GestureRegion>
+            <Motion.Consumer>
+                {(progress) => {
+                    return (
+                        <div className="title" style={{transform: `translate(-50%, ${-100 + progress}px)`, opacity: progress / 100}}>
+                            <h2>{Heroes[index].name}</h2>
+                        </div>
+                    );
+                }}
+            </Motion.Consumer>
+            <KeyboardSwipeableViews onChangeIndex={(index: number) => setIndex(index)} index={index}>
+            {
+                Heroes.map((hero: Hero, _index: number) => {
+                    return (
+                        <div className="slide" key={_index}>
+                            {
+                                <SharedElement id={`${_index !== index ? 'no-transition-' : ''}${hero.id}`}>
+                                    <img
+                                        src={hero.photo.url}
+                                        alt={hero.name}
+                                        style={{transition: '0.2s transform ease'}}
+                                        {...{"data-gesturetarget": true}}
+                                    />
+                                </SharedElement>
+                            }
+                        </div>
+                    );
+                })
+            }
+            </KeyboardSwipeableViews>
+        </div>
     );
 }
