@@ -1,3 +1,26 @@
+# [V3.5.0-alpha](https://github.com/nxtexe/react-motion-router/blob/main/CHANGELOG.md#v350-alpha)
+## Features
+- The Stack.Screen config prop now takes parameters to control gesture behaviour. These options were already available on the `Router` but now they can be configured on a per screen basis for example:
+  - `minFlingVelocity`
+  - `disableDiscovery`
+  - `hysteresis`
+  - `swipeAreaWidth`
+
+With the addition of a new config property available on both the `Router` and `Stack.Screen` components `swipeDirection`. This option allows you to define a direction of either `left`, `right`, `up` or `down` in which the user can swipe to trigger a gesture navigation. The default is `right`.
+
+- It is now possible to offer custom animation keyframes and options to both `Stack.Screen` and `Router` components. These are just normal WAAPI keyframes and options but allow for more novel approaches to transitions and layouts with react-motion-router.
+- `Stack.Screen` config also comes with a new option `keepAlive`. This keeps the screen attached to the DOM tree after navigating to another screen. In other words when this screen is the previous in the stack it will still be attached to the DOM tree. It will be removed if it is back navigated as the current screen or the other screen navigates forward.
+- It is now possible to use the `Anchor` component as a back navigator. Simply pass the `goBack` boolean prop.
+
+
+## Enhancements
+- Previously screens were animated and the computed styles were applied using fill modes. This has been removed in favour of the `animation.commitStyles()` API. This has allowed from much smoother animations overall. I have no idea why I can only say fill modes are really weird.
+- More gesture directions have been added as outlined in features section.
+
+## Bug Fixes
+- Before screen transitions were interrupted if the user gestured between them. This has been fixed by disabling gestures during screen transitions.
+- The rubberbanding bug that would occur when you did a really fast cancel gesture near the opposite edge has been patched. This bug would cause the animation to run from 0 instead of where the user released.
+
 # [V3.4.0-alpha](https://github.com/nxtexe/react-motion-router/blob/main/CHANGELOG.md#v340-alpha)
 ## Features
 - New `GestureRegion` component for wrapping gesture sensitive components. React Motion Router will ignore navigation gestures that overlap these regions.
