@@ -71,3 +71,9 @@ div.screen-fallback.home {
 div.screen-fallback.slides {
   background-color: rgb(46, 46, 46);
 }
+div.screen-fallback.overlays {
+  background-color: white;
+}
+div.screen-fallback.modal {
+  background-color: rgba(0, 0, 0, 0);
+}

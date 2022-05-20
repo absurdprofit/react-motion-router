@@ -1,56 +1,17 @@
 import React from 'react';
 import { Motion, Navigation } from 'react-motion-router';
-import '../css/Modal.css';
-import { AnimationConfigFactory, AnimationConfig } from 'react-motion-router/common/types';
-import { matchRoute } from 'react-motion-router/common/utils';
-import { iOS, isPWA } from '../common/utils';
+import '../../css/Modal.css';
 import { motion } from 'framer-motion';
 
 interface ModalScreenProps {
     navigation: Navigation;
 }
 
-export const ModalAnimation: AnimationConfigFactory = (c, n, gestureNavigating) => {
-    const slideDefaultAnimation: AnimationConfig = {
-        type: 'slide',
-        direction: 'right',
-        duration: 350
-    };
-    const fadeIn = {
-        keyframes: [
-            {backgroundColor: 'rgba(0, 0, 0, 0)'},
-            {backgroundColor: 'rgba(0, 0, 0, 0.3)'}
-        ],
-        options: {
-            duration: 250,
-        }
-    };
-    const fadeOut = {
-        keyframes: [
-            {backgroundColor: 'rgba(0, 0, 0, 0.3)'},
-            {backgroundColor: 'rgba(0, 0, 0, 0)'}
-        ],
-        options: {
-            duration: 250,
-        }
-    };
-    if (matchRoute(n, '/')) return slideDefaultAnimation;
-    if (iOS() && !isPWA()) {
-        return {
-          type: 'none',
-          duration: 0
-        }
-    }
-    return {
-        in: fadeIn,
-        out: fadeOut
-    }
-};
-
 interface ModalScreenState {
     disabled: boolean;
 }
 
+let isLoaded = true;
 export default class ModalExample extends React.Component<ModalScreenProps, ModalScreenState> {
     private ref: HTMLDivElement | null = null;
     state: ModalScreenState = {
@@ -61,6 +22,7 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
     enable = () => this.setState({disabled: false});
 
     componentDidMount() {
+        window.addEventListener('page-animation-end', () => isLoaded = true, {once: true});
         window.addEventListener('motion-progress-start', this.disable);
         window.addEventListener('motion-progress-end', this.enable);
         if (this.ref) {
@@ -87,14 +49,14 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
     }
     render() {
         return (
-            <div className="modal-presentation" onClick={this.onClose} ref={c => this.ref = c}>
+            <div className={`modal-presentation ${isLoaded ? 'loaded' : 'suspense'}`} onClick={this.onClose} ref={c => this.ref = c}>
                 <Motion.Consumer>
                     {(progress) => {
                         return (
                             <motion.div
                                 className="modal"
                                 style={{
-                                    transform: `translateY(${0.95 * (100-progress)}vh)`
+                                    transform: isLoaded ? `translateY(${0.95 * (100-progress)}vh)` : 'translateY(0vh)'
                                 }}
                                 transition={{
                                     type: 'spring',

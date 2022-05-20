@@ -1,0 +1,12 @@
+.overlays.suspense > * {
+  animation: overlays-fade-in .5s ease forwards;
+}
+
+@keyframes overlays-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}

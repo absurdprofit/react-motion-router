@@ -1,5 +1,5 @@
 import React, {memo} from 'react';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import IconButton from '@mui/material/IconButton';
 import { SharedElement, useNavigation } from 'react-motion-router';
 import '../css/Navbar.css';
@@ -21,7 +21,7 @@ function Navbar(props: NavbarProps) {
                     props.backButton ?
                     <IconButton onClick={onClick}>
                         <SharedElement id="back">
-                            <ChevronLeftIcon style={{zIndex: 100}} />
+                            <ArrowBackIosIcon style={{zIndex: 100}} />
                         </SharedElement>
                     </IconButton>
                     :

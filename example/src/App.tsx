@@ -4,8 +4,8 @@ import { AnimationKeyframeEffectConfig } from 'react-motion-router/common/types'
 import { matchRoute } from 'react-motion-router/common/utils';
 import { iOS, isPWA } from './common/utils';
 import "./css/App.css";
-import ModalExample, { ModalAnimation } from './Screens/Modal';
-import Overlays, { OverlaysAnimation } from './Screens/Overlays';
+import { ModalAnimation } from './Screens/Modal/Animations';
+import { OverlaysAnimation } from './Screens/Overlays/Animations';
 
 const NotFound = React.lazy(() => import('./Screens/NotFound'));
 const Home = React.lazy(() => import('./Screens/Home'));
@@ -14,6 +14,8 @@ const Cards2 = React.lazy(() => import('./Screens/Cards2'));
 const Slides = React.lazy(() => import('./Screens/Slides'));
 const Tiles = React.lazy(() => import('./Screens/Tiles'));
 const Details = React.lazy(() => import('./Screens/Details'));
+const ModalExample = React.lazy(() => import('./Screens/Modal'));
+const Overlays = React.lazy(() => import('./Screens/Overlays'));
 
 function DetailsFallback({route}: any) {
   const {hero} = route.params;
@@ -86,6 +88,7 @@ function App() {
         <Stack.Screen
           path='/overlays'
           component={Overlays}
+          fallback={<div className='screen-fallback overlays'></div>}
           config={{
             keepAlive: true,
             animation: OverlaysAnimation
@@ -94,6 +97,7 @@ function App() {
         <Stack.Screen
           path='/modal'
           component={ModalExample}
+          fallback={<div className='screen-fallback modal'></div>}
           config={{
             swipeDirection: 'down',
             swipeAreaWidth: window.innerHeight / 1.5,
