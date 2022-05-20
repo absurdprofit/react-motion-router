@@ -28,7 +28,3 @@ div[role="presentation"] {
     height: 100vh;
     contain: strict;
 }
-#ModalExample {
-    width: 100vw;
-    height: 100vh;
-}

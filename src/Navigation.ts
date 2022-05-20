@@ -23,7 +23,7 @@ export default class Navigation {
 
     navigate(route: string, routeParams?: {[key:string]: any}, replace?: boolean) {
         if (this._disableBrowserRouting) {
-            this._history.implicitPush(route);
+            this._history.implicitPush(route, Boolean(replace));
         } else {
             this._history.push(route, Boolean(replace));
         }

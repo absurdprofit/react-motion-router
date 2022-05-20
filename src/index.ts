@@ -5,6 +5,7 @@ import {
     AnimationConfigFactory
 } from './common/types';
 import Router, { useNavigation } from './Router';
+import { useReducedMotion, useMotion } from './common/utils';
 import {Stack} from './Stack';
 import Navigation, { BackEvent, NavigateEvent } from './Navigation';
 import History from './History';
@@ -42,3 +43,4 @@ declare global {
 
 export type {AnimationConfig, AnimationConfigFactory, ScreenChild, Navigation, History};
 export {Router, Stack, SharedElement, Anchor, Motion, useNavigation, GestureRegion};
+export {useReducedMotion, useMotion};

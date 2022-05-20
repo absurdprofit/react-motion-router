@@ -8,8 +8,8 @@ module.exports = {
         outputModule: true
     },
     entry: {
-        index: './src/index.ts',
-        utils: './src/common/utils.ts'
+        index: path.resolve('src', 'index.ts'),
+        utils: path.resolve('src', 'common', 'utils.ts')
     },
     module: {
         rules: [

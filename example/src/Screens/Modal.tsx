@@ -14,7 +14,7 @@ export const ModalAnimation: AnimationConfigFactory = (c, n, gestureNavigating) 
     const slideDefaultAnimation: AnimationConfig = {
         type: 'slide',
         direction: 'right',
-        duration: 500
+        duration: 350
     };
     const fadeIn = {
         keyframes: [
@@ -22,7 +22,7 @@ export const ModalAnimation: AnimationConfigFactory = (c, n, gestureNavigating) 
             {backgroundColor: 'rgba(0, 0, 0, 0.3)'}
         ],
         options: {
-            duration: 400,
+            duration: 250,
         }
     };
     const fadeOut = {
@@ -31,7 +31,7 @@ export const ModalAnimation: AnimationConfigFactory = (c, n, gestureNavigating) 
             {backgroundColor: 'rgba(0, 0, 0, 0)'}
         ],
         options: {
-            duration: 300,
+            duration: 250,
         }
     };
     if (matchRoute(n, '/')) return slideDefaultAnimation;
@@ -52,6 +52,7 @@ interface ModalScreenState {
 }
 
 export default class ModalExample extends React.Component<ModalScreenProps, ModalScreenState> {
+    private ref: HTMLDivElement | null = null;
     state: ModalScreenState = {
         disabled: false
     };
@@ -62,6 +63,12 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
     componentDidMount() {
         window.addEventListener('motion-progress-start', this.disable);
         window.addEventListener('motion-progress-end', this.enable);
+        if (this.ref) {
+            if (this.ref.parentElement?.parentElement) {
+                this.ref.parentElement.parentElement.style.width = '100vw';
+                this.ref.parentElement.parentElement.style.height = '100vh';
+            }
+        }
     }
 
     componentWillUnmount() {
@@ -80,7 +87,7 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
     }
     render() {
         return (
-            <div className="modal-presentation" onClick={this.onClose}>
+            <div className="modal-presentation" onClick={this.onClose} ref={c => this.ref = c}>
                 <Motion.Consumer>
                     {(progress) => {
                         return (

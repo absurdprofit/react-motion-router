@@ -28,6 +28,7 @@ export default class AnimationLayerData {
             return;
         }
         const update = () => {
+            if (!this._outAnimation && !this._inAnimation) return;
             const currentTime = this._gestureNavigating ? this._outAnimation?.currentTime || 0 : this._inAnimation?.currentTime || 0;
             const progress = clamp((currentTime / this._duration) * 100, 0, 100);
 
@@ -212,7 +213,6 @@ export default class AnimationLayerData {
                 if (this._outAnimation) {
                     this._outAnimation.commitStyles();
                     this._outAnimation.cancel();
-                    this._outAnimation.onfinish = null;
                     this._outAnimation = null;
                 }
                 // if playback rate is 2 then gesture navigation was aborted
