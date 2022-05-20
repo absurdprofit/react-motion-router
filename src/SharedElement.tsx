@@ -1,7 +1,6 @@
 import React, {createContext} from 'react';
 import {getCSSData} from './common/utils';
 import { EasingFunction, Vec2 } from './common/types';
-import assert from 'assert';
 
 namespace SharedElement {
     //https://developer.mozilla.org/en-US/docs/Web/CSS/transform-origin#formal_syntax
@@ -74,7 +73,7 @@ namespace SharedElement {
         }
         addNode(node: SharedElementNode | null) {
             if (!node) return;
-            assert(!this.nodes.has(node.id), `Duplicate Shared Element ID: ${node.id} in ${this._name}`);
+            console.assert(!this.nodes.has(node.id), `Duplicate Shared Element ID: ${node.id} in ${this._name}`);
             this._nodes.set(node.id, node);
         }
 

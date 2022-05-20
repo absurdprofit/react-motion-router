@@ -56,7 +56,7 @@ export namespace Stack {
         };
 
         state: ScreenState = {
-            shouldKeepAlive: false
+            shouldKeepAlive: false,
         }
 
         componentDidMount() {
@@ -233,7 +233,7 @@ export namespace Stack {
                     out={this.props.out || false}
                     name={this.name}
                     animation={this.animation}
-                    backNavigating={this.context!.backNavigating}
+                    backNavigating={this.context.backNavigating}
                     keepAlive={this.state.shouldKeepAlive ? this.props.config?.keepAlive || false : false}
                 >
                     <div

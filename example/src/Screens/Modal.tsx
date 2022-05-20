@@ -1,48 +1,40 @@
 import React from 'react';
-import { Navigation } from 'react-motion-router';
+import { Motion, Navigation } from 'react-motion-router';
 import '../css/Modal.css';
-import { ClickAwayListener } from '@mui/material';
-import { createSpringAnimation } from 'springframes';
-import { AnimationConfigFactory, AnimationConfig, AnimationKeyframeEffectConfig } from 'react-motion-router/common/types';
+import { AnimationConfigFactory, AnimationConfig } from 'react-motion-router/common/types';
 import { matchRoute } from 'react-motion-router/common/utils';
 import { iOS, isPWA } from '../common/utils';
+import { motion } from 'framer-motion';
 
 interface ModalScreenProps {
     navigation: Navigation;
 }
 
-const inAnimation = createSpringAnimation({
-    dx: 0,
-    dy: 10,
-    stiffness: 100,
-    mass: 2,
-    damping: 50,
-});
-
 export const ModalAnimation: AnimationConfigFactory = (c, n, gestureNavigating) => {
     const slideDefaultAnimation: AnimationConfig = {
         type: 'slide',
-        direction: 'up',
-        duration: 350
+        direction: 'right',
+        duration: 500
     };
-    const springAnimation: AnimationKeyframeEffectConfig = {
+    const fadeIn = {
         keyframes: [
-            {
-                transform: 'translateY(100vh)'
-            },
-            {
-                transform: 'translateY(0vh)',
-                offset: 0.3
-            },
-            ...inAnimation.keyframes          
+            {backgroundColor: 'rgba(0, 0, 0, 0)'},
+            {backgroundColor: 'rgba(0, 0, 0, 0.3)'}
         ],
         options: {
-            duration: (inAnimation.frames / 60) * 500,
-            fill: 'both',
-            easing: 'linear'
+            duration: 400,
         }
     };
-    if (matchRoute(n, '/')) return {...slideDefaultAnimation, direction: 'right'};
+    const fadeOut = {
+        keyframes: [
+            {backgroundColor: 'rgba(0, 0, 0, 0.3)'},
+            {backgroundColor: 'rgba(0, 0, 0, 0)'}
+        ],
+        options: {
+            duration: 300,
+        }
+    };
+    if (matchRoute(n, '/')) return slideDefaultAnimation;
     if (iOS() && !isPWA()) {
         return {
           type: 'none',
@@ -50,24 +42,63 @@ export const ModalAnimation: AnimationConfigFactory = (c, n, gestureNavigating) 
         }
     }
     return {
-        in: gestureNavigating ? slideDefaultAnimation : springAnimation,
-        out: slideDefaultAnimation
+        in: fadeIn,
+        out: fadeOut
     }
 };
-export default class ModalExample extends React.Component<ModalScreenProps> {
-    private goingBack: boolean = false;
-    
-    onClose = () => {
-        if (this.goingBack) return;
+
+interface ModalScreenState {
+    disabled: boolean;
+}
+
+export default class ModalExample extends React.Component<ModalScreenProps, ModalScreenState> {
+    state: ModalScreenState = {
+        disabled: false
+    };
+
+    disable = () => this.setState({disabled: true});
+    enable = () => this.setState({disabled: false});
+
+    componentDidMount() {
+        window.addEventListener('motion-progress-start', this.disable);
+        window.addEventListener('motion-progress-end', this.enable);
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('motion-progress-start', this.disable);
+        window.removeEventListener('motion-progress-end', this.enable);
+    }
+
+    onClose = (ev: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+        if (this.state.disabled) return;
+        for (let target of ev.nativeEvent.composedPath().reverse()) {
+            if ('classList' in target)
+                if ((target as HTMLElement).classList.contains('modal')) return;
+        }
         this.props.navigation.goBack();
-        this.goingBack = true;
+        this.setState({disabled: true});
     }
     render() {
         return (
-            <div className="modal-presentation">
-                <ClickAwayListener onClickAway={this.onClose}>
-                    <div className="modal"></div>
-                </ClickAwayListener>
+            <div className="modal-presentation" onClick={this.onClose}>
+                <Motion.Consumer>
+                    {(progress) => {
+                        return (
+                            <motion.div
+                                className="modal"
+                                style={{
+                                    transform: `translateY(${0.95 * (100-progress)}vh)`
+                                }}
+                                transition={{
+                                    type: 'spring',
+                                    stiffness: 1,
+                                    mass: 10,
+                                    damping: 3.7
+                                }}
+                            ></motion.div>
+                        );
+                    }}
+                </Motion.Consumer>
             </div>
         );
     }

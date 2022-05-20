@@ -170,6 +170,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         if (prevProps.currentPath !== this.state.currentPath) {
             if (!this.state.gestureNavigating && prevState.shouldAnimate) {
                 this.context.play = true;
+                this.context.backNavigating = this.props.backNavigating;
                 this.context.animate(); // children changes committed now animate
             }
         }
@@ -277,6 +278,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
                 this.context.gestureNavigating = true;
                 this.context.playbackRate = -1;
                 this.context.play = false;
+                this.context.backNavigating = this.props.backNavigating;
                 this.context.animate();
                 
                 window.dispatchEvent(motionStartEvent);

@@ -17,6 +17,7 @@ interface AnimationProviderProps {
 
 interface AnimationProviderState {
     mounted: boolean;
+    zIndex: number;
 }
 
 const OppositeDirection = {
@@ -37,6 +38,7 @@ export default class AnimationProvider extends React.Component<AnimationProvider
 
     state: AnimationProviderState = {
         mounted: false,
+        zIndex: 0
     }
     
     onRef(ref: HTMLElement | null) {
@@ -166,6 +168,10 @@ export default class AnimationProvider extends React.Component<AnimationProvider
         return this.ref?.animate(keyframes, options) || null;
     }
 
+    set zIndex(_zIndex: number) {
+        this.setState({zIndex: _zIndex});
+    }
+
     mounted(_mounted: boolean, willAnimate: boolean = true): Promise<void> {
         return new Promise((resolve, _) => {
             const onMountChange = () => {
@@ -197,7 +203,7 @@ export default class AnimationProvider extends React.Component<AnimationProvider
             <div id={this.props.name} className="animation-provider" ref={this.setRef} style={{
                 position: 'absolute',
                 transformOrigin: 'center center',
-                zIndex: this.props.in && !this.props.backNavigating ? 1 : this.props.out && this.props.backNavigating ? 1 : 0,
+                zIndex: this.state.zIndex
             }}>
                 <AnimationLayerDataContext.Consumer>
                     {(animationLayerData) => {
