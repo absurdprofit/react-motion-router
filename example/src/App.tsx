@@ -1,5 +1,6 @@
 import React from 'react';
-import {Router, Stack, AnimationConfig} from 'react-motion-router';
+import {Router, Stack, AnimationConfig, AnimationConfigFactory} from 'react-motion-router';
+import { AnimationKeyframeEffectConfig } from 'react-motion-router/common/types';
 import { matchRoute } from 'react-motion-router/common/utils';
 import { iOS, isPWA } from './common/utils';
 import "./css/App.css";
@@ -43,6 +44,23 @@ let animation: AnimationConfig = {
 let fadeAnimation: AnimationConfig = {
   type: "fade",
   duration: 350
+}
+
+let staticAnimation: AnimationKeyframeEffectConfig = {
+  keyframes: [],
+  options: {
+    duration: 350
+  }
+};
+
+const cardsToDetails: AnimationConfigFactory = (currentPath, nextPath) => {
+  if (
+    matchRoute(nextPath, '/details')
+    || matchRoute(currentPath, '/details')
+  ) {
+    return staticAnimation;
+  }
+  return animation;
 }
 
 if (iOS() && !isPWA()) {
@@ -102,16 +120,25 @@ function App() {
         <Stack.Screen
           path={'/cards'}
           component={Cards}
+          config={{
+            animation: cardsToDetails
+          }}
           fallback={<div className='screen-fallback cards'></div>}
         />
         <Stack.Screen
           path={'/cards-2'}
           component={Cards2}
+          config={{
+            animation: cardsToDetails
+          }}
           fallback={<div className='screen-fallback cards-2'></div>}
         />
         <Stack.Screen
           path={"/details"}
           component={Details}
+          config={{
+            animation: staticAnimation
+          }}
           defaultParams={{data: "Default"}}
           fallback={<DetailsFallback />}
         />

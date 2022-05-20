@@ -3,12 +3,12 @@ import Navigation, { NavigateEvent, BackEvent } from './Navigation';
 import AnimationLayer from './AnimationLayer';
 import GhostLayer from './GhostLayer';
 import { ScreenChild } from '.';
-import {AnimationConfig, ReducedAnimationConfigSet, SwipeDirection} from './common/types';
+import {AnimationConfig, AnimationKeyframeEffectConfig, ReducedAnimationConfigSet, SwipeDirection} from './common/types';
 import RouterData, {RoutesData, RouterDataContext} from './RouterData';
 import AnimationLayerData, {AnimationLayerDataContext} from './AnimationLayerData';
 
 interface Config {
-    animation: ReducedAnimationConfigSet | AnimationConfig;
+    animation: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig;
     defaultRoute?: string;
     swipeAreaWidth?: number;
     minFlingVelocity?: number;

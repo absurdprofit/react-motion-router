@@ -17,6 +17,8 @@ let inset = '';
 let textInset = '';
 let heroName = '';
 let titleInset = '';
+let bgInset = '';
+
 export default class Cards2 extends React.Component<CardsProps> {
     static isLoaded = false;
     private ref: HTMLElement | null = null;
@@ -70,10 +72,11 @@ export default class Cards2 extends React.Component<CardsProps> {
                         let paraRef: HTMLElement | null = null;
                         let titleRef: HTMLElement | null = null;
                         let gradientRef: HTMLElement | null = null;
+                        let bgRef: HTMLElement | null = null;
                         return (
                             <ButtonBase key={index} disableRipple onClick={() => {
                                 let imageAspect;
-                                if (imageRef && paraRef && titleRef && gradientRef) {
+                                if (imageRef && paraRef && titleRef && gradientRef && bgRef) {
                                     const imageRect = imageRef.getBoundingClientRect();
                                     const paraRect = paraRef.getBoundingClientRect();
                                     const titleRect = titleRef.getBoundingClientRect();
@@ -83,16 +86,25 @@ export default class Cards2 extends React.Component<CardsProps> {
                                     inset = `inset(${-imageRect.top+64}px ${-imageRect.right}px ${-imageRect.bottom}px ${-imageRect.left}px)`;
                                     imageRef.style.clipPath = inset;
                                     gradientRef.style.clipPath = inset;
+                                    bgInset = `inset(${-imageRect.top+66}px ${-imageRect.right}px ${-imageRect.bottom}px ${-imageRect.left}px)`;
+                                    bgRef.style.clipPath = bgInset;
                                     textInset = `inset(${-paraRect.top+64}px ${-paraRect.right}px ${-paraRect.bottom}px ${-paraRect.left}px)`;
                                     paraRef.style.clipPath = textInset;
                                     heroName = hero.id;
                                 }
                                 this.props.navigation.navigate('/details', {
                                     hero,
-                                    noBg: true,
                                     photoAspect: imageAspect
                                 });
                             }}>
+                                <SharedElement id={`${hero.id}-card-bg`}>
+                                    <div
+                                        id={`${hero.id}-bg`}
+                                        className="card-bg"
+                                        ref={(ref: HTMLElement | null) => bgRef = ref}
+                                        style={{ width: 345 > window.screen.width ? 300 : 345, clipPath: (heroName === hero.id ? bgInset : '') }}
+                                    ></div>
+                                </SharedElement>
                                 <Card sx={{ width: 345 > window.screen.width ? 300 : 345 }}>
                                     <SharedElement id={`${hero.id}-gradient-overlay`}>
                                         <div

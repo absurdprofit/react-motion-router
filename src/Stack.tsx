@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import SharedElement from './SharedElement';
 import { RouterDataContext } from './RouterData';
-import { AnimationConfig, AnimationConfigFactory, AnimationConfigSet, ReducedAnimationConfigSet, SwipeDirection } from './common/types';
+import { AnimationConfig, AnimationConfigFactory, AnimationConfigSet, AnimationKeyframeEffectConfig, ReducedAnimationConfigSet, SwipeDirection } from './common/types';
 import {Vec2} from './common/types';
 import AnimationProvider from './AnimationProvider';
 
@@ -13,7 +13,7 @@ export interface ScreenProps {
     path?: string | RegExp;
     defaultParams?: {[key:string]: any};
     config?: {
-        animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationConfigFactory;
+        animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig | AnimationConfigFactory;
         keepAlive?: boolean;
         swipeDirection?: SwipeDirection;
         swipeAreaWidth?: number;
