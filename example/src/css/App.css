@@ -77,3 +77,6 @@ div.screen-fallback.overlays {
 div.screen-fallback.modal {
   background-color: rgba(0, 0, 0, 0);
 }
+meta[name="theme-color"] {
+  transition: 3s ease;
+}

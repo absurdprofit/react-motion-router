@@ -9,20 +9,25 @@ interface ModalScreenProps {
 
 interface ModalScreenState {
     disabled: boolean;
+    stiffness: number;
 }
 
 let isLoaded = true;
 export default class ModalExample extends React.Component<ModalScreenProps, ModalScreenState> {
     private ref: HTMLDivElement | null = null;
     state: ModalScreenState = {
-        disabled: false
+        disabled: false,
+        stiffness: 50
     };
 
     disable = () => this.setState({disabled: true});
     enable = () => this.setState({disabled: false});
 
     componentDidMount() {
-        window.addEventListener('page-animation-end', () => isLoaded = true, {once: true});
+        window.addEventListener('page-animation-end', () => {
+            isLoaded = true;
+            this.setState({stiffness: 200});
+        }, {once: true});
         window.addEventListener('motion-progress-start', this.disable);
         window.addEventListener('motion-progress-end', this.enable);
         if (this.ref) {
@@ -55,14 +60,20 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
                         return (
                             <motion.div
                                 className="modal"
-                                style={{
-                                    transform: isLoaded ? `translateY(${0.95 * (100-progress)}vh)` : 'translateY(0vh)'
+                                // style={{
+                                //     transform: isLoaded ? `translateY(${0.95 * (100-progress)}vh)` : 'translateY(0vh)'
+                                // }}
+                                initial={{
+                                    transform: 'translateY(105vh)'
+                                }}
+                                animate={{
+                                    transform: isLoaded ? `translateY(${1.05 * (100-progress + 15)}vh)` : 'translateY(0vh)'
                                 }}
                                 transition={{
                                     type: 'spring',
-                                    stiffness: 1,
-                                    mass: 10,
-                                    damping: 3.7
+                                    stiffness: this.state.stiffness,
+                                    mass: 0.25,
+                                    damping: 5
                                 }}
                             ></motion.div>
                         );

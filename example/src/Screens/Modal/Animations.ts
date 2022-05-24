@@ -14,7 +14,7 @@ export const ModalAnimation: AnimationConfigFactory = (c, n, gestureNavigating) 
             {backgroundColor: 'rgba(0, 0, 0, 0.3)'}
         ],
         options: {
-            duration: 250,
+            duration: 150,
         }
     };
     const fadeOut = {

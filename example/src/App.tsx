@@ -3,9 +3,9 @@ import {Router, Stack, AnimationConfig, AnimationConfigFactory} from 'react-moti
 import { AnimationKeyframeEffectConfig } from 'react-motion-router/common/types';
 import { matchRoute } from 'react-motion-router/common/utils';
 import { iOS, isPWA } from './common/utils';
-import "./css/App.css";
 import { ModalAnimation } from './Screens/Modal/Animations';
 import { OverlaysAnimation } from './Screens/Overlays/Animations';
+import "./css/App.css";
 
 const NotFound = React.lazy(() => import('./Screens/NotFound'));
 const Home = React.lazy(() => import('./Screens/Home'));

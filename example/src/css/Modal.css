@@ -1,7 +1,6 @@
 .modal {
     width: 100vw;
-    height: 95vh;
-    transform: translateY(95vh);
+    height: 105vh;
     position: absolute;
     bottom: 0;
     left: 0;
