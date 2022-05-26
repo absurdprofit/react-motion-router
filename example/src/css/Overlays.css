@@ -1,6 +1,13 @@
 .overlays.suspense > * {
   animation: overlays-fade-in .5s ease forwards;
 }
+.overlays {
+    padding: 15px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+}
 
 @keyframes overlays-fade-in {
     from {
@@ -9,4 +16,7 @@
     to {
         opacity: 1;
     }
+}
+#overlays {
+    overflow: hidden;
 }

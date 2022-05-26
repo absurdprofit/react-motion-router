@@ -1,7 +1,8 @@
 import React from 'react';
-import { Motion, Navigation } from 'react-motion-router';
+import { Anchor, Motion, Navigation } from 'react-motion-router';
 import '../../css/Modal.css';
 import { motion } from 'framer-motion';
+import { Button } from '@mui/material';
 
 interface ModalScreenProps {
     navigation: Navigation;
@@ -14,7 +15,7 @@ interface ModalScreenState {
 
 let isLoaded = true;
 export default class ModalExample extends React.Component<ModalScreenProps, ModalScreenState> {
-    private ref: HTMLDivElement | null = null;
+    private ref: HTMLDialogElement | null = null;
     state: ModalScreenState = {
         disabled: false,
         stiffness: 50
@@ -43,31 +44,37 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
         window.removeEventListener('motion-progress-end', this.enable);
     }
 
-    onClose = (ev: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    onClose = (ev: React.MouseEvent<HTMLDialogElement | HTMLButtonElement, MouseEvent>) => {
+        ev.stopPropagation();
         if (this.state.disabled) return;
-        for (let target of ev.nativeEvent.composedPath().reverse()) {
+        for (let target of ev.nativeEvent.composedPath()) {
+            const {classList} = target as HTMLElement;
             if ('classList' in target)
-                if ((target as HTMLElement).classList.contains('modal')) return;
+                if (classList.contains('modal')) return;
+                else if (classList.contains('close')) break;
+                else continue;
         }
         this.props.navigation.goBack();
         this.setState({disabled: true});
     }
     render() {
         return (
-            <div className={`modal-presentation ${isLoaded ? 'loaded' : 'suspense'}`} onClick={this.onClose} ref={c => this.ref = c}>
+            <dialog
+                open
+                className={`modal-presentation ${isLoaded ? 'loaded' : 'suspense'}`}
+                ref={c => this.ref = c}            
+                onClick={this.onClose}
+            >
                 <Motion.Consumer>
                     {(progress) => {
                         return (
                             <motion.div
                                 className="modal"
-                                // style={{
-                                //     transform: isLoaded ? `translateY(${0.95 * (100-progress)}vh)` : 'translateY(0vh)'
-                                // }}
                                 initial={{
-                                    transform: 'translateY(105vh)'
+                                    transform: 'translateY(115vh)'
                                 }}
                                 animate={{
-                                    transform: isLoaded ? `translateY(${1.05 * (100-progress + 15)}vh)` : 'translateY(0vh)'
+                                    transform: `translateY(${100-progress + 15}vh)`
                                 }}
                                 transition={{
                                     type: 'spring',
@@ -75,11 +82,24 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
                                     mass: 0.25,
                                     damping: 5
                                 }}
-                            ></motion.div>
+                            >
+                                <div className='content'>
+                                    <h2 className='title'>Modal Example</h2>
+                                    <p className='body'>
+                                        This example uses <Anchor href="https://www.framer.com/motion/" target="_blank" rel="noopener">Framer Motion</Anchor> for 
+                                        spring animations driven by the <b>Motion</b> component provided by <Anchor href="https://github.com/nxtexe/react-motion-router" target="_blank" rel="noopener"> React Motion Router</Anchor>.
+                                        This example is built on top of the now standard <Anchor href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog" target="_blank" rel="noopener">&lt;dialog&gt; element</Anchor>.
+                                    </p>
+                                    <p>
+                                        You can swipe from the top to dismiss or press the button below.
+                                    </p>
+                                    <Button variant="contained" className="close" onClick={this.onClose}>Close</Button>
+                                </div>
+                            </motion.div>
                         );
                     }}
                 </Motion.Consumer>
-            </div>
+            </dialog>
         );
     }
 }

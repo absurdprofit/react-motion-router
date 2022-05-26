@@ -65,7 +65,7 @@ export default function Slides(props: SlidesProps) {
     return (
         <div className={`slides ${isLoaded ? 'loaded' : 'suspense'}`}>
             <div className="back">
-                <IconButton style={{color: 'white'}} onClick={() => props.navigation.goBack()}>
+                <IconButton style={{color: 'white'}} onClick={() => props.navigation.goBack()} disableRipple>
                     <SharedElement id="back" config={{
                         type: 'fade-through'
                     }}>

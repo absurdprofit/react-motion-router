@@ -38,7 +38,7 @@ export default class AnimationProvider extends React.Component<AnimationProvider
 
     state: AnimationProviderState = {
         mounted: false,
-        zIndex: 0
+        zIndex: 0,
     }
     
     onRef(ref: HTMLElement | null) {
@@ -46,17 +46,24 @@ export default class AnimationProvider extends React.Component<AnimationProvider
     }
 
     animationEnd() {
-        if (this.ref) this.ref.style.willChange = 'auto';
+        if (this.ref) {
+            this.ref.style.willChange = 'auto';
+            this.ref.style.pointerEvents = 'auto';
+        }
     }
 
     navigate() {
-        if (this.ref) this.ref.style.willChange = 'transform, opacity';
+        if (this.ref) {
+            this.ref.style.willChange = 'transform, opacity';
+            this.ref.style.pointerEvents = 'none';
+        }
     }
 
     componentDidMount() {
-        window.addEventListener('go-back', this.onNavigate);
-        window.addEventListener('navigate', this.onNavigate);
+        window.addEventListener('page-animation-start', this.onNavigate);
+        window.addEventListener('motion-progress-start', this.onNavigate);
         window.addEventListener('page-animation-end', this.onAnimationEnd);
+        window.addEventListener('motion-progress-end', this.onAnimationEnd);
         if (this._animationLayerData) {
             if (this.props.in) {
                 this._animationLayerData.nextScreen = this;
@@ -83,9 +90,10 @@ export default class AnimationProvider extends React.Component<AnimationProvider
     }
 
     componentWillUnmount() {
-        window.removeEventListener('go-back', this.onNavigate);
-        window.removeEventListener('navigate', this.onNavigate);
+        window.removeEventListener('page-animation-start', this.onNavigate);
+        window.removeEventListener('motion-progress-start', this.onNavigate);
         window.removeEventListener('page-animation-end', this.onAnimationEnd);
+        window.removeEventListener('motion-progress-end', this.onAnimationEnd);
     }
 
     get inAnimation(): AnimationKeyframeEffectConfig | [keyof typeof AnimationKeyframePresets, number, EasingFunction | undefined] {
@@ -202,6 +210,9 @@ export default class AnimationProvider extends React.Component<AnimationProvider
         return (
             <div id={this.props.name} className="animation-provider" ref={this.setRef} style={{
                 position: 'absolute',
+                width: '100%',
+                height: '100%',
+                contain: 'strict',
                 transformOrigin: 'center center',
                 zIndex: this.state.zIndex
             }}>

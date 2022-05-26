@@ -6,6 +6,8 @@ import { iOS, isPWA } from './common/utils';
 import { ModalAnimation } from './Screens/Modal/Animations';
 import { OverlaysAnimation } from './Screens/Overlays/Animations';
 import "./css/App.css";
+import { ThemeProvider } from '@mui/material/styles';
+import theme from './Theme';
 
 const NotFound = React.lazy(() => import('./Screens/NotFound'));
 const Home = React.lazy(() => import('./Screens/Home'));
@@ -48,12 +50,29 @@ let fadeAnimation: AnimationConfig = {
   duration: 350
 }
 
-let staticAnimation: AnimationKeyframeEffectConfig = {
+let staticAnimation: AnimationKeyframeEffectConfig | AnimationConfig = {
   keyframes: [],
   options: {
     duration: 350
   }
 };
+
+
+
+if (iOS() && !isPWA()) {
+  animation = {
+    type: 'none',
+    duration: 0
+  }
+  fadeAnimation = {
+    type: "none",
+    duration: 0
+  }
+  staticAnimation = {
+    type: "none",
+    duration: 0
+  }
+}
 
 const cardsToDetails: AnimationConfigFactory = (currentPath, nextPath) => {
   if (
@@ -65,18 +84,7 @@ const cardsToDetails: AnimationConfigFactory = (currentPath, nextPath) => {
   return animation;
 }
 
-if (iOS() && !isPWA()) {
-  animation = {
-    type: 'none',
-    duration: 0
-  }
-  fadeAnimation = {
-    type: "none",
-    duration: 0
-  }
-}
-
-function App() {
+function Routes() {
   return (
       <Router config={{
         defaultRoute: '/',
@@ -102,7 +110,7 @@ function App() {
             swipeDirection: 'down',
             swipeAreaWidth: window.innerHeight / 1.5,
             animation: ModalAnimation,
-            disableDiscovery: iOS() && !isPWA() ? true : false,
+            disableDiscovery: false,
             hysteresis: 15
           }}
         />
@@ -148,11 +156,13 @@ function App() {
         />
         <Stack.Screen
           path={"/"}
+          name='home'
           component={Home}
           fallback={<div className='screen-fallback home'></div>}
         />
         <Stack.Screen
           path={/^\/tiles/}
+          name="tiles"
           component={Tiles}
           defaultParams={{params: "data"}}
           fallback={<div className='screen-fallback tiles'></div>}
@@ -168,6 +178,14 @@ function App() {
         />
         <Stack.Screen component={NotFound} fallback={<div className='screen-fallback not-found'></div>} />
       </Router>
+  );
+}
+
+function App() {
+  return (
+    <ThemeProvider theme={theme}>
+      <Routes />
+    </ThemeProvider>
   );
 }
 

@@ -12,6 +12,7 @@ export interface ScreenProps {
     fallback?: React.ReactNode;
     path?: string | RegExp;
     defaultParams?: {[key:string]: any};
+    name?: string;
     config?: {
         animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig | AnimationConfigFactory;
         keepAlive?: boolean;
@@ -32,7 +33,7 @@ export namespace Stack {
     
     export class Screen extends React.Component<ScreenProps, ScreenState> {
         private sharedElementScene: SharedElement.Scene = new SharedElement.Scene(this.props.component.name || this.props.path?.toString() || 'not-found');
-        private name = this.props.component.name || this.props.path?.toString() || 'not-found';
+        private name = this.props.name || this.props.component.name || this.props.path?.toString().slice(1).replace('/', '-') || 'not-found';
         private ref: HTMLElement | null = null;
         private contextParams = this.context.routesData.get(this.props.path)?.params;
         private onRef = this.setRef.bind(this);
@@ -240,12 +241,11 @@ export namespace Stack {
                         ref={this.onRef}
                         className="screen"
                         style={{
-                            height: '100vh',
-                            width: '100vw',
+                            height: '100%',
+                            width: '100%',
                             display: 'flex',
                             flexDirection: 'column',
-                            position: 'absolute',
-                            touchAction: 'inherit',
+                            pointerEvents: 'inherit',
                             overflowX: 'auto',
                             overflowY: 'auto'
                         }}

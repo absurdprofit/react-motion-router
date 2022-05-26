@@ -131,41 +131,41 @@ const Presets = {
     ],
     "zoom-in-in": [
         {
-            transform: 'scale(0.85) translate(7.5vw, 7.5vh)',
+            transform: 'scale(0.85)',
             opacity: 0
         },
         {
-            transform: 'scale(1) translate(0vw, 0vh)',
+            transform: 'scale(1)',
             opacity: 1
         }
     ],
     "zoom-in-out": [
         {
-            transform: 'scale(1) translate(0vw, 0vh)',
+            transform: 'scale(1)',
             opacity: 1
         },
         {
-            transform: 'scale(1.15) translate(-7.5vw, -7.5vh)',
+            transform: 'scale(1.15)',
             opacity: 0
         }
     ],
     "zoom-out-in": [
         {
-            transform: 'scale(1.15) translate(-7.5vw, -7.5vh)',
+            transform: 'scale(1.15)',
             opacity: 0
         },
         {
-            transform: 'scale(1) translate(0vw, 0vh)',
+            transform: 'scale(1)',
             opacity: 1
         }
     ],
     "zoom-out-out": [
         {
-            transform: 'scale(1) translate(0vw, 0vh)',
+            transform: 'scale(1)',
             opacity: 1
         },
         {
-            transform: 'scale(0.85) translate(7.5vw, 7.5vh)',
+            transform: 'scale(0.85)',
             opacity: 0
         }
     ],

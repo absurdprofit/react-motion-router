@@ -22,6 +22,9 @@ let bgInset = '';
 export default class Cards2 extends React.Component<CardsProps> {
     static isLoaded = false;
     private ref: HTMLElement | null = null;
+    private observer = new IntersectionObserver(this.observe.bind(this), {
+        root: document.querySelector('.card-list')
+    });
     private static scrollPos = {
         x: 0,
         y: 0
@@ -52,10 +55,24 @@ export default class Cards2 extends React.Component<CardsProps> {
     }
 
     componentWillUnmount() {
+        this.observer.disconnect();
         if (this.ref) {
             Cards2.scrollPos = {
                 x: this.ref.scrollLeft,
                 y: this.ref.scrollTop
+            }
+        }
+    }
+
+    observe(entries: IntersectionObserverEntry[]) {
+        for (let entry of entries) {
+            const target = entry.target as HTMLImageElement;
+            if (entry.isIntersecting) {
+                target.loading = 'eager';
+                target.decoding = 'sync';
+            } else {
+                target.loading = 'lazy';
+                target.decoding = 'async';
             }
         }
     }
@@ -125,7 +142,11 @@ export default class Cards2 extends React.Component<CardsProps> {
                                             alt={hero.name}
                                             id={`${hero.id}`}
                                             ref={(ref: HTMLImageElement | null) => {
+                                                if (imageRef) this.observer.unobserve(imageRef);
                                                 imageRef = ref;
+                                                if (ref) {
+                                                    this.observer.observe(ref);
+                                                }
                                             }}
                                             style={{
                                                 clipPath: (heroName === hero.id ? inset : '')

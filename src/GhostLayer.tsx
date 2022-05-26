@@ -517,7 +517,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     zIndex: 1000,
                     width: '100vw',
                     height: '100vh',
-                    contain: 'paint'
+                    contain: 'strict'
                 }}>
                 </div>
             );

@@ -27,6 +27,12 @@ document.body.style.left = '0';
 document.body.style.right = '0';
 document.body.style.bottom = '0';
 
+let root = document.getElementById('root');
+if (root) {
+    root.style.width = '100%';
+    root.style.height = '100%';
+}
+
 interface MotionEventsMap {
     "page-animation-start": PageAnimationStartEvent;
     "page-animation-end": PageAnimationEndEvent;

@@ -1,6 +1,6 @@
 import { Button } from '@mui/material';
-import React, { useEffect, useState } from 'react';
-import { Anchor, Motion, Navigation } from 'react-motion-router';
+import React, { useEffect } from 'react';
+import { Anchor, Navigation } from 'react-motion-router';
 import '../../css/Overlays.css';
 
 interface OverlaysProps {
@@ -9,7 +9,6 @@ interface OverlaysProps {
 
 let isLoaded = false;
 export default function Overlays({navigation}: OverlaysProps) {
-    const [shouldAnimate, setShouldAnimate] = useState(false);
     const openModal = () => {
         navigation.navigate('/modal');
     }
@@ -23,26 +22,10 @@ export default function Overlays({navigation}: OverlaysProps) {
         }
     });
 
-    useEffect(() => {
-        setShouldAnimate(navigation.history.previous === '/overlays');
-    }, [navigation.history.previous, navigation.history.next]);
     return (
-        <Motion.Consumer>
-            {(progress) => {
-                return (
-                    <div className={`overlays ${isLoaded ? 'loaded' : 'suspense'}`} style={
-                        {
-                            width: '100vw',
-                            height: '100vh',
-                            backgroundColor: 'white',
-                            borderRadius: shouldAnimate ? `${15 * (progress/100)}px` : '0px'
-                        }
-                    }>
-                        <Button onClick={openModal}>Open Modal</Button>
-                        <Anchor href="/" goBack>Go Back</Anchor>
-                    </div>
-                );
-            }}
-        </Motion.Consumer>
+        <div className={`overlays ${isLoaded ? 'loaded' : 'suspense'}`}>
+            <Anchor href="/" goBack>Go Back</Anchor>
+            <Button onClick={openModal}>Open Modal</Button>
+        </div>
     );
 }

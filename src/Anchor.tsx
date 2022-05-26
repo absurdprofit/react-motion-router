@@ -11,6 +11,7 @@ interface AnchorProps extends React.DetailedHTMLProps<React.AnchorHTMLAttributes
 export default function Anchor(props: AnchorProps) {
     const navigation = useNavigation();
     const [url, setURL] = useState('');
+    const [external, setExternal] = useState(false);
     
     useEffect(() => {
         let href;
@@ -25,23 +26,28 @@ export default function Anchor(props: AnchorProps) {
         const uri = new URL(href, navigation.location.origin);
         uri.search = search;
         if (uri.origin === navigation.location.origin) {
+            setExternal(false);
             setURL(uri.href.replace(navigation.location.origin, '')); // pathname with search part
         } else {
+            setExternal(true);
             setURL(uri.href);
         }
     }, [props.href, props.params]);
     
-    const {onClick, href, params, goBack, ...aProps} = props;
+    const {href, params, goBack, ...aProps} = props;
+    const onClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+        if (props.onClick) props.onClick(e);
+
+        if (!external) e.preventDefault();
+        else return;
+
+        if (goBack) navigation.goBack();
+        else navigation.navigate(href, params); 
+    }
     return (
         <a
             href={url}
-            onClick={(e)=>{
-                e.preventDefault();
-                if (onClick) onClick(e);
-
-                if (goBack) navigation.goBack();
-                else navigation.navigate(href, params);  
-            }}
+            onClick={onClick}
             {...aProps}
         >{props.children}</a>
     );

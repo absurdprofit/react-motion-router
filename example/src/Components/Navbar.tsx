@@ -19,7 +19,7 @@ function Navbar(props: NavbarProps) {
             <div className="back">
                 {
                     props.backButton ?
-                    <IconButton onClick={onClick}>
+                    <IconButton onClick={onClick} disableRipple>
                         <SharedElement id="back">
                             <ArrowBackIosIcon style={{zIndex: 100}} />
                         </SharedElement>

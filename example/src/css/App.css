@@ -11,6 +11,7 @@ body {
 * {
   margin: 0;
   font-family: "Roboto", sans-serif;
+  accent-color: rgb(97 218 251);
 }
 .screen-content {
   overflow: hidden !important;
@@ -69,7 +70,7 @@ div.screen-fallback.home {
   background-color: #efefef;
 }
 div.screen-fallback.slides {
-  background-color: rgb(46, 46, 46);
+  background-color: rgb(34, 34, 34);
 }
 div.screen-fallback.overlays {
   background-color: white;

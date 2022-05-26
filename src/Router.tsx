@@ -232,7 +232,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
     
     render() {
         return (
-            <div className="react-motion-router">
+            <div className="react-motion-router" style={{width: '100%', height: '100%', position: 'relative'}}>
                 <RouterDataContext.Provider value={this._routerData}>
                     <AnimationLayerDataContext.Provider value={this.animationLayerData}>
                         <GhostLayer

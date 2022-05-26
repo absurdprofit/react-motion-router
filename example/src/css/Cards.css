@@ -17,7 +17,7 @@
   padding-bottom: 15px;
   gap: 15px;
   overflow-y: scroll;
-  
+  contain: strict;
 }
 .cards.suspense .card-list {
   animation: cards-fade-in .5s ease forwards;

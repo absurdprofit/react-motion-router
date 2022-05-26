@@ -38,7 +38,7 @@ export default function Details(props: DetailsProps) {
                     position: "absolute",
                     color: 'grey',
                     zIndex: 10000
-                }} onClick={() => {props.navigation.goBack()}}>
+                }} onClick={() => {props.navigation.goBack()}} disableRipple>
                     <SharedElement id="back" config={{
                         type: 'fade-through'
                     }}>

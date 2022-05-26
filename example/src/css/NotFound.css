@@ -13,9 +13,6 @@
     align-items: center;
     gap: 15px;
 }
-.page-content button {
-    color: rgb(214 179 111);
-}
 .page-content h1 {
     animation: blink 2s ease alternate infinite;
 }

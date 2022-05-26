@@ -27,12 +27,7 @@ export const ModalAnimation: AnimationConfigFactory = (c, n, gestureNavigating) 
         }
     };
     if (matchRoute(n, '/')) return slideDefaultAnimation;
-    if (iOS() && !isPWA()) {
-        return {
-          type: 'none',
-          duration: 0
-        }
-    }
+    
     return {
         in: fadeIn,
         out: fadeOut

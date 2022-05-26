@@ -4,7 +4,7 @@
     position: absolute;
     bottom: 0;
     left: 0;
-    background-color: rgba(46, 46, 46, 1);
+    background-color: rgba(34, 34, 34, 1);
     border-radius: 10px 10px 0px 0px;
 }
 .modal:before {
@@ -26,4 +26,23 @@ div[role="presentation"] {
     width: 100vw;
     height: 100vh;
     contain: strict;
+    border: none;
+    padding: 0;
+    background-color: transparent;
+}
+.modal .content {
+    padding: 15px;
+    padding-top: 30px;
+    color: white;
+    gap: 15px;
+    display: flex;
+    flex-direction: column;
+}
+.modal .title {
+    text-align: center;
+}
+.modal a {
+    color: #61dafb;
+    font-weight: 500;
+    text-decoration: none;
 }
