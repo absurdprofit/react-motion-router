@@ -21,3 +21,7 @@ export function iOS() : boolean {
 }
 
 export const isPWA = () => getPWADisplayMode() === 'standalone';
+
+export function lerp (v0: number, v1: number, p: number) {
+  return v0 * (1-p) + v1 * p;
+}

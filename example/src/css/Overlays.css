@@ -8,7 +8,14 @@
     flex-direction: column;
     background-color: white;
 }
-
+.overlays .modal-example {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.overlays .go-back a {
+    padding: 10px;
+}
 @keyframes overlays-fade-in {
     from {
         opacity: 0;

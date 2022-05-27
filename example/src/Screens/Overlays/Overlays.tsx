@@ -24,8 +24,12 @@ export default function Overlays({navigation}: OverlaysProps) {
 
     return (
         <div className={`overlays ${isLoaded ? 'loaded' : 'suspense'}`}>
-            <Anchor href="/" goBack>Go Back</Anchor>
-            <Button onClick={openModal}>Open Modal</Button>
+            <div className="go-back">
+                <Anchor href="/" goBack>Go Back</Anchor>
+            </div>
+            <div className="modal-example">
+                <Button onClick={openModal}>Open Modal</Button>
+            </div>
         </div>
     );
 }

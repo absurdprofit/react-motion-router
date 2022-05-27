@@ -3,6 +3,7 @@ import { Anchor, Motion, Navigation } from 'react-motion-router';
 import '../../css/Modal.css';
 import { motion } from 'framer-motion';
 import { Button } from '@mui/material';
+import { lerp } from '../../common/utils';
 
 interface ModalScreenProps {
     navigation: Navigation;
@@ -67,6 +68,7 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
             >
                 <Motion.Consumer>
                     {(progress) => {
+                        progress = progress / 100; // in the range 0 - 1
                         return (
                             <motion.div
                                 className="modal"
@@ -74,7 +76,7 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
                                     transform: 'translateY(115vh)'
                                 }}
                                 animate={{
-                                    transform: `translateY(${100-progress + 15}vh)`
+                                    transform: `translateY(${lerp(115, 15, progress)}vh)`
                                 }}
                                 transition={{
                                     type: 'spring',

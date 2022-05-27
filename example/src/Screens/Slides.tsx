@@ -7,6 +7,7 @@ import { bindKeyboard } from 'react-swipeable-views-utils';
 import IconButton from '@mui/material/IconButton';
 import '../css/Slides.css';
 import { SwipeStartEvent, SwipeEvent, SwipeEndEvent } from 'web-gesture-events';
+import { lerp } from '../common/utils';
 
 const KeyboardSwipeableViews = bindKeyboard(SwipeableViews);
 
@@ -75,8 +76,15 @@ export default function Slides(props: SlidesProps) {
             </div>
             <Motion.Consumer>
                 {(progress) => {
+                    progress = progress / 100;
                     return (
-                        <div className="title" style={{transform: `translate(-50%, ${-100 + progress}px)`, opacity: progress / 100}}>
+                        <div
+                            className="title"
+                            style={{
+                                transform: `translate(-50%, ${lerp(-100, 0, progress)}px)`,
+                                opacity: lerp(0, 1, progress)
+                            }}
+                        >
                             <h2>{Heroes[index].name}</h2>
                         </div>
                     );
