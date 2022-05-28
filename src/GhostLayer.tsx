@@ -437,22 +437,24 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         });
                     }
 
-                    window.addEventListener('page-animation-end', async ()=>{
+                    const onEnd = async ()=>{
                         startNode.style.willChange = 'auto';
                         endNode.style.willChange = 'auto';
                         await endInstance.hidden(false);
-                        if (!currentScene.keepAlive) {
+                        if (!currentScene.keepAlive || !this.state.playing) {
                             startInstance.keepAlive(false);
                             await startInstance.hidden(false); // if current scene is kept alive do not show start element
                         } else {
                             startInstance.keepAlive(true);
                         }
-                            
+                        
+                        if (!this.state.playing) return;
                         this.ref?.removeChild(startNode);
                         if (transitionType !== "morph") {
                             this.ref?.removeChild(endNode);
                         }
-                    }, {once:true});
+                    };
+                    window.addEventListener('page-animation-end', onEnd, {once:true});
                 }
             }
         });

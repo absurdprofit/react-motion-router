@@ -7,8 +7,7 @@
     background-color: rgba(34, 34, 34, 1);
     border-radius: 10px 10px 0px 0px;
 }
-.modal:before {
-    content: "A";
+.modal .notch {
     color: transparent;
     background-color: rgba(137, 137, 137, 1);
     width: 35px;

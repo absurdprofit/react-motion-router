@@ -27,3 +27,37 @@
 #overlays {
     overflow: hidden;
 }
+.player {
+    width: calc(100vw - 30px);
+    height: 46px;
+    display: flex;
+    padding: 15px;
+    justify-content: space-between;
+    background-color: #222222;
+    color: white;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+}
+.player .cover-art {
+    width: 46px;
+    height: 46px;
+    overflow: hidden;
+}
+.player .cover-art img {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+    border-radius: 5px;
+}
+.player .info {
+    display: flex;
+    flex: 1;
+    gap: 10px;
+    align-items: center;
+}
+.player .play-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}

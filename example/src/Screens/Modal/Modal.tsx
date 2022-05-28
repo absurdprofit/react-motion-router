@@ -1,17 +1,26 @@
 import React from 'react';
-import { Anchor, Motion, Navigation } from 'react-motion-router';
+import {  Motion, Navigation } from 'react-motion-router';
+import Default from './Default';
 import '../../css/Modal.css';
-import { motion } from 'framer-motion';
-import { Button } from '@mui/material';
+import Player from './Player';
+import { motion, AnimationProps } from 'framer-motion';
 import { lerp } from '../../common/utils';
 
 interface ModalScreenProps {
     navigation: Navigation;
+    route: {
+        params: {
+            sheetView: boolean;
+        }
+    }
 }
 
 interface ModalScreenState {
     disabled: boolean;
     stiffness: number;
+    opacity: number;
+    y: number;
+    transition: AnimationProps['transition'];
 }
 
 let isLoaded = true;
@@ -19,7 +28,14 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
     private ref: HTMLDialogElement | null = null;
     state: ModalScreenState = {
         disabled: false,
-        stiffness: 50
+        stiffness: 50,
+        opacity: 0,
+        y: 15,
+        transition: {
+            type: 'tween',
+            duration: 0,
+            ease: 'linear'
+        }
     };
 
     disable = () => this.setState({disabled: true});
@@ -30,6 +46,21 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
             isLoaded = true;
             this.setState({stiffness: 200});
         }, {once: true});
+        this.setState({
+            opacity: 1,
+            y: 115
+        });
+
+        if (!this.props.route.params.sheetView) {
+            this.setState({
+                transition: {
+                    type: 'spring',
+                    stiffness: this.state.stiffness,
+                    mass: 0.25,
+                    damping: 5
+                }
+            });
+        }
         window.addEventListener('motion-progress-start', this.disable);
         window.addEventListener('motion-progress-end', this.enable);
         if (this.ref) {
@@ -59,6 +90,8 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
         this.setState({disabled: true});
     }
     render() {
+        const {sheetView} = this.props.route.params;
+        
         return (
             <dialog
                 open
@@ -73,34 +106,30 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
                             <motion.div
                                 className="modal"
                                 initial={{
-                                    transform: 'translateY(115vh)'
+                                    transform: `translateY(${this.state.y}vh)`
+                                }}
+                                style={{
+                                    opacity: sheetView ? this.state.opacity : 1,
+                                    
                                 }}
                                 animate={{
-                                    transform: `translateY(${lerp(115, 15, progress)}vh)`
+                                    transform: `translateY(${lerp(sheetView ? 92 : 115, 15, progress)}vh)`,
+                                    borderRadius: sheetView ? `${lerp(0, 15, progress)}px` : '15px'
                                 }}
                                 transition={{
-                                    type: 'spring',
-                                    stiffness: this.state.stiffness,
-                                    mass: 0.25,
-                                    damping: 5
+                                    ...this.state.transition,
+                                    ...{stiffness: this.state.stiffness}
                                 }}
                             >
-                                <div className='content'>
-                                    <h2 className='title'>Modal Example</h2>
-                                    <p className='body'>
-                                        This example uses <Anchor href="https://www.framer.com/motion/" target="_blank" rel="noopener">Framer Motion</Anchor> for 
-                                        spring animations driven by the <b>Motion</b> component provided by <Anchor href="https://github.com/nxtexe/react-motion-router" target="_blank" rel="noopener"> React Motion Router</Anchor>.
-                                        This example is built on top of the now standard <Anchor href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog" target="_blank" rel="noopener">&lt;dialog&gt; element</Anchor>.
-                                    </p>
-                                    <p>
-                                        You can swipe from the top to dismiss or press the button below.
-                                    </p>
-                                    <Button variant="contained" className="close" onClick={this.onClose}>Close</Button>
-                                </div>
+                                <div className="notch" style={{opacity: lerp(0, 1, progress)}}></div>
+                                {!sheetView ?
+                                <Default onClose={this.onClose} />
+                                : <Player />}
                             </motion.div>
                         );
                     }}
                 </Motion.Consumer>
+                
             </dialog>
         );
     }

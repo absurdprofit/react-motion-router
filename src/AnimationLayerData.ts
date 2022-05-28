@@ -113,7 +113,7 @@ export default class AnimationLayerData {
                     duration: duration,
                     easing: userDefinedEasingFunction || easingFunction
                 });
-                if (this._gestureNavigating) this._duration = duration;
+                if (this._gestureNavigating || this._backNavigating) this._duration = duration;
             } else { // user provided animation
                 let {keyframes, options} = this._currentScreen.outAnimation;
                 if (typeof options === "number") {
@@ -131,7 +131,7 @@ export default class AnimationLayerData {
                     };
                 }
                 this._outAnimation = this._currentScreen.animate(keyframes, options);
-                if (this._gestureNavigating) {
+                if (this._gestureNavigating || this._backNavigating) {
                     let duration = this._outAnimation?.effect?.getTiming().duration;
                     if (typeof duration === "string") duration = parseFloat(duration);
                     this._duration = duration || this._duration;
@@ -144,7 +144,7 @@ export default class AnimationLayerData {
                     duration: duration,
                     easing: userDefinedEasingFunction || easingFunction
                 });
-                if (!this.gestureNavigating) this._duration = duration;
+                if (!this.gestureNavigating && !this._backNavigating) this._duration = duration;
             } else { // user provided animation
                 let {keyframes, options} = this._nextScreen.inAnimation;
                 if (typeof options === "number") {
@@ -162,7 +162,7 @@ export default class AnimationLayerData {
                     };
                 }
                 this._inAnimation = this._nextScreen.animate(keyframes, options);
-                if (!this._gestureNavigating) {
+                if (!this._gestureNavigating && !this._backNavigating) {
                     let duration = this._inAnimation?.effect?.getTiming().duration;
                     if (typeof duration === "string") duration = parseFloat(duration);
                     this._duration = duration || this._duration;
