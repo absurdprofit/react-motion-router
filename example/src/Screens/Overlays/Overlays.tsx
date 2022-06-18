@@ -1,5 +1,5 @@
 import { Button } from '@mui/material';
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Anchor, Navigation, SharedElement } from 'react-motion-router';
 import King from "../../assets/king.webp";
 import SkipNextIcon from '@mui/icons-material/SkipNext';
@@ -12,15 +12,19 @@ interface OverlaysProps {
 
 let isLoaded = false;
 export default function Overlays({navigation}: OverlaysProps) {
+    const playerRef = useRef<HTMLDivElement | null>(null);
     const openModal = () => {
         navigation.navigate('/modal', {
             sheetView: false
         });
     }
 
-    const openSheet = () => {
+    const openSheet = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+        let top = 0.9 * window.innerHeight;
+        if (playerRef.current) top = playerRef.current.getBoundingClientRect().top + (0.05 * window.innerHeight);
         navigation.navigate('/modal', {
-            sheetView: true
+            sheetView: true,
+            top: (top / window.innerHeight) * 100 // vh units
         });
     }
 
@@ -41,15 +45,19 @@ export default function Overlays({navigation}: OverlaysProps) {
             <div className="modal-example">
                 <Button onClick={openModal}>Open Modal</Button>
             </div>
-            <div className="player" onClick={openSheet}>
+            <div className="player" onClick={openSheet} ref={playerRef}>
                 <div className="info">
                     <div className="cover-art">
-                        <SharedElement id="cover-art">
+                        <SharedElement id="cover-art" config={{
+                            easingFunction: 'ease-out'
+                        }}>
                             <img src={King} alt="" />
                         </SharedElement>
                     </div>
                     <div className="title">
-                        <SharedElement id="title">
+                        <SharedElement id="title" config={{
+                            type: 'fade-through'
+                        }}>
                             <h6>Modal Sheet Example</h6>
                         </SharedElement>
                     </div>

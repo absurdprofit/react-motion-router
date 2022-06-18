@@ -88,13 +88,14 @@ function Routes() {
   return (
       <Router config={{
         defaultRoute: '/',
-        disableDiscovery: !isPWA(),
+        disableDiscovery: false,
         disableBrowserRouting: isPWA() && iOS(),
         animation: animation,
         minFlingVelocity: 1000
       }}>
         <Stack.Screen
           path='/overlays'
+          name="Overlays"
           component={Overlays}
           fallback={<div className='screen-fallback overlays'></div>}
           config={{
@@ -104,6 +105,7 @@ function Routes() {
         />
         <Stack.Screen
           path='/modal'
+          name="Modal"
           component={ModalExample}
           fallback={<div className='screen-fallback modal'></div>}
           config={{
@@ -116,6 +118,7 @@ function Routes() {
         />
         <Stack.Screen
           path={'/slides'}
+          name="Slides"
           component={Slides}
           defaultParams={{hero: 0}}
           fallback={<div className='screen-fallback slides'></div>}
@@ -131,6 +134,7 @@ function Routes() {
         />
         <Stack.Screen
           path={'/cards'}
+          name="Cards Demo"
           component={Cards}
           config={{
             animation: cardsToDetails
@@ -139,6 +143,7 @@ function Routes() {
         />
         <Stack.Screen
           path={'/cards-2'}
+          name="Cards Demo 2"
           component={Cards2}
           config={{
             animation: cardsToDetails
@@ -147,6 +152,7 @@ function Routes() {
         />
         <Stack.Screen
           path={"/details"}
+          name="Details"
           component={Details}
           config={{
             animation: staticAnimation
@@ -156,13 +162,13 @@ function Routes() {
         />
         <Stack.Screen
           path={"/"}
-          name='home'
+          name='Home'
           component={Home}
           fallback={<div className='screen-fallback home'></div>}
         />
         <Stack.Screen
-          path={/^\/tiles/}
-          name="tiles"
+          path={/^\/tiles?[0-9]?/}
+          name="Tiles"
           component={Tiles}
           defaultParams={{params: "data"}}
           fallback={<div className='screen-fallback tiles'></div>}
@@ -176,7 +182,7 @@ function Routes() {
             }
           }}
         />
-        <Stack.Screen component={NotFound} fallback={<div className='screen-fallback not-found'></div>} />
+        <Stack.Screen name="Not Found" component={NotFound} fallback={<div className='screen-fallback not-found'></div>} />
       </Router>
   );
 }

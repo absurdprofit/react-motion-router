@@ -220,7 +220,7 @@ export default class AnimationLayerData {
                     this._currentScreen.zIndex = 0;
                     this._nextScreen.zIndex = 1;
                     if (this._currentScreen)
-                        this._currentScreen.mounted(false);
+                        this._currentScreen.mounted(false); // awaiting causes flicker bug on iOS
                 } else {
                     this._nextScreen.zIndex = 0;
                     this._currentScreen.zIndex = 1;

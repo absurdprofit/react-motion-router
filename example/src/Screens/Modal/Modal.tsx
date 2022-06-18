@@ -1,16 +1,18 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import {  Motion, Navigation } from 'react-motion-router';
 import Default from './Default';
 import '../../css/Modal.css';
-import Player from './Player';
 import { motion, AnimationProps } from 'framer-motion';
 import { lerp } from '../../common/utils';
+
+const Player = React.lazy(() => import('./Player'));
 
 interface ModalScreenProps {
     navigation: Navigation;
     route: {
         params: {
             sheetView: boolean;
+            top?: number
         }
     }
 }
@@ -46,9 +48,10 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
             isLoaded = true;
             this.setState({stiffness: 200});
         }, {once: true});
+        const {sheetView, top} = this.props.route.params;
         this.setState({
             opacity: 1,
-            y: 115
+            y: sheetView ? top || 90 : 115
         });
 
         if (!this.props.route.params.sheetView) {
@@ -90,7 +93,7 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
         this.setState({disabled: true});
     }
     render() {
-        const {sheetView} = this.props.route.params;
+        const {sheetView, top} = this.props.route.params;
         
         return (
             <dialog
@@ -113,7 +116,7 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
                                     
                                 }}
                                 animate={{
-                                    transform: `translateY(${lerp(sheetView ? 92 : 115, 15, progress)}vh)`,
+                                    transform: `translateY(${lerp(sheetView ? top || 92 : 115, 15, progress)}vh)`,
                                     borderRadius: sheetView ? `${lerp(0, 15, progress)}px` : '15px'
                                 }}
                                 transition={{
@@ -122,9 +125,11 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
                                 }}
                             >
                                 <div className="notch" style={{opacity: lerp(0, 1, progress)}}></div>
-                                {!sheetView ?
-                                <Default onClose={this.onClose} />
-                                : <Player />}
+                                <Suspense fallback={<div className='content'></div>}>
+                                    {!sheetView ?
+                                    <Default onClose={this.onClose} />
+                                    : <Player progress={progress} />}
+                                </Suspense>
                             </motion.div>
                         );
                     }}

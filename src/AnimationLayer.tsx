@@ -1,8 +1,8 @@
-import React, { createContext } from 'react';
+import React, { createContext, ReactChild, useId } from 'react';
 import {SwipeEndEvent, SwipeEvent, SwipeStartEvent} from 'web-gesture-events';
 import { clamp, matchRoute, includesRoute } from './common/utils';
 import Navigation from './Navigation';
-import {ScreenChild} from './index';
+import {ScreenChild, Stack} from './index';
 import {AnimationLayerDataContext} from './AnimationLayerData';
 import { MotionProgressDetail } from './MotionEvents';
 import { SwipeDirection } from './common/types';
@@ -17,6 +17,7 @@ interface AnimationLayerProps {
     backNavigating: boolean;
     onGestureNavigationEnd: Function;
     onGestureNavigationStart: Function;
+    onDocumentTitleChange(title: string | null): void;
     swipeDirection: SwipeDirection;
     hysteresis: number;
     minFlingVelocity: number;
@@ -42,6 +43,91 @@ interface AnimationLayerState {
     disableDiscovery: boolean;
 }
 
+function StateFromChildren(
+    props: AnimationLayerProps,
+    state: AnimationLayerState,
+    currentPath: string | undefined,
+    nextPath: string | undefined
+) {
+    const {paths} = state;
+    let nextMatched = false;
+    let currentMatched = false;
+    let swipeDirection: SwipeDirection | undefined;
+    let swipeAreaWidth: number | undefined;
+    let minFlingVelocity: number | undefined;
+    let hysteresis: number | undefined;
+    let disableDiscovery: boolean | undefined;
+    let name: string | null = null;
+
+    if (state.paths.length) {
+        if (!includesRoute(nextPath, paths) && state.paths.includes(undefined)) {
+            nextPath = undefined;
+        }
+        if (currentPath !== '' && !includesRoute(currentPath, paths) && state.paths.includes(undefined)) {
+            currentPath = undefined;
+        }
+    }
+
+    const children: ScreenChild[] = [];
+
+    // get current child
+    React.Children.forEach(
+        state.children, // match current child from state
+        (child) => {
+            // match resolved pathname instead to avoid matching the next component first
+            // this can happen if the same component matches both current and next paths
+            if (matchRoute(child.props.resolvedPathname, currentPath)) {
+                if (!currentMatched) {
+                    let mountProps = {out: true, in: false};
+                    if (state.gestureNavigating) mountProps = {in: true, out: false};
+                    currentMatched = true;
+                    const key = child.props.currentKey || Math.random(); // only generate new key if there is no current key
+                    children.push(React.cloneElement(child, {...mountProps, resolvedPathname: currentPath, currentKey: key, key}) as ScreenChild);
+                }
+            }
+        }
+    )
+
+    // get next child
+    React.Children.forEach(
+        props.children,
+        (child) => {
+            if (React.isValidElement(child)) {
+                if (!state.paths.length) paths.push(child.props.path);
+                
+                if (matchRoute(child.props.path, nextPath)) {
+                    if (!nextMatched) {
+                        nextMatched = true;
+                        const {config} = child.props;
+                        swipeDirection = config?.swipeDirection;
+                        swipeAreaWidth = config?.swipeAreaWidth;
+                        hysteresis = config?.hysteresis;
+                        disableDiscovery = config?.disableDiscovery;
+                        minFlingVelocity = config?.minFlingVelocity;
+                        name = child.props.name || null;
+                        let mountProps = {in: true, out: false};
+                        if (state.gestureNavigating) mountProps = {out: true, in: false};
+                        const key = Math.random();
+                        children.push(React.cloneElement(child, {...mountProps, resolvedPathname: nextPath, currentKey: key, key}) as ScreenChild);
+                    }
+                }
+            }
+        }
+    );
+
+    return {
+        paths,
+        children,
+        name,
+        currentPath: props.currentPath,
+        swipeDirection: swipeDirection || props.swipeDirection,
+        swipeAreaWidth: swipeAreaWidth || props.swipeAreaWidth,
+        hysteresis: hysteresis || props.hysteresis,
+        disableDiscovery: disableDiscovery === undefined ? props.disableDiscovery : disableDiscovery,
+        minFlingVelocity: minFlingVelocity || props.minFlingVelocity
+    }
+}
+
 // type of children coerces type in React.Children.map such that 'path' is available on props
 export default class AnimationLayer extends React.Component<AnimationLayerProps, AnimationLayerState> {
     private onSwipeStartListener = this.onSwipeStart.bind(this);
@@ -60,81 +146,28 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         startX: 0,
         startY: 0,
         paths: [],
-        swipeDirection: 'right',
-        swipeAreaWidth: 100,
-        minFlingVelocity: 400,
-        hysteresis: 50,
+        swipeDirection: this.props.swipeDirection,
+        swipeAreaWidth: this.props.swipeAreaWidth,
+        minFlingVelocity: this.props.minFlingVelocity,
+        hysteresis: this.props.hysteresis,
         disableDiscovery: false
     }
 
-    static getDerivedStateFromProps(nextProps: AnimationLayerProps, state: AnimationLayerState): AnimationLayerState | null {
+    static getDerivedStateFromProps(nextProps: AnimationLayerProps, state: AnimationLayerState): Partial<AnimationLayerState> | null {
         if (nextProps.currentPath !== state.currentPath) {
             if (!state.shouldAnimate) {
                 return {
-                    ...state,
                     currentPath: nextProps.currentPath,
                     shouldAnimate: true
                 };
             }
 
-            const paths = [...state.paths];
             let nextPath: string | undefined = nextProps.currentPath;
-            let currentPath: string | undefined = state.currentPath; // === '' when AnimationLayer first mounts
-            let nextMatched = false;
-            let currentMatched = false;
-            let swipeDirection: SwipeDirection | undefined;
-            let swipeAreaWidth: number | undefined;
-            let minFlingVelocity: number | undefined;
-            let hysteresis: number | undefined;
-            let disableDiscovery: boolean | undefined;
-            let children = React.Children.map(
-                nextProps.children,
-                (child: ScreenChild) => {
-                    if (React.isValidElement(child)) {
-                        if (!state.paths.length) paths.push(child.props.path);
-                        
-                        if (state.paths.length) {
-                            if (!includesRoute(nextPath, paths) && state.paths.includes(undefined)) {
-                                nextPath = undefined;
-                            }
-                            if (currentPath !== '' && !includesRoute(currentPath, paths) && state.paths.includes(undefined)) {
-                                currentPath = undefined;
-                            }
-                        }
-
-                        if (matchRoute(child.props.path, nextPath)) {
-                            if (!nextMatched) {
-                                nextMatched = true;
-                                const {config} = child.props;
-                                swipeDirection = config?.swipeDirection;
-                                swipeAreaWidth = config?.swipeAreaWidth;
-                                hysteresis = config?.hysteresis;
-                                disableDiscovery = config?.disableDiscovery;
-                                minFlingVelocity = config?.minFlingVelocity;
-                                return React.cloneElement(child, {...child.props, in: true, out: false}) as ScreenChild;
-                            }
-                        }
-                        if (matchRoute(child.props.path, currentPath)) {
-                            if (!currentMatched) {
-                                currentMatched = true;
-                                return React.cloneElement(child, {...child.props, out: true, in: false}) as ScreenChild;
-                            }
-                        }
-                    }
-                }
-            ).sort((child, _) => matchRoute(child.props.path, nextPath) ? 1 : -1); // current screen mounts first
-
-            return {
-                ...state,
-                paths: paths,
-                children: children,
-                currentPath: nextProps.currentPath,
-                swipeDirection: swipeDirection || nextProps.swipeDirection,
-                swipeAreaWidth: swipeAreaWidth || nextProps.swipeAreaWidth,
-                hysteresis: hysteresis || nextProps.hysteresis,
-                disableDiscovery: disableDiscovery === undefined ? nextProps.disableDiscovery : disableDiscovery,
-                minFlingVelocity: minFlingVelocity || nextProps.minFlingVelocity
-            }
+            
+            const {name, ...nextState} = StateFromChildren(nextProps, state, state.currentPath, nextProps.currentPath);
+            nextState.children.sort((child, _) => matchRoute(child.props.path, nextPath) ? 1 : -1); // current screen mounts first
+            nextProps.onDocumentTitleChange(name);
+            return nextState;
         }
         return null;
     }
@@ -160,12 +193,32 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
 
     componentDidUpdate(prevProps: AnimationLayerProps, prevState: AnimationLayerState) {
         if (!React.Children.count(this.state.children)) {
+            let swipeDirection: SwipeDirection | undefined;
+            let swipeAreaWidth: number | undefined;
+            let minFlingVelocity: number | undefined;
+            let hysteresis: number | undefined;
+            let disableDiscovery: boolean | undefined;
             const children = React.Children.map(this.props.children, (child: ScreenChild) => {
                 if (!React.isValidElement(child)) return undefined;
-                if (matchRoute(child.props.path, undefined))
-                return React.cloneElement(child, {...child.props, in: true, out: false}) as ScreenChild;
+                if (matchRoute(child.props.path, undefined)) {
+                    const {config} = child.props;
+                    swipeDirection = config?.swipeDirection;
+                    swipeAreaWidth = config?.swipeAreaWidth;
+                    hysteresis = config?.hysteresis;
+                    disableDiscovery = config?.disableDiscovery;
+                    minFlingVelocity = config?.minFlingVelocity;
+                    this.props.onDocumentTitleChange(child.props.name || null);
+                    return React.cloneElement(child, {in: true, out: false}) as ScreenChild;
+                }
             });
-            this.setState({children: children});
+            this.setState({
+                children: children,
+                swipeDirection: swipeDirection || this.props.swipeDirection,
+                swipeAreaWidth: swipeAreaWidth || this.props.swipeAreaWidth,
+                hysteresis: hysteresis || this.props.hysteresis,
+                disableDiscovery: disableDiscovery === undefined ? this.props.disableDiscovery : disableDiscovery,
+                minFlingVelocity: minFlingVelocity || this.props.minFlingVelocity
+            });
         }
         if (prevProps.currentPath !== this.state.currentPath) {
             if (!this.state.gestureNavigating && prevState.shouldAnimate) {
@@ -180,7 +233,8 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         window.removeEventListener('swipestart', this.onSwipeStartListener);
     }
 
-    onGestureSuccess(state: Pick<AnimationLayerState, 'swipeAreaWidth' | 'swipeDirection' | 'hysteresis' | 'disableDiscovery' | 'minFlingVelocity'>) {
+    onGestureSuccess(state: Pick<AnimationLayerState, 'swipeAreaWidth' | 'swipeDirection' | 'hysteresis' | 'disableDiscovery' | 'minFlingVelocity'>, name: string | null) {
+        this.props.onDocumentTitleChange(name);
         this.setState(state);
     }
 
@@ -211,65 +265,17 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
                 }
             }
 
-            let currentPath: string | undefined = this.props.currentPath;
-            let lastPath: string | undefined = this.props.lastPath;
-            let currentMatched = false;
-            let lastMatched = false;
-            let swipeDirection: SwipeDirection | undefined;
-            let swipeAreaWidth: number | undefined;
-            let minFlingVelocity: number | undefined;
-            let hysteresis: number | undefined;
-            let disableDiscovery: boolean | undefined;
-            const children = React.Children.map(
-                this.props.children,
-                (child: ScreenChild) => {
-                    if (!this.props.lastPath) return undefined;
-                    
-                    if (!includesRoute(currentPath, this.state.paths) && this.state.paths.includes(undefined)) {
-                        currentPath = undefined;
-                    }
-                    if (!includesRoute(lastPath, this.state.paths) && this.state.paths.includes(undefined)) {
-                        lastPath = undefined;
-                    }
-                    if (React.isValidElement(child)) {
-                        if (matchRoute(child.props.path, currentPath)) {
-                            if (!currentMatched) {
-                                currentMatched = true;
-                                const element = React.cloneElement(child, {...child.props, in: true, out: false});
-                                return element as ScreenChild;
-                            }
-                        }
-                        if (matchRoute(child.props.path, lastPath)) {
-                            if (!lastMatched) {
-                                lastMatched = true;
-                                const {config} = child.props;
-                                swipeDirection = config?.swipeDirection;
-                                swipeAreaWidth = config?.swipeAreaWidth;
-                                hysteresis = config?.hysteresis;
-                                disableDiscovery = config?.disableDiscovery;
-                                minFlingVelocity = config?.minFlingVelocity;
-                                const element = React.cloneElement(child, {...child.props, in: false, out: true});
-                                return element as ScreenChild;
-                            }
-                        }
-                    }
-                }
-            ).sort((firstChild) => matchRoute(firstChild.props.path, currentPath) ? -1 : 1);
-
-            this.onGestureSuccess = this.onGestureSuccess.bind(this, {
-                swipeDirection: swipeDirection || this.props.swipeDirection,
-                swipeAreaWidth: swipeAreaWidth || this.props.swipeAreaWidth,
-                hysteresis: hysteresis || this.props.hysteresis,
-                disableDiscovery: disableDiscovery === undefined ? this.props.disableDiscovery : disableDiscovery,
-                minFlingVelocity: minFlingVelocity || this.props.minFlingVelocity
-            });
+            // let currentPath: string | undefined = this.props.currentPath;
+            const {children, currentPath, paths, name, ...nextState} = StateFromChildren(this.props, {...this.state, gestureNavigating: true}, this.props.currentPath, this.props.lastPath);
+            
+            this.onGestureSuccess = this.onGestureSuccess.bind(this, nextState, name);
             window.addEventListener('go-back', this.onGestureSuccess as unknown as EventListener, {once: true});
 
             this.props.onGestureNavigationStart();
             this.setState({
                 shouldPlay: false,
                 gestureNavigating: true,
-                children: children,
+                children: children.sort((firstChild) => matchRoute(firstChild.props.path, currentPath) ? -1 : 1),
                 startX: ev.x,
                 startY: ev.y
             }, () => {
@@ -306,7 +312,6 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             case "down": {
                 const height = window.innerHeight;
                 const y = clamp(ev.y - this.state.startY, 10);
-                if (y < 0) alert(y);
                 progress = (-(y - height) / height) * 100;
                 if (this.state.swipeDirection === "up") progress = 100 - progress;
                 break;

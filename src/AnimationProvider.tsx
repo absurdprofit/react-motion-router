@@ -9,6 +9,7 @@ interface AnimationProviderProps {
     in: boolean;
     out: boolean;
     name: string;
+    resolvedPathname?: string;
     animation: AnimationConfigSet | (() => AnimationConfigSet);
     backNavigating: boolean;
     keepAlive: boolean;
@@ -38,7 +39,7 @@ export default class AnimationProvider extends React.Component<AnimationProvider
 
     state: AnimationProviderState = {
         mounted: false,
-        zIndex: 0,
+        zIndex: 0
     }
     
     onRef(ref: HTMLElement | null) {
@@ -181,7 +182,7 @@ export default class AnimationProvider extends React.Component<AnimationProvider
     }
 
     mounted(_mounted: boolean, willAnimate: boolean = true): Promise<void> {
-        return new Promise((resolve, _) => {
+        return new Promise((resolve) => {
             const onMountChange = () => {
                 if (_mounted) {
                     if (willAnimate) {

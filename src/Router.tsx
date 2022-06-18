@@ -31,6 +31,7 @@ interface RouterState {
     gestureNavigating: boolean;
     routesData: RoutesData;
     implicitBack: boolean;
+    defaultDocumentTitle: string;
 }
 
 export function useNavigation() {
@@ -97,7 +98,8 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         backNavigating: false,
         gestureNavigating: false,
         routesData: new Map<string | RegExp, any>(),
-        implicitBack: false
+        implicitBack: false,
+        defaultDocumentTitle: document.title
     }
 
     componentDidMount() {
@@ -229,6 +231,11 @@ export default class Router extends React.Component<RouterProps, RouterState> {
             this._routerData.backNavigating = false;
         });
     }
+
+    onDocumentTitleChange = (title: string | null) => {
+        if (title) document.title = title;
+        else document.title = this.state.defaultDocumentTitle;
+    }
     
     render() {
         return (
@@ -254,6 +261,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
                             lastPath={this.navigation.history.previous}
                             onGestureNavigationStart={this.onGestureNavigationStart}
                             onGestureNavigationEnd={this.onGestureNavigationEnd}
+                            onDocumentTitleChange={this.onDocumentTitleChange}
                         >
                             {this.props.children}
                         </AnimationLayer>

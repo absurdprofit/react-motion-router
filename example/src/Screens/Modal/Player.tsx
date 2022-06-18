@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import King from "../../assets/king.webp";
 import '../../css/Player.css';
 import { SharedElement } from 'react-motion-router';
@@ -11,45 +11,77 @@ import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import Slider from '@mui/material/Slider';
 import Stack from '@mui/material/Stack';
 import { lerp } from '../../common/utils';
+import { motion } from 'framer-motion';
 
-export default function Player() {
-    const [volume, setVolume] = useState(0);
-    const [currentTime, setCurrentTime] = useState(0);
+
+interface PlayerProps {
+    progress: number; // 0 - 1
+}
+
+let seekStart = 30;
+let volumeStart = 50;
+let timeStart = lerp(0, 139, seekStart/100);
+export default function Player({progress}: PlayerProps) {
+    const [volume, setVolume] = useState(volumeStart - 15);
+    const [seekProgress, setSeekProgress] = useState(seekStart - 10);
+    const [currentTime, setCurrentTime] = useState(timeStart);
+
+    useEffect(() => {
+        setVolume(lerp(volumeStart - 15, volumeStart, progress));
+        setSeekProgress(lerp(seekStart - 10, seekStart, progress));
+    }, [progress]);
 
     const handleVolumeChange  = (event: Event, newValue: number | number[]) => {
         setVolume(newValue as number);
+        volumeStart = newValue as number;
     };
 
     const handleSeekChange = (event: Event, newValue: number | number[]) => {
-        setCurrentTime(newValue as number);
+        const time = lerp(0, 139, (newValue as number)) / 100;
+        setCurrentTime(time);
+        setSeekProgress(newValue as number);
+        seekStart = newValue as number;
+        timeStart = time;
     };
+
     return (
         <div className="player">
             <div className="cover-art">
-                <SharedElement id="cover-art">
+                <SharedElement id="cover-art" config={{
+                    easingFunction: 'ease-in'
+                }}>
                     <img src={King} alt="cover-art" />
                 </SharedElement>
             </div>
             <div className="song-info">
-                <SharedElement id="title">
-                    <h6 className="title">Modal Sheet Example</h6>
+                <SharedElement id="title" config={{
+                    easingFunction: 'ease-in'
+                }}>
+                    <h3 className="title">Modal Sheet Example</h3>
                 </SharedElement>
-                <h6 className="artiste">nxte</h6>
+                <motion.h6 className="artiste" style={{opacity: progress}} animate={{
+                    x: lerp(-50, 0, progress)
+                }}>nxte</motion.h6>
             </div>
-            <div className="share">
+            <motion.div className="share" style={{opacity: progress}} animate={{
+                y: lerp(50, 0, progress)
+            }}>
                 <ShareIcon />
-            </div>
-            <div className="seeker">
-                <p className="current-time">{new Date(lerp(0, 1399, currentTime)).toISOString().substring(15, 19)}</p>
-                <Slider value={currentTime} onChange={handleSeekChange} style={{
-                    width: '70%'
+            </motion.div>
+            <div className="seeker" style={{opacity: progress}}>
+                <p className="current-time">{new Date(currentTime * 1000).toISOString().substring(15, 19)}</p>
+                <Slider value={seekProgress} onChange={handleSeekChange} style={{
+                    width: '70%',
+                    transition: 'left 300ms ease-in'
                 }} />
                 <p className="current-time">2:19</p>
             </div>
             <div className="play-controls">
-                <div className="previous">
+                <motion.div className="previous" style={{opacity: progress}} animate={{
+                    x: lerp(-90, 0, progress),
+                }}>
                     <SkipPreviousIcon />
-                </div>
+                </motion.div>
                 <div className="play">
                     <SharedElement id="play">
                         <PlayArrowIcon />
@@ -61,10 +93,12 @@ export default function Player() {
                     </SharedElement>
                 </div>
             </div>
-            <div className="volume">
+            <div className="volume" style={{opacity: progress}}>
             <Stack spacing={2} direction="row" sx={{ mb: 1 }} alignItems="center">
                 <VolumeDownIcon />
-                <Slider aria-label="Volume" value={volume} onChange={handleVolumeChange} />
+                <Slider aria-label="Volume" value={volume} onChange={handleVolumeChange} style={{
+                    transition: 'left 300ms ease-in'
+                }} />
                 <VolumeUpIcon />
             </Stack>
             </div>

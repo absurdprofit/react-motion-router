@@ -40,6 +40,10 @@
     align-items: center;
     gap: 36px;
 }
+.modal .play-controls .play svg {
+    width: 44px;
+    height: 44px;
+}
 .modal .player .seeker {
     display: flex;
     justify-content: space-between;

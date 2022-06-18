@@ -7,7 +7,7 @@ import GhostLayer from './GhostLayer';
 export type RoutesData = Map<string | RegExp | undefined, {[key:string]: any}>;
 
 export default class RouterData {
-    private _currentPath: string | undefined = '';
+    private _currentPath: string = '';
     private _routesData: RoutesData = new Map();
     private _navigation: Navigation = new Navigation(false);
     private _backNavigating: boolean = false;
@@ -26,7 +26,7 @@ export default class RouterData {
     };
     private _ghostLayer: GhostLayer | null = null;
 
-    set currentPath(_currentPath: string | undefined) {
+    set currentPath(_currentPath: string) {
         this._currentPath = _currentPath;
     }
     set routesData(_routesData: RoutesData) {

@@ -29,9 +29,10 @@
 }
 .player {
     width: calc(100vw - 30px);
-    height: 46px;
+    height: calc(46px + env(safe-area-inset-bottom));
     display: flex;
     padding: 15px;
+    padding-bottom: 5vh;
     justify-content: space-between;
     background-color: #222222;
     color: white;
