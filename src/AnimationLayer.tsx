@@ -1,8 +1,8 @@
-import React, { createContext, ReactChild, useId } from 'react';
+import React, { createContext } from 'react';
 import {SwipeEndEvent, SwipeEvent, SwipeStartEvent} from 'web-gesture-events';
 import { clamp, matchRoute, includesRoute } from './common/utils';
 import Navigation from './Navigation';
-import {ScreenChild, Stack} from './index';
+import {ScreenChild} from './index';
 import {AnimationLayerDataContext} from './AnimationLayerData';
 import { MotionProgressDetail } from './MotionEvents';
 import { SwipeDirection } from './common/types';
@@ -69,11 +69,20 @@ function StateFromChildren(
     }
 
     const children: ScreenChild[] = [];
-
+    let keptAliveKey: React.Key | undefined = undefined;
     // get current child
     React.Children.forEach(
         state.children, // match current child from state
         (child) => {
+            if (!React.isValidElement(child)) return;
+            if (matchRoute(child.props.resolvedPathname, nextPath) && (props.backNavigating || state.gestureNavigating)) {
+                // fetch kept alive key
+                // needed since elements kept alive are apart of the DOM
+                // to avoid confusing react we need to preserve this key
+                if (child.props.config?.keepAlive) {
+                    keptAliveKey = child.key || undefined;
+                }
+            }
             // match resolved pathname instead to avoid matching the next component first
             // this can happen if the same component matches both current and next paths
             if (matchRoute(child.props.resolvedPathname, currentPath)) {
@@ -81,8 +90,12 @@ function StateFromChildren(
                     let mountProps = {out: true, in: false};
                     if (state.gestureNavigating) mountProps = {in: true, out: false};
                     currentMatched = true;
-                    const key = child.props.currentKey || Math.random(); // only generate new key if there is no current key
-                    children.push(React.cloneElement(child, {...mountProps, resolvedPathname: currentPath, currentKey: key, key}) as ScreenChild);
+                    children.push(
+                        React.cloneElement(child, {
+                            ...mountProps,
+                            resolvedPathname: currentPath
+                        }) as ScreenChild
+                    );
                 }
             }
         }
@@ -92,24 +105,29 @@ function StateFromChildren(
     React.Children.forEach(
         props.children,
         (child) => {
-            if (React.isValidElement(child)) {
-                if (!state.paths.length) paths.push(child.props.path);
+            if (!React.isValidElement(child)) return;
+            if (!state.paths.length) paths.push(child.props.path);
                 
-                if (matchRoute(child.props.path, nextPath)) {
-                    if (!nextMatched) {
-                        nextMatched = true;
-                        const {config} = child.props;
-                        swipeDirection = config?.swipeDirection;
-                        swipeAreaWidth = config?.swipeAreaWidth;
-                        hysteresis = config?.hysteresis;
-                        disableDiscovery = config?.disableDiscovery;
-                        minFlingVelocity = config?.minFlingVelocity;
-                        name = child.props.name || null;
-                        let mountProps = {in: true, out: false};
-                        if (state.gestureNavigating) mountProps = {out: true, in: false};
-                        const key = Math.random();
-                        children.push(React.cloneElement(child, {...mountProps, resolvedPathname: nextPath, currentKey: key, key}) as ScreenChild);
-                    }
+            if (matchRoute(child.props.path, nextPath)) {
+                if (!nextMatched) {
+                    nextMatched = true;
+                    const {config} = child.props;
+                    swipeDirection = config?.swipeDirection;
+                    swipeAreaWidth = config?.swipeAreaWidth;
+                    hysteresis = config?.hysteresis;
+                    disableDiscovery = config?.disableDiscovery;
+                    minFlingVelocity = config?.minFlingVelocity;
+                    name = child.props.name || null;
+                    let mountProps = {in: true, out: false};
+                    if (state.gestureNavigating) mountProps = {out: true, in: false};
+                    const key = keptAliveKey || Math.random();
+                    children.push(
+                        React.cloneElement(child, {
+                            ...mountProps,
+                            resolvedPathname: nextPath,
+                            key
+                        }) as ScreenChild
+                    );
                 }
             }
         }
@@ -233,7 +251,10 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         window.removeEventListener('swipestart', this.onSwipeStartListener);
     }
 
-    onGestureSuccess(state: Pick<AnimationLayerState, 'swipeAreaWidth' | 'swipeDirection' | 'hysteresis' | 'disableDiscovery' | 'minFlingVelocity'>, name: string | null) {
+    onGestureSuccess(
+        state: Pick<AnimationLayerState, 'swipeAreaWidth' | 'swipeDirection' | 'hysteresis' | 'disableDiscovery' | 'minFlingVelocity'>,
+        name: string | null
+    ) {
         this.props.onDocumentTitleChange(name);
         this.setState(state);
     }

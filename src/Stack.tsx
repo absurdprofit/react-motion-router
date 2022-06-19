@@ -5,33 +5,34 @@ import { AnimationConfig, AnimationConfigFactory, AnimationConfigSet, AnimationK
 import {Vec2} from './common/types';
 import AnimationProvider from './AnimationProvider';
 
-export interface ScreenProps {
-    out?: boolean;
-    in?: boolean;
-    currentKey?: number;
-    component: React.JSXElementConstructor<any>;
-    fallback?: React.ReactNode;
-    path?: string | RegExp;
-    resolvedPathname?: string;
-    defaultParams?: {[key:string]: any};
-    name?: string;
-    config?: {
-        animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig | AnimationConfigFactory;
-        keepAlive?: boolean;
-        swipeDirection?: SwipeDirection;
-        swipeAreaWidth?: number;
-        minFlingVelocity?: number;
-        hysteresis?: number;
-        disableDiscovery?: boolean;
-    }
-}
 
-interface ScreenState {
-    fallback?: React.ReactNode;
-    shouldKeepAlive: boolean;
-}
 
 export namespace Stack {
+
+    export interface ScreenProps {
+        out?: boolean;
+        in?: boolean;
+        component: React.JSXElementConstructor<any>;
+        fallback?: React.ReactNode;
+        path?: string | RegExp;
+        resolvedPathname?: string;
+        defaultParams?: {[key:string]: any};
+        name?: string;
+        config?: {
+            animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig | AnimationConfigFactory;
+            keepAlive?: boolean;
+            swipeDirection?: SwipeDirection;
+            swipeAreaWidth?: number;
+            minFlingVelocity?: number;
+            hysteresis?: number;
+            disableDiscovery?: boolean;
+        }
+    }
+    
+    interface ScreenState {
+        fallback?: React.ReactNode;
+        shouldKeepAlive: boolean;
+    }
     
     export class Screen extends React.Component<ScreenProps, ScreenState> {
         private sharedElementScene: SharedElement.Scene = new SharedElement.Scene(this.props.component.name || this.props.path?.toString() || 'not-found');

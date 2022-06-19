@@ -36,7 +36,6 @@ export default class Tiles extends React.Component<TilesProps, TilesState> {
                     <Navbar title="Tiles Demo" backButton />
                 </SharedElement>
                 <div className="content">
-                    <Anchor href="/tiles0">Tiles Again</Anchor>
                     {this.state.heroes.map((hero: Hero, index: number) => {
                         return (
                             <Anchor key={index} href="/slides" params={{
