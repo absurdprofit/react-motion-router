@@ -6,6 +6,7 @@ import {ScreenChild} from './index';
 import {AnimationLayerDataContext} from './AnimationLayerData';
 import { MotionProgressDetail } from './MotionEvents';
 import { SwipeDirection } from './common/types';
+import NotFound from './Screens/NotFound';
 
 export const Motion = createContext(0);
 
@@ -75,7 +76,10 @@ function StateFromChildren(
         state.children, // match current child from state
         (child) => {
             if (!React.isValidElement(child)) return;
-            if (matchRoute(child.props.resolvedPathname, nextPath) && (props.backNavigating || state.gestureNavigating)) {
+            if (
+                matchRoute(child.props.resolvedPathname, nextPath)
+                && (props.backNavigating || state.gestureNavigating)
+            ) {
                 // fetch kept alive key
                 // needed since elements kept alive are apart of the DOM
                 // to avoid confusing react we need to preserve this key
@@ -229,8 +233,9 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
                     return React.cloneElement(child, {in: true, out: false}) as ScreenChild;
                 }
             });
+
             this.setState({
-                children: children,
+                children: React.Children.count(children) ? children : NotFound,
                 swipeDirection: swipeDirection || this.props.swipeDirection,
                 swipeAreaWidth: swipeAreaWidth || this.props.swipeAreaWidth,
                 hysteresis: hysteresis || this.props.hysteresis,

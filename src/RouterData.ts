@@ -9,7 +9,7 @@ export type RoutesData = Map<string | RegExp | undefined, {[key:string]: any}>;
 export default class RouterData {
     private _currentPath: string = '';
     private _routesData: RoutesData = new Map();
-    private _navigation: Navigation = new Navigation(false);
+    private _navigation: Navigation;
     private _backNavigating: boolean = false;
     private _gestureNavigating: boolean = false;
     private _paramsSerialiser?: (params: {[key:string]: any}) => string;
@@ -25,6 +25,10 @@ export default class RouterData {
         }
     };
     private _ghostLayer: GhostLayer | null = null;
+
+    constructor(navigation: Navigation = new Navigation()) {
+        this._navigation = navigation;
+    }
 
     set currentPath(_currentPath: string) {
         this._currentPath = _currentPath;

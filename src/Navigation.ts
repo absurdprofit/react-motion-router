@@ -10,15 +10,17 @@ interface NavigateEventDetail {
 export type NavigateEvent = CustomEvent<NavigateEventDetail>;
 
 export default class Navigation {
+    private id = Math.random();
     private _history;
     private _disableBrowserRouting: boolean;
     private _currentParams: {[key:string]: any} = {};
     private _paramsSerialiser?: ParamsSerialiser;
     private _paramsDeserialiser?: ParamsDeserialiser;
+    private _dispatchEvent: ((event: Event) => boolean) | null = null;
 
-    constructor(_disableBrowserRouting: boolean, _defaultRoute?: string | null) {
+    constructor(_disableBrowserRouting: boolean = false, _defaultRoute: string | null = null) {
         this._disableBrowserRouting = _disableBrowserRouting;
-        this._history = new History(_defaultRoute || null);
+        this._history = new History(_defaultRoute);
     }
 
     navigate(route: string, routeParams?: {[key:string]: any}, replace?: boolean) {
@@ -35,7 +37,7 @@ export default class Navigation {
             }
         });
 
-        window.dispatchEvent(event);
+        if (this._dispatchEvent) this._dispatchEvent(event);
         this._currentParams = routeParams || {};
     }
 
@@ -49,7 +51,7 @@ export default class Navigation {
             }
         });
 
-        window.dispatchEvent(event);
+        if (this._dispatchEvent) this._dispatchEvent(event);
         this._currentParams = routeParams || {};
     }
 
@@ -60,7 +62,7 @@ export default class Navigation {
                 replaceState: false
             }
         });
-        window.dispatchEvent(event);
+        if (this._dispatchEvent) this._dispatchEvent(event);
     }
 
     goBack() {
@@ -84,7 +86,7 @@ export default class Navigation {
             }
         } 
 
-        window.dispatchEvent(event);
+        if (this._dispatchEvent) this._dispatchEvent(event);
     }
 
     searchParamsToObject(searchPart: string) {
@@ -122,6 +124,10 @@ export default class Navigation {
         } else {
             location.replace(url);
         }
+    }
+
+    set dispatchEvent(_dispatchEvent: ((event: Event) => boolean) | null) {
+        this._dispatchEvent = _dispatchEvent;
     }
 
     set paramsDeserialiser(_paramsDeserialiser: ParamsDeserialiser | undefined) {

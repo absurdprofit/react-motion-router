@@ -8,6 +8,7 @@ import { OverlaysAnimation } from './Screens/Overlays/Animations';
 import "./css/App.css";
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './Theme';
+import Nested from './Screens/Nested';
 
 const NotFound = React.lazy(() => import('./Screens/NotFound'));
 const Home = React.lazy(() => import('./Screens/Home'));
@@ -182,6 +183,7 @@ function Routes() {
             }
           }}
         />
+        <Stack.Screen component={Nested} path='/nested' />
         <Stack.Screen name="Not Found" component={NotFound} fallback={<div className='screen-fallback not-found'></div>} />
       </Router>
   );

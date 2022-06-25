@@ -36,6 +36,11 @@ export default function Home(props: HomeProps) {
             title: 'Overlay Demo',
             description: 'Various Overlays such as modals with spring and default timing functions',
             onClick: () => props.navigation.navigate('/overlays')
+        },
+        {
+            title: 'Nested Demo',
+            description: 'Tab layout implemented using nested routing',
+            onClick: () => props.navigation.navigate('/nested')
         }
     ];
 

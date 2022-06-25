@@ -1,15 +1,20 @@
 export default class History {
+    private _baseURL: URL;
     private _stack: string[] = [];
     private _next: string | null = null;
-    private _defaultRoute: string = '/';
+    private _defaultRoute: string;
     constructor(_defaultRoute: string | null) {
+        this._baseURL = new URL(_defaultRoute || window.location.href, window.location.origin);
+
+        this._defaultRoute = _defaultRoute || this._baseURL.pathname;
+
         const pathname = window.location.pathname;
         const searchPart = window.location.search;
         if (_defaultRoute) {
             this._defaultRoute = _defaultRoute;
             if (this._defaultRoute !== window.location.pathname) {
                 this._stack.push(this._defaultRoute);
-                window.history.replaceState({}, "", this._defaultRoute);
+                window.history.replaceState({}, "", new URL(this._defaultRoute, this._baseURL));
                 window.history.pushState({}, "", pathname + searchPart);
             }
         }
@@ -21,7 +26,9 @@ export default class History {
     }
 
     get current() {
-        return this._stack[this._stack.length - 1];
+        let _current: string | undefined = this._stack[this._stack.length - 1];
+        _current = _current.replace(new RegExp(this._baseURL.pathname + '$'), '');
+        return new URL(_current, window.location.origin).pathname;
     }
     get length() {
         return this._stack.length;
@@ -31,19 +38,36 @@ export default class History {
         return this._defaultRoute || '/';
     }
     get next() {
-        return this._next;
+        let {_next} = this;
+        if (_next) {
+            _next = _next.replace(new RegExp(this._baseURL.pathname + '$'), '');
+            return new URL(_next, window.location.origin).pathname;
+        }
+        return null;
     }
     get previous() {
         if (this._stack.length > 1) {
-            return this._stack[this._stack.length - 2];
+            let _previous = this._stack[this._stack.length - 2];
+            _previous = _previous.replace(new RegExp(this._baseURL.pathname + '$'), '');
+            return new URL(_previous, window.location.origin).pathname;
         }
         return null;
     }
     get isEmpty() {
         return !this._stack.length ? true : false;
     }
+    get path() {
+        if (this._stack.length === 1) return window.location.href;
+        return this._stack.reduce((accumulator, currentValue) => new URL(currentValue, new URL(accumulator, window.location.origin)).href);
+    }
+    get baseURL() {
+        return this._baseURL;
+    }
     
     push(route: string, replace: boolean = false) {
+        const url = new URL(route, window.location.href);
+        route = url.pathname;
+        
         this._next = null;
         
         if (replace) {
@@ -57,6 +81,9 @@ export default class History {
     }
 
     implicitPush(route: string, replace: boolean = false) {
+        const url = new URL(route, window.location.href);
+        route = url.pathname;
+        
         this._next = null; 
         if (replace) {
             this._stack.pop();

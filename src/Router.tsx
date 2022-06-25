@@ -40,7 +40,8 @@ export function useNavigation() {
 }
 
 export default class Router extends React.Component<RouterProps, RouterState> {
-    private navigation = new Navigation(this.props.config.disableBrowserRouting || false, this.props.config.defaultRoute || null);
+    private ref: HTMLElement | null = null;
+    private navigation: Navigation;
     private config: Config;
     private _routerData: RouterData;
     private animationLayerData = new AnimationLayerData();
@@ -61,6 +62,10 @@ export default class Router extends React.Component<RouterProps, RouterState> {
 
     constructor(props: RouterProps) {
         super(props);
+
+        this.navigation = new Navigation(props.config.disableBrowserRouting, props.config.defaultRoute);
+        this._routerData = new RouterData(this.navigation);
+        
         if (props.config) {
             this.config = props.config;
         } else {
@@ -78,8 +83,6 @@ export default class Router extends React.Component<RouterProps, RouterState> {
             }
         }
 
-        this._routerData = new RouterData();
-        this._routerData.navigation = this.navigation;
         if ('in' in this.config.animation) {
             this._routerData.animation = {
                 in: this.config.animation.in,
@@ -103,6 +106,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
     }
 
     componentDidMount() {
+        this._routerData.navigation = this.navigation;
         // get url search params and append to existing route params
         this.navigation.paramsDeserialiser = this.config.paramsDeserialiser;
         this.navigation.paramsSerialiser = this.config.paramsSerialiser;
@@ -126,15 +130,12 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         this._routerData.paramsSerialiser = this.props.config.paramsSerialiser;
         this.setState({currentPath: currentPath, routesData: routesData});
         this._routerData.currentPath = this.navigation.location.pathname;
-        window.addEventListener('go-back', this.onBackListener, true);
         window.addEventListener('popstate', this.onPopStateListener, true);
-        window.addEventListener('navigate', this.onNavigateListener, true);
     }
 
     componentWillUnmount() {
-        window.removeEventListener('navigate', this.onNavigateListener);
+        if (this.ref) this.removeNavigationEventListeners(this.ref);
         window.removeEventListener('popstate', this.onPopStateListener);
-        window.removeEventListener('go-back', this.onBackListener);
     }
 
     private onAnimationEnd() {
@@ -146,7 +147,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
 
     onPopstate(e: Event) {
         e.preventDefault();
-        if (window.location.pathname === this.navigation.history.previous) {
+        if (window.location.pathname === this.navigation!.history.previous) {
             if (!this.state.implicitBack) {
                 this.setState({backNavigating: true});
                 this._routerData.backNavigating = true;
@@ -154,10 +155,10 @@ export default class Router extends React.Component<RouterProps, RouterState> {
                 this.setState({implicitBack: false});
             }
 
-            this.navigation.implicitBack();
+            this.navigation!.implicitBack();
         } else {
             if (!this.state.backNavigating && !this.state.implicitBack) {
-                this.navigation.implicitNavigate(window.location.pathname);
+                this.navigation!.implicitNavigate(window.location.pathname);
             }
             if (this.state.implicitBack) {
                 this.setState({implicitBack: false});
@@ -172,7 +173,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
     onBack(e: BackEvent) {
         this.setState({backNavigating: true});
 
-        let pathname = this.navigation.location.pathname;
+        let pathname = this.navigation!.location.pathname;
         // if (this.config.disableBrowserRouting) {
         //     pathname = this.navigation.history.current || pathname;
         // }
@@ -226,7 +227,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
     onGestureNavigationEnd = () => {
         this._routerData.gestureNavigating = false;
         this.setState({implicitBack: true, gestureNavigating: false}, () => {
-            this.navigation.goBack();
+            this.navigation!.goBack();
             this.setState({backNavigating: false});
             this._routerData.backNavigating = false;
         });
@@ -236,10 +237,32 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         if (title) document.title = title;
         else document.title = this.state.defaultDocumentTitle;
     }
+
+    addNavigationEventListeners(ref: HTMLElement) {
+        ref.addEventListener('go-back', this.onBackListener, true);
+        ref.addEventListener('navigate', this.onNavigateListener, true);
+    }
+
+    removeNavigationEventListeners(ref: HTMLElement) {
+        ref.addEventListener('go-back', this.onBackListener, true);
+        ref.addEventListener('navigate', this.onNavigateListener, true);
+    }
+
+    setRef = (ref: HTMLElement | null) => {
+        if (this.ref) {
+            this._routerData.navigation.dispatchEvent = null;
+            this.removeNavigationEventListeners(this.ref);  
+        }
+
+        if (ref) {
+            this._routerData.navigation.dispatchEvent = (event) => ref.dispatchEvent(event);
+            this.addNavigationEventListeners(ref);
+        }
+    }
     
     render() {
         return (
-            <div className="react-motion-router" style={{width: '100%', height: '100%', position: 'relative'}}>
+            <div id={this.navigation.history.baseURL.pathname} className="react-motion-router" style={{width: '100%', height: '100%', position: 'relative'}} ref={this.setRef}>
                 <RouterDataContext.Provider value={this._routerData}>
                     <AnimationLayerDataContext.Provider value={this.animationLayerData}>
                         <GhostLayer
@@ -258,7 +281,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
                             navigation={this._routerData.navigation}
                             currentPath={this.state.currentPath}
                             backNavigating={this.state.backNavigating}
-                            lastPath={this.navigation.history.previous}
+                            lastPath={this.navigation!.history.previous}
                             onGestureNavigationStart={this.onGestureNavigationStart}
                             onGestureNavigationEnd={this.onGestureNavigationEnd}
                             onDocumentTitleChange={this.onDocumentTitleChange}
