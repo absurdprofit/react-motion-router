@@ -196,7 +196,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
     }
 
     onNavigate(e: NavigateEvent) {
-        e.preventDefault();
+        e.stopPropagation();
         
         const currentPath = e.detail.route;
         this._routerData.currentPath = currentPath;

@@ -11,8 +11,8 @@ export default class Nested extends React.Component {
         return (
             <div className="tabs-nav">
                 <Anchor href='/'>Tab 1</Anchor>
-                <Anchor href='/nested/tab-2'>Tab 2</Anchor>
-                <Router>
+                <Anchor href='/tab-2'>Tab 2</Anchor>
+                <Router config={{defaultRoute: '/tabs-2', animation: {type: 'none', duration: 0}}}>
                     <Stack.Screen component={Tab1} name='Tab 1' path='/' />
                     <Stack.Screen component={Tab2} name='Tab 2' path='/tab-2' />
                 </Router>

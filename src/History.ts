@@ -4,18 +4,18 @@ export default class History {
     private _next: string | null = null;
     private _defaultRoute: string;
     constructor(_defaultRoute: string | null) {
-        this._baseURL = new URL(_defaultRoute || window.location.href, window.location.origin);
+        this._baseURL = new URL(window.location.pathname, window.location.origin);
 
-        this._defaultRoute = _defaultRoute || this._baseURL.pathname;
+        this._defaultRoute = _defaultRoute ? History.getURL(_defaultRoute, this._baseURL).pathname : this._baseURL.pathname;
 
-        const pathname = window.location.pathname;
+        const pathname = this._baseURL.pathname === window.location.pathname ? '/' : this._baseURL.pathname;
         const searchPart = window.location.search;
         if (_defaultRoute) {
             this._defaultRoute = _defaultRoute;
             if (this._defaultRoute !== window.location.pathname) {
                 this._stack.push(this._defaultRoute);
-                window.history.replaceState({}, "", new URL(this._defaultRoute, this._baseURL));
-                window.history.pushState({}, "", pathname + searchPart);
+                window.history.replaceState({}, "", this._defaultRoute);
+                window.history.pushState({}, "", url);
             }
         }
         this._stack.push(pathname);
@@ -63,27 +63,32 @@ export default class History {
     get baseURL() {
         return this._baseURL;
     }
+
+    private static getURL(route: string, baseURL: URL) {
+        const path = [
+            ...route.split('/').filter(path => path.length),
+            ...baseURL.pathname.split('/').filter(path => path.length)
+        ].join('/');
+
+        return new URL(path, baseURL);
+    }
     
     push(route: string, replace: boolean = false) {
-        const url = new URL(route, window.location.href);
-        route = url.pathname;
+        const url = History.getURL(route, this._baseURL);
         
         this._next = null;
         
         if (replace) {
-            window.history.replaceState({}, "", route);
+            window.history.replaceState({}, "", url);
             this._stack.pop();
             this._stack.push(route);
         } else {
-            window.history.pushState({}, "", route);
+            window.history.pushState({}, "", url);
             this._stack.push(route);
         }
     }
 
     implicitPush(route: string, replace: boolean = false) {
-        const url = new URL(route, window.location.href);
-        route = url.pathname;
-        
         this._next = null; 
         if (replace) {
             this._stack.pop();
