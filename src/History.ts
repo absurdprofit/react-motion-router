@@ -6,7 +6,7 @@ export default class History {
     constructor(_defaultRoute: string | null) {
         this._baseURL = new URL(window.location.pathname, window.location.origin);
 
-        this._defaultRoute = _defaultRoute ? History.getURL(_defaultRoute, this._baseURL).pathname : this._baseURL.pathname;
+        this._defaultRoute = _defaultRoute || this._baseURL.pathname;
 
         const pathname = this._baseURL.pathname === window.location.pathname ? '/' : this._baseURL.pathname;
         const searchPart = window.location.search;
@@ -14,8 +14,8 @@ export default class History {
             this._defaultRoute = _defaultRoute;
             if (this._defaultRoute !== window.location.pathname) {
                 this._stack.push(this._defaultRoute);
-                window.history.replaceState({}, "", this._defaultRoute);
-                window.history.pushState({}, "", url);
+                window.history.replaceState({}, "", History.getURL(this._defaultRoute, this._baseURL));
+                window.history.pushState({}, "", History.getURL(pathname, this._baseURL, searchPart));
             }
         }
         this._stack.push(pathname);
@@ -64,13 +64,15 @@ export default class History {
         return this._baseURL;
     }
 
-    private static getURL(route: string, baseURL: URL) {
+    private static getURL(route: string, baseURL: URL, search: string = '') {
         const path = [
-            ...route.split('/').filter(path => path.length),
-            ...baseURL.pathname.split('/').filter(path => path.length)
+            ...baseURL.pathname.split('/').filter(path => path.length),
+            ...route.split('/').filter(path => path.length)
         ].join('/');
 
-        return new URL(path, baseURL);
+        const url = new URL(path, baseURL);
+        url.search = search;
+        return url;
     }
     
     push(route: string, replace: boolean = false) {

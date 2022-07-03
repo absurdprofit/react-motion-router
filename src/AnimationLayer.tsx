@@ -111,7 +111,7 @@ function StateFromChildren(
         (child) => {
             if (!React.isValidElement(child)) return;
             if (!state.paths.length) paths.push(child.props.path);
-                
+            
             if (matchRoute(child.props.path, nextPath)) {
                 if (!nextMatched) {
                     nextMatched = true;
@@ -159,7 +159,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
     context!: React.ContextType<typeof AnimationLayerDataContext>;
 
     state: AnimationLayerState = {
-        currentPath: this.props.currentPath,
+        currentPath: '',
         children: this.props.children,
         progress: 0,
         shouldPlay: true,

@@ -279,9 +279,9 @@ export default class Router extends React.Component<RouterProps, RouterState> {
                             swipeAreaWidth={this.props.config.swipeAreaWidth || 100}
                             swipeDirection={this.props.config.swipeDirection || 'right'}
                             navigation={this._routerData.navigation}
-                            currentPath={this.state.currentPath}
                             backNavigating={this.state.backNavigating}
-                            lastPath={this.navigation!.history.previous}
+                            currentPath={this.navigation.history.current}
+                            lastPath={this.navigation.history.previous}
                             onGestureNavigationStart={this.onGestureNavigationStart}
                             onGestureNavigationEnd={this.onGestureNavigationEnd}
                             onDocumentTitleChange={this.onDocumentTitleChange}
