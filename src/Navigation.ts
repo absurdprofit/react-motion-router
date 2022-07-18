@@ -3,6 +3,7 @@ import History from "./History";
 
 export type BackEvent = CustomEvent<{replaceState:boolean}>;
 interface NavigateEventDetail {
+    id: number;
     route: string;
     routeParams?: any;
 }
@@ -10,7 +11,7 @@ interface NavigateEventDetail {
 export type NavigateEvent = CustomEvent<NavigateEventDetail>;
 
 export default class Navigation {
-    private id = Math.random();
+    private _id: number;
     private _history;
     private _disableBrowserRouting: boolean;
     private _currentParams: {[key:string]: any} = {};
@@ -18,9 +19,14 @@ export default class Navigation {
     private _paramsDeserialiser?: ParamsDeserialiser;
     private _dispatchEvent: ((event: Event) => boolean) | null = null;
 
-    constructor(_disableBrowserRouting: boolean = false, _defaultRoute: string | null = null) {
+    constructor(_id: number, _disableBrowserRouting: boolean = false, _defaultRoute: string | null = null) {
         this._disableBrowserRouting = _disableBrowserRouting;
         this._history = new History(_defaultRoute);
+        this._id = _id;
+    }
+
+    get id() {
+        return this._id;
     }
 
     navigate(route: string, routeParams?: {[key:string]: any}, replace?: boolean) {
@@ -32,9 +38,11 @@ export default class Navigation {
 
         const event = new CustomEvent<NavigateEventDetail>('navigate', {
             detail: {
+                id: this.id,
                 route: route,
                 routeParams: routeParams
-            }
+            },
+            bubbles: true
         });
 
         if (this._dispatchEvent) this._dispatchEvent(event);
@@ -46,9 +54,11 @@ export default class Navigation {
         
         const event = new CustomEvent<NavigateEventDetail>('navigate', {
             detail: {
+                id: this.id,
                 route: route,
                 routeParams: routeParams
-            }
+            },
+            bubbles: true
         });
 
         if (this._dispatchEvent) this._dispatchEvent(event);

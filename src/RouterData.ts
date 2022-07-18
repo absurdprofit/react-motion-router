@@ -26,7 +26,7 @@ export default class RouterData {
     };
     private _ghostLayer: GhostLayer | null = null;
 
-    constructor(navigation: Navigation = new Navigation()) {
+    constructor(navigation: Navigation = new Navigation(Math.random())) {
         this._navigation = navigation;
     }
 

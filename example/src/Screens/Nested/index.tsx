@@ -1,38 +1,28 @@
 import React from 'react';
-import { Anchor, Navigation, Router, Stack } from 'react-motion-router';
-import Tab from './Tab';
+import TabLayout, { Tab } from '../../Components/TabLayout';
 import '../../css/Nested.css';
 
-const Tab1 = () => <Tab title="Tab 1"></Tab>;
-const Tab2 = () => <Tab title="Tab 2"></Tab>;
+export default class Nested extends React.Component {
 
-interface NestedState {
-    navigation?: Navigation;
-}
-
-export default class Nested extends React.Component<any, NestedState> {
-    state: NestedState = {}
-
-    pushTab = (tabRoute: string) => {
-        if (!this.state.navigation) return;
-
-    }
     render() {
-        const {navigation} = this.state;
-
         return (
-            <div className="tabs-nav">
-                <div className="header-layout">
-                    <button onClick={() => navigation?.navigate('/', {}, true)}>Tab 1</button>
-                    <button onClick={() => navigation?.navigate('/tab-2', {}, true)}>Tab 2</button>
-                </div>
-                <Router onMount={(navigation: Navigation) => {
-                    this.setState({navigation});
-                }} config={{animation: {type: 'none', duration: 0}}}>
-                    <Stack.Screen component={Tab1} name='Tab 1' path='/' />
-                    <Stack.Screen component={Tab2} name='Tab 2' path='/tab-2' />
-                </Router>
-            </div>
+            <TabLayout>
+                <Tab name="Tab 1" pathname='/'>
+                    <div style={{backgroundColor: 'red', height: '100%'}}>
+                        <h1>Tab 1</h1>
+                    </div>
+                </Tab>
+                <Tab name="Tab 2" pathname='/tab-2'>
+                    <div style={{backgroundColor: 'blue', height: '100%'}}>
+                        <h1>Tab 2</h1>
+                    </div>
+                </Tab>
+                <Tab name="Tab 3" pathname='/tab-3'>
+                    <div style={{backgroundColor: 'yellow', height: '100%'}}>
+                        <h1>Tab 3</h1>
+                    </div>
+                </Tab>
+            </TabLayout>
         );
     }
 }

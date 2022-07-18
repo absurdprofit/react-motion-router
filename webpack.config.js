@@ -1,6 +1,7 @@
 const path = require('path');
 const webpack = require('webpack');
 const TerserPlugin = require("terser-webpack-plugin");
+const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
     mode: "production",
@@ -9,7 +10,7 @@ module.exports = {
     },
     entry: {
         index: path.resolve('src', 'index.ts'),
-        utils: path.resolve('src', 'common', 'utils.ts')
+        'common/utils': path.resolve('src', 'common', 'utils.ts')
     },
     module: {
         rules: [
@@ -35,6 +36,18 @@ module.exports = {
     plugins: [
         new webpack.ProvidePlugin({
             process: 'process/browser'
+        }),
+        new CopyPlugin({
+            patterns: [
+                {
+                    from: path.resolve(__dirname, 'package.json'),
+                    to: path.resolve(__dirname, 'build', 'package.json')
+                },
+                {
+                    from: path.resolve(__dirname, 'README.md'),
+                    to: path.resolve(__dirname, 'build', 'README.md')
+                }
+            ]
         })
     ],
     optimization: {

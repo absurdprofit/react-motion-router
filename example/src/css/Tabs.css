@@ -1,0 +1,20 @@
+.tab-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: white;
+    overflow-x: hidden;
+}
+.tab-layout .header-layout {
+    display: flex;
+}
+.tab-layout .header-layout button {
+    flex: 1;
+    border-radius: 0;
+    border: none;
+    padding: 15px;
+}
+.tab {
+    height: 100%;
+    width: 100%;
+}

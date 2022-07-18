@@ -23,6 +23,7 @@ interface Config {
 interface RouterProps {
     config: Config;
     children: ScreenChild | ScreenChild[];
+    onMount?(navigation: Navigation): void;
 }
 
 interface RouterState {
@@ -40,6 +41,7 @@ export function useNavigation() {
 }
 
 export default class Router extends React.Component<RouterProps, RouterState> {
+    private id: number = Math.random();
     private ref: HTMLElement | null = null;
     private navigation: Navigation;
     private config: Config;
@@ -63,7 +65,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
     constructor(props: RouterProps) {
         super(props);
 
-        this.navigation = new Navigation(props.config.disableBrowserRouting, props.config.defaultRoute);
+        this.navigation = new Navigation(this.id, props.config.disableBrowserRouting, props.config.defaultRoute);
         this._routerData = new RouterData(this.navigation);
         
         if (props.config) {
@@ -130,7 +132,9 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         this._routerData.paramsSerialiser = this.props.config.paramsSerialiser;
         this.setState({currentPath: currentPath, routesData: routesData});
         this._routerData.currentPath = this.navigation.location.pathname;
-        window.addEventListener('popstate', this.onPopStateListener, true);
+        window.addEventListener('popstate', this.onPopStateListener);
+
+        if (this.props.onMount) this.props.onMount(this.navigation);
     }
 
     componentWillUnmount() {
@@ -171,6 +175,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
     }
 
     onBack(e: BackEvent) {
+        e.stopImmediatePropagation();
         this.setState({backNavigating: true});
 
         let pathname = this.navigation!.location.pathname;
@@ -196,8 +201,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
     }
 
     onNavigate(e: NavigateEvent) {
-        e.stopPropagation();
-        
+        e.stopImmediatePropagation();
         const currentPath = e.detail.route;
         this._routerData.currentPath = currentPath;
         if (e.detail.routeParams) {
@@ -239,13 +243,13 @@ export default class Router extends React.Component<RouterProps, RouterState> {
     }
 
     addNavigationEventListeners(ref: HTMLElement) {
-        ref.addEventListener('go-back', this.onBackListener, true);
-        ref.addEventListener('navigate', this.onNavigateListener, true);
+        ref.addEventListener('go-back', this.onBackListener);
+        ref.addEventListener('navigate', this.onNavigateListener);
     }
 
     removeNavigationEventListeners(ref: HTMLElement) {
-        ref.addEventListener('go-back', this.onBackListener, true);
-        ref.addEventListener('navigate', this.onNavigateListener, true);
+        ref.addEventListener('go-back', this.onBackListener);
+        ref.addEventListener('navigate', this.onNavigateListener);
     }
 
     setRef = (ref: HTMLElement | null) => {
@@ -255,7 +259,10 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         }
 
         if (ref) {
-            this._routerData.navigation.dispatchEvent = (event) => ref.dispatchEvent(event);
+            this._routerData.navigation.dispatchEvent = (event) => {
+                console.log(event);
+                return ref.dispatchEvent(event);
+            }
             this.addNavigationEventListeners(ref);
         }
     }
