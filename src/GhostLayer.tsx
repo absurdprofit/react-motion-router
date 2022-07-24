@@ -471,16 +471,16 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
             this.props.instance(this);
         }
 
-        window.addEventListener('motion-progress-start', this.onProgressStartListener);
-        window.addEventListener('motion-progress', this.onProgressListener);
-        window.addEventListener('motion-progress-end', this.onProgressEndListener);
+        window.addEventListener('motion-progress-start', this.onProgressStartListener, {capture: true});
+        window.addEventListener('motion-progress', this.onProgressListener, {capture: true});
+        window.addEventListener('motion-progress-end', this.onProgressEndListener, {capture: true});
 
     }
 
     componentWillUnmount() {
-        window.removeEventListener('motion-progress-start', this.onProgressStartListener);
-        window.removeEventListener('motion-progress', this.onProgressListener);
-        window.removeEventListener('motion-progress-end', this.onProgressEndListener);
+        window.removeEventListener('motion-progress-start', this.onProgressStartListener, {capture: true});
+        window.removeEventListener('motion-progress', this.onProgressListener, {capture: true});
+        window.removeEventListener('motion-progress-end', this.onProgressEndListener, {capture: true});
     }
 
     onProgressStart() {

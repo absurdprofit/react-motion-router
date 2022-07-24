@@ -25,6 +25,7 @@ interface AnimationLayerProps {
     swipeAreaWidth: number;
     disableDiscovery: boolean;
     disableBrowserRouting: boolean;
+    dispatchEvent: ((event: Event) => boolean) | null;
 }
 
 interface AnimationLayerState {
@@ -155,6 +156,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
     private onSwipeStartListener = this.onSwipeStart.bind(this);
     private onSwipeListener = this.onSwipe.bind(this);
     private onSwipeEndListener = this.onSwipeEnd.bind(this);
+    private ref: HTMLDivElement | null = null;
     static contextType = AnimationLayerDataContext;
     context!: React.ContextType<typeof AnimationLayerDataContext>;
 
@@ -206,11 +208,11 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             });
     
             window.queueMicrotask(() => {
-                dispatchEvent(progressEvent);
+                if (this.props.dispatchEvent) this.props.dispatchEvent(progressEvent);
             });
         }
 
-        window.addEventListener('swipestart', this.onSwipeStartListener);
+        // window.addEventListener('swipestart', this.onSwipeStartListener);
     }
 
     componentDidUpdate(prevProps: AnimationLayerProps, prevState: AnimationLayerState) {
@@ -253,7 +255,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
     }
 
     componentWillUnmount() {
-        window.removeEventListener('swipestart', this.onSwipeStartListener);
+        // window.removeEventListener('swipestart', this.onSwipeStartListener);
     }
 
     onGestureSuccess(
@@ -282,7 +284,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         if (ev.direction === this.state.swipeDirection && swipePos < this.state.swipeAreaWidth) {
             // if only one child return
             if (!this.props.lastPath) return;
-
+            ev.stopPropagation();
             // if gesture region in touch path return
             for (let target of ev.composedPath().reverse()) {
                 if ('classList' in target && (target as HTMLElement).classList.length) {
@@ -313,9 +315,9 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
                 this.context.backNavigating = this.props.backNavigating;
                 this.context.animate();
                 
-                window.dispatchEvent(motionStartEvent);
-                window.addEventListener('swipe', this.onSwipeListener);
-                window.addEventListener('swipeend', this.onSwipeEndListener);
+                if (this.props.dispatchEvent) this.props.dispatchEvent(motionStartEvent);
+                this.ref?.addEventListener('swipe', this.onSwipeListener);
+                this.ref?.addEventListener('swipeend', this.onSwipeEndListener);
             });
         }
     }
@@ -364,7 +366,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
                 
                 this.setState({gestureNavigating: false});
 
-                window.dispatchEvent(motionEndEvent);
+                if (this.props.dispatchEvent) this.props.dispatchEvent(motionEndEvent);
             }
             this.setState({shouldPlay: true, shouldAnimate: false});
         } else {
@@ -373,7 +375,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
                 window.removeEventListener('go-back', this.onGestureSuccess as unknown as EventListener);
                 this.context.reset();
                 
-                window.dispatchEvent(motionEndEvent);
+                if (this.props.dispatchEvent) this.props.dispatchEvent(motionEndEvent);
             }
             this.setState({shouldPlay: true, gestureNavigating: false});
         }
@@ -381,16 +383,30 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         this.setState({startX: 0, startY: 0});
         this.context.onEnd = onEnd;
         this.context.play = true;
-        window.removeEventListener('swipe', this.onSwipeListener);
-        window.removeEventListener('swipeend', this.onSwipeEndListener);
+        this.ref?.removeEventListener('swipe', this.onSwipeListener);
+        this.ref?.removeEventListener('swipeend', this.onSwipeEndListener);
         
+    }
+
+    setRef = (ref: HTMLDivElement | null) => {
+        if (this.ref) {
+            this.ref.removeEventListener('swipestart', this.onSwipeStartListener);
+        }
+
+        this.ref = ref;
+        
+        if (ref) {
+            ref.addEventListener('swipestart', this.onSwipeStartListener);
+        }
     }
 
     render() {
         return (
-            <Motion.Provider value={this.state.progress}>
-                {this.state.children}
-            </Motion.Provider>
+            <div className="animation-layer" ref={this.setRef} style={{width: '100%', height: '100%', position: 'relative'}}>
+                <Motion.Provider value={this.state.progress}>
+                    {this.state.children}
+                </Motion.Provider>
+            </div>
         );
     }
 }

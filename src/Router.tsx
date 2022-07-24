@@ -20,13 +20,13 @@ interface Config {
     paramsDeserialiser?(queryString: string): {[key:string]: any};
 }
 
-interface RouterProps {
+export interface RouterProps {
     config: Config;
     children: ScreenChild | ScreenChild[];
     onMount?(navigation: Navigation): void;
 }
 
-interface RouterState {
+export interface RouterState {
     currentPath: string;
     backNavigating: boolean;
     gestureNavigating: boolean;
@@ -40,12 +40,13 @@ export function useNavigation() {
     return routerData.navigation;
 }
 
-export default class Router extends React.Component<RouterProps, RouterState> {
+export default class Router<P extends RouterProps = RouterProps, S extends RouterState = RouterState> extends React.Component<P, S> {
     private id: number = Math.random();
-    private ref: HTMLElement | null = null;
-    private navigation: Navigation;
-    private config: Config;
-    private _routerData: RouterData;
+    protected ref: HTMLElement | null = null;
+    protected navigation: Navigation;
+    protected config: Config;
+    protected _routerData: RouterData;
+    protected dispatchEvent: ((event: Event) => boolean) | null = null;
     private animationLayerData = new AnimationLayerData();
     private onBackListener = this.onBack.bind(this) as EventListener;
     private onNavigateListener = this.onNavigate.bind(this) as EventListener;
@@ -63,7 +64,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
     }
 
     constructor(props: RouterProps) {
-        super(props);
+        super(props as P);
 
         this.navigation = new Navigation(this.id, props.config.disableBrowserRouting, props.config.defaultRoute);
         this._routerData = new RouterData(this.navigation);
@@ -98,14 +99,14 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         }
     }
     
-    state: RouterState = {
+    state: S = {
         currentPath: "",
         backNavigating: false,
         gestureNavigating: false,
         routesData: new Map<string | RegExp, any>(),
         implicitBack: false,
         defaultDocumentTitle: document.title
-    }
+    } as S;
 
     componentDidMount() {
         this._routerData.navigation = this.navigation;
@@ -142,7 +143,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
         window.removeEventListener('popstate', this.onPopStateListener);
     }
 
-    private onAnimationEnd() {
+    protected onAnimationEnd() {
         if (this.state.backNavigating) {
             this._routerData.backNavigating = false;
             this.setState({backNavigating: false});
@@ -254,22 +255,23 @@ export default class Router extends React.Component<RouterProps, RouterState> {
 
     setRef = (ref: HTMLElement | null) => {
         if (this.ref) {
-            this._routerData.navigation.dispatchEvent = null;
+            this.dispatchEvent = null;
+            this._routerData.navigation.dispatchEvent = this.dispatchEvent;
             this.removeNavigationEventListeners(this.ref);  
         }
 
         if (ref) {
-            this._routerData.navigation.dispatchEvent = (event) => {
-                console.log(event);
+            this.dispatchEvent = (event) => {
                 return ref.dispatchEvent(event);
             }
+            this._routerData.navigation.dispatchEvent = this.dispatchEvent;
             this.addNavigationEventListeners(ref);
         }
     }
     
     render() {
         return (
-            <div id={this.navigation.history.baseURL.pathname} className="react-motion-router" style={{width: '100%', height: '100%', position: 'relative'}} ref={this.setRef}>
+            <div id={this.navigation.history.baseURL.pathname} className="react-motion-router" style={{width: '100%', height: '100%'}} ref={this.setRef}>
                 <RouterDataContext.Provider value={this._routerData}>
                     <AnimationLayerDataContext.Provider value={this.animationLayerData}>
                         <GhostLayer
@@ -292,6 +294,7 @@ export default class Router extends React.Component<RouterProps, RouterState> {
                             onGestureNavigationStart={this.onGestureNavigationStart}
                             onGestureNavigationEnd={this.onGestureNavigationEnd}
                             onDocumentTitleChange={this.onDocumentTitleChange}
+                            dispatchEvent={this.dispatchEvent}
                         >
                             {this.props.children}
                         </AnimationLayer>

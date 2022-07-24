@@ -2,7 +2,7 @@ import { ParamsDeserialiser, ParamsSerialiser } from "./common/types";
 import History from "./History";
 
 export type BackEvent = CustomEvent<{replaceState:boolean}>;
-interface NavigateEventDetail {
+export interface NavigateEventDetail {
     id: number;
     route: string;
     routeParams?: any;
@@ -12,16 +12,19 @@ export type NavigateEvent = CustomEvent<NavigateEventDetail>;
 
 export default class Navigation {
     private _id: number;
-    private _history;
+    protected _history: History;
+    // private _history;
     private _disableBrowserRouting: boolean;
-    private _currentParams: {[key:string]: any} = {};
+    protected _currentParams: {[key:string]: any} = {};
+    // private _currentParams: {[key:string]: any} = {};
     private _paramsSerialiser?: ParamsSerialiser;
     private _paramsDeserialiser?: ParamsDeserialiser;
-    private _dispatchEvent: ((event: Event) => boolean) | null = null;
+    protected _dispatchEvent: ((event: Event) => boolean) | null = null;
+    // private _dispatchEvent: ((event: Event) => boolean) | null = null;
 
-    constructor(_id: number, _disableBrowserRouting: boolean = false, _defaultRoute: string | null = null) {
+    constructor(_id: number, _disableBrowserRouting: boolean = false, _defaultRoute: string | null = null, _history = new History(_defaultRoute)) {
         this._disableBrowserRouting = _disableBrowserRouting;
-        this._history = new History(_defaultRoute);
+        this._history = _history;
         this._id = _id;
     }
 

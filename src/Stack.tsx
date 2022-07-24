@@ -13,6 +13,7 @@ export namespace Stack {
         out?: boolean;
         in?: boolean;
         component: React.JSXElementConstructor<any>;
+        // component: any;
         fallback?: React.ReactNode;
         path?: string | RegExp;
         resolvedPathname?: string;
@@ -29,12 +30,12 @@ export namespace Stack {
         }
     }
     
-    interface ScreenState {
+    export interface ScreenState {
         fallback?: React.ReactNode;
         shouldKeepAlive: boolean;
     }
     
-    export class Screen extends React.Component<ScreenProps, ScreenState> {
+    export class Screen<P extends ScreenProps = ScreenProps, S extends ScreenState = ScreenState> extends React.Component<P, S> {
         private sharedElementScene: SharedElement.Scene = new SharedElement.Scene(this.props.component.name || this.props.path?.toString() || 'not-found');
         private name = this.props.name?.toLowerCase().replace(' ', '-') || this.props.component.name || this.props.path?.toString().slice(1).replace('/', '-') || 'not-found';
         private ref: HTMLElement | null = null;
@@ -59,9 +60,9 @@ export namespace Stack {
             }
         };
 
-        state: ScreenState = {
+        state: S = {
             shouldKeepAlive: false,
-        }
+        } as S;
 
         componentDidMount() {
             this.sharedElementScene.keepAlive = this.props.config?.keepAlive || false;
@@ -104,7 +105,7 @@ export namespace Stack {
             this.forceUpdate();
         }
 
-        shouldComponentUpdate(nextProps: ScreenProps) {
+        shouldComponentUpdate(nextProps: P) {
             if (this.context.routesData.get(this.props.path)?.params !== this.contextParams) {
                 this.contextParams = this.context.routesData.get(this.props.path)?.params;
                 return true;
@@ -121,7 +122,7 @@ export namespace Stack {
             return false;
         }
 
-        componentDidUpdate(prevProps: ScreenProps) {
+        componentDidUpdate(prevProps: P) {
             if (prevProps.config?.keepAlive !== this.props.config?.keepAlive) {
                 this.sharedElementScene.keepAlive = this.props.config?.keepAlive || false;
             }
@@ -229,6 +230,7 @@ export namespace Stack {
         }
 
         render() {
+            const Component = this.props.component as React.JSXElementConstructor<any>;
             return (
                 <AnimationProvider
                     onExit={this.onExit}
@@ -256,7 +258,7 @@ export namespace Stack {
                     >
                         <SharedElement.SceneContext.Provider value={this.sharedElementScene}>
                             <Suspense fallback={this.state.fallback}>
-                                <this.props.component
+                                <Component
                                     route={{
                                         params: {
                                             ...this.props.defaultParams,

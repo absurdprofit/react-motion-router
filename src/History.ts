@@ -1,6 +1,7 @@
 export default class History {
     private _baseURL: URL;
-    private _stack: string[] = [];
+    protected _stack: string[] = [];
+    // private _stack: string[] = [];
     private _next: string | null = null;
     private _defaultRoute: string;
     constructor(_defaultRoute: string | null) {

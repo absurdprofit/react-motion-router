@@ -5,6 +5,7 @@ import {
     AnimationConfigFactory
 } from './common/types';
 import Router, { useNavigation } from './Router';
+import RouterData from './RouterData';
 import { useReducedMotion, useMotion } from './common/utils';
 import {Stack} from './Stack';
 import Navigation, { BackEvent, NavigateEvent } from './Navigation';
@@ -47,6 +48,7 @@ declare global {
     interface GlobalEventHandlersEventMap extends MotionEventsMap {}
 }
 
-export type {AnimationConfig, AnimationConfigFactory, ScreenChild, Navigation, History};
-export {Router, Stack, SharedElement, Anchor, Motion, useNavigation, GestureRegion};
+export type {AnimationConfig, AnimationConfigFactory, ScreenChild};
+export {Router, Stack, SharedElement, Anchor, Motion, Navigation, History, useNavigation, GestureRegion, RouterData};
 export {useReducedMotion, useMotion};
+export type {MotionProgressEndEvent, MotionProgressEvent, MotionProgressStartEvent};
