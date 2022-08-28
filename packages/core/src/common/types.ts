@@ -1,8 +1,10 @@
-import {Stack} from '../Stack';
+import HistoryBase from '../HistoryBase';
+import NavigationBase from '../NavigationBase';
+import ScreenBase, { ScreenBaseProps } from '../ScreenBase';
 import _SharedElement from '../SharedElement';
 
 const SharedElement = _SharedElement.SharedElement;
-export type ScreenChild = React.ReactElement<React.ComponentProps<typeof Stack.Screen>,React.JSXElementConstructor<typeof Stack.Screen>>;
+export type ScreenChild = React.ReactElement<ScreenBaseProps, React.JSXElementConstructor<typeof ScreenBase>>;
 
 enum AnimationDirectionEnum {
     up,
@@ -65,3 +67,15 @@ export interface Vec2 {
 }
 
 export type SwipeDirection = 'up' | 'down' | 'left' | 'right';
+
+export class NavigationLike extends NavigationBase {
+    constructor(_id: number, _disableBrowserRouting: boolean = false, _defaultRoute: string | null = null, _history: HistoryBase) {
+        super(_id, _disableBrowserRouting, _defaultRoute, _history);
+    }
+}
+
+export class HistoryLike extends HistoryBase {
+    constructor(_defaultRoute: string | null = null) {
+        super(_defaultRoute);
+    }
+}

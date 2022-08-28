@@ -1,9 +1,9 @@
 import React from 'react';
-import Navigation, { NavigateEvent, BackEvent } from './Navigation';
+import NavigationBase, { NavigateEvent, BackEvent } from './NavigationBase';
 import AnimationLayer from './AnimationLayer';
 import GhostLayer from './GhostLayer';
 import { ScreenChild } from '.';
-import {AnimationConfig, AnimationKeyframeEffectConfig, ReducedAnimationConfigSet, SwipeDirection} from './common/types';
+import {AnimationConfig, AnimationKeyframeEffectConfig, HistoryLike, NavigationLike, ReducedAnimationConfigSet, SwipeDirection} from './common/types';
 import RouterData, {RoutesData, RouterDataContext} from './RouterData';
 import AnimationLayerData, {AnimationLayerDataContext} from './AnimationLayerData';
 
@@ -20,13 +20,13 @@ interface Config {
     paramsDeserialiser?(queryString: string): {[key:string]: any};
 }
 
-export interface RouterProps {
+export interface RouterBaseProps {
     config: Config;
     children: ScreenChild | ScreenChild[];
-    onMount?(navigation: Navigation): void;
+    onMount?(navigation: NavigationLike): void;
 }
 
-export interface RouterState {
+export interface RouterBaseState {
     currentPath: string;
     backNavigating: boolean;
     gestureNavigating: boolean;
@@ -35,15 +35,10 @@ export interface RouterState {
     defaultDocumentTitle: string;
 }
 
-export function useNavigation() {
-    const routerData = React.useContext(RouterDataContext);
-    return routerData.navigation;
-}
-
-export default class Router<P extends RouterProps = RouterProps, S extends RouterState = RouterState> extends React.Component<P, S> {
+export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState> extends React.Component<P, S> {
     private id: number = Math.random();
     protected ref: HTMLElement | null = null;
-    protected navigation: Navigation;
+    protected navigation: NavigationBase;
     protected config: Config;
     protected _routerData: RouterData;
     protected dispatchEvent: ((event: Event) => boolean) | null = null;
@@ -63,10 +58,15 @@ export default class Router<P extends RouterProps = RouterProps, S extends Route
         }
     }
 
-    constructor(props: RouterProps) {
+    constructor(props: RouterBaseProps) {
         super(props as P);
-
-        this.navigation = new Navigation(this.id, props.config.disableBrowserRouting, props.config.defaultRoute);
+        
+        this.navigation = new NavigationLike(
+            this.id,
+            props.config.disableBrowserRouting,
+            props.config.defaultRoute,
+            new HistoryLike(props.config.defaultRoute)
+        );
         this._routerData = new RouterData(this.navigation);
         
         if (props.config) {
@@ -254,6 +254,8 @@ export default class Router<P extends RouterProps = RouterProps, S extends Route
     }
 
     setRef = (ref: HTMLElement | null) => {
+        if (!this._routerData.navigation) return;
+
         if (this.ref) {
             this.dispatchEvent = null;
             this._routerData.navigation.dispatchEvent = this.dispatchEvent;
@@ -270,6 +272,8 @@ export default class Router<P extends RouterProps = RouterProps, S extends Route
     }
     
     render() {
+        if (!this._routerData.navigation) return <></>;
+        
         return (
             <div id={this.navigation.history.baseURL.pathname} className="react-motion-router" style={{width: '100%', height: '100%'}} ref={this.setRef}>
                 <RouterDataContext.Provider value={this._routerData}>

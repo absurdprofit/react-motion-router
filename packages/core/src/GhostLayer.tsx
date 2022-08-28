@@ -1,6 +1,6 @@
 import React from 'react';
 import SharedElement from './SharedElement';
-import {clamp} from './common/utils';
+import { clamp } from './common/utils';
 import { EasingFunction } from './common/types';
 import { MotionProgressEvent } from './MotionEvents';
 import { AnimationLayerDataContext } from './AnimationLayerData';
@@ -9,6 +9,7 @@ interface GhostLayerProps {
     instance?: (instance: GhostLayer | null) => any;
     backNavigating: boolean;
 }
+
 interface GhostLayerState {
     transitioning: boolean;
     playing: boolean;

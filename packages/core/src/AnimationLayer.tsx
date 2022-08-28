@@ -1,12 +1,11 @@
 import React, { createContext } from 'react';
 import {SwipeEndEvent, SwipeEvent, SwipeStartEvent} from 'web-gesture-events';
 import { clamp, matchRoute, includesRoute } from './common/utils';
-import Navigation from './Navigation';
+import Navigation from './NavigationBase';
 import {ScreenChild} from './index';
 import {AnimationLayerDataContext} from './AnimationLayerData';
 import { MotionProgressDetail } from './MotionEvents';
 import { SwipeDirection } from './common/types';
-import NotFound from './Screens/NotFound';
 
 export const Motion = createContext(0);
 
@@ -237,7 +236,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             });
 
             this.setState({
-                children: React.Children.count(children) ? children : NotFound,
+                children: children,
                 swipeDirection: swipeDirection || this.props.swipeDirection,
                 swipeAreaWidth: swipeAreaWidth || this.props.swipeAreaWidth,
                 hysteresis: hysteresis || this.props.hysteresis,

@@ -1,7 +1,7 @@
 import React, {createContext} from 'react';
-import Navigation from './Navigation';
 import { AnimationConfig, AnimationConfigSet } from './common/types';
 import GhostLayer from './GhostLayer';
+import NavigationBase from './NavigationBase';
 
 // export interface RoutesData {[key:string]: any}
 export type RoutesData = Map<string | RegExp | undefined, {[key:string]: any}>;
@@ -9,7 +9,7 @@ export type RoutesData = Map<string | RegExp | undefined, {[key:string]: any}>;
 export default class RouterData {
     private _currentPath: string = '';
     private _routesData: RoutesData = new Map();
-    private _navigation: Navigation;
+    private _navigation?: NavigationBase;
     private _backNavigating: boolean = false;
     private _gestureNavigating: boolean = false;
     private _paramsSerialiser?: (params: {[key:string]: any}) => string;
@@ -26,7 +26,7 @@ export default class RouterData {
     };
     private _ghostLayer: GhostLayer | null = null;
 
-    constructor(navigation: Navigation = new Navigation(Math.random())) {
+    constructor(navigation?: NavigationBase) {
         this._navigation = navigation;
     }
 
@@ -36,7 +36,7 @@ export default class RouterData {
     set routesData(_routesData: RoutesData) {
         this._routesData = _routesData;
     }
-    set navigation(_navigation: Navigation) {
+    set navigation(_navigation: NavigationBase | undefined) {
         this._navigation = _navigation;
     }
     set animation(_animation: AnimationConfigSet) {

@@ -1,4 +1,4 @@
-import {History} from 'react-motion-router';
+import {History} from '@react-motion-router/core';
 
 export type BackBehaviour = 'history' | 'none' | 'first';
 

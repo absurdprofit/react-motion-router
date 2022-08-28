@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig",
+  "references": [
+    {"path": "../core"}
+  ],
+  "compilerOptions": {
+    "outDir": "./build",
+    "rootDir": "../"
+  },
+  "include": [
+    "./src/**/*",
+    "../core/build/**/*"
+  ]
+}

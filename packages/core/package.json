@@ -1,10 +1,15 @@
 {
+  "name": "@react-motion-router/core",
   "version": "3.8.1",
-  "browser": "index.js",
+  "browser": "build/index.js",
+  "types": "build/index.d.ts",
+  "files": [
+    "build"
+  ],
   "description": "Declarative routing library for ReactJS ⚛ with animations baked in ⏮",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rimraf ./build/* && tsc && python3 ./post_build.py",
+    "build": "webpack",
     "dev": "tsc -w",
     "webpack:prod": "webpack",
     "webpack:dev": "webpack -w"
@@ -31,14 +36,23 @@
     "url": "https://github.com/nxtexe/react-motion-router/issues"
   },
   "homepage": "https://github.com/nxtexe/react-motion-router#readme",
-  "devDependencies": {
-    "lerna": "^5.4.3"
+  "dependencies": {
+    "web-gesture-events": "0.0.10"
   },
-  "workspaces": [
-    "packages/*"
-  ],
-  "publishConfig": {
-    "directory": "build",
-    "access": "public"
+  "peerDependencies": {
+    "node": "^17.7.2",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.23",
+    "@types/react": "^18.0.4",
+    "@types/react-dom": "^18.0.0",
+    "copy-webpack-plugin": "^11.0.0",
+    "rimraf": "^3.0.2",
+    "ts-loader": "^9.2.8",
+    "typescript": "^4.6.3",
+    "webpack": "^5.72.0",
+    "webpack-cli": "^4.9.2"
   }
 }

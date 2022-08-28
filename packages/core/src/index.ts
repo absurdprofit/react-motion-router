@@ -4,12 +4,10 @@ import {
     AnimationConfig,
     AnimationConfigFactory
 } from './common/types';
-import Router, { useNavigation } from './Router';
 import RouterData from './RouterData';
-import { useReducedMotion, useMotion } from './common/utils';
-import {Stack} from './Stack';
-import Navigation, { BackEvent, NavigateEvent } from './Navigation';
-import History from './History';
+import { useReducedMotion, useMotion, useNavigation } from './common/utils';
+import NavigationBase, { BackEvent, NavigateEvent } from './NavigationBase';
+import HistoryBase from './HistoryBase';
 import Anchor from './Anchor';
 import {Motion} from './AnimationLayer';
 import GestureRegion from './GestureRegion';
@@ -49,6 +47,6 @@ declare global {
 }
 
 export type {AnimationConfig, AnimationConfigFactory, ScreenChild};
-export {Router, Stack, SharedElement, Anchor, Motion, Navigation, History, useNavigation, GestureRegion, RouterData};
+export {SharedElement, useNavigation, Anchor, Motion, NavigationBase, HistoryBase, GestureRegion, RouterData};
 export {useReducedMotion, useMotion};
 export type {MotionProgressEndEvent, MotionProgressEvent, MotionProgressStartEvent};

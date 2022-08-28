@@ -37,18 +37,18 @@ module.exports = {
         new webpack.ProvidePlugin({
             process: 'process/browser'
         }),
-        new CopyPlugin({
-            patterns: [
-                {
-                    from: path.resolve(__dirname, 'package.json'),
-                    to: path.resolve(__dirname, 'build', 'package.json')
-                },
-                {
-                    from: path.resolve(__dirname, 'README.md'),
-                    to: path.resolve(__dirname, 'build', 'README.md')
-                }
-            ]
-        })
+        // new CopyPlugin({
+        //     patterns: [
+        //         {
+        //             from: path.resolve(__dirname, 'package.json'),
+        //             to: path.resolve(__dirname, 'build', 'package.json')
+        //         },
+        //         {
+        //             from: path.resolve(__dirname, 'README.md'),
+        //             to: path.resolve(__dirname, 'build', 'README.md')
+        //         }
+        //     ]
+        // })
     ],
     optimization: {
         minimize: true,

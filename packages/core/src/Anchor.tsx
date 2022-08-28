@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigation } from './Router';
+import { useNavigation } from './common/utils';
 
 interface AnchorProps extends React.DetailedHTMLProps<React.AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
     href: string;
@@ -14,6 +14,8 @@ export default function Anchor(props: AnchorProps) {
     const [external, setExternal] = useState(false);
     
     useEffect(() => {
+        if (!navigation) return;
+
         let href;
         let search;
         if (props.goBack) {
@@ -36,6 +38,8 @@ export default function Anchor(props: AnchorProps) {
     
     const {href, params, goBack, ...aProps} = props;
     const onClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+        if (!navigation) return;
+        
         if (props.onClick) props.onClick(e);
 
         if (!external) e.preventDefault();
@@ -44,6 +48,9 @@ export default function Anchor(props: AnchorProps) {
         if (goBack) navigation.goBack();
         else navigation.navigate(href, params); 
     }
+
+    if (!navigation) return <></>;
+    
     return (
         <a
             href={url}

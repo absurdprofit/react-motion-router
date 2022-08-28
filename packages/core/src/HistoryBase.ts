@@ -1,4 +1,4 @@
-export default class History {
+export default abstract class HistoryBase {
     private _baseURL: URL;
     protected _stack: string[] = [];
     // private _stack: string[] = [];
@@ -15,8 +15,8 @@ export default class History {
             this._defaultRoute = _defaultRoute;
             if (this._defaultRoute !== window.location.pathname) {
                 this._stack.push(this._defaultRoute);
-                window.history.replaceState({}, "", History.getURL(this._defaultRoute, this._baseURL));
-                window.history.pushState({}, "", History.getURL(pathname, this._baseURL, searchPart));
+                window.history.replaceState({}, "", HistoryBase.getURL(this._defaultRoute, this._baseURL));
+                window.history.pushState({}, "", HistoryBase.getURL(pathname, this._baseURL, searchPart));
             }
         }
         this._stack.push(pathname);
@@ -77,7 +77,7 @@ export default class History {
     }
     
     push(route: string, replace: boolean = false) {
-        const url = History.getURL(route, this._baseURL);
+        const url = HistoryBase.getURL(route, this._baseURL);
         
         this._next = null;
         

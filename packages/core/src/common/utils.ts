@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Motion } from "../AnimationLayer";
 import { MotionProgressEvent } from "../MotionEvents";
+import { RouterDataContext } from "../RouterData";
 
 export function getCSSData(styles: CSSStyleDeclaration, object: boolean = true): [string, {[key:string]:string}] {
     let text = '';
@@ -110,4 +111,9 @@ export function useMotion() {
     }, []);
     
     return motion;
+}
+
+export function useNavigation() {
+    const routerData = React.useContext(RouterDataContext);
+    return routerData.navigation;
 }

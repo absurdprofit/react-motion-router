@@ -1,5 +1,5 @@
 import { ParamsDeserialiser, ParamsSerialiser } from "./common/types";
-import History from "./History";
+import HistoryBase from "./HistoryBase";
 
 export type BackEvent = CustomEvent<{replaceState:boolean}>;
 export interface NavigateEventDetail {
@@ -10,9 +10,9 @@ export interface NavigateEventDetail {
 
 export type NavigateEvent = CustomEvent<NavigateEventDetail>;
 
-export default class Navigation {
+export default class NavigationBase {
     private _id: number;
-    protected _history: History;
+    protected _history: HistoryBase;
     // private _history;
     private _disableBrowserRouting: boolean;
     protected _currentParams: {[key:string]: any} = {};
@@ -22,7 +22,7 @@ export default class Navigation {
     protected _dispatchEvent: ((event: Event) => boolean) | null = null;
     // private _dispatchEvent: ((event: Event) => boolean) | null = null;
 
-    constructor(_id: number, _disableBrowserRouting: boolean = false, _defaultRoute: string | null = null, _history = new History(_defaultRoute)) {
+    constructor(_id: number, _disableBrowserRouting: boolean = false, _defaultRoute: string | null = null, _history: HistoryBase) {
         this._disableBrowserRouting = _disableBrowserRouting;
         this._history = _history;
         this._id = _id;
