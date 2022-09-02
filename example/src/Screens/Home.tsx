@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import {Navigation, SharedElement} from 'react-motion-router';
+import { SharedElement} from '@react-motion-router/core';
+import { Navigation } from '@react-motion-router/stack';
 import ListItemComponent from '../Components/ListItem';
 import Navbar from '../Components/Navbar';
 import '../css/Home.css';

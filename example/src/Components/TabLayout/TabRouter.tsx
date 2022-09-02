@@ -1,7 +1,7 @@
 import React from "react";
-import { Router, RouterData, MotionProgressEvent } from "react-motion-router";
-import { BackEvent, NavigateEvent } from "react-motion-router/Navigation";
-import { RouterProps, RouterState } from "react-motion-router/Router";
+import { RouterProps, RouterState } from "@react-motion-router/stack";
+import {RouterBase} from "@react-motion-router/core";
+import { BackEvent, NavigateEvent, RouterData, MotionProgressEvent } from "@react-motion-router/core";
 import { BackBehaviour } from "../../common/Tab/TabHistory";
 import TabNavigation from "../../common/Tab/TabNavigation";
 
@@ -17,7 +17,7 @@ interface TabRouterState extends RouterState {
     index: number;
 }
 
-export default class TabRouter extends Router<TabRouterProps, TabRouterState> {
+export default class TabRouter extends RouterBase<TabRouterProps, TabRouterState> {
     protected navigation: TabNavigation;
 
     constructor(props: RouterProps) {

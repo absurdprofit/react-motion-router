@@ -1,5 +1,6 @@
 import React from 'react';
-import { Navigation, SharedElement } from 'react-motion-router';
+import { SharedElement } from '@react-motion-router/core';
+import { Navigation } from '@react-motion-router/stack';
 import Navbar from '../Components/Navbar';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';

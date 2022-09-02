@@ -1,5 +1,5 @@
 import React from 'react';
-import { Anchor } from 'react-motion-router';
+import { Anchor } from '@react-motion-router/core';
 import { Button } from '@mui/material';
 
 

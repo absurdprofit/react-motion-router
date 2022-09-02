@@ -1,6 +1,7 @@
 import { Button } from '@mui/material';
 import React, { useEffect, useRef } from 'react';
-import { Anchor, Navigation, SharedElement } from 'react-motion-router';
+import { Anchor, SharedElement } from '@react-motion-router/core';
+import { Navigation } from '@react-motion-router/stack';
 import King from "../../assets/king.webp";
 import SkipNextIcon from '@mui/icons-material/SkipNext';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';

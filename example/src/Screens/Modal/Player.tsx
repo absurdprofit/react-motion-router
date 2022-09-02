@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import King from "../../assets/king.webp";
 import '../../css/Player.css';
-import { SharedElement } from 'react-motion-router';
+import { SharedElement } from '@react-motion-router/core';
 import SkipPreviousIcon from '@mui/icons-material/SkipPrevious';
 import SkipNextIcon from '@mui/icons-material/SkipNext';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';

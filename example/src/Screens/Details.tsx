@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import {Navigation, SharedElement} from 'react-motion-router';
+import {SharedElement} from '@react-motion-router/core';
+import { Navigation } from '@react-motion-router/stack';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import ClearIcon from '@mui/icons-material/Clear';

@@ -1,7 +1,7 @@
 import React, {memo} from 'react';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import IconButton from '@mui/material/IconButton';
-import { SharedElement, useNavigation } from 'react-motion-router';
+import { SharedElement, useNavigation } from '@react-motion-router/core';
 import '../css/Navbar.css';
 
 interface NavbarProps {

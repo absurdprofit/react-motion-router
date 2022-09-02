@@ -1,7 +1,11 @@
 import React from 'react';
-import {Router, Stack, AnimationConfig, AnimationConfigFactory} from 'react-motion-router';
-import { AnimationKeyframeEffectConfig } from 'react-motion-router/common/types';
-import { matchRoute } from 'react-motion-router/common/utils';
+import {Router, Stack } from '@react-motion-router/stack';
+import {
+  matchRoute,
+  AnimationKeyframeEffectConfig,
+  AnimationConfig,
+  AnimationConfigFactory
+} from '@react-motion-router/core';
 import { iOS, isPWA } from './common/utils';
 import { ModalAnimation } from './Screens/Modal/Animations';
 import { OverlaysAnimation } from './Screens/Overlays/Animations';

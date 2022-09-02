@@ -1,6 +1,7 @@
 import React from 'react';
 import { Heroes, Hero } from '../assets/Heroes';
-import {Navigation, Anchor, SharedElement} from 'react-motion-router';
+import {Anchor, SharedElement} from '@react-motion-router/core';
+import { Navigation } from '@react-motion-router/stack';
 import Navbar from '../Components/Navbar';
 import Tile from '../Components/Tile';
 import '../css/Tiles.css';

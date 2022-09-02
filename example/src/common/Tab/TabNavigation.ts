@@ -1,8 +1,7 @@
-import {Navigation} from 'react-motion-router';
-import { NavigateEventDetail } from 'react-motion-router/Navigation';
+import { NavigationBase, NavigateEventDetail } from '@react-motion-router/core';
 import TabHistory, { BackBehaviour } from './TabHistory';
 
-export default class TabNavigation extends Navigation {
+export default class TabNavigation extends NavigationBase {
     constructor(
         _id: number,
         _disableBrowserRouting: boolean = false,

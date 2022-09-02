@@ -1,15 +1,12 @@
 import React, {useEffect, useState} from 'react';
 import { Hero, Heroes } from '../assets/Heroes';
 import ClearIcon from '@mui/icons-material/Clear';
-import { Navigation, SharedElement, Motion } from 'react-motion-router';
-import SwipeableViews from 'react-swipeable-views';
-import { bindKeyboard } from 'react-swipeable-views-utils';
+import { Navigation } from '@react-motion-router/stack';
+import { SharedElement, Motion } from '@react-motion-router/core';
 import IconButton from '@mui/material/IconButton';
 import '../css/Slides.css';
 import { SwipeStartEvent, SwipeEvent, SwipeEndEvent } from 'web-gesture-events';
 import { lerp } from '../common/utils';
-
-const KeyboardSwipeableViews = bindKeyboard(SwipeableViews);
 
 interface SlidesProps {
     navigation: Navigation;
@@ -90,7 +87,7 @@ export default function Slides(props: SlidesProps) {
                     );
                 }}
             </Motion.Consumer>
-            <KeyboardSwipeableViews onChangeIndex={(index: number) => setIndex(index)} index={index}>
+            <div>
             {
                 Heroes.map((hero: Hero, _index: number) => {
                     return (
@@ -109,7 +106,7 @@ export default function Slides(props: SlidesProps) {
                     );
                 })
             }
-            </KeyboardSwipeableViews>
+            </div>
         </div>
     );
 }

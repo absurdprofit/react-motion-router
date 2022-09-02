@@ -1,5 +1,5 @@
 import React from 'react';
-import {Stack} from 'react-motion-router';
+import {ScreenBase, ScreenBaseProps} from '@react-motion-router/core';
 
 // export default class Tab extends React.Component<TabProps> {
     //     render(): React.ReactNode {
@@ -12,11 +12,11 @@ import {Stack} from 'react-motion-router';
 //     }
 
 namespace Tab {
-    export interface TabProps extends Stack.ScreenProps {
+    export interface TabProps extends ScreenBaseProps {
         path: string;
     }
 
-    export class Screen extends Stack.Screen<TabProps> {}
+    export class Screen extends ScreenBase<TabProps> {}
 }
 
 export default Tab;

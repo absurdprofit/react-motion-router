@@ -1,5 +1,6 @@
 import React from 'react';
-import { Navigation, SharedElement } from 'react-motion-router';
+import { SharedElement } from '@react-motion-router/core';
+import { Navigation } from '@react-motion-router/stack';
 import BoredSaitama from '../assets/bored-saitama.gif';
 import Button from '@mui/material/Button';
 import '../css/NotFound.css';

@@ -1,8 +1,8 @@
-import {History} from '@react-motion-router/core';
+import {HistoryBase} from '@react-motion-router/core';
 
 export type BackBehaviour = 'history' | 'none' | 'first';
 
-export default class TabHistory extends History {
+export default class TabHistory extends HistoryBase {
     private _index: number = 0;
     private _backBevhiour: BackBehaviour;
 

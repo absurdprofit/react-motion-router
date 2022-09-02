@@ -1,5 +1,4 @@
-import { AnimationConfigFactory, AnimationConfig } from 'react-motion-router/common/types';
-import { matchRoute } from 'react-motion-router/common/utils';
+import { matchRoute, AnimationConfigFactory, AnimationConfig } from '@react-motion-router/core';
 import { iOS, isPWA } from '../../common/utils';
 
 export const ModalAnimation: AnimationConfigFactory = (c, n, gestureNavigating) => {

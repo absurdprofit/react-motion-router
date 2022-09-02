@@ -1,6 +1,7 @@
 import React from 'react';
 import {Hero} from '../assets/Heroes';
-import {Navigation, SharedElement} from 'react-motion-router';
+import {SharedElement} from '@react-motion-router/core';
+import {Navigation} from '@react-motion-router/stack';
 
 interface TileProps {
     hero: Hero;

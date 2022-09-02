@@ -1,5 +1,6 @@
 import React, { Suspense } from 'react';
-import {  Motion, Navigation } from 'react-motion-router';
+import { Motion } from '@react-motion-router/core';
+import { Navigation } from '@react-motion-router/stack';
 import Default from './Default';
 import '../../css/Modal.css';
 import { motion, AnimationProps } from 'framer-motion';

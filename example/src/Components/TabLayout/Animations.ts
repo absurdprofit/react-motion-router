@@ -1,4 +1,4 @@
-import { AnimationConfigSet } from 'react-motion-router/common/types';
+import { AnimationConfigSet } from '@react-motion-router/core';
 
 const TabAnimation: AnimationConfigSet = {
     in: {

@@ -1,6 +1,6 @@
 import { Button } from '@mui/material';
 import React from 'react';
-import { Navigation, Router, Stack } from 'react-motion-router';
+import { Navigation, Router, Stack } from '@react-motion-router/stack';
 import Tab from './Tab';
 import '../../css/Tabs.css';
 import { TabAnimation } from './Animations';
@@ -8,9 +8,9 @@ import TabNavigation from '../../common/Tab/TabNavigation';
 import TabRouter from './TabRouter';
 import { BackBehaviour } from '../../common/Tab/TabHistory';
 import { lerp } from '../../common/utils';
-import { clamp } from 'react-motion-router/common/utils';
+import { clamp, ScreenChild } from '@react-motion-router/core';
 
-type TabChild = React.ReactElement<React.ComponentProps<typeof Tab.Screen>,React.JSXElementConstructor<typeof Tab.Screen>>;
+type TabChild = ScreenChild<Tab.TabProps, typeof Tab.Screen>;
 
 
 interface TabLayoutProps {
