@@ -35,7 +35,8 @@
     "lerna": "^5.4.3"
   },
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "example"
   ],
   "publishConfig": {
     "directory": "build",

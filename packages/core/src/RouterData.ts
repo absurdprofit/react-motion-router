@@ -36,7 +36,7 @@ export default class RouterData {
     set routesData(_routesData: RoutesData) {
         this._routesData = _routesData;
     }
-    set navigation(_navigation: NavigationBase | undefined) {
+    set navigation(_navigation: NavigationBase) {
         this._navigation = _navigation;
     }
     set animation(_animation: AnimationConfigSet) {
@@ -65,7 +65,7 @@ export default class RouterData {
         return this._routesData;
     }
     get navigation() {
-        return this._navigation;
+        return this._navigation!;
     }
     get animation() {
         return this._animation;

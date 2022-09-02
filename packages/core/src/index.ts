@@ -5,8 +5,9 @@ import {
     AnimationConfigFactory
 } from './common/types';
 import RouterData from './RouterData';
-import { useReducedMotion, useMotion, useNavigation } from './common/utils';
-import NavigationBase, { BackEvent, NavigateEvent } from './NavigationBase';
+import NavigationBase, { BackEvent, NavigateEvent, NavigateEventDetail } from './NavigationBase';
+import RouterBase, {RouterBaseProps, RouterBaseState} from './RouterBase';
+import ScreenBase, {ScreenBaseProps, ScreenBaseState} from './ScreenBase';
 import HistoryBase from './HistoryBase';
 import Anchor from './Anchor';
 import {Motion} from './AnimationLayer';
@@ -46,7 +47,25 @@ declare global {
     interface GlobalEventHandlersEventMap extends MotionEventsMap {}
 }
 
-export type {AnimationConfig, AnimationConfigFactory, ScreenChild};
-export {SharedElement, useNavigation, Anchor, Motion, NavigationBase, HistoryBase, GestureRegion, RouterData};
-export {useReducedMotion, useMotion};
-export type {MotionProgressEndEvent, MotionProgressEvent, MotionProgressStartEvent};
+export type {
+    AnimationConfig,
+    AnimationConfigFactory,
+    ScreenChild,
+    RouterBaseProps,
+    RouterBaseState,
+    ScreenBaseProps,
+    ScreenBaseState
+};
+export {SharedElement, Anchor, Motion, GestureRegion};
+export {NavigationBase, HistoryBase, RouterBase, RouterData, ScreenBase};
+export type {
+    MotionProgressEndEvent,
+    MotionProgressEvent,
+    MotionProgressStartEvent,
+    BackEvent,
+    NavigateEvent,
+    NavigateEventDetail
+};
+export * from './common/hooks';
+export * from './common/types';
+export * from './common/utils';

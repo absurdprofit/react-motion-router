@@ -1,8 +1,7 @@
 {
   "name": "@react-motion-router/core",
   "version": "3.8.1",
-  "browser": "build/index.js",
-  "types": "build/index.d.ts",
+  "browser": "src/index.ts",
   "files": [
     "build"
   ],
@@ -41,7 +40,7 @@
   },
   "peerDependencies": {
     "node": "^17.7.2",
-    "react": "^18.0.0",
+    "react": "^18.2.0",
     "react-dom": "^18.0.0"
   },
   "devDependencies": {

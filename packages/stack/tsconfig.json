@@ -1,14 +1,15 @@
 {
   "extends": "../../tsconfig",
-  "references": [
-    {"path": "../core"}
-  ],
   "compilerOptions": {
-    "outDir": "./build",
-    "rootDir": "../"
+    "outDir": "./build"
   },
   "include": [
-    "./src/**/*",
-    "../core/build/**/*"
+    "src/**/*.tsx",
+    "src/**/*.ts",
+    "../core/build/index.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "build"
   ]
 }

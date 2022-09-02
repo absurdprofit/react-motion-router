@@ -2,10 +2,13 @@
   "name": "@react-motion-router/stack",
   "version": "1.0.0",
   "description": "",
-  "browser": "build/index.js",
+  "browser": "src/index.ts",
+  "files": [
+    "build"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc"
+    "build": "webpack"
   },
   "repository": {
     "type": "git",

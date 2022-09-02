@@ -1,5 +1,6 @@
 import React from 'react';
-import ScreenBase, { ScreenBaseProps, ScreenBaseState } from '@react-motion-router/core/ScreenBase';
+import { ScreenBase } from '@react-motion-router/core';
+import type { ScreenBaseProps, ScreenBaseState } from '@react-motion-router/core';
 
 export namespace Stack {
 

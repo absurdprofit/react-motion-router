@@ -1,5 +1,6 @@
 import React from 'react';
-import RouterBase, { RouterBaseProps, RouterBaseState } from '@react-motion-router/core/RouterBase';
+import { RouterBase } from '@react-motion-router/core';
+import type { RouterBaseProps, RouterBaseState } from '@react-motion-router/core';
 
 export interface RouterProps extends RouterBaseProps {}
 

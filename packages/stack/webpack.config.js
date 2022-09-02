@@ -17,8 +17,7 @@ module.exports = {
                 test: /\.tsx?$/,
                 use: 'ts-loader',
                 exclude: [
-                    /node_modules/,
-                    /example/
+                    /node_modules/
                 ],
             },
         ],
@@ -55,6 +54,7 @@ module.exports = {
     },
     externals: {
         react: 'commonjs react',
-        'react-dom': 'commonjs react-dom'
+        'react-dom': 'commonjs react-dom',
+        '@react-motion-router/core': 'module @react-motion-router/core'
     }
 };

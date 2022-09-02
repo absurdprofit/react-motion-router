@@ -4,7 +4,7 @@ import ScreenBase, { ScreenBaseProps } from '../ScreenBase';
 import _SharedElement from '../SharedElement';
 
 const SharedElement = _SharedElement.SharedElement;
-export type ScreenChild = React.ReactElement<ScreenBaseProps, React.JSXElementConstructor<typeof ScreenBase>>;
+export type ScreenChild<P extends ScreenBaseProps = any, E extends typeof ScreenBase = any> = React.ReactElement<P, React.JSXElementConstructor<E>>;
 
 enum AnimationDirectionEnum {
     up,
