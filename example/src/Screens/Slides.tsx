@@ -22,6 +22,11 @@ export default function Slides(props: SlidesProps) {
     const [index, setIndex] = useState(props.route.params.hero);
     let y = 0;
 
+    const goBack = () => {
+        props.navigation.metaData.set('theme-color', '#fee2551');
+        props.navigation.goBack();
+    }
+
     const onSwipeStart = (e: SwipeStartEvent) => {
         y = e.y;
         window.addEventListener('swipe', onSwipe);
@@ -38,10 +43,11 @@ export default function Slides(props: SlidesProps) {
     };
 
     const onSwipeEnd = (e: SwipeEndEvent) => {
+
         window.removeEventListener('swipe', onSwipe);
         if (e.target instanceof HTMLImageElement) {
             if (e.y - y > 100) {
-                props.navigation.goBack();
+                goBack();
                 return;
             } 
             e.target.style.transform = `translateY(${0}px)`;
@@ -49,6 +55,8 @@ export default function Slides(props: SlidesProps) {
     }
 
     useEffect(() => {
+        props.navigation.metaData.set('theme-color', '#222222');
+
         window.addEventListener('page-animation-end', () => {
             isLoaded = true;
         }, {once: true});
@@ -58,12 +66,12 @@ export default function Slides(props: SlidesProps) {
         return () => {
             window.removeEventListener('swipestart', onSwipeStart);
         }
-    });
+    }, []);
 
     return (
         <div className={`slides ${isLoaded ? 'loaded' : 'suspense'}`}>
             <div className="back">
-                <IconButton style={{color: 'white'}} onClick={() => props.navigation.goBack()} disableRipple>
+                <IconButton style={{color: 'white'}} onClick={goBack} disableRipple>
                     <SharedElement id="back" config={{
                         type: 'fade-through'
                     }}>

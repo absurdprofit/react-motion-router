@@ -80,8 +80,9 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
         window.removeEventListener('motion-progress-end', this.enable);
     }
 
-    onClose = (ev: React.MouseEvent<HTMLDialogElement | HTMLButtonElement, MouseEvent>) => {
+    onClose = async (ev: React.MouseEvent<HTMLDialogElement | HTMLButtonElement, MouseEvent>) => {
         ev.stopPropagation();
+
         if (this.state.disabled) return;
         for (let target of ev.nativeEvent.composedPath()) {
             const {classList} = target as HTMLElement;
@@ -90,7 +91,12 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
                 else if (classList.contains('close')) break;
                 else continue;
         }
-        this.props.navigation.goBack();
+
+        await this.props.navigation.goBack();
+
+        console.log("End");
+        this.props.navigation.metaData.set('theme-color', '#fee255a1');
+
         this.setState({disabled: true});
     }
     render() {

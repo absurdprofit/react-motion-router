@@ -73,19 +73,19 @@ export default class TabNavigation extends NavigationBase {
 
     _assign(url: string | URL) {
         url = new URL(url, window.location.origin);
-        if (url.origin === this.location.origin) {
+        if (url.origin === window.location.origin) {
             this.navigate(url.pathname);
         } else {
-            this.location.assign(url);
+            window.location.assign(url);
         }
     }
 
     _replace(url: string | URL) {
         url = new URL(url, window.location.origin);
-        if (url.origin === this.location.origin) {
+        if (url.origin === window.location.origin) {
             this.navigate(url.pathname, {}, true);
         } else {
-            this.location.replace(url);
+            window.location.replace(url);
         }
     }
 

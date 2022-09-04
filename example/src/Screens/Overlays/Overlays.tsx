@@ -15,6 +15,8 @@ let isLoaded = false;
 export default function Overlays({navigation}: OverlaysProps) {
     const playerRef = useRef<HTMLDivElement | null>(null);
     const openModal = () => {
+        navigation.metaData.set('theme-color', '#b19e3b');
+
         navigation.navigate('/modal', {
             sheetView: false
         });
@@ -23,6 +25,9 @@ export default function Overlays({navigation}: OverlaysProps) {
     const openSheet = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         let top = 0.9 * window.innerHeight;
         if (playerRef.current) top = playerRef.current.getBoundingClientRect().top + (0.05 * window.innerHeight);
+        
+        navigation.metaData.set('theme-color', '#b19e3b');
+        
         navigation.navigate('/modal', {
             sheetView: true,
             top: (top / window.innerHeight) * 100 // vh units
