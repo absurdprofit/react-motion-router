@@ -2,7 +2,7 @@
   "name": "@react-motion-router/stack",
   "version": "1.0.0",
   "description": "",
-  "browser": "src/index.ts",
+  "main": "build/index.js",
   "files": [
     "build"
   ],

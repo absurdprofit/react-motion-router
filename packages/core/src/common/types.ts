@@ -68,14 +68,5 @@ export interface Vec2 {
 
 export type SwipeDirection = 'up' | 'down' | 'left' | 'right';
 
-export class NavigationLike extends NavigationBase {
-    constructor(_id: number, _disableBrowserRouting: boolean = false, _defaultRoute: string | null = null, _history: HistoryBase) {
-        super(_id, _disableBrowserRouting, _defaultRoute, _history);
-    }
-}
-
-export class HistoryLike extends HistoryBase {
-    constructor(_defaultRoute: string | null = null) {
-        super(_defaultRoute);
-    }
-}
+export type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
+export type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U;

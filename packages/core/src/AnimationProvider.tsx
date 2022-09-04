@@ -1,6 +1,6 @@
 import React from 'react';
 import { AnimationConfigSet, AnimationDirection, AnimationKeyframeEffectConfig, EasingFunction } from './common/types';
-import AnimationLayerData, {AnimationLayerDataContext} from './AnimationLayerData';
+import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
 import AnimationKeyframePresets from './Animations';
 
 interface AnimationProviderProps {

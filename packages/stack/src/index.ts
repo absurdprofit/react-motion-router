@@ -1,5 +1,5 @@
-import {Stack} from './Stack';
-import Router, {RouterProps, RouterState} from './Router';
+import { Stack } from './Stack';
+import Router, { RouterProps, RouterState } from './Router';
 import History from './History';
 import Navigation from './Navigation';
 

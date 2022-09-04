@@ -6,11 +6,11 @@ import {
 } from './common/types';
 import RouterData from './RouterData';
 import NavigationBase, { BackEvent, NavigateEvent, NavigateEventDetail } from './NavigationBase';
-import RouterBase, {RouterBaseProps, RouterBaseState} from './RouterBase';
-import ScreenBase, {ScreenBaseProps, ScreenBaseState} from './ScreenBase';
+import RouterBase, { RouterBaseProps, RouterBaseState } from './RouterBase';
+import ScreenBase, { ScreenBaseProps, ScreenBaseState } from './ScreenBase';
 import HistoryBase from './HistoryBase';
 import Anchor from './Anchor';
-import {Motion} from './AnimationLayer';
+import { Motion } from './AnimationLayer';
 import GestureRegion from './GestureRegion';
 import 'web-gesture-events';
 import {
@@ -22,10 +22,7 @@ import {
 } from './MotionEvents';
 
 document.body.style.position = 'fixed';
-document.body.style.top = '0';
-document.body.style.left = '0';
-document.body.style.right = '0';
-document.body.style.bottom = '0';
+document.body.style.inset = '0';
 
 let root = document.getElementById('root');
 if (root) {

@@ -1,7 +1,7 @@
 {
   "name": "@react-motion-router/core",
   "version": "3.8.1",
-  "browser": "src/index.ts",
+  "main": "build/index.js",
   "files": [
     "build"
   ],

@@ -1,9 +1,8 @@
 import React, {createContext} from 'react';
-import { AnimationConfig, AnimationConfigSet } from './common/types';
+import { AnimationConfigSet } from './common/types';
 import GhostLayer from './GhostLayer';
 import NavigationBase from './NavigationBase';
 
-// export interface RoutesData {[key:string]: any}
 export type RoutesData = Map<string | RegExp | undefined, {[key:string]: any}>;
 
 export default class RouterData {

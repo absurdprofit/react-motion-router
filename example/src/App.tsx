@@ -9,10 +9,10 @@ import {
 import { iOS, isPWA } from './common/utils';
 import { ModalAnimation } from './Screens/Modal/Animations';
 import { OverlaysAnimation } from './Screens/Overlays/Animations';
-import "./css/App.css";
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './Theme';
 import Nested from './Screens/Nested';
+import "./css/App.css";
 
 const NotFound = React.lazy(() => import('./Screens/NotFound'));
 const Home = React.lazy(() => import('./Screens/Home'));

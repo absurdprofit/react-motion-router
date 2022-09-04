@@ -1,12 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import {useNavigation} from './common/hooks';
+import { useNavigation } from './common/hooks';
+import { XOR } from './common/types';
 
-interface AnchorProps extends React.DetailedHTMLProps<React.AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
-    href: string;
+interface BaseAnchorProps extends React.DetailedHTMLProps<React.AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
     params?: {[key:string]: any};
-    goBack?: boolean;
     onClick?: React.MouseEventHandler<HTMLAnchorElement>;
 }
+
+interface ForwardAnchorProps extends BaseAnchorProps {
+    href: string;
+}
+
+interface BackAnchorProps extends BaseAnchorProps {
+    goBack: boolean;
+}
+
+type AnchorProps = XOR<ForwardAnchorProps, BackAnchorProps>;
 
 export default function Anchor(props: AnchorProps) {
     const navigation = useNavigation();
@@ -18,7 +27,7 @@ export default function Anchor(props: AnchorProps) {
 
         let href;
         let search;
-        if (props.goBack) {
+        if ('goBack' in props) {
             href = navigation.history.previous || navigation.history.defaultRoute;
             search = '';        
         } else {
@@ -36,7 +45,7 @@ export default function Anchor(props: AnchorProps) {
         }
     }, [props.href, props.params]);
     
-    const {href, params, goBack, ...aProps} = props;
+    const {params, ...aProps} = props;
     const onClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
         if (!navigation) return;
         
@@ -45,8 +54,8 @@ export default function Anchor(props: AnchorProps) {
         if (!external) e.preventDefault();
         else return;
 
-        if (goBack) navigation.goBack();
-        else navigation.navigate(href, params); 
+        if ('goBack' in props) navigation.goBack();
+        else navigation.navigate(props.href, params); 
     }
 
     if (!navigation) return <></>;

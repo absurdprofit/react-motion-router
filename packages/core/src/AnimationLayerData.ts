@@ -1,4 +1,4 @@
-import React, {createContext} from 'react';
+import React, { createContext } from 'react';
 import AnimationProvider from './AnimationProvider';
 import { clamp } from './common/utils';
 import AnimationKeyframePresets from './Animations';

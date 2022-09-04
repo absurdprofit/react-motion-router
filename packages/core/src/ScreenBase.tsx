@@ -1,6 +1,14 @@
 import React, { Suspense } from "react";
 import AnimationProvider from "./AnimationProvider";
-import { AnimationConfig, AnimationConfigFactory, AnimationConfigSet, AnimationKeyframeEffectConfig, ReducedAnimationConfigSet, SwipeDirection, Vec2 } from "./common/types";
+import {
+    AnimationConfig,
+    AnimationConfigFactory,
+    AnimationConfigSet,
+    AnimationKeyframeEffectConfig,
+    ReducedAnimationConfigSet,
+    SwipeDirection,
+    Vec2
+} from "./common/types";
 import { RouterDataContext } from "./RouterData";
 import SharedElement from "./SharedElement";
 
@@ -8,7 +16,6 @@ export interface ScreenBaseProps {
     out?: boolean;
     in?: boolean;
     component: React.JSXElementConstructor<any>;
-    // component: any;
     fallback?: React.ReactNode;
     path?: string | RegExp;
     resolvedPathname?: string;

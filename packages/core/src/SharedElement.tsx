@@ -1,5 +1,5 @@
-import React, {createContext} from 'react';
-import {getCSSData} from './common/utils';
+import React, { createContext } from 'react';
+import { getCSSData } from './common/utils';
 import { EasingFunction, Vec2 } from './common/types';
 
 namespace SharedElement {

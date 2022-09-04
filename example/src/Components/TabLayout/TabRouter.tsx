@@ -18,7 +18,8 @@ interface TabRouterState extends RouterState {
 }
 
 export default class TabRouter extends RouterBase<TabRouterProps, TabRouterState> {
-    protected navigation: TabNavigation;
+    navigation: TabNavigation;
+    _routerData: RouterData;
 
     constructor(props: RouterProps) {
         super(props);
@@ -79,26 +80,56 @@ export default class TabRouter extends RouterBase<TabRouterProps, TabRouterState
         }
     }
 
+    onAnimationEnd = () => {
+        if (this.state.backNavigating) {
+            this._routerData.backNavigating = false;
+            this.setState({backNavigating: false});
+        }
+    }
+
     onGestureNavigationEnd = () => {
         this._routerData.gestureNavigating = false;
         this.setState({implicitBack: true, gestureNavigating: false}, () => {
-            this.navigation!.go(-1);
+            this.navigation.go(-1);
             this.props.onChangeIndex(this.navigation.history.index);
             this.setState({backNavigating: false, index: this.navigation.history.index});
             this._routerData.backNavigating = false;
         });
     }
 
-    onBack(e: BackEvent) {
+    onPopStateListener = (e: Event) => {
+        e.preventDefault();
+
+        if (window.location.pathname === this.navigation.history.previous) {
+            if (!this.state.implicitBack) {
+                this.setState({backNavigating: true});
+                this._routerData.backNavigating = true;
+            } else {
+                this.setState({implicitBack: false});
+            }
+
+            this.navigation.implicitBack();
+        } else {
+            if (!this.state.backNavigating && !this.state.implicitBack) {
+                this.navigation.implicitNavigate(window.location.pathname);
+            }
+            if (this.state.implicitBack) {
+                this.setState({implicitBack: false});
+            }
+        }
+
+        window.addEventListener('page-animation-end', this.onAnimationEnd.bind(this), {once: true});
+        this._routerData.currentPath = window.location.pathname;
+        this.setState({currentPath: window.location.pathname});
+    }
+
+    onBackListener = (e: BackEvent) => {
         e.stopImmediatePropagation();
         this.props.onChangeIndex(this.navigation.history.index);
         
         this.setState({backNavigating: true});
 
-        let pathname = this.navigation!.location.pathname;
-        // if (this.config.disableBrowserRouting) {
-        //     pathname = this.navigation.history.current || pathname;
-        // }
+        let pathname = this.navigation.location.pathname;
 
         if (e.detail.replaceState && !this.config.disableBrowserRouting) { // replaced state with default route
             this._routerData.currentPath = pathname;
@@ -117,7 +148,7 @@ export default class TabRouter extends RouterBase<TabRouterProps, TabRouterState
         this._routerData.backNavigating = true;
     }
 
-    onNavigate(e: NavigateEvent) {
+    onNavigateListener = (e: NavigateEvent) => {
         e.stopImmediatePropagation();
         this.props.onChangeIndex(this.navigation.history.index);
 
@@ -146,21 +177,15 @@ export default class TabRouter extends RouterBase<TabRouterProps, TabRouterState
         this.props.onMotionProgress(e.detail.progress);
     }
 
-    setRef = (ref: HTMLElement | null) => {
-        if (this.ref) {
-            this.dispatchEvent = null;
-            this._routerData.navigation.dispatchEvent = this.dispatchEvent;
-            this.removeNavigationEventListeners(this.ref);  
-            this.ref.removeEventListener('motion-progress', this.onMotionProgress);
-        }
+    addNavigationEventListeners(ref: HTMLElement) {
+        ref.addEventListener('go-back', this.onBackListener);
+        ref.addEventListener('navigate', this.onNavigateListener);
+        ref.addEventListener('motion-progress', this.onMotionProgress);
+    }
 
-        if (ref) {
-            this.dispatchEvent = (event) => {
-                return ref.dispatchEvent(event);
-            }
-            this._routerData.navigation.dispatchEvent = this.dispatchEvent;
-            this.addNavigationEventListeners(ref);
-            ref.addEventListener('motion-progress', this.onMotionProgress);
-        }
+    removeNavigationEventListeners(ref: HTMLElement) {
+        ref.removeEventListener('go-back', this.onBackListener);
+        ref.removeEventListener('navigate', this.onNavigateListener);
+        ref.removeEventListener('motion-progress', this.onMotionProgress);
     }
 }
