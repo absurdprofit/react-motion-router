@@ -29,9 +29,9 @@
   },
   "scripts": {
     "analyse": "source-map-explorer 'build/static/js/*.js'",
-    "start": "react-app-rewired start",
-    "build": "react-app-rewired build",
-    "test": "react-app-rewired test",
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -58,8 +58,6 @@
     "@types/react-swipeable-views": "^0.13.1",
     "@types/react-swipeable-views-utils": "^0.13.3",
     "@types/react-transition-group": "^4.4.4",
-    "@types/styled-components": "^5.1.15",
-    "react-app-alias": "^2.2.1",
-    "react-app-rewired": "^2.2.1"
+    "@types/styled-components": "^5.1.15"
   }
 }
