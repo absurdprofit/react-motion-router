@@ -1,5 +1,6 @@
 import { ParamsDeserialiser, ParamsSerialiser } from "./common/types";
 import HistoryBase from "./HistoryBase";
+import MetaData from "./MetaData";
 
 export type BackEvent = CustomEvent<{replaceState:boolean}>;
 export interface NavigateEventDetail {
@@ -12,6 +13,7 @@ export type NavigateEvent = CustomEvent<NavigateEventDetail>;
 
 export default abstract class NavigationBase {
     private _id: number;
+    private _metaData = new MetaData();
     abstract _history: HistoryBase;
     // private _history;
     protected readonly _disableBrowserRouting: boolean;
@@ -78,5 +80,9 @@ export default abstract class NavigationBase {
         return this._history;
     }
 
+    get metaData() {
+        return this._metaData;
+    }
+    
     abstract get location(): Location;
 }

@@ -9,6 +9,7 @@ interface BaseAnchorProps extends React.DetailedHTMLProps<React.AnchorHTMLAttrib
 
 interface ForwardAnchorProps extends BaseAnchorProps {
     href: string;
+    replace?: boolean;
 }
 
 interface BackAnchorProps extends BaseAnchorProps {
@@ -45,7 +46,7 @@ export default function Anchor(props: AnchorProps) {
         }
     }, [props.href, props.params]);
     
-    const {params, ...aProps} = props;
+    const {href, goBack, replace, params, ...aProps} = props;
     const onClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
         if (!navigation) return;
         
@@ -54,8 +55,8 @@ export default function Anchor(props: AnchorProps) {
         if (!external) e.preventDefault();
         else return;
 
-        if ('goBack' in props) navigation.goBack();
-        else navigation.navigate(props.href, params); 
+        if (goBack) navigation.goBack();
+        if (href) navigation.navigate(href, params, replace); 
     }
 
     if (!navigation) return <></>;

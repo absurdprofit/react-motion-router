@@ -78,6 +78,10 @@ export default class Navigation extends NavigationBase {
         } 
 
         if (this._dispatchEvent) this._dispatchEvent(event);
+
+        return new Promise<void>((resolve) => {
+            window.addEventListener('page-animation-end', () => resolve(), {once: true});
+        });
     }
 
     assign(url: string | URL) {
