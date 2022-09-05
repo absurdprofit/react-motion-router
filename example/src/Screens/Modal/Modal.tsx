@@ -45,6 +45,8 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
     enable = () => this.setState({disabled: false});
 
     componentDidMount() {
+        this.props.navigation.metaData.set('theme-color', '#b19e3b');
+
         window.addEventListener('page-animation-end', () => {
             isLoaded = true;
             this.setState({stiffness: 200});
@@ -78,6 +80,7 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
     componentWillUnmount() {
         window.removeEventListener('motion-progress-start', this.disable);
         window.removeEventListener('motion-progress-end', this.enable);
+        this.props.navigation.metaData.set('theme-color', '#fee255a1');
     }
 
     onClose = async (ev: React.MouseEvent<HTMLDialogElement | HTMLButtonElement, MouseEvent>) => {
@@ -93,9 +96,6 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
         }
 
         await this.props.navigation.goBack();
-
-        console.log("End");
-        this.props.navigation.metaData.set('theme-color', '#fee255a1');
 
         this.setState({disabled: true});
     }

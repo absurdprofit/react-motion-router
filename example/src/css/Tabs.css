@@ -26,8 +26,17 @@
     white-space: nowrap;
 }
 .tab {
-    height: 100%;
-    width: 100%;
+    width: calc(100vw - 30px);
+    min-height: 100%;
+    padding: 15px;
+}
+@import url('https://fonts.googleapis.com/css2?family=Flow+Block&display=swap');
+.tab article > *,
+.tab article > * > * {
+    font-family: 'Flow Block', cursive!important;
+    font-size: 1.25rem;
+    line-height: 1;
+    color: white;
 }
 .tab-layout .header-layout .MuiTouchRipple-child {
     background-color: rgba(254, 226, 85);

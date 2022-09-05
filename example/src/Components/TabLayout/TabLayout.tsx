@@ -7,8 +7,8 @@ import { BackBehaviour } from '../../common/Tab/TabHistory';
 import { clamp, ScreenChild } from '@react-motion-router/core';
 import Theme from '../../common/Tab/Theme';
 import '../../css/Tabs.css';
+import { ANIMATION_DURATION, TabAnimation } from './Animations';
 
-const ANIMATION_DURATION = 350;
 
 type TabChild = ScreenChild<Tab.TabProps, typeof Tab.Screen>;
 
@@ -176,9 +176,6 @@ export default class TabLayout extends React.Component<TabLayoutProps, TabLayout
                         this.setState({backNavigation})
                     }}
                     onChangeIndex={this.onChangeIndex}
-                    config={{
-                        animation: {type: 'slide', direction: 'right', duration: ANIMATION_DURATION}
-                    }}
                     backBehaviour={"none"}
                 >
                     {this.props.children}
