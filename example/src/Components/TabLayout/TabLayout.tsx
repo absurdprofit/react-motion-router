@@ -1,17 +1,16 @@
-import { Button } from '@mui/material';
 import React from 'react';
-import { Navigation, Router, Stack } from '@react-motion-router/stack';
+import { Button } from '@mui/material';
 import Tab from './Tab';
-import '../../css/Tabs.css';
-import { TabAnimation } from './Animations';
 import TabNavigation from '../../common/Tab/TabNavigation';
 import TabRouter from './TabRouter';
 import { BackBehaviour } from '../../common/Tab/TabHistory';
-import { lerp } from '../../common/utils';
 import { clamp, ScreenChild } from '@react-motion-router/core';
+import Theme from '../../common/Tab/Theme';
+import '../../css/Tabs.css';
+
+const ANIMATION_DURATION = 350;
 
 type TabChild = ScreenChild<Tab.TabProps, typeof Tab.Screen>;
-
 
 interface TabLayoutProps {
     children: TabChild | TabChild[];
@@ -29,7 +28,6 @@ interface TabLayoutState {
 }
 
 export default class TabLayout extends React.Component<TabLayoutProps, TabLayoutState> {
-    private headerRef: HTMLDivElement | null = null;
     private headerUnderlineRef: HTMLSpanElement | null = null;
     private underlineKeyframes: Keyframe[] = [];
     private underlineAnimation: Animation | null = null;
@@ -44,39 +42,44 @@ export default class TabLayout extends React.Component<TabLayoutProps, TabLayout
     }
 
     componentDidMount() {
-        // this.setUnderlinePosition(this.state.index);
+        window.addEventListener('motion-progress-start', this.onGestureStart, true);
+        window.addEventListener('motion-progress-end', this.onGestureEnd, true);
     }
 
     componentDidUpdate(lastProps: TabLayoutProps, lastState: TabLayoutState) {
         if (lastState.progress !== this.state.progress) {
-            if (this.underlineAnimation) {
+            if (this.underlineAnimation && this.underlineAnimation.playState === 'paused') {
                 const progress = clamp(this.state.progress, 0, 100);
-                const duration = this.underlineAnimation.effect?.getComputedTiming().duration || 200;
+                const duration = this.underlineAnimation.effect?.getComputedTiming().duration || ANIMATION_DURATION;
                 const currentTime = (progress / 100) * parseFloat(duration.toString());
                 this.underlineAnimation.currentTime = currentTime;
             }
+            
         }
     }
 
-    // setUnderlinePosition = (index: number) => {
-    //     if (this.headerRef && this.headerUnderlineRef) {
-    //         const {left, width} = this.headerRef.children[index].getBoundingClientRect();
-    //         // this.headerUnderlineRef.style.left = `${left}px`;
-    //         if (!this.state.backNavigation) {
-    //             this.setState({
-    //                 lastUnderlinePos: this.state.currentUnderlinePos,
-    //                 currentUnderlinePos: left
-    //             });
-    //         } else {
-    //             console.log(left, this.state.currentUnderlinePos);
-    //             this.setState({
-    //                 lastUnderlinePos: left,
-    //                 currentUnderlinePos: this.state.currentUnderlinePos
-    //             });
-    //         }
-    //         this.headerUnderlineRef.style.width = `${width}px`;
-    //     }
-    // }
+    componentWillUnmount() {
+        window.removeEventListener('motion-progress-start', this.onGestureStart, true);
+        window.removeEventListener('motion-progress-end', this.onGestureEnd, true);
+        this.state.navigation?.metaData.set('theme-color', '#fee255a1');
+    }
+
+    onGestureStart = () => {
+        const {index} = this.state;
+        if (!index) return;
+
+        this.setUnderlineAnimation(index, index - 1);
+        this.underlineAnimation?.pause();
+    }
+
+    onGestureEnd = () => {
+        if (!this.underlineAnimation) return;
+
+        if (this.state.progress < 50) {
+            this.underlineAnimation.reverse();
+        }
+        this.underlineAnimation.play();
+    }
 
     pushTab = (index: number) => {
         const delta = (index + 1) - (this.state.index + 1);
@@ -84,51 +87,78 @@ export default class TabLayout extends React.Component<TabLayoutProps, TabLayout
         this.state.navigation?.go(delta);
     }
 
-    onChangeIndex = (index: number) => {
-        const delta = (index + 1) - (this.state.index + 1);
+    onChangeIndex = async (index: number) => {
         let lastIndex = clamp(index - 1, 0);
-        // if (backNavigation) [lastIndex, index] = [index, lastIndex];
-        this.setState({index, lastIndex}, () => {
-            // this.setUnderlinePosition(index);            
-        });
+
+        this.setThemeColour(index);
+        
+        this.setUnderlineAnimation(index, this.state.index);
+        this.setState({index, lastIndex});
+    }
+
+    setThemeColour(index: number) {
+        if (this.state.navigation) {
+            this.state.navigation.metaData.set('theme-color', Theme[index]);
+        }
     }
 
     addUnderlineKeyframe(ref: HTMLElement, index: number) {
         if (this.underlineKeyframes.at(index)) return;
 
-        const {x, width} = ref.getBoundingClientRect();
-        const parentWidth = ref.parentElement?.getBoundingClientRect().width || window.innerWidth;
-        const offset = x / parentWidth;
         this.underlineKeyframes[index] = {
-            transform: `translateX(${x}px)`,
-            width: `${width}px`,
+            transform: `translateX(${ref.offsetLeft}px)`,
+            width: `${ref.offsetWidth}px`,
             // offset
         };
+    }
+
+    async setUnderlineAnimation(index: number, lastIndex: number) {
+        if (this.headerUnderlineRef && !this.underlineAnimation) {
+            this.underlineAnimation = this.headerUnderlineRef.animate([
+                this.underlineKeyframes[lastIndex],
+                this.underlineKeyframes[index]
+            ], {
+                duration: ANIMATION_DURATION,
+                easing: 'ease',
+                fill: 'both'
+            });
+
+            await this.underlineAnimation.finished;
+            this.underlineAnimation.commitStyles();
+            this.underlineAnimation.cancel();
+            this.underlineAnimation = null;
+        }
     }
 
     setUnderlineRef = (ref: HTMLElement | null) => {
         this.headerUnderlineRef = ref;
         if (ref) {
-            this.underlineKeyframes = this.underlineKeyframes.sort((a, b) => a < b ? -1 : 1);
-            this.underlineAnimation = ref.animate(this.underlineKeyframes, {
-                duration: 200,
-                easing: 'ease',
-                fill: 'forwards'
-            });
-
-            this.underlineAnimation.pause();
+            this.underlineKeyframes.sort((a, b) => a < b ? -1 : 1);
         }
     }
 
     render() {
         return (
             <div className="tab-layout">
-                <div className="header-layout" ref={(c) => this.headerRef = c}>
+                <div className="header-layout">
                     {React.Children.map(this.props.children, (tab, index) => {
                         const {name} = tab.props;
-                        return <Button onClick={() => this.pushTab(index)} ref={c => {
+                        const onRef = (c: HTMLElement | null) => {
                             if (c) this.addUnderlineKeyframe(c, index);
-                        }}>{name}</Button>
+                            if (index === this.state.index) {
+                                if (!this.headerUnderlineRef || !c) return;
+
+                                this.headerUnderlineRef.style.width = `${c.offsetWidth}px`;
+                                this.headerUnderlineRef.style.transform = `translateX(${c.offsetLeft}px)`;
+                            }
+                        };
+                        return (
+                            <Button
+                                onClick={() => this.pushTab(index)}
+                                ref={onRef}
+                                
+                            >{name}</Button>
+                        );
                     })}
                     <span
                         className="underline"
@@ -137,22 +167,17 @@ export default class TabLayout extends React.Component<TabLayoutProps, TabLayout
                 </div>
                 <TabRouter
                     onMount={(navigation: TabNavigation) => {
-                        this.setState({navigation});
+                        this.setState({navigation}, () => this.setThemeColour(this.state.index));
                     }}
                     onMotionProgress={(progress) => {
-                        let {index, lastIndex, backNavigation} = this.state;
-                        if (backNavigation) [lastIndex, index] = [index, lastIndex];
-                        console.log(index, lastIndex);
-                        progress = lerp(0, 100, lerp(lastIndex / 2, index / 2, progress / 100));
                         this.setState({progress});
                     }}
                     onBackNavigationChange={(backNavigation) => {
-                        console.log(backNavigation);
                         this.setState({backNavigation})
                     }}
                     onChangeIndex={this.onChangeIndex}
                     config={{
-                        animation: {type: 'slide', direction: 'right', duration: 200}
+                        animation: {type: 'slide', direction: 'right', duration: ANIMATION_DURATION}
                     }}
                     backBehaviour={"none"}
                 >

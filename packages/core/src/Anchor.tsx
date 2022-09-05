@@ -46,15 +46,15 @@ export default function Anchor(props: AnchorProps) {
         }
     }, [props.href, props.params]);
     
-    const {href, goBack, replace, params, ...aProps} = props;
+    const {href, goBack, onClick: propsOnClick, replace, params, ...aProps} = props;
     const onClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
         if (!navigation) return;
-        
-        if (props.onClick) props.onClick(e);
 
         if (!external) e.preventDefault();
         else return;
 
+        if (propsOnClick) propsOnClick(e);
+        
         if (goBack) navigation.goBack();
         if (href) navigation.navigate(href, params, replace); 
     }

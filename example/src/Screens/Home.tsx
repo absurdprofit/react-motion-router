@@ -11,8 +11,8 @@ interface HomeProps {
 
 interface ListItem {
     title: string;
+    href: string;
     description: string;
-    onClick: () => void;
 }
 
 let isLoaded = false;
@@ -21,27 +21,27 @@ export default function Home(props: HomeProps) {
         {
             title: 'Tiles Demo',
             description: "Image tiles that zoom-in and then allow gestures to paginate and dismiss",
-            onClick: () => props.navigation.navigate('/tiles')
+            href: '/tiles'
         },
         {
             title: 'Cards Demo',
             description: 'Card reveal with shared element transitions',
-            onClick: () => props.navigation.navigate('/cards')
+            href: '/cards'
         },
         {
             title: 'Cards Demo 2',
             description: 'Heavier card demo with fading gradient overlay and cross-fading texts',
-            onClick: () => props.navigation.navigate('/cards-2')
+            href: '/cards-2'
         },
         {
             title: 'Overlay Demo',
             description: 'Various Overlays such as modals with spring and default timing functions',
-            onClick: () => props.navigation.navigate('/overlays')
+            href: '/overlays'
         },
         {
             title: 'Nested Demo',
             description: 'Tab layout implemented using nested routing',
-            onClick: () => props.navigation.navigate('/nested')
+            href: '/nested'
         }
     ];
 
@@ -58,18 +58,18 @@ export default function Home(props: HomeProps) {
             }}>
                 <Navbar title="React Motion Router" />
             </SharedElement>
-            <div className={`list`}>
+            <ul className={`list`} role="group" aria-label="Available Demos">
                 {
                     list.map((item: ListItem, index: number) => {
                         return <ListItemComponent
                                     key={index}
+                                    href={item.href}
                                     title={item.title}
                                     description={item.description}
-                                    onClick={item.onClick}
                                 />
                     })
                 }
-            </div>
+            </ul>
             {/* <Anchor href="/video-test">
                 Video Text
             </Anchor> */}

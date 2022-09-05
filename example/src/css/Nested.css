@@ -1,0 +1,16 @@
+.tab {
+    width: calc(100vw - 30px);
+    height: 100%;
+    padding: 15px;
+
+    
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Flow+Block&display=swap');
+.tab article > *,
+.tab article > * > * {
+    font-family: 'Flow Block', cursive!important;
+    font-size: 1.25rem;
+    line-height: 1;
+    color: white;
+}

@@ -18,8 +18,6 @@ export default class MetaData {
         });
 
         Array.from(head.querySelectorAll('meta')).forEach(this.metaDataFromNode.bind(this));
-
-        (window as any).metaData = this;
     }
 
     get(key: string | MetaType) {
@@ -119,5 +117,10 @@ export default class MetaData {
 
         meta.setAttribute(...metaType);
         if (content) meta.setAttribute('content', content);
+        else meta.removeAttribute('content');
+
+        if (!meta.parentElement) {
+            document.head.appendChild(meta);
+        }
     }
 }

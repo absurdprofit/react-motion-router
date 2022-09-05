@@ -91,7 +91,6 @@ export default class TabRouter extends RouterBase<TabRouterProps, TabRouterState
         this._routerData.gestureNavigating = false;
         this.setState({implicitBack: true, gestureNavigating: false}, () => {
             this.navigation.go(-1);
-            this.props.onChangeIndex(this.navigation.history.index);
             this.setState({backNavigating: false, index: this.navigation.history.index});
             this._routerData.backNavigating = false;
         });

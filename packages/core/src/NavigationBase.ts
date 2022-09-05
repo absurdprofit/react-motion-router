@@ -14,7 +14,7 @@ export type NavigateEvent = CustomEvent<NavigateEventDetail>;
 export default abstract class NavigationBase {
     private _id: number;
     private _metaData = new MetaData();
-    abstract _history: HistoryBase;
+    protected abstract _history: HistoryBase;
     // private _history;
     protected readonly _disableBrowserRouting: boolean;
     protected _currentParams: {[key:string]: any} = {};

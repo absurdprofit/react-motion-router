@@ -2,7 +2,7 @@ import { NavigateEventDetail, NavigationBase } from '@react-motion-router/core';
 import History from './History';
 
 export default class Navigation extends NavigationBase {
-    _history: History;
+    protected _history: History;
 
     constructor(_id: number, _history: History, _disableBrowserRouting: boolean = false, _defaultRoute: string | null = null) {
         super(_id, _disableBrowserRouting, _defaultRoute);

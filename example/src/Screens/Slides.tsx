@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import { Hero, Heroes } from '../assets/Heroes';
 import ClearIcon from '@mui/icons-material/Clear';
 import { Navigation } from '@react-motion-router/stack';
-import { SharedElement, Motion } from '@react-motion-router/core';
+import { SharedElement, Motion, Anchor } from '@react-motion-router/core';
 import IconButton from '@mui/material/IconButton';
 import '../css/Slides.css';
 import { SwipeStartEvent, SwipeEvent, SwipeEndEvent } from 'web-gesture-events';
@@ -21,11 +21,6 @@ let isLoaded = false;
 export default function Slides(props: SlidesProps) {
     const [index, setIndex] = useState(props.route.params.hero);
     let y = 0;
-
-    const goBack = () => {
-        props.navigation.metaData.set('theme-color', '#fee2551');
-        props.navigation.goBack();
-    }
 
     const onSwipeStart = (e: SwipeStartEvent) => {
         y = e.y;
@@ -47,7 +42,8 @@ export default function Slides(props: SlidesProps) {
         window.removeEventListener('swipe', onSwipe);
         if (e.target instanceof HTMLImageElement) {
             if (e.y - y > 100) {
-                goBack();
+                props.navigation.goBack();
+
                 return;
             } 
             e.target.style.transform = `translateY(${0}px)`;
@@ -56,6 +52,10 @@ export default function Slides(props: SlidesProps) {
 
     useEffect(() => {
         props.navigation.metaData.set('theme-color', '#222222');
+
+        window.addEventListener('go-back', () => {
+            props.navigation.metaData.set('theme-color', '#fee2551');
+        }, {once: true, capture: true});
 
         window.addEventListener('page-animation-end', () => {
             isLoaded = true;
@@ -71,13 +71,15 @@ export default function Slides(props: SlidesProps) {
     return (
         <div className={`slides ${isLoaded ? 'loaded' : 'suspense'}`}>
             <div className="back">
-                <IconButton style={{color: 'white'}} onClick={goBack} disableRipple>
-                    <SharedElement id="back" config={{
-                        type: 'fade-through'
-                    }}>
-                        <ClearIcon />
-                    </SharedElement>
-                </IconButton>
+                <Anchor goBack>
+                    <IconButton style={{color: 'white'}} disableRipple>
+                        <SharedElement id="back" config={{
+                            type: 'fade-through'
+                        }}>
+                            <ClearIcon />
+                        </SharedElement>
+                    </IconButton>
+                </Anchor>
             </div>
             <Motion.Consumer>
                 {(progress) => {

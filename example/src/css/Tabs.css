@@ -8,7 +8,7 @@
 .tab-layout .header-layout {
     display: flex;
     position: relative;
-    justify-content: space-between;
+    overflow: scroll;
 }
 .tab-layout .header-layout .underline {
     position: absolute;
@@ -22,8 +22,13 @@
     border-radius: 0;
     border: none;
     padding: 15px;
+    flex: 1 0 auto;
+    white-space: nowrap;
 }
 .tab {
     height: 100%;
     width: 100%;
+}
+.tab-layout .header-layout .MuiTouchRipple-child {
+    background-color: rgba(254, 226, 85);
 }
