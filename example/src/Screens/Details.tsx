@@ -26,7 +26,7 @@ export default function Details(props: DetailsProps) {
     useEffect(() => {
         if (hero.description) {
             if (!originalDesc)
-                originalDesc = props.navigation.metaData.get('description');
+                originalDesc = props.navigation.metaData.get('description') as string | undefined;
             
             const description = hero.description;
             props.navigation.metaData.set('description', `${description.slice(0, 102)}...`);

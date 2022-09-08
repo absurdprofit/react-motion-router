@@ -35,14 +35,14 @@ const CardList = ({navigation, observer}: CardListProps) => {
                 const paraRect = paraRef.getBoundingClientRect();
                 const titleRect = titleRef.getBoundingClientRect();
                 params.photoAspect = imageRef.naturalWidth / imageRef.naturalHeight;
-                titleInset = `inset(${-titleRect.top+64}px ${-titleRect.right}px ${-titleRect.bottom}px ${-titleRect.left}px)`;
+                titleInset = `inset(calc(${-titleRect.top}px + var(--navbar-safe-area)) ${-titleRect.right}px ${-titleRect.bottom}px ${-titleRect.left}px)`;
                 titleRef.style.clipPath = titleInset;
-                inset = `inset(${-imageRect.top+64}px ${-imageRect.right}px ${-imageRect.bottom}px ${-imageRect.left}px)`;
+                inset = `inset(calc(${-imageRect.top}px + var(--navbar-safe-area)) ${-imageRect.right}px ${-imageRect.bottom}px ${-imageRect.left}px)`;
                 imageRef.style.clipPath = inset;
                 gradientRef.style.clipPath = inset;
-                bgInset = `inset(${-imageRect.top+66}px ${-imageRect.right}px ${-imageRect.bottom}px ${-imageRect.left}px)`;
+                bgInset = `inset(calc(${-imageRect.top}px + var(--navbar-safe-area)) ${-imageRect.right}px ${-imageRect.bottom}px ${-imageRect.left}px)`;
                 bgRef.style.clipPath = bgInset;
-                textInset = `inset(${-paraRect.top+64}px ${-paraRect.right}px ${-paraRect.bottom}px ${-paraRect.left}px)`;
+                textInset = `inset(calc(${-paraRect.top}px + var(--navbar-safe-area)) ${-paraRect.right}px ${-paraRect.bottom}px ${-paraRect.left}px)`;
                 paraRef.style.clipPath = textInset;
                 heroName = hero.id;
             }

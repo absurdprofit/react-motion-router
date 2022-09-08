@@ -1,5 +1,9 @@
+:root {
+  --navbar-safe-area: calc(calc(64px - env(safe-area-inset-top)) + calc(env(safe-area-inset-top) * 1.25) + env(safe-area-inset-bottom));
+}
 .navbar {
-  height: 64px;
+  padding: calc(env(safe-area-inset-top) * 1.25) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  height: calc(64px - env(safe-area-inset-top));
   background-color: rgba(254, 226, 85);
   position: fixed;
   top: 0px;

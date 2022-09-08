@@ -8,12 +8,12 @@ export const OverlaysAnimation: AnimationConfigFactory = (currentPath: string, n
             in: {
                 keyframes: [
                     {
-                        transform: 'scale(0.95)',
+                        transform: 'scale(0.95) translateY(15px)',
                         borderRadius: '15px'
                     },
                     {
-                        transform: 'scale(1)',
-                        borderRadius: '0px'
+                        transform: 'scale(1) translateY(0%)',
+                        borderRadius: '45px'
                     }
                 ],
                 options: 350
@@ -21,11 +21,11 @@ export const OverlaysAnimation: AnimationConfigFactory = (currentPath: string, n
             out: {
                 keyframes: [
                     {
-                        transform: 'scale(1)',
-                        borderRadius: '0px'
+                        transform: 'scale(1)  translateY(0%)',
+                        borderRadius: '45px'
                     },
                     {
-                        transform: 'scale(0.95)',
+                        transform: 'scale(0.95) translateY(15px)',
                         borderRadius: '15px'
                     }
                 ],

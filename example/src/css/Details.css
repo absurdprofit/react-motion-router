@@ -1,7 +1,10 @@
+.details {
+  /* padding-top: env(safe-area-inset-top); */
+}
 .details button,
 .post button {
   left: 0;
-  top: 0;
+  top: env(safe-area-inset-top);
   z-index: 1;
 }
 .details .text-content {

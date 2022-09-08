@@ -44,8 +44,8 @@ export interface RouterBaseState {
 export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState> extends React.Component<P, S> {
     protected readonly id: number = Math.random();
     protected ref: HTMLElement | null = null;
-    abstract navigation: NavigationBase;
-    abstract _routerData: RouterData;
+    protected abstract navigation: NavigationBase;
+    protected abstract _routerData: RouterData;
     protected config: Config;
     protected dispatchEvent: ((event: Event) => boolean) | null = null;
     private animationLayerData = new AnimationLayerData();

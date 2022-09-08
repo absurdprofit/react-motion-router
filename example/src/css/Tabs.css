@@ -2,13 +2,14 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    background-color: white;
     overflow-x: hidden;
 }
 .tab-layout .header-layout {
     display: flex;
     position: relative;
     overflow: scroll;
+    background-color: white;
+    margin-top: env(safe-area-inset-top);
 }
 .tab-layout .header-layout .underline {
     position: absolute;

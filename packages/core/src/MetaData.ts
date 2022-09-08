@@ -23,14 +23,25 @@ export default class MetaData {
     get(key: string | MetaType) {
         const metaKey = this.getMetaKey(key);
 
-        return this._map.get(metaKey);
+        const metaContent = this._map.get(metaKey);
+        if (!metaContent) return undefined;
+
+        let content: string | [string, string][];
+        if (metaContent.includes(',') && metaContent.includes('=')) {
+            content = metaContent.split(/,\s*/).map(keyVal => keyVal.split('=') as [string, string]);
+        } else {
+            content = metaContent;
+        }
+
+        return content;
     }
 
-    set(key: string | MetaType, content?: string) {
+    set(key: string | MetaType, content?: string | [string, string][]) {
         const metaKey = this.getMetaKey(key);
+        const metaContent = this.getMetaContent(content);
 
-        this._map.set(metaKey, content);
-        this.updateMetaElement(metaKey, content);
+        this._map.set(metaKey, metaContent);
+        this.updateMetaElement(metaKey, metaContent);
     }
 
     has(key: string | MetaType) {
@@ -109,6 +120,19 @@ export default class MetaData {
         }
 
         return metaKey;
+    }
+
+    private getMetaContent(content: string | [string, string][] | undefined) {
+        if (!content) return undefined;
+
+        let metaContent: string;
+        if (typeof content === "string") {
+            metaContent = content;
+        } else {
+            metaContent = content.map(contentTuple => contentTuple.join('=')).join(', ');
+        }
+
+        return metaContent;
     }
 
     private updateMetaElement(key: MetaKey, content?: string) {

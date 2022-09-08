@@ -1,12 +1,9 @@
 @import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap");
+html {
+  min-height: calc(100% + env(safe-area-inset-top));
+}
 html,
 body {
-  bottom: 0;
-  left: 0;
-  overflow: hidden;
-  position: fixed;
-  right: 0;
-  top: 0;
 }
 * {
   margin: 0;
@@ -29,8 +26,9 @@ div.screen-fallback::before {
   display: flex;
   top: 0;
   left: 0;
+  padding: calc(env(safe-area-inset-top) * 1.25) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   width: 100vw;
-  height: 64px;
+  height: calc(64px - env(safe-area-inset-top));
   background-color: rgba(254, 226, 85);
   justify-content: center;
   align-items: center;

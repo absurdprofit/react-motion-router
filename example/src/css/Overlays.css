@@ -2,7 +2,11 @@
   animation: overlays-fade-in .5s ease forwards;
 }
 .overlays {
-    padding: 15px;
+    padding: 
+        calc(env(safe-area-inset-top) + 15px)
+        calc(env(safe-area-inset-right) + 15px)
+        calc(env(safe-area-inset-bottom) + 15px)
+        calc(env(safe-area-inset-left) + 15px);
     flex: 1;
     display: flex;
     flex-direction: column;

@@ -5,7 +5,7 @@
 }
 .slides .back {
     position: absolute;
-    top: 15px;
+    top: calc(env(safe-area-inset-top) + 15px);
     left: 15px;
     color: white!important;
     z-index: 1;
@@ -15,7 +15,7 @@
 }
 .slides .title {
     position: absolute;
-    top: 20px;
+    top: calc(env(safe-area-inset-top) + 20px);
     left: 50%;
     transform: translateX(-50%);
     z-index: 1;

@@ -62,6 +62,7 @@ export default class TabLayout extends React.Component<TabLayoutProps, TabLayout
         window.removeEventListener('motion-progress-start', this.onGestureStart, true);
         window.removeEventListener('motion-progress-end', this.onGestureEnd, true);
         this.state.navigation?.metaData.set('theme-color', '#fee255a1');
+        document.body.style.backgroundColor = 'unset';
     }
 
     onGestureStart = () => {
@@ -99,6 +100,7 @@ export default class TabLayout extends React.Component<TabLayoutProps, TabLayout
     setThemeColour(index: number) {
         if (this.state.navigation) {
             this.state.navigation.metaData.set('theme-color', Theme[index]);
+            document.body.style.backgroundColor = Theme[index];
         }
     }
 
@@ -139,9 +141,9 @@ export default class TabLayout extends React.Component<TabLayoutProps, TabLayout
 
     render() {
         return (
-            <div className="tab-layout">
+            <div className="tab-layout" style={{backgroundColor: Theme[this.state.index]}}>
                 <div className="header-layout">
-                    {React.Children.map(this.props.children, (tab, index) => {
+                    {React.Children.map(this.props.children, (tab: TabChild, index: number) => {
                         const {name} = tab.props;
                         const onRef = (c: HTMLElement | null) => {
                             if (c) this.addUnderlineKeyframe(c, index);

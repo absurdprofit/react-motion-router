@@ -30,7 +30,7 @@ export default class Tile extends React.Component<TileProps> {
             <div onClick={() => {
                 if (this.ref) {
                     const imageRect = this.ref.getBoundingClientRect();
-                    inset = `inset(${-imageRect.top+64}px ${-imageRect.right}px ${-imageRect.bottom}px ${-imageRect.left}px)`;
+                    inset = `inset(calc(${-imageRect.top}px + var(--navbar-safe-area)) ${-imageRect.right}px ${-imageRect.bottom}px ${-imageRect.left}px)`;
                 }
                 heroID = this.props.hero.id;
                 if (this.props.onClick) {

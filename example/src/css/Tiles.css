@@ -1,7 +1,7 @@
 .tiles {
     width: 100vw;
     height: 100vh;
-    padding-top: 64px;
+    padding-top: var(--navbar-safe-area);
     background-color: white;
 }
 .tiles .content {

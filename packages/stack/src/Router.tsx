@@ -9,8 +9,8 @@ export interface RouterProps extends RouterBaseProps {}
 export interface RouterState extends RouterBaseState {}
 
 export default class Router extends RouterBase {
-    navigation: Navigation;
-    _routerData: RouterData;
+    protected navigation: Navigation;
+    protected _routerData: RouterData;
 
     constructor(props: RouterProps) {
         super(props);

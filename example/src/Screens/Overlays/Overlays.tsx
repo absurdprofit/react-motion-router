@@ -38,7 +38,7 @@ export default function Overlays({navigation}: OverlaysProps) {
         return () => {
             document.body.style.backgroundColor = 'unset';
         }
-    });
+    }, []);
 
     return (
         <div className={`overlays ${isLoaded ? 'loaded' : 'suspense'}`}>
