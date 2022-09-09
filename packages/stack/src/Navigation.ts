@@ -10,11 +10,11 @@ export default class Navigation extends NavigationBase {
         this._history = _history;
     }
 
-    navigate(route: string, routeParams?: {[key:string]: any}, replace?: boolean) {
+    navigate(route: string, routeParams?: {[key:string]: any}, hash?: string, replace?: boolean) {
         if (this._disableBrowserRouting) {
             this._history.implicitPush(route, Boolean(replace));
         } else {
-            this._history.push(route, Boolean(replace));
+            this._history.push(route, hash || '', Boolean(replace));
         }
 
         const event = new CustomEvent<NavigateEventDetail>('navigate', {
@@ -96,7 +96,7 @@ export default class Navigation extends NavigationBase {
     replace(url: string | URL) {
         url = new URL(url, window.location.origin);
         if (url.origin === location.origin) {
-            this.navigate(url.pathname, {}, true);
+            this.navigate(url.pathname, {}, url.hash, true);
         } else {
             location.replace(url);
         }

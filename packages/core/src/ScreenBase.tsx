@@ -6,8 +6,7 @@ import {
     AnimationConfigSet,
     AnimationKeyframeEffectConfig,
     ReducedAnimationConfigSet,
-    SwipeDirection,
-    Vec2
+    SwipeDirection
 } from "./common/types";
 import { RouterDataContext } from "./RouterData";
 import SharedElement from "./SharedElement";
@@ -53,7 +52,6 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
             duration: 0
         }
     };
-    private scrollPos: Vec2 = {x: 0, y: 0};
     static contextType = RouterDataContext;
     context!: React.ContextType<typeof RouterDataContext>;
     static defaultProps = {
@@ -190,22 +188,12 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
             this.setState({shouldKeepAlive: true});
         }
 
-        if (this.ref) {
-            this.scrollPos = {
-                x: this.ref.scrollLeft,
-                y: this.ref.scrollTop
-            }
-            
-            this.sharedElementScene.scrollPos = this.scrollPos;
-        }
         if (this.context.ghostLayer) {
             this.context.ghostLayer.currentScene = this.sharedElementScene;
         }
     }
 
-    onEnter = (shouldScroll: boolean) => {
-        if (shouldScroll) this.ref?.scrollTo(this.scrollPos.x, this.scrollPos.y);
-        
+    onEnter = () => {
         if (this.context.ghostLayer) {
             this.context.ghostLayer.nextScene = this.sharedElementScene;
         }

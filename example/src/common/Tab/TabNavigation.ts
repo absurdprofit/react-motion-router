@@ -25,8 +25,8 @@ export default class TabNavigation extends NavigationBase {
         this.goBack();
     }
 
-    navigate(route: string, routeParams?: {[key:string]: any}, replace?: boolean) {
-        const index = this._history.stack.findIndex(tabRoute => {
+    navigate(route: string, routeParams?: {[key:string]: any}, hash?: string, replace?: boolean) {
+        const index = this._history.stack?.findIndex(tabRoute => {
             return matchRoute(route, tabRoute);
         });
 
@@ -83,7 +83,7 @@ export default class TabNavigation extends NavigationBase {
     _replace(url: string | URL) {
         url = new URL(url, window.location.origin);
         if (url.origin === window.location.origin) {
-            this.navigate(url.pathname, {}, true);
+            this.navigate(url.pathname, {}, '', true);
         } else {
             window.location.replace(url);
         }

@@ -33,7 +33,7 @@ export default abstract class NavigationBase {
         return this._id;
     }
 
-    abstract navigate(route: string, routeParams?: {[key:string]: any}, replace?: boolean): void;
+    abstract navigate(route: string, routeParams?: {[key:string]: any}, hash?: string, replace?: boolean): void;
 
     abstract goBack(): void;
 

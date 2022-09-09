@@ -20,19 +20,9 @@ export default class History extends HistoryBase {
         this._stack.push(pathname);
     }
 
-    private static getURL(route: string, baseURL: URL, search: string = '') {
-        const path = [
-            ...baseURL.pathname.split('/').filter(path => path.length),
-            ...route.split('/').filter(path => path.length)
-        ].join('/');
-
-        const url = new URL(path, baseURL);
-        url.search = search;
-        return url;
-    }
-
-    push(route: string, replace: boolean = false) {
+    push(route: string, hash: string = '', replace: boolean = false) {
         const url = History.getURL(route, this.baseURL);
+        url.hash = hash;
         
         this.next = null;
         

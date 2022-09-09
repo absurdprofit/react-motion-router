@@ -2,12 +2,14 @@ import React, {createContext} from 'react';
 import { AnimationConfigSet } from './common/types';
 import GhostLayer from './GhostLayer';
 import NavigationBase from './NavigationBase';
+import { ScrollRestorationData } from './ScrollRestorationData';
 
 export type RoutesData = Map<string | RegExp | undefined, {[key:string]: any}>;
 
 export default class RouterData {
     private _currentPath: string = '';
     private _routesData: RoutesData = new Map();
+    private static _scrollRestorationData = new ScrollRestorationData();
     private _navigation?: NavigationBase;
     private _backNavigating: boolean = false;
     private _gestureNavigating: boolean = false;
@@ -62,6 +64,9 @@ export default class RouterData {
     }
     get routesData() {
         return this._routesData;
+    }
+    get scrollRestorationData() {
+        return RouterData._scrollRestorationData;
     }
     get navigation() {
         return this._navigation!;

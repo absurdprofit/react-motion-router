@@ -37,6 +37,17 @@ export default abstract class HistoryBase {
         return this._baseURL;
     }
 
+    protected static getURL(route: string, baseURL: URL, search: string = '') {
+        const path = [
+            ...baseURL.pathname.split('/').filter(path => path.length),
+            ...route.split('/').filter(path => path.length)
+        ].join('/');
+
+        const url = new URL(path, baseURL);
+        url.search = search;
+        return url;
+    }
+
     searchParamsToObject(searchPart: string) {
         const entries = new URLSearchParams(decodeURI(searchPart)).entries();
         const result: {[key:string]: string} = {};

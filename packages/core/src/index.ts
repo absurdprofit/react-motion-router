@@ -20,6 +20,7 @@ import {
     PageAnimationEndEvent,
     PageAnimationStartEvent
 } from './MotionEvents';
+import ScrollRestoration from './ScrollRestoration';
 
 document.body.style.position = 'fixed';
 document.body.style.inset = '0';
@@ -53,7 +54,7 @@ export type {
     ScreenBaseProps,
     ScreenBaseState
 };
-export {SharedElement, Anchor, Motion, GestureRegion};
+export {SharedElement, Anchor, Motion, GestureRegion, ScrollRestoration};
 export {NavigationBase, HistoryBase, RouterBase, RouterData, ScreenBase};
 export type {
     MotionProgressEndEvent,

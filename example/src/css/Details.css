@@ -14,12 +14,28 @@
 .details.suspense button {
   animation: details-fade-in .5s ease forwards;
 }
+.details.suspense .text-content p,
+.details.suspense .text-content #title {
+  animation: details-content-slide .5s ease-out forwards;
+  transform: translateY(15px);
+}
+.details.suspense .text-content p {
+  animation-duration: .6s;
+}
 @keyframes details-fade-in {
   from {
     opacity: 0;
   }
   to {
     opacity: 1;
+  }
+}
+@keyframes details-content-slide {
+  from {
+    transform: translateY(15px);
+  }
+  to {
+    transform: translateY(0);
   }
 }
 .details .text-content p {

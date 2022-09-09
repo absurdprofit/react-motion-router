@@ -43,7 +43,7 @@ const CardList = ({observer, navigation}: CardListProps) => {
         };
         return (
             <li role="menuitem" key={index}>
-                <Anchor href='/details' params={{hero}} onClick={onClick}>
+                <Anchor href='/details' params={{hero}} hash='title' onClick={onClick}>
                     <ButtonBase aria-label={`Character profile: ${hero.name}`} disableRipple>
                         <SharedElement id={`${hero.id}-card-bg`}>
                             <div

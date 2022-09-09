@@ -2,9 +2,6 @@
 html {
   min-height: calc(100% + env(safe-area-inset-top));
 }
-html,
-body {
-}
 * {
   margin: 0;
   font-family: "Roboto", sans-serif;

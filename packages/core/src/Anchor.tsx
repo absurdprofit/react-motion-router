@@ -4,6 +4,7 @@ import { XOR } from './common/types';
 
 interface BaseAnchorProps extends React.DetailedHTMLProps<React.AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
     params?: {[key:string]: any};
+    hash?: string;
     onClick?: React.MouseEventHandler<HTMLAnchorElement>;
 }
 
@@ -30,12 +31,13 @@ export default function Anchor(props: AnchorProps) {
         let search;
         if ('goBack' in props) {
             href = navigation.history.previous || navigation.history.defaultRoute;
-            search = '';        
+            search = '';
         } else {
             href = props.href;
             search = navigation.searchParamsFromObject(props.params || {});
         }
         const uri = new URL(href, navigation.location.origin);
+        uri.hash = props.hash || '';
         uri.search = search;
         if (uri.origin === navigation.location.origin) {
             setExternal(false);
@@ -46,7 +48,7 @@ export default function Anchor(props: AnchorProps) {
         }
     }, [props.href, props.params]);
     
-    const {href, goBack, onClick: propsOnClick, replace, params, ...aProps} = props;
+    const {href, goBack, hash, onClick: propsOnClick, replace, params, ...aProps} = props;
     const onClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
         if (!navigation) return;
 
@@ -56,7 +58,7 @@ export default function Anchor(props: AnchorProps) {
         if (propsOnClick) propsOnClick(e);
         
         if (goBack) navigation.goBack();
-        if (href) navigation.navigate(href, params, replace); 
+        if (href) navigation.navigate(href, params, hash, replace); 
     }
 
     if (!navigation) return <></>;
