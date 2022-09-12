@@ -24,17 +24,21 @@ interface TabRouterState extends RouterState {
 export default class TabRouter extends RouterBase<TabRouterProps, TabRouterState> {
     protected navigation: TabNavigation;
     protected _routerData: RouterData;
+    readonly baseURL: URL;
 
     constructor(props: RouterProps) {
         super(props);
 
         this.navigation = new TabNavigation(
-            Math.random(),
+            this.id,
             true,
             null,
+            this.parent?.baseURL || undefined,
             this.state.tabHistory,
             this.props.backBehaviour || 'none'
         );
+        this.baseURL = this.navigation.history.baseURL;
+
         this._routerData = new RouterData(this.navigation);
         
         if (props.config) {
@@ -82,6 +86,11 @@ export default class TabRouter extends RouterBase<TabRouterProps, TabRouterState
         if (lastState.backNavigating !== this.state.backNavigating) {
             this.props.onBackNavigationChange(this.state.backNavigating);
         }
+    }
+
+    onGestureNavigationStart = () => {
+        this._routerData.gestureNavigating = true;
+        this.setState({gestureNavigating: true});
     }
 
     onAnimationEnd = () => {

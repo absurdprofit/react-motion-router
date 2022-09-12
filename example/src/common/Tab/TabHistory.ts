@@ -6,8 +6,9 @@ export default class TabHistory extends HistoryBase {
     private _index: number = 0;
     private _backBevhiour: BackBehaviour;
 
-    constructor(_defaultRoute: string | null, _stack: string[] = [], _backBehaviour: BackBehaviour = 'none') {
-        super(_defaultRoute);
+    constructor(_defaultRoute: string | null, _baseURL?: URL, _stack: string[] = [], _backBehaviour: BackBehaviour = 'none') {
+        _baseURL = _baseURL || new URL(_defaultRoute || window.location.pathname, window.location.origin);
+        super(_defaultRoute, _baseURL);
 
         this._stack = _stack;
         this._backBevhiour = _backBehaviour;

@@ -1,10 +1,10 @@
 export default abstract class HistoryBase {
     private _baseURL: URL;
     protected _stack: string[] = [];
-    // private _stack: string[] = [];
     private _defaultRoute: string;
-    constructor(_defaultRoute: string | null) {
-        this._baseURL = new URL(window.location.pathname, window.location.origin);
+    
+    constructor(_defaultRoute: string | null, _baseURL: URL) {
+        this._baseURL = _baseURL;
 
         this._defaultRoute = _defaultRoute || this._baseURL.pathname;        
     }

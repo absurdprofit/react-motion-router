@@ -43,13 +43,16 @@ export interface RouterBaseState {
 }
 
 export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState> extends React.Component<P, S> {
-    protected readonly id: number = Math.random();
+    protected readonly id: number;
     protected readonly animationLayerData = new AnimationLayerData();
     protected ref: HTMLElement | null = null;
     protected abstract navigation: NavigationBase;
     protected abstract _routerData: RouterData;
     protected config: Config;
     protected dispatchEvent: ((event: Event) => Promise<boolean>) | null = null;
+    private static readonly routers: RouterBase[] = [];
+    protected readonly parent: RouterBase;
+    abstract readonly baseURL: URL | null;
 
     static defaultProps = {
         config: {
@@ -64,6 +67,10 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
 
     constructor(props: RouterBaseProps) {
         super(props as P);
+
+        this.id = RouterBase.routers.length;
+        this.parent = RouterBase.routers[this.id - 1];
+        RouterBase.routers.push(this);
         
         if (props.config) {
             this.config = props.config;
@@ -125,31 +132,22 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     }
 
     componentWillUnmount() {
+        RouterBase.routers.splice(this.id);
+
         if (this.ref) this.removeNavigationEventListeners(this.ref);
         window.removeEventListener('popstate', this.onPopStateListener);
     }
 
     abstract onAnimationEnd: (e: PageAnimationEndEvent) => void;
 
+    abstract onGestureNavigationStart: () => void;
+    abstract onGestureNavigationEnd: () => void;
+
     abstract onPopStateListener: (e: Event) => void;
 
     abstract onBackListener: (e: BackEvent) => void;
 
     abstract onNavigateListener: (e: NavigateEvent) => void;
-
-    onGestureNavigationStart = () => {
-        this._routerData.gestureNavigating = true;
-        this.setState({gestureNavigating: true});
-    }
-
-    onGestureNavigationEnd = () => {
-        this._routerData.gestureNavigating = false;
-        this.setState({implicitBack: true, gestureNavigating: false}, () => {
-            this.navigation.goBack();
-            this.setState({backNavigating: false});
-            this._routerData.backNavigating = false;
-        });
-    }
 
     onDocumentTitleChange = (title: string | null) => {
         if (title) document.title = title;

@@ -11,17 +11,21 @@ export interface RouterState extends RouterBaseState {}
 export default class Router extends RouterBase {
     protected navigation: Navigation;
     protected _routerData: RouterData;
+    readonly baseURL: URL;
 
     constructor(props: RouterProps) {
         super(props);
 
         this.navigation = new Navigation(
             this.id,
-            new History(props.config.defaultRoute ?? null),
+            new History(props.config.defaultRoute ?? null, this.parent?.baseURL || undefined),
             this.animationLayerData,
             props.config.disableBrowserRouting,
             props.config.defaultRoute
         );
+
+        this.baseURL = this.navigation.history.baseURL;
+
         this._routerData = new RouterData(this.navigation);
 
         if ('in' in this.config.animation) {
@@ -35,6 +39,20 @@ export default class Router extends RouterBase {
                 out: this.config.animation
             };
         }
+    }
+
+    onGestureNavigationStart = () => {
+        this._routerData.gestureNavigating = true;
+        this.setState({gestureNavigating: true});
+    }
+
+    onGestureNavigationEnd = () => {
+        this._routerData.gestureNavigating = false;
+        this.setState({implicitBack: true, gestureNavigating: false}, () => {
+            this.navigation.goBack();
+            this.setState({backNavigating: false});
+            this._routerData.backNavigating = false;
+        });
     }
 
     onAnimationEnd = () => {
@@ -72,7 +90,6 @@ export default class Router extends RouterBase {
 
     onBackListener = (e: BackEvent) => {
         e.stopImmediatePropagation();
-        this.setState({backNavigating: true});
 
         let pathname = this.navigation.location.pathname;
 
@@ -89,8 +106,11 @@ export default class Router extends RouterBase {
             }
         }
 
-        window.addEventListener('page-animation-end', this.onAnimationEnd.bind(this), {once: true});
-        this._routerData.backNavigating = true;
+        if (!this.state.backNavigating && !this.state.implicitBack) {
+            this.setState({backNavigating: true});
+            window.addEventListener('page-animation-end', this.onAnimationEnd.bind(this), {once: true});
+            this._routerData.backNavigating = true;
+        }
     }
 
     onNavigateListener = (e: NavigateEvent) => {

@@ -3,10 +3,11 @@ import { HistoryBase } from "@react-motion-router/core";
 export default class History extends HistoryBase {
     private _next: string | null = null;
 
-    constructor(_defaultRoute: string | null) {
-        super(_defaultRoute);
+    constructor(_defaultRoute: string | null, _baseURL?: URL) {
+        _baseURL = _baseURL || new URL(_defaultRoute || window.location.pathname, window.location.origin);
+        super(_defaultRoute, _baseURL);
 
-        const pathname = this.baseURL.pathname === window.location.pathname ? '/' : this.baseURL.pathname;
+        const pathname = window.location.pathname;
         const searchPart = window.location.search;
 
         if (_defaultRoute) {

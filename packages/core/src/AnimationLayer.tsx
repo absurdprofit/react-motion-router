@@ -206,12 +206,8 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
                 }
             });
     
-            window.queueMicrotask(() => {
-                if (this.props.dispatchEvent) this.props.dispatchEvent(progressEvent);
-            });
+            if (this.props.dispatchEvent) this.props.dispatchEvent(progressEvent);
         }
-
-        // window.addEventListener('swipestart', this.onSwipeStartListener);
     }
 
     componentDidUpdate(prevProps: AnimationLayerProps, prevState: AnimationLayerState) {
@@ -253,10 +249,6 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         }
     }
 
-    componentWillUnmount() {
-        // window.removeEventListener('swipestart', this.onSwipeStartListener);
-    }
-
     onGestureSuccess(
         state: Pick<AnimationLayerState, 'swipeAreaWidth' | 'swipeDirection' | 'hysteresis' | 'disableDiscovery' | 'minFlingVelocity'>,
         name: string | null
@@ -292,7 +284,6 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
                 }
             }
 
-            // let currentPath: string | undefined = this.props.currentPath;
             const {children, currentPath, paths, name, ...nextState} = StateFromChildren(this.props, {...this.state, gestureNavigating: true}, this.props.currentPath, this.props.lastPath);
             
             this.onGestureSuccess = this.onGestureSuccess.bind(this, nextState, name);

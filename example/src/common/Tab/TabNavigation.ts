@@ -8,12 +8,13 @@ export default class TabNavigation extends NavigationBase {
         _id: number,
         _disableBrowserRouting: boolean = false,
         _defaultRoute: string | null = null,
+        _baseURL?: URL,
         _stack: string[] = [],
         _backBehaviour: BackBehaviour = "none"
     ) {
         super(_id, _disableBrowserRouting, _defaultRoute);
 
-        const _history = new TabHistory(_defaultRoute, _stack, _backBehaviour);
+        const _history = new TabHistory(_defaultRoute, _baseURL, _stack, _backBehaviour);
         this._history = _history;
     }
 
@@ -51,7 +52,7 @@ export default class TabNavigation extends NavigationBase {
                     route: this._history.current,
                     routeParams: routeParams,
                     replace: false,
-                    signal: new AbortSignal()
+                    signal: null as unknown as AbortSignal
                 },
                 bubbles: true
             });
@@ -62,7 +63,7 @@ export default class TabNavigation extends NavigationBase {
             let event = new CustomEvent<BackEventDetail>('go-back', {
                 detail: {
                     replace: false,
-                    signal: new AbortSignal()
+                    signal: null as unknown as AbortSignal
                 }
             });
     
