@@ -1,10 +1,11 @@
-import { Button } from '@mui/material';
+import { Button, IconButton } from '@mui/material';
 import React, { useEffect, useRef } from 'react';
 import { Anchor, SharedElement } from '@react-motion-router/core';
 import { Navigation } from '@react-motion-router/stack';
 import King from "../../assets/king.webp";
 import SkipNextIcon from '@mui/icons-material/SkipNext';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import '../../css/Overlays.css';
 
 interface OverlaysProps {
@@ -14,12 +15,6 @@ interface OverlaysProps {
 let isLoaded = false;
 export default function Overlays({navigation}: OverlaysProps) {
     const playerRef = useRef<HTMLDivElement | null>(null);
-    const openModal = () => {
-
-        navigation.navigate('/modal', {
-            sheetView: false
-        });
-    }
 
     const openSheet = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         let top = 0.9 * window.innerHeight;
@@ -28,10 +23,16 @@ export default function Overlays({navigation}: OverlaysProps) {
         navigation.navigate('/modal', {
             sheetView: true,
             top: (top / window.innerHeight) * 100 // vh units
-        });
+        }).catch((e) => console.log(e));
     }
 
     useEffect(() => {
+        window.addEventListener('navigate', (e) => {
+            e.detail.signal.addEventListener('abort', () => {
+                console.log("Aborted");
+            });
+        }, {once: true, capture: true});
+        
         window.addEventListener('page-animation-end', () => isLoaded = true, {once: true});
         document.body.style.backgroundColor = 'rgba(254, 226, 85)';
 
@@ -43,10 +44,18 @@ export default function Overlays({navigation}: OverlaysProps) {
     return (
         <div className={`overlays ${isLoaded ? 'loaded' : 'suspense'}`}>
             <div className="go-back">
-                <Anchor goBack>Go Back</Anchor>
+                <Anchor goBack>
+                    <IconButton disableRipple>
+                        <ArrowBackIosIcon style={{zIndex: 100}} />
+                    </IconButton>
+                </Anchor>
             </div>
             <div className="modal-example">
-                <Button onClick={openModal}>Open Modal</Button>
+                <Anchor href="/modal" params={{
+                    sheetView: false
+                }}>
+                    <Button>Open Modal</Button>
+                </Anchor>
             </div>
             <div className="player" onClick={openSheet} ref={playerRef}>
                 <div className="info">

@@ -1,6 +1,6 @@
 import React, { createContext } from 'react';
 import AnimationProvider from './AnimationProvider';
-import { clamp } from './common/utils';
+import { clamp, dispatchEvent } from './common/utils';
 import AnimationKeyframePresets from './Animations';
 
 export default class AnimationLayerData {
@@ -42,13 +42,15 @@ export default class AnimationLayerData {
         update();
 
         this._progressUpdateID = window.requestAnimationFrame(this.updateProgress.bind(this));
-        Promise.all([this._inAnimation?.finished, this._outAnimation?.finished])
-        .then(() => {
+        const onEnd = () => {
             window.cancelAnimationFrame(this._progressUpdateID);
             if (this._progress !== 100) {
                 update();
             }
-        });
+        };
+        Promise.all([this._inAnimation?.finished, this._outAnimation?.finished])
+        .then(onEnd)
+        .catch(onEnd);
     }
 
     reset() {
@@ -70,16 +72,19 @@ export default class AnimationLayerData {
         if (this._inAnimation && this._outAnimation) {
             this._inAnimation.cancel();
             this._outAnimation.cancel();
+            this.reset();
+
+            const cancelAnimationEvent = new CustomEvent('page-animation-cancel');
+            dispatchEvent(cancelAnimationEvent);
         }
     }
 
     async animate() {
         if (this._isPlaying) {
             // cancel playing animation
-            this.finish();
+            this.cancel();
             if (this._onEnd) this._onEnd();
-            if (this._nextScreen) await this._nextScreen.mounted(true);
-            return;
+            this.reset();
         }
         if (this._currentScreen && this._nextScreen && this._shouldAnimate) {
             if (this._gestureNavigating) {
@@ -172,7 +177,7 @@ export default class AnimationLayerData {
             this._isPlaying = true;
             
             const startAnimationEvent = new CustomEvent('page-animation-start');
-            window.dispatchEvent(startAnimationEvent);
+            dispatchEvent(startAnimationEvent);
 
             if (this._inAnimation && this._outAnimation) {
                 if (!this._shouldAnimate) {
@@ -201,10 +206,11 @@ export default class AnimationLayerData {
                     this._isPlaying = false;
                 }
 
-                await Promise.all([this._inAnimation.ready, this._outAnimation.ready])
+                await Promise.all([this._inAnimation.ready, this._outAnimation.ready]);
+
                 this.updateProgress();
 
-                await Promise.all([this._outAnimation.finished, this._inAnimation.finished])
+                await Promise.all([this._outAnimation.finished, this._inAnimation.finished]);
                 if (this._inAnimation) {
                     this._inAnimation.commitStyles();
                     this._inAnimation.cancel();
@@ -232,7 +238,7 @@ export default class AnimationLayerData {
                 }
                 this._isPlaying = false;
                 const endAnimationEvent = new CustomEvent('page-animation-end');
-                window.dispatchEvent(endAnimationEvent);
+                dispatchEvent(endAnimationEvent);
             }
         } else {
             this._shouldAnimate = true;
@@ -337,8 +343,27 @@ export default class AnimationLayerData {
         return this._backNavigating;
     }
 
-    get isPlying() {
+    get isPlaying() {
         return this._isPlaying;
+    }
+
+    get finished() {
+        return new Promise<void>(async (resolve, reject) => {
+            try {
+                await Promise.all([this._outAnimation?.finished, this._inAnimation?.finished]);
+                resolve();
+            } catch (e) {
+                reject(e);
+            }
+        });
+    }
+
+    get started() {
+        return new Promise<void>(async (resolve) => {
+            window.addEventListener('page-animation-start', () => {
+                resolve();
+            }, {once: true});
+        });
     }
 }
 

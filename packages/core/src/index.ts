@@ -5,18 +5,29 @@ import {
     AnimationConfigFactory
 } from './common/types';
 import RouterData from './RouterData';
-import NavigationBase, { BackEvent, NavigateEvent, NavigateEventDetail } from './NavigationBase';
+import NavigationBase from './NavigationBase';
+import type {
+    BackEvent,
+    BackEventDetail,
+    NavigateEvent,
+    NavigateEventDetail,
+    NavigateOptions,
+    NavigationOptions,
+    GoBackOptions
+} from './NavigationBase';
 import RouterBase, { RouterBaseProps, RouterBaseState } from './RouterBase';
 import ScreenBase, { ScreenBaseProps, ScreenBaseState } from './ScreenBase';
 import HistoryBase from './HistoryBase';
 import Anchor from './Anchor';
 import { Motion } from './AnimationLayer';
+import type AnimationLayerData from './AnimationLayerData';
 import GestureRegion from './GestureRegion';
 import 'web-gesture-events';
 import {
     MotionProgressEndEvent,
     MotionProgressEvent,
     MotionProgressStartEvent,
+    PageAnimationCancelEvent,
     PageAnimationEndEvent,
     PageAnimationStartEvent
 } from './MotionEvents';
@@ -33,6 +44,7 @@ if (root) {
 
 interface MotionEventsMap {
     "page-animation-start": PageAnimationStartEvent;
+    "page-animation-cancel": PageAnimationCancelEvent;
     "page-animation-end": PageAnimationEndEvent;
     "motion-progress-start": MotionProgressStartEvent;
     "motion-progress": MotionProgressEvent;
@@ -61,8 +73,13 @@ export type {
     MotionProgressEvent,
     MotionProgressStartEvent,
     BackEvent,
+    BackEventDetail,
     NavigateEvent,
-    NavigateEventDetail
+    NavigateEventDetail,
+    NavigateOptions,
+    NavigationOptions,
+    GoBackOptions,
+    AnimationLayerData
 };
 export * from './common/hooks';
 export * from './common/types';

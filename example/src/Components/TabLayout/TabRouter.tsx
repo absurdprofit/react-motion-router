@@ -134,7 +134,7 @@ export default class TabRouter extends RouterBase<TabRouterProps, TabRouterState
 
         let pathname = this.navigation.location.pathname;
 
-        if (e.detail.replaceState && !this.config.disableBrowserRouting) { // replaced state with default route
+        if (e.detail.replace && !this.config.disableBrowserRouting) { // replaced state with default route
             this._routerData.currentPath = pathname;
             this.setState({currentPath: pathname, index: this.navigation.history.index});
         }

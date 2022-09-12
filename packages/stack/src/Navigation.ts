@@ -1,43 +1,69 @@
-import { NavigateEventDetail, NavigationBase } from '@react-motion-router/core';
+import {
+    BackEventDetail,
+    GoBackOptions,
+    NavigateEventDetail,
+    NavigateOptions,
+    NavigationBase
+} from '@react-motion-router/core';
+import type { AnimationLayerData } from '@react-motion-router/core';
 import History from './History';
 
 export default class Navigation extends NavigationBase {
     protected _history: History;
+    private _animationLayerData: AnimationLayerData;
 
-    constructor(_id: number, _history: History, _disableBrowserRouting: boolean = false, _defaultRoute: string | null = null) {
+    constructor(_id: number, _history: History, _animationLayerData: AnimationLayerData, _disableBrowserRouting: boolean = false, _defaultRoute: string | null = null) {
         super(_id, _disableBrowserRouting, _defaultRoute);
 
         this._history = _history;
+        this._animationLayerData = _animationLayerData;
     }
 
-    navigate(route: string, routeParams?: {[key:string]: any}, hash?: string, replace?: boolean) {
+    navigate(route: string, routeParams?: {[key:string]: any}, options: NavigateOptions = {}) {
+        const {replace, hash} = options;
+
         if (this._disableBrowserRouting) {
             this._history.implicitPush(route, Boolean(replace));
         } else {
             this._history.push(route, hash || '', Boolean(replace));
         }
 
+        const controller = new AbortController();
+        this._animationLayerData.started.then(() => this._animationLayerData.finished.catch(() => controller.abort()));
+
         const event = new CustomEvent<NavigateEventDetail>('navigate', {
             detail: {
                 id: this.id,
                 route: route,
-                routeParams: routeParams
+                routeParams: routeParams,
+                replace: Boolean(replace),
+                signal: controller.signal
             },
             bubbles: true
         });
 
         if (this._dispatchEvent) this._dispatchEvent(event);
         this._currentParams = routeParams || {};
+
+        return new Promise<void>(async (resolve, reject) => {
+            await this._animationLayerData.started;
+            this._animationLayerData.finished.then(resolve).catch(reject);
+        });
     }
 
     implicitNavigate(route: string, routeParams?: {[key:string]: any}) {
         this._history.implicitPush(route);
         
+        const controller = new AbortController();
+        this._animationLayerData.started.then(() => this._animationLayerData.finished.catch(() => controller.abort()));
+
         const event = new CustomEvent<NavigateEventDetail>('navigate', {
             detail: {
                 id: this.id,
                 route: route,
-                routeParams: routeParams
+                routeParams: routeParams,
+                replace: false,
+                signal: controller.signal
             },
             bubbles: true
         });
@@ -48,39 +74,53 @@ export default class Navigation extends NavigationBase {
 
     implicitBack() {
         this._history.implicitBack();
-        let event = new CustomEvent<{replaceState:boolean}>('go-back', {
+
+        const controller = new AbortController();
+        this._animationLayerData.started.then(() => this._animationLayerData.finished.catch(() => controller.abort()));
+
+        let event = new CustomEvent<BackEventDetail>('go-back', {
             detail: {
-                replaceState: false
+                replace: false,
+                signal: controller.signal
             }
         });
         if (this._dispatchEvent) this._dispatchEvent(event);
     }
 
-    goBack() {
-        let event = new CustomEvent<{replaceState:boolean}>('go-back', {
+    goBack(options: GoBackOptions = {}) {
+        const {replace} = options;
+
+        const controller = new AbortController();
+        this._animationLayerData.started.then(() => this._animationLayerData.finished.catch(() => controller.abort()));
+
+
+        let event = new CustomEvent<BackEventDetail>('go-back', {
             detail: {
-                replaceState: false
+                replace: Boolean(replace),
+                signal: controller.signal
             }
         });
         if (this._history.defaultRoute && this._history.length === 1) {
             this._history.back(true);
-            event = new CustomEvent<{replaceState:boolean}>('go-back', {
+            event = new CustomEvent<BackEventDetail>('go-back', {
                 detail: {
-                    replaceState: true
+                    replace: true,
+                    signal: controller.signal
                 }
             });
         } else {
             if (this._disableBrowserRouting) {
                 this._history.implicitBack();
             } else {
-                this._history.back();
+                this._history.back(Boolean(replace));
             }
         } 
 
         if (this._dispatchEvent) this._dispatchEvent(event);
 
-        return new Promise<void>((resolve) => {
-            window.addEventListener('page-animation-end', () => resolve(), {once: true});
+        return new Promise<void>(async (resolve, reject) => {
+            await this._animationLayerData.started;
+            this._animationLayerData.finished.then(resolve).catch(reject);
         });
     }
 
@@ -96,7 +136,10 @@ export default class Navigation extends NavigationBase {
     replace(url: string | URL) {
         url = new URL(url, window.location.origin);
         if (url.origin === location.origin) {
-            this.navigate(url.pathname, {}, url.hash, true);
+            this.navigate(url.pathname, {}, {
+                hash: url.hash,
+                replace: true
+            });
         } else {
             location.replace(url);
         }

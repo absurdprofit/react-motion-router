@@ -57,8 +57,11 @@ export default function Anchor(props: AnchorProps) {
 
         if (propsOnClick) propsOnClick(e);
         
-        if (goBack) navigation.goBack();
-        if (href) navigation.navigate(href, params, hash, replace); 
+        if (goBack) navigation.goBack({});
+        if (href) navigation.navigate(href, params, {
+            hash,
+            replace
+        }); 
     }
 
     if (!navigation) return <></>;

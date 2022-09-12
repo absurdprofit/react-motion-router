@@ -18,6 +18,7 @@ export default class Router extends RouterBase {
         this.navigation = new Navigation(
             this.id,
             new History(props.config.defaultRoute ?? null),
+            this.animationLayerData,
             props.config.disableBrowserRouting,
             props.config.defaultRoute
         );
@@ -75,7 +76,7 @@ export default class Router extends RouterBase {
 
         let pathname = this.navigation.location.pathname;
 
-        if (e.detail.replaceState && !this.config.disableBrowserRouting) { // replaced state with default route
+        if (e.detail.replace && !this.config.disableBrowserRouting) { // replaced state with default route
             this._routerData.currentPath = pathname;
             this.setState({currentPath: pathname});
         }

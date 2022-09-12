@@ -425,7 +425,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     }
                     
                     if (!this.state.playing) {
-                        Object.values(this._animationMap.get(startInstance.id)!).map((animation: Animation) => {
+                        Object.values(this._animationMap.get(startInstance.id)!).forEach((animation: Animation) => {
                             const defaultDuration = this.context.duration;
                             let duration = animation.effect?.getComputedTiming().duration;
                             if (typeof duration === "string") {
@@ -460,11 +460,20 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
             }
         });
 
-        window.addEventListener('page-animation-end', () => {
+        const onEnd = () => {
             this.setState({transitioning: false});
             this._nextScene = null;
             this._currentScene = null;
-        }, {once: true});
+        };
+
+        const onCancel = () => {
+            for (const xYAnimations of this._animationMap.values())
+                Object.values(xYAnimations).forEach(animation => animation.cancel());
+            onEnd();
+        }
+        window.addEventListener('page-animation-end', onEnd, {once: true});
+
+        window.addEventListener('page-animation-cancel' , onCancel, {once: true});
     }
     
     componentDidMount() {
@@ -490,8 +499,8 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
 
     onProgress(e: MotionProgressEvent) {
         if (!this.state.playing) {
-            for (const [_, xYAnimations] of this._animationMap) {
-                Object.values(xYAnimations).map((animation: Animation) => {
+            for (const xYAnimations of this._animationMap.values()) {
+                Object.values(xYAnimations).forEach((animation: Animation) => {
                     const progress = e.detail.progress;
                     const defaultDuration = this.context.duration;
                     let duration = animation.effect?.getComputedTiming().duration;

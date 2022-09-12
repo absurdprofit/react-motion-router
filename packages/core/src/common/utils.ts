@@ -79,3 +79,11 @@ export function matchRoute(routeTest: string | RegExp | undefined, routeString: 
 export function includesRoute(routeString: string | undefined, routeTests: (string | RegExp | undefined)[]) {
     return routeTests.some((routeTest) => matchRoute(routeTest, routeString));
 }
+
+export function dispatchEvent<T>(event: CustomEvent<T> | Event, target: HTMLElement | EventTarget = window) {
+    return new Promise<boolean>((resolve) => {
+        queueMicrotask(() => resolve(
+            target.dispatchEvent(event)
+        ));
+    });
+}

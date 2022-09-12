@@ -12,6 +12,7 @@ import {
 import RouterData, { RoutesData, RouterDataContext } from './RouterData';
 import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
 import { PageAnimationEndEvent } from './MotionEvents';
+import { dispatchEvent } from './common/utils';
 
 interface Config {
     animation: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig;
@@ -43,12 +44,12 @@ export interface RouterBaseState {
 
 export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState> extends React.Component<P, S> {
     protected readonly id: number = Math.random();
+    protected readonly animationLayerData = new AnimationLayerData();
     protected ref: HTMLElement | null = null;
     protected abstract navigation: NavigationBase;
     protected abstract _routerData: RouterData;
     protected config: Config;
-    protected dispatchEvent: ((event: Event) => boolean) | null = null;
-    private animationLayerData = new AnimationLayerData();
+    protected dispatchEvent: ((event: Event) => Promise<boolean>) | null = null;
 
     static defaultProps = {
         config: {
@@ -176,7 +177,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
 
         if (ref) {
             this.dispatchEvent = (event) => {
-                return ref.dispatchEvent(event);
+                return dispatchEvent(event, ref);
             }
             this._routerData.navigation.dispatchEvent = this.dispatchEvent;
             this.addNavigationEventListeners(ref);

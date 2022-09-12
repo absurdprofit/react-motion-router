@@ -2,14 +2,31 @@ import { ParamsDeserialiser, ParamsSerialiser } from "./common/types";
 import HistoryBase from "./HistoryBase";
 import MetaData from "./MetaData";
 
-export type BackEvent = CustomEvent<{replaceState:boolean}>;
+export interface BackEventDetail {
+    replace: boolean;
+    signal: AbortSignal;
+}
+
 export interface NavigateEventDetail {
     id: number;
     route: string;
     routeParams?: any;
+    replace: boolean;
+    signal: AbortSignal;
 }
 
 export type NavigateEvent = CustomEvent<NavigateEventDetail>;
+export type BackEvent = CustomEvent<BackEventDetail>;
+
+export interface NavigationOptions {
+    replace?: boolean;
+}
+
+export interface NavigateOptions extends NavigationOptions {
+    hash?: string;
+}
+
+export interface GoBackOptions extends NavigationOptions {}
 
 export default abstract class NavigationBase {
     private _id: number;
@@ -21,7 +38,7 @@ export default abstract class NavigationBase {
     // private _currentParams: {[key:string]: any} = {};
     private _paramsSerialiser?: ParamsSerialiser;
     private _paramsDeserialiser?: ParamsDeserialiser;
-    protected _dispatchEvent: ((event: Event) => boolean) | null = null;
+    protected _dispatchEvent: ((event: Event) => Promise<boolean>) | null = null;
     // private _dispatchEvent: ((event: Event) => boolean) | null = null;
 
     constructor(_id: number, _disableBrowserRouting: boolean = false, _defaultRoute: string | null = null) {
@@ -33,9 +50,9 @@ export default abstract class NavigationBase {
         return this._id;
     }
 
-    abstract navigate(route: string, routeParams?: {[key:string]: any}, hash?: string, replace?: boolean): void;
+    abstract navigate(route: string, routeParams?: {[key:string]: any}, options?: NavigateOptions): void;
 
-    abstract goBack(): void;
+    abstract goBack(options?: GoBackOptions): void;
 
     searchParamsToObject(searchPart: string) {
         const deserialiser = this._paramsDeserialiser || this._history.searchParamsToObject;
@@ -56,7 +73,7 @@ export default abstract class NavigationBase {
         return '';
     }
 
-    set dispatchEvent(_dispatchEvent: ((event: Event) => boolean) | null) {
+    set dispatchEvent(_dispatchEvent: ((event: Event) => Promise<boolean>) | null) {
         this._dispatchEvent = _dispatchEvent;
     }
 

@@ -1,4 +1,4 @@
-import { NavigationBase, NavigateEventDetail, matchRoute } from '@react-motion-router/core';
+import { NavigationBase, NavigateEventDetail, matchRoute, NavigateOptions, BackEventDetail } from '@react-motion-router/core';
 import TabHistory, { BackBehaviour } from './TabHistory';
 
 export default class TabNavigation extends NavigationBase {
@@ -25,7 +25,7 @@ export default class TabNavigation extends NavigationBase {
         this.goBack();
     }
 
-    navigate(route: string, routeParams?: {[key:string]: any}, hash?: string, replace?: boolean) {
+    navigate(route: string, routeParams?: {[key:string]: any}, options: NavigateOptions = {}) {
         const index = this._history.stack?.findIndex(tabRoute => {
             return matchRoute(route, tabRoute);
         });
@@ -49,7 +49,9 @@ export default class TabNavigation extends NavigationBase {
                 detail: {
                     id: this.id,
                     route: this._history.current,
-                    routeParams: routeParams
+                    routeParams: routeParams,
+                    replace: false,
+                    signal: new AbortSignal()
                 },
                 bubbles: true
             });
@@ -57,9 +59,10 @@ export default class TabNavigation extends NavigationBase {
             if (this._dispatchEvent) this._dispatchEvent(event);
             this._currentParams = {};
         } else { // go back
-            let event = new CustomEvent<{replaceState:boolean}>('go-back', {
+            let event = new CustomEvent<BackEventDetail>('go-back', {
                 detail: {
-                    replaceState: false
+                    replace: false,
+                    signal: new AbortSignal()
                 }
             });
     
@@ -83,7 +86,10 @@ export default class TabNavigation extends NavigationBase {
     _replace(url: string | URL) {
         url = new URL(url, window.location.origin);
         if (url.origin === window.location.origin) {
-            this.navigate(url.pathname, {}, '', true);
+            this.navigate(url.pathname, {}, {
+                hash: '',
+                replace: true
+            });
         } else {
             window.location.replace(url);
         }

@@ -24,7 +24,7 @@ interface AnimationLayerProps {
     swipeAreaWidth: number;
     disableDiscovery: boolean;
     disableBrowserRouting: boolean;
-    dispatchEvent: ((event: Event) => boolean) | null;
+    dispatchEvent: ((event: Event) => Promise<boolean>) | null;
 }
 
 interface AnimationLayerState {
@@ -267,7 +267,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
 
     onSwipeStart(ev: SwipeStartEvent) {
         if (this.state.disableDiscovery) return;
-        if (this.context.isPlying) return;
+        if (this.context.isPlaying) return;
         let swipePos: number; // 1D
         switch(this.state.swipeDirection) {
             case "left":
