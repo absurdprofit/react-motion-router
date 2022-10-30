@@ -476,12 +476,11 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             this.ref?.removeChild(endNode);
                         }
                     };
-                    Promise.all([
-                        startXAnimation.finished,
-                        startYAnimation.finished,
-                        endXAnimation?.finished,
-                        endYAnimation?.finished
-                    ]).then(onEnd);
+                    if (this.ref) {
+                        Promise.all(
+                            this.ref.getAnimations({subtree: true}).map(anim => anim.finished)
+                        ).then(onEnd);
+                    }
                     // window.addEventListener('page-animation-end', onEnd, {once:true});
                 }
             }
