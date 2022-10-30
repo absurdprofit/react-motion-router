@@ -105,7 +105,7 @@ export default function Slides(props: SlidesProps) {
                             {
                                 <SharedElement id={`${_index !== index ? 'no-transition-' : ''}${hero.id}`}>
                                     <img
-                                        src={hero.photo.url}
+                                        src={hero.photoUrl}
                                         alt={hero.name}
                                         style={{transition: '0.2s transform ease'}}
                                         {...{"data-gesturetarget": true}}

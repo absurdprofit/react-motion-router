@@ -26,7 +26,7 @@ const CardList = ({navigation, observer}: CardListProps) => {
         let gradientRef: HTMLElement | null = null;
         let bgRef: HTMLElement | null = null;
         const params = {
-            hero,
+            ...hero,
             photoAspect: 0
         };
         const onClick = () => {
@@ -75,7 +75,7 @@ const CardList = ({navigation, observer}: CardListProps) => {
                                     height={345}
                                     loading={heroName === hero.id ? "eager" : "lazy"}
                                     decoding={heroName === hero.id ? "sync" : "async"}
-                                    src={hero.photo.url}
+                                    src={hero.photoUrl}
                                     alt={hero.name}
                                     id={`${hero.id}`}
                                     ref={(ref: HTMLImageElement | null) => {

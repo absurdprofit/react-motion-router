@@ -4,35 +4,38 @@ export default class History extends HistoryBase {
     private _next: string | null = null;
 
     constructor(_defaultRoute: string | null, _baseURL?: URL) {
-        _baseURL = _baseURL || new URL(_defaultRoute || window.location.pathname, window.location.origin);
         super(_defaultRoute, _baseURL);
-
         const pathname = window.location.pathname;
         const searchPart = window.location.search;
 
         if (_defaultRoute) {
             this.defaultRoute = _defaultRoute;
-            if (this.defaultRoute !== window.location.pathname) {
-                this._stack.push(this.defaultRoute);
-                window.history.replaceState({}, "", History.getURL(this.defaultRoute, this.baseURL));
-                window.history.pushState({}, "", History.getURL(pathname, this.baseURL, searchPart));
+            if (this.defaultRoute !== window.location.pathname && !this.state.get(this.baseURL.pathname)?.stack.length) {
+                this.replaceState({}, "", History.getURL(this.defaultRoute, this.baseURL));
+                this.pushState({}, "", History.getURL(pathname, this.baseURL, searchPart));
+                if (!this._stack.length) {
+                    this._stack.push(this.defaultRoute);
+                    this._stack.push(pathname);
+                }
             }
         }
-        this._stack.push(pathname);
+        if (!this._stack.length || !this._stack.includes(pathname))
+            this._stack.push(pathname);
     }
 
-    push(route: string, hash: string = '', replace: boolean = false) {
+    push(route: string, search: string = '', hash: string = '', replace: boolean = false) {
         const url = History.getURL(route, this.baseURL);
         url.hash = hash;
+        url.search = search;
         
         this.next = null;
         
         if (replace) {
-            window.history.replaceState({}, "", url);
+            this.replaceState({}, "", url);
             this._stack.pop();
             this._stack.push(route);
         } else {
-            window.history.pushState({}, "", url);
+            this.pushState({}, "", url);
             this._stack.push(route);
         }
     }
@@ -54,7 +57,7 @@ export default class History extends HistoryBase {
         
         if (replace && this.defaultRoute) {
             this._stack.push(this.defaultRoute);
-            window.history.replaceState({}, "", this.defaultRoute);
+            this.replaceState({}, "", this.defaultRoute);
         } else {
             window.history.back();
         }

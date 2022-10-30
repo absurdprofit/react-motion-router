@@ -29,11 +29,12 @@ export default class TabRouter extends RouterBase<TabRouterProps, TabRouterState
     constructor(props: RouterProps) {
         super(props);
 
+        const baseURL = props.basePathname ? new URL(props.basePathname, window.location.origin) : undefined;
         this.navigation = new TabNavigation(
             this.id,
             true,
             null,
-            this.parent?.baseURL || undefined,
+            baseURL,
             this.state.tabHistory,
             this.props.backBehaviour || 'none'
         );

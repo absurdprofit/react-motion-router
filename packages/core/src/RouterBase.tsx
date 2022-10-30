@@ -31,6 +31,7 @@ export interface RouterBaseProps {
     config: Config;
     children: ScreenChild | ScreenChild[];
     onMount?(navigation: NavigationBase): void;
+    basePathname?: string;
 }
 
 export interface RouterBaseState {
@@ -43,16 +44,13 @@ export interface RouterBaseState {
 }
 
 export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState> extends React.Component<P, S> {
-    protected readonly id: number;
+    protected readonly id: number = Math.random();
     protected readonly animationLayerData = new AnimationLayerData();
     protected ref: HTMLElement | null = null;
     protected abstract navigation: NavigationBase;
     protected abstract _routerData: RouterData;
     protected config: Config;
     protected dispatchEvent: ((event: Event) => Promise<boolean>) | null = null;
-    private static readonly routers: RouterBase[] = [];
-    protected readonly parent: RouterBase;
-    abstract readonly baseURL: URL | null;
 
     static defaultProps = {
         config: {
@@ -67,10 +65,6 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
 
     constructor(props: RouterBaseProps) {
         super(props as P);
-
-        this.id = RouterBase.routers.length;
-        this.parent = RouterBase.routers[this.id - 1];
-        RouterBase.routers.push(this);
         
         if (props.config) {
             this.config = props.config;
@@ -88,8 +82,6 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
                 }
             }
         }
-
-        
     }
     
     state: S = {
@@ -117,10 +109,6 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
         }
 
         let currentPath = this.navigation.location.pathname;
-        if (this.props.config.defaultRoute && this.navigation.location.pathname === '/' && this.props.config.defaultRoute !== '/') {
-            this.navigation.navigate(this.props.config.defaultRoute);
-            currentPath = this.props.config.defaultRoute;
-        }
         this._routerData.routesData = this.state.routesData;
         this._routerData.paramsDeserialiser = this.props.config.paramsDeserialiser;
         this._routerData.paramsSerialiser = this.props.config.paramsSerialiser;
@@ -132,8 +120,6 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     }
 
     componentWillUnmount() {
-        RouterBase.routers.splice(this.id);
-
         if (this.ref) this.removeNavigationEventListeners(this.ref);
         window.removeEventListener('popstate', this.onPopStateListener);
     }
@@ -194,6 +180,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
                                 this._routerData.ghostLayer = instance;
                             }}
                             backNavigating={this.state.backNavigating}
+                            gestureNavigating={this.state.gestureNavigating}
                         />
                         <AnimationLayer
                             disableBrowserRouting={this.props.config.disableBrowserRouting || false}

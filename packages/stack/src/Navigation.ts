@@ -21,11 +21,12 @@ export default class Navigation extends NavigationBase {
 
     navigate(route: string, routeParams?: {[key:string]: any}, options: NavigateOptions = {}) {
         const {replace, hash} = options;
+        const search = this.searchParamsFromObject(routeParams || {});
 
         if (this._disableBrowserRouting) {
             this._history.implicitPush(route, Boolean(replace));
         } else {
-            this._history.push(route, hash || '', Boolean(replace));
+            this._history.push(route, search, hash || '', Boolean(replace));
         }
 
         const controller = new AbortController();

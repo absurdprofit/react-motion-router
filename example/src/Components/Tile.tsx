@@ -42,10 +42,10 @@ export default class Tile extends React.Component<TileProps> {
                 }}>
                     <img
                         ref={c => this.ref = c}
-                        src={this.props.hero.photo.url}
+                        src={this.props.hero.photoUrl}
                         alt={this.props.hero.name}
-                        width={this.props.hero.photo.width}
-                        height={this.props.hero.photo.height}
+                        width={this.props.hero.photoWidth}
+                        height={this.props.hero.photoHeight}
                         decoding="async"
                         style={{
                             clipPath: (heroID === this.props.hero.id ? inset : '')

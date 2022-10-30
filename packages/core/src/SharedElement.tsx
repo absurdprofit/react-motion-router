@@ -26,8 +26,6 @@ namespace SharedElement {
         unset
     }
 
-    
-
     enum TransitionAnimationEnum {
         "morph",
         "fade-through",
@@ -36,7 +34,6 @@ namespace SharedElement {
     }
 
     type TransitionAnimation = keyof typeof TransitionAnimationEnum;
-
 
     type TransformOriginGlobal = keyof typeof TransformOriginGlobalEnum;
 
@@ -52,7 +49,6 @@ namespace SharedElement {
 
     export interface SharedElementNode {
         id: string;
-        node: HTMLElement;
         instance: SharedElement;
     }
 
@@ -163,7 +159,6 @@ namespace SharedElement {
  
         return {
             id: id,
-            node: node,
             instance: instance
         };
     }
@@ -211,6 +206,11 @@ namespace SharedElement {
 
         get scene() {
             return this._scene;
+        }
+
+        get node() {
+            if (this._ref) return this._ref.cloneNode(true) as HTMLElement;
+            else return null;
         }
         
         get clientRect() {
@@ -292,8 +292,6 @@ namespace SharedElement {
                 if (this._ref) {
                     this.scene?.removeNode(this._id);
                     this.scene?.addNode(nodeFromRef(this._id, this._ref, this));
-                    if (this._ref.firstElementChild)
-                        this._computedStyle = window.getComputedStyle(this._ref.firstElementChild);
                 }
                 this._idleCallbackID = 0;
             });

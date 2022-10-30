@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Anchor, SharedElement, ScrollRestoration } from '@react-motion-router/core';
 import { Navigation } from '@react-motion-router/stack';
 import Typography from '@mui/material/Typography';
@@ -10,8 +10,7 @@ import '../css/Details.css';
 interface DetailsProps {
     navigation: Navigation;
     route: {
-        params: {
-            hero: Hero;
+        params: Hero & {
             noBg?: boolean;
         }
     };
@@ -21,10 +20,13 @@ let isLoaded = false;
 let originalDesc: string | undefined;
 let lastHero = '';
 export default function Details(props: DetailsProps) {
-    const {hero, noBg} = props.route.params;
-    const photoAspect = (hero.photo.width / hero.photo.height);
-
+    const {noBg, ...hero} = props.route.params;
+    
     useEffect(() => {
+        if (!hero.name) {
+            props.navigation.goBack();
+            return;
+        }
         lastHero = hero.name;
         if (hero.description) {
             if (!originalDesc)
@@ -44,78 +46,74 @@ export default function Details(props: DetailsProps) {
             isLoaded = true;
         }, {once: true});
     }, []);
-    if (hero) {
-        return (
-            <ScrollRestoration
-                id="details-scroll-area"
-                shouldRestore={lastHero === hero.name}
-                hashScrollConfig={{
-                    behavior: 'smooth'
-                }}
-            >
-                <article aria-label={`Character profile: ${hero.name}`} className={`details ${isLoaded ? 'loaded' : 'suspense'}`} style={{width: "100%", height: "100%", backgroundColor: Boolean(noBg) ? 'white' : undefined}}>
-                    {!Boolean(noBg)
-                    &&
-                    <SharedElement id={`${hero.id}-card-bg`}>
-                        <div className="card-bg" aria-hidden="true"></div>
-                    </SharedElement>}
-                    <Anchor aria-label='Go Back' goBack tabIndex={-1}>
-                        <IconButton style={{
-                            position: "absolute",
-                            color: 'grey',
-                            zIndex: 10000
-                        }} disableRipple>
-                            <SharedElement id="back" config={{
-                                type: 'fade-through'
-                            }}>
-                                <ClearIcon style={{
-                                    zIndex: 100
-                                }} />
-                            </SharedElement>
-                        </IconButton>
-                    </Anchor>
-                    <div className="profile-info">
-                        <SharedElement id={`${hero.id}-gradient-overlay`}>
-                            <div
-                                className="gradient-overlay"
-                                style={{
-                                    height: window.innerWidth / photoAspect,
-                                    width: window.innerWidth
-                                }}
-                                aria-hidden="true"
-                            ></div>
+
+    if (!hero.name) return <></>;
+
+    const photoAspect = (hero.photoWidth / hero.photoHeight);
+
+    return (
+        <ScrollRestoration
+            id="details-scroll-area"
+            shouldRestore={lastHero === hero.name}
+            hashScrollConfig={{
+                behavior: 'smooth'
+            }}
+        >
+            <article aria-label={`Character profile: ${hero.name}`} className={`details ${isLoaded ? 'loaded' : 'suspense'}`} style={{width: "100%", height: "100%", backgroundColor: Boolean(noBg) ? 'white' : undefined}}>
+                {!Boolean(noBg)
+                &&
+                <SharedElement id={`${hero.id}-card-bg`}>
+                    <div className="card-bg" aria-hidden="true"></div>
+                </SharedElement>}
+                <Anchor aria-label='Go Back' goBack tabIndex={-1}>
+                    <IconButton style={{
+                        position: "absolute",
+                        color: 'grey',
+                        zIndex: 10000
+                    }} disableRipple>
+                        <SharedElement id="back" config={{
+                            type: 'fade-through'
+                        }}>
+                            <ClearIcon style={{
+                                zIndex: 100
+                            }} />
                         </SharedElement>
-                        <SharedElement id={hero.id}>
-                            <img src={hero.photo.url} alt="Character Image" width={hero.photo.width} height={hero.photo.height} />
+                    </IconButton>
+                </Anchor>
+                <div className="profile-info">
+                    <SharedElement id={`${hero.id}-gradient-overlay`}>
+                        <div
+                            className="gradient-overlay"
+                            style={{
+                                height: window.innerWidth / photoAspect,
+                                width: window.innerWidth
+                            }}
+                            aria-hidden="true"
+                        ></div>
+                    </SharedElement>
+                    <SharedElement id={hero.id}>
+                        <img src={hero.photoUrl} alt="Character Image" width={hero.photoWidth} height={hero.photoHeight} />
+                    </SharedElement>
+                    <div className="text-content" tabIndex={0}>
+                        <SharedElement id={`title-${hero.id}`}>
+                            <Typography
+                                id="title"
+                                style={{fontWeight: 'bold', fontSize: '28px', zIndex: 10}}
+                                gutterBottom
+                                variant="h4"
+                                component="h4"
+                            >
+                                {hero.name}
+                            </Typography>
                         </SharedElement>
-                        <div className="text-content" tabIndex={0}>
-                            <SharedElement id={`title-${hero.id}`}>
-                                <Typography
-                                    id="title"
-                                    style={{fontWeight: 'bold', fontSize: '28px', zIndex: 10}}
-                                    gutterBottom
-                                    variant="h4"
-                                    component="h4"
-                                >
-                                    {hero.name}
-                                </Typography>
+                        <div className="description">
+                            <SharedElement id={`description-${hero.id}`}>
+                                <p style={{zIndex: 10}}>{hero.description}</p>
                             </SharedElement>
-                            <div className="description">
-                                <SharedElement id={`description-${hero.id}`}>
-                                    <p style={{zIndex: 10}}>{hero.description}</p>
-                                </SharedElement>
-                            </div>
                         </div>
                     </div>
-                </article>
-            </ScrollRestoration>
-        )
-    } else {
-        return (
-            <div className="details">
-                <h1>Return Home</h1>
-                <button onClick={() => {props.navigation.goBack()}}>Back</button>
-            </div>
-        );
-    }
+                </div>
+            </article>
+        </ScrollRestoration>
+    );
 }

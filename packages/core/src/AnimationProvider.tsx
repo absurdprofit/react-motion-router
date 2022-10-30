@@ -174,6 +174,12 @@ export default class AnimationProvider extends React.Component<AnimationProvider
     }
 
     animate(keyframes: Keyframe[] | PropertyIndexedKeyframes | null, options?: number | KeyframeAnimationOptions | undefined): Animation | null {
+        if (typeof options === "number")
+            options = {duration: options};
+        options = {
+            ...options,
+            id: `${this.props.name}-${this.props.in ? 'in' : 'out'}`
+        }
         return this.ref?.animate(keyframes, options) || null;
     }
 

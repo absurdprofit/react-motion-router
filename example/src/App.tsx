@@ -4,7 +4,7 @@ import {
   matchRoute,
   AnimationKeyframeEffectConfig,
   AnimationConfig,
-  AnimationConfigFactory
+  AnimationConfigFactory,
 } from '@react-motion-router/core';
 import { iOS, isPWA } from './common/utils';
 import { ModalAnimation } from './Screens/Modal/Animations';
@@ -26,13 +26,16 @@ const Overlays = React.lazy(() => import('./Screens/Overlays'));
 
 function DetailsFallback({route}: any) {
   const {hero} = route.params;
+  if (!hero) {
+    return <></>;
+  }
   return (
     <div className='screen-fallback details'>
       <img
-        src={hero.photo.url}
+        src={hero.photoUrl}
         alt="profile-details"
-        width={hero.photo.width}
-        height={hero.photo.height}
+        width={hero.photoWidth}
+        height={hero.photoHeight}
         style={{
           width: '100%',
           maxWidth: '1000px',

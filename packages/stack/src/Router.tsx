@@ -11,20 +11,18 @@ export interface RouterState extends RouterBaseState {}
 export default class Router extends RouterBase {
     protected navigation: Navigation;
     protected _routerData: RouterData;
-    readonly baseURL: URL;
 
     constructor(props: RouterProps) {
         super(props);
 
+        const baseURL = props.basePathname ? new URL(props.basePathname, window.location.origin) : undefined;
         this.navigation = new Navigation(
             this.id,
-            new History(props.config.defaultRoute ?? null, this.parent?.baseURL || undefined),
+            new History(props.config.defaultRoute ?? null, baseURL),
             this.animationLayerData,
             props.config.disableBrowserRouting,
             props.config.defaultRoute
         );
-
-        this.baseURL = this.navigation.history.baseURL;
 
         this._routerData = new RouterData(this.navigation);
 
