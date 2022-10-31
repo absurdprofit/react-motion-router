@@ -5,12 +5,12 @@ export default class History extends HistoryBase {
 
     constructor(_defaultRoute: string | null, _baseURL?: URL) {
         super(_defaultRoute, _baseURL);
-        const pathname = window.location.pathname;
+        const pathname = window.location.pathname.replace(this.baseURL.pathname, '');
         const searchPart = window.location.search;
 
         if (_defaultRoute) {
             this.defaultRoute = _defaultRoute;
-            if (this.defaultRoute !== window.location.pathname && !this.state.get(this.baseURL.pathname)?.stack.length) {
+            if (this.defaultRoute !== pathname && !this.state.get(this.baseURL.pathname)?.stack.length) {
                 this.replaceState({}, "", History.getURL(this.defaultRoute, this.baseURL));
                 this.pushState({}, "", History.getURL(pathname, this.baseURL, searchPart));
                 if (!this._stack.length) {
@@ -76,25 +76,20 @@ export default class History extends HistoryBase {
     }
 
     get current() {
-        let _current: string | undefined = this._stack[this._stack.length - 1];
-        _current = _current.replace(new RegExp(this.baseURL.pathname + '$'), '');
-        return new URL(_current, window.location.origin).pathname;
+        return this._stack.at(-1) || '/';
     }
 
     get next() {
         let {_next} = this;
         if (_next) {
-            _next = _next.replace(new RegExp(this.baseURL.pathname + '$'), '');
-            return new URL(_next, window.location.origin).pathname;
+            return _next;
         }
         return null;
     }
 
     get previous() {
         if (this._stack.length > 1) {
-            let _previous = this._stack[this._stack.length - 2];
-            _previous = _previous.replace(new RegExp(this.baseURL.pathname + '$'), '');
-            return new URL(_previous, window.location.origin).pathname;
+            return this._stack.at(-2) || null;
         }
         return null;
     }

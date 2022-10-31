@@ -5,8 +5,11 @@ export default abstract class HistoryBase {
     
     constructor(_defaultRoute: string | null, _baseURL?: URL) {
         if (!document.querySelector('.react-motion-router'))
-            _baseURL = _baseURL || new URL('/', window.location.origin);
+            _baseURL = _baseURL || new URL('/', window.location.origin); // if base URL unspecified base URL is '/'
+        
+            
         _baseURL = _baseURL || new URL(window.location.toString());
+        _baseURL = new URL(_baseURL.href.replace(/\/$/, '')); // negate trailing slash
         this._baseURL = _baseURL;
 
         this._defaultRoute = _defaultRoute || this._baseURL.pathname;
@@ -110,12 +113,13 @@ export default abstract class HistoryBase {
     }
 
     protected static getURL(route: string, baseURL: URL, search: string = '') {
-        const path = [
-            ...baseURL.pathname.split('/').filter(path => path.length),
-            ...route.split('/').filter(path => path.length)
-        ].join('/');
-
-        const url = new URL(path, baseURL);
+        if (!baseURL.pathname.match(/\/$/))
+            baseURL = new URL(baseURL.href + '/');
+        
+        if (route.match(/^\//))
+            route = route.slice(1);
+        
+        const url = new URL(route, baseURL);
         url.search = search;
         return url;
     }
@@ -144,7 +148,7 @@ export default abstract class HistoryBase {
             const stack = this.state.get(this.baseURL.pathname).stack;
             Reflect.set(stack, p, newValue, stack);
         }
-        
+        console.log({p, newValue});
         return Reflect.set(target, p, newValue, receiver);
     }
 }

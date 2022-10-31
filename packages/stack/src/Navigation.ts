@@ -17,6 +17,19 @@ export default class Navigation extends NavigationBase {
 
         this._history = _history;
         this._animationLayerData = _animationLayerData;
+
+        window.addEventListener('popstate', this.onPopState);
+    }
+
+    onPopState = (e: Event) => {
+        e.preventDefault();
+
+        const pathname = window.location.pathname.replace(this.history.baseURL.pathname, '');
+        if (pathname === this.history.previous) {
+            this.implicitBack();
+        } else {
+            this.implicitNavigate(pathname);
+        }
     }
 
     navigate(route: string, routeParams?: {[key:string]: any}, options: NavigateOptions = {}) {

@@ -95,6 +95,7 @@ const cardsToDetails: AnimationConfigFactory = (currentPath, nextPath) => {
 function Routes() {
   return (
       <Router config={{
+        basePathname: '/index.html',
         defaultRoute: '/',
         disableDiscovery: false,
         disableBrowserRouting: isPWA() && iOS(),

@@ -41,7 +41,7 @@ export default function Anchor(props: AnchorProps) {
         uri.search = search;
         if (uri.origin === navigation.location.origin) {
             setExternal(false);
-            setURL(uri.href.replace(navigation.location.origin, '')); // pathname with search part
+            setURL(uri.href.replace(navigation.location.origin, navigation.history.baseURL.pathname)); // pathname with search part
         } else {
             setExternal(true);
             setURL(uri.href);

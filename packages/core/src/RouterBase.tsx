@@ -20,6 +20,7 @@ interface Config {
     swipeAreaWidth?: number;
     minFlingVelocity?: number;
     hysteresis?: number;
+    basePathname?: string;
     disableDiscovery?: boolean;
     swipeDirection?: SwipeDirection;
     disableBrowserRouting?: boolean;
@@ -31,7 +32,6 @@ export interface RouterBaseProps {
     config: Config;
     children: ScreenChild | ScreenChild[];
     onMount?(navigation: NavigationBase): void;
-    basePathname?: string;
 }
 
 export interface RouterBaseState {
