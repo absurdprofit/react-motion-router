@@ -36,6 +36,10 @@ import ScrollRestoration from './ScrollRestoration';
 document.body.style.position = 'fixed';
 document.body.style.inset = '0';
 
+const title = document.head.querySelector('title');
+if (title)
+    title.ariaLive = "polite";
+
 let root = document.getElementById('root');
 if (root) {
     root.style.width = '100%';

@@ -11,6 +11,7 @@ import History from './History';
 export default class Navigation extends NavigationBase {
     protected _history: History;
     private _animationLayerData: AnimationLayerData;
+    private isInternalBack = false;
 
     constructor(_id: number, _history: History, _animationLayerData: AnimationLayerData, _disableBrowserRouting: boolean = false, _defaultRoute: string | null = null) {
         super(_id, _disableBrowserRouting, _defaultRoute);
@@ -23,6 +24,10 @@ export default class Navigation extends NavigationBase {
 
     onPopState = (e: Event) => {
         e.preventDefault();
+        if (this.isInternalBack) {
+            this.isInternalBack = false;
+            return;
+        }
 
         const pathname = window.location.pathname.replace(this.history.baseURL.pathname, '');
         if (pathname === this.history.previous) {
@@ -102,6 +107,7 @@ export default class Navigation extends NavigationBase {
     }
 
     goBack(options: GoBackOptions = {}) {
+        this.isInternalBack = true;
         const {replace} = options;
 
         const controller = new AbortController();

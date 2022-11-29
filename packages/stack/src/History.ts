@@ -31,12 +31,12 @@ export default class History extends HistoryBase {
         this.next = null;
         
         if (replace) {
-            this.replaceState({}, "", url);
             this._stack.pop();
             this._stack.push(route);
+            this.replaceState({stack: this._stack}, "", url);
         } else {
-            this.pushState({}, "", url);
             this._stack.push(route);
+            this.pushState({stack: this._stack}, "", url);
         }
     }
 
@@ -57,11 +57,11 @@ export default class History extends HistoryBase {
         
         if (replace && this.defaultRoute) {
             this._stack.push(this.defaultRoute);
-            this.replaceState({}, "", this.defaultRoute);
+            this.replaceState({stack: this._stack}, "", this.defaultRoute);
         } else {
             window.history.back();
         }
-
+        
         return this.previous;
     }
 

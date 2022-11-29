@@ -20,8 +20,6 @@ export default abstract class HistoryBase {
         const persistedStack = this.state.get(this.baseURL.pathname)?.stack as string[] || undefined;
         if (persistedStack) this._stack = [...persistedStack.filter(entry => Boolean(entry))];
         else this.state.get(this.baseURL.pathname).stack = [...this._stack];
-
-        this._stack = new Proxy(this._stack, {set: this.onStackUpdate.bind(this)});
     }
 
     protected abstract set next(_next: string | null);
@@ -98,6 +96,7 @@ export default abstract class HistoryBase {
                 ...data
             }
         };
+        
         window.history.pushState(data, unused, url);
     }
 
@@ -139,16 +138,5 @@ export default abstract class HistoryBase {
             result[key] = parsedValue;
         }
         return Object.keys(result).length ? result : undefined;
-    }
-
-    private onStackUpdate(target: string[], p: string | symbol, newValue: any, receiver: any) {
-        if (this.state.has(this.baseURL.pathname)) {
-            if (!this.state.get(this.baseURL.pathname).stack)
-                this.state.get(this.baseURL.pathname).stack = [...this._stack];
-            const stack = this.state.get(this.baseURL.pathname).stack;
-            Reflect.set(stack, p, newValue, stack);
-        }
-        console.log({p, newValue});
-        return Reflect.set(target, p, newValue, receiver);
     }
 }
