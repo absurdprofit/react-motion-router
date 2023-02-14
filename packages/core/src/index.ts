@@ -33,6 +33,11 @@ import {
 } from './MotionEvents';
 import ScrollRestoration from './ScrollRestoration';
 
+// @ts-ignore: Property 'UrlPattern' does not exist 
+if (!globalThis.URLPattern) { 
+    (async () => await import("urlpattern-polyfill"))();
+}
+
 document.body.style.position = 'fixed';
 document.body.style.inset = '0';
 

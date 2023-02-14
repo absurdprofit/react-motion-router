@@ -6,7 +6,7 @@
         },
         "declaration": true,
         "sourceMap": true,
-        "target": "ES2016",
+        "target": "ES2017",
         "lib": [
             "dom",
             "dom.iterable",

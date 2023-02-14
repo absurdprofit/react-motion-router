@@ -13,8 +13,8 @@ export default class Navigation extends NavigationBase {
     private _animationLayerData: AnimationLayerData;
     private isInternalBack = false;
 
-    constructor(_id: number, _history: History, _animationLayerData: AnimationLayerData, _disableBrowserRouting: boolean = false, _defaultRoute: string | null = null) {
-        super(_id, _disableBrowserRouting, _defaultRoute);
+    constructor(_routerId: number, _history: History, _animationLayerData: AnimationLayerData, _disableBrowserRouting: boolean = false, _defaultRoute: string | null = null) {
+        super(_routerId, _disableBrowserRouting, _defaultRoute);
 
         this._history = _history;
         this._animationLayerData = _animationLayerData;
@@ -24,6 +24,10 @@ export default class Navigation extends NavigationBase {
 
     onPopState = (e: Event) => {
         e.preventDefault();
+        if (this.history.state.get<number>('routerId') === this._routerId) {
+            console.log("Match");
+            e.stopImmediatePropagation();
+        }
         if (this.isInternalBack) {
             this.isInternalBack = false;
             return;
@@ -52,7 +56,7 @@ export default class Navigation extends NavigationBase {
 
         const event = new CustomEvent<NavigateEventDetail>('navigate', {
             detail: {
-                id: this.id,
+                routerId: this.routerId,
                 route: route,
                 routeParams: routeParams,
                 replace: Boolean(replace),
@@ -78,7 +82,7 @@ export default class Navigation extends NavigationBase {
 
         const event = new CustomEvent<NavigateEventDetail>('navigate', {
             detail: {
-                id: this.id,
+                routerId: this.routerId,
                 route: route,
                 routeParams: routeParams,
                 replace: false,

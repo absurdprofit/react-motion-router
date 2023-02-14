@@ -88,7 +88,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
         currentPath: "",
         backNavigating: false,
         gestureNavigating: false,
-        routesData: new Map<string | RegExp, any>(),
+        routesData: new Map<string, any>(),
         implicitBack: false,
         defaultDocumentTitle: document.title
     } as S;

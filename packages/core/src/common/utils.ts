@@ -65,19 +65,17 @@ export function clamp(num: number, min: number, max?: number) {
     return num;
 }
 
-export function matchRoute(routeTest: string | RegExp | undefined, routeString: string | undefined): boolean {
-    if (typeof routeTest === "string" || typeof routeTest === "undefined") {
-        return routeTest === routeString;
+export function matchRoute(routeTest: string | undefined, route: string | undefined, baseURL: string = window.location.origin): boolean {
+    if (typeof routeTest === "undefined") {
+        return routeTest === route;
     }
-    if (routeTest instanceof RegExp && routeString) {
-        return routeTest.test(routeString);
-    } else {
-        return false;
-    }
+    const pattern = new URLPattern(routeTest, baseURL);
+    const routeURL = new URL(route!, baseURL);
+    return pattern.test(routeURL);
 }
 
-export function includesRoute(routeString: string | undefined, routeTests: (string | RegExp | undefined)[]) {
-    return routeTests.some((routeTest) => matchRoute(routeTest, routeString));
+export function includesRoute(routeString: string | undefined, routeTests: (string | undefined)[], baseURL: string = window.location.origin) {
+    return routeTests.some((routeTest) => matchRoute(routeTest, routeString, baseURL));
 }
 
 export function dispatchEvent<T>(event: CustomEvent<T> | Event, target: HTMLElement | EventTarget = window) {

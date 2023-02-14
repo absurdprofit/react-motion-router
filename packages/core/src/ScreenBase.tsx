@@ -16,7 +16,7 @@ export interface ScreenBaseProps {
     in?: boolean;
     component: React.JSXElementConstructor<any>;
     fallback?: React.ReactNode;
-    path?: string | RegExp;
+    path?: string;
     resolvedPathname?: string;
     defaultParams?: {[key:string]: any};
     name?: string;

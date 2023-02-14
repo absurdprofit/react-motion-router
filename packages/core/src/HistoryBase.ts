@@ -2,10 +2,14 @@ export default abstract class HistoryBase {
     private _baseURL: URL;
     protected _stack: string[] = [];
     private _defaultRoute: string;
+    protected readonly _routerId: number;
     
-    constructor(_defaultRoute: string | null, _baseURL?: URL) {
-        if (!document.querySelector('.react-motion-router'))
+    constructor(_routerId: number, _defaultRoute: string | null, _baseURL?: URL) {
+        this._routerId = _routerId;
+        if (!document.querySelector('.react-motion-router')) {
             _baseURL = _baseURL || new URL('/', window.location.origin); // if base URL unspecified base URL is '/'
+            this.state.set("routerId", this._routerId);
+        }
         
             
         _baseURL = _baseURL || new URL(window.location.toString());
@@ -17,9 +21,12 @@ export default abstract class HistoryBase {
             window.history.replaceState({}, "", window.location.toString());
 
         if (!this.state.has(this.baseURL.pathname)) this.state.set(this.baseURL.pathname, {});
-        const persistedStack = this.state.get(this.baseURL.pathname)?.stack as string[] || undefined;
+        const persistedStack = this.state.get<{stack: string[]}>(this.baseURL.pathname)?.stack;
         if (persistedStack) this._stack = [...persistedStack.filter(entry => Boolean(entry))];
-        else this.state.get(this.baseURL.pathname).stack = [...this._stack];
+        else {
+            if (this.state.has(this.baseURL.pathname))
+                this.state.get<{stack: string[]}>(this.baseURL.pathname)!.stack = [...this._stack];
+        }
     }
 
     protected abstract set next(_next: string | null);
@@ -50,26 +57,26 @@ export default abstract class HistoryBase {
         return this._baseURL;
     }
     
-    protected get state() {
+    get state() {
         return {
-            set<K, V>(key: K, value: V) {
+            set<V>(key: string | number | symbol, value: V) {
                 if (window.history.state) {
                     window.history.state[key] = value;
                     return true;
                 }
                 return false;
             },
-            get<K>(key: K) {
+            get<V>(key: string | number | symbol): V | null {
                 if (window.history.state) {
                     return window.history.state[key] || null;
                 } 
                 return null;
             },
-            has<K>(key: K) {
+            has(key: string | number | symbol) {
                 if (!window.history.state) return false;
                 return key in window.history.state;
             },
-            delete<K>(key: K) {
+            delete(key: string | number | symbol) {
                 if (!window.history.state) return false;
                 return delete window.history.state[key];
             },
@@ -94,7 +101,8 @@ export default abstract class HistoryBase {
             [this.baseURL.pathname]: {
                 ...window.history.state[this.baseURL.pathname],
                 ...data
-            }
+            },
+            routerId: this._routerId
         };
         
         window.history.pushState(data, unused, url);
@@ -106,7 +114,8 @@ export default abstract class HistoryBase {
             [this.baseURL.pathname]: {
                 ...window.history.state[this.baseURL.pathname],
                 ...data
-            }
+            },
+            routerId: this._routerId
         };
         window.history.replaceState(data, unused, url);
     }

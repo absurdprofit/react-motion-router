@@ -36,7 +36,7 @@ interface AnimationLayerState {
     shouldAnimate: boolean;
     startX: number;
     startY: number;
-    paths: (string | RegExp | undefined)[],
+    paths: (string | undefined)[],
     swipeDirection: SwipeDirection;
     swipeAreaWidth: number;
     minFlingVelocity: number;

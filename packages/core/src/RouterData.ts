@@ -4,7 +4,7 @@ import GhostLayer from './GhostLayer';
 import NavigationBase from './NavigationBase';
 import { ScrollRestorationData } from './ScrollRestorationData';
 
-export type RoutesData = Map<string | RegExp | undefined, {[key:string]: any}>;
+export type RoutesData = Map<string | undefined, {[key:string]: any}>;
 
 export default class RouterData {
     private _currentPath: string = '';

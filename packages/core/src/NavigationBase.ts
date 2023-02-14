@@ -8,7 +8,7 @@ export interface BackEventDetail {
 }
 
 export interface NavigateEventDetail {
-    id: number;
+    routerId: number;
     route: string;
     routeParams?: any;
     replace: boolean;
@@ -29,7 +29,7 @@ export interface NavigateOptions extends NavigationOptions {
 export interface GoBackOptions extends NavigationOptions {}
 
 export default abstract class NavigationBase {
-    private _id: number;
+    protected readonly _routerId: number;
     private _metaData = new MetaData();
     protected abstract _history: HistoryBase;
     // private _history;
@@ -41,13 +41,13 @@ export default abstract class NavigationBase {
     protected _dispatchEvent: ((event: Event) => Promise<boolean>) | null = null;
     // private _dispatchEvent: ((event: Event) => boolean) | null = null;
 
-    constructor(_id: number, _disableBrowserRouting: boolean = false, _defaultRoute: string | null = null) {
+    constructor(_routerId: number, _disableBrowserRouting: boolean = false, _defaultRoute: string | null = null) {
         this._disableBrowserRouting = _disableBrowserRouting;
-        this._id = _id;
+        this._routerId = _routerId;
     }
 
-    get id() {
-        return this._id;
+    get routerId() {
+        return this._routerId;
     }
 
     abstract navigate(route: string, routeParams?: {[key:string]: any}, options?: NavigateOptions): void;

@@ -6,8 +6,8 @@ export default class TabHistory extends HistoryBase {
     private _index: number = 0;
     private _backBevhiour: BackBehaviour;
 
-    constructor(_defaultRoute: string | null, _baseURL?: URL, _stack: string[] = [], _backBehaviour: BackBehaviour = 'none') {
-        super(_defaultRoute, _baseURL);
+    constructor(_routerId: number, _defaultRoute: string | null, _baseURL?: URL, _stack: string[] = [], _backBehaviour: BackBehaviour = 'none') {
+        super(_routerId, _defaultRoute, _baseURL);
 
         this._stack = _stack;
         this._backBevhiour = _backBehaviour;
@@ -15,6 +15,8 @@ export default class TabHistory extends HistoryBase {
     
     go(delta: number) {
         this._index = this._index + delta;
+        const url = this.baseURL.href + this._stack[this._index];
+        this.replaceState({stack: this._stack, routerId: this._routerId}, "", url);
     }
     
     set stack(_stack: string[]) {

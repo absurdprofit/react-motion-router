@@ -18,7 +18,7 @@ export default class Router extends RouterBase {
         const baseURL = props.config.basePathname ? new URL(props.config.basePathname, window.location.origin) : undefined;
         this.navigation = new Navigation(
             this.id,
-            new History(props.config.defaultRoute ?? null, baseURL),
+            new History(this.id, props.config.defaultRoute ?? null, baseURL),
             this.animationLayerData,
             props.config.disableBrowserRouting,
             props.config.defaultRoute

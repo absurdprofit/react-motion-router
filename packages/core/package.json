@@ -36,6 +36,7 @@
   },
   "homepage": "https://github.com/nxtexe/react-motion-router#readme",
   "dependencies": {
+    "urlpattern-polyfill": "^6.0.2",
     "web-gesture-events": "0.0.10"
   },
   "peerDependencies": {

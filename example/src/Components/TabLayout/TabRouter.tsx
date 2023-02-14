@@ -76,7 +76,7 @@ export default class TabRouter extends RouterBase<TabRouterProps, TabRouterState
         currentPath: "",
         backNavigating: false,
         gestureNavigating: false,
-        routesData: new Map<string | RegExp, any>(),
+        routesData: new Map<string, any>(),
         implicitBack: false,
         defaultDocumentTitle: document.title,
         tabHistory: React.Children.map(this.props.children, (child) => child.props.path?.toString()),

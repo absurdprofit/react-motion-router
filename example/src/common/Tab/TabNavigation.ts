@@ -5,16 +5,16 @@ export default class TabNavigation extends NavigationBase {
     _history: TabHistory;
 
     constructor(
-        _id: number,
+        _routerId: number,
         _disableBrowserRouting: boolean = false,
         _defaultRoute: string | null = null,
         _baseURL?: URL,
         _stack: string[] = [],
         _backBehaviour: BackBehaviour = "none"
     ) {
-        super(_id, _disableBrowserRouting, _defaultRoute);
+        super(_routerId, _disableBrowserRouting, _defaultRoute);
 
-        const _history = new TabHistory(_defaultRoute, _baseURL, _stack, _backBehaviour);
+        const _history = new TabHistory(_routerId, _defaultRoute, _baseURL, _stack, _backBehaviour);
         this._history = _history;
     }
 
@@ -48,7 +48,7 @@ export default class TabNavigation extends NavigationBase {
         if (delta > 0) { // navigate
             const event = new CustomEvent<NavigateEventDetail>('navigate', {
                 detail: {
-                    id: this.id,
+                    routerId: this._routerId,
                     route: this._history.current,
                     routeParams: routeParams,
                     replace: false,

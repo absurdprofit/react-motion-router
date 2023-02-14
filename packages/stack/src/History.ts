@@ -3,14 +3,15 @@ import { HistoryBase } from "@react-motion-router/core";
 export default class History extends HistoryBase {
     private _next: string | null = null;
 
-    constructor(_defaultRoute: string | null, _baseURL?: URL) {
-        super(_defaultRoute, _baseURL);
+    constructor(_routerId: number, _defaultRoute: string | null, _baseURL?: URL) {
+        super(_routerId, _defaultRoute, _baseURL);
         const pathname = window.location.pathname.replace(this.baseURL.pathname, '');
         const searchPart = window.location.search;
 
         if (_defaultRoute) {
             this.defaultRoute = _defaultRoute;
-            if (this.defaultRoute !== pathname && !this.state.get(this.baseURL.pathname)?.stack.length) {
+            const persistedStack = this.state.get<{stack: string[]}>(this.baseURL.pathname)?.stack;
+            if (this.defaultRoute !== pathname && !persistedStack?.length) {
                 this.replaceState({}, "", History.getURL(this.defaultRoute, this.baseURL));
                 this.pushState({}, "", History.getURL(pathname, this.baseURL, searchPart));
                 if (!this._stack.length) {
