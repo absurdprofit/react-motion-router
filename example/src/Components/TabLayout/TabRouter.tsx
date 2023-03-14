@@ -29,7 +29,7 @@ export default class TabRouter extends RouterBase<TabRouterProps, TabRouterState
     constructor(props: RouterProps) {
         super(props);
 
-        const baseURL = props.config.basePathname ? new URL(props.config.basePathname, window.location.origin) : undefined;
+        const baseURL = new URL(props.config.basePathname || '/', window.location.origin);
         this.navigation = new TabNavigation(
             this.id,
             true,
@@ -82,6 +82,26 @@ export default class TabRouter extends RouterBase<TabRouterProps, TabRouterState
         tabHistory: React.Children.map(this.props.children, (child) => child.props.path?.toString()),
         index: 0
     };
+
+    componentDidMount(): void {
+        super.componentDidMount();
+        console.log(this.parentScreenData?.resolvedPathname);
+        if (this.parentScreenData?.resolvedPathname) {
+            const baseURL = new URL(
+                this.parentScreenData.resolvedPathname.replace(/^\//, ''),
+                `${window.location.origin}/`
+            );
+            console.log(baseURL);
+            this.navigation = new TabNavigation(
+                this.id,
+                true,
+                null,
+                baseURL,
+                this.state.tabHistory,
+                this.props.backBehaviour || 'none'
+            );
+        }
+    }
 
     componentDidUpdate(lastProps: TabRouterProps, lastState: TabRouterState) {
         if (lastState.backNavigating !== this.state.backNavigating) {

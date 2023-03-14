@@ -8,7 +8,7 @@ export default class TabNavigation extends NavigationBase {
         _routerId: number,
         _disableBrowserRouting: boolean = false,
         _defaultRoute: string | null = null,
-        _baseURL?: URL,
+        _baseURL: URL,
         _stack: string[] = [],
         _backBehaviour: BackBehaviour = "none"
     ) {

@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React, { createContext, Suspense } from "react";
 import AnimationProvider from "./AnimationProvider";
 import {
     AnimationConfig,
@@ -9,6 +9,7 @@ import {
     SwipeDirection
 } from "./common/types";
 import { RouterDataContext } from "./RouterData";
+import ScreenData, { ScreenDataContext } from "./ScreenData";
 import SharedElement from "./SharedElement";
 
 export interface ScreenBaseProps {
@@ -38,6 +39,7 @@ export interface ScreenBaseState {
 
 export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState> extends React.Component<P, S> {
     private sharedElementScene: SharedElement.Scene = new SharedElement.Scene(this.props.component.name || this.props.path?.toString() || 'not-found');
+    private screenData: ScreenData = new ScreenData(this);
     private name = this.props.name?.toLowerCase().replace(' ', '-') || this.props.component.name || this.props.path?.toString().slice(1).replace('/', '-') || 'not-found';
     private ref: HTMLElement | null = null;
     private contextParams = this.context.routesData.get(this.props.path)?.params;
@@ -219,6 +221,10 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
         }
     }
 
+    get resolvedPathname() {
+        return this.props.resolvedPathname;
+    }
+
     render() {
         const Component = this.props.component as React.JSXElementConstructor<any>;
         return (
@@ -247,17 +253,19 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
                     }}
                 >
                     <SharedElement.SceneContext.Provider value={this.sharedElementScene}>
-                        <Suspense fallback={this.state.fallback}>
-                            <Component
-                                route={{
-                                    params: {
-                                        ...this.props.defaultParams,
-                                        ...this.contextParams
-                                    }
-                                }}
-                                navigation={this.context.navigation}
-                            />
-                        </Suspense>
+                        <ScreenDataContext.Provider value={this.screenData}>
+                            <Suspense fallback={this.state.fallback}>
+                                <Component
+                                    route={{
+                                        params: {
+                                            ...this.props.defaultParams,
+                                            ...this.contextParams
+                                        }
+                                    }}
+                                    navigation={this.context.navigation}
+                                />
+                            </Suspense>
+                        </ScreenDataContext.Provider>
                     </SharedElement.SceneContext.Provider>
                 </div>
             </AnimationProvider>

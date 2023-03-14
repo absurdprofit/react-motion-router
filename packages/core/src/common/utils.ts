@@ -65,13 +65,46 @@ export function clamp(num: number, min: number, max?: number) {
     return num;
 }
 
-export function matchRoute(routeTest: string | undefined, route: string | undefined, baseURL: string = window.location.origin): boolean {
-    if (typeof routeTest === "undefined") {
-        return routeTest === route;
+export interface MatchedRoute {
+    matchedPathname?: string;
+    rest?: string;
+    exact: boolean;
+}
+
+export function matchRoute(
+    routeTest: string | undefined,
+    route: string | undefined,
+    baseURL: string = window.location.origin
+): MatchedRoute | null {
+    if (typeof routeTest === "undefined" || typeof route === "undefined") {
+        if (routeTest === route) {
+            return {
+                exact: true,
+                matchedPathname: route
+            }
+        }
+        return null;
     }
     const pattern = new URLPattern(routeTest, baseURL);
     const routeURL = new URL(route!, baseURL);
-    return pattern.test(routeURL);
+    const match = pattern.exec(routeURL);
+    let matchedPathname = '';
+    let rest = '';
+    for (let i = 0; i < routeTest.length; i++) {
+        if (routeTest[i] !== route[i]) {
+            rest = route.substring(i);
+            break;
+        } else
+            matchedPathname += routeTest[i];
+    }
+    if (match) {
+        return {
+            exact: routeTest === route,
+            matchedPathname,
+            rest
+        };
+    }
+    return null;
 }
 
 export function includesRoute(routeString: string | undefined, routeTests: (string | undefined)[], baseURL: string = window.location.origin) {

@@ -4,13 +4,8 @@ export default abstract class HistoryBase {
     private _defaultRoute: string;
     protected readonly _routerId: number;
     
-    constructor(_routerId: number, _defaultRoute: string | null, _baseURL?: URL) {
+    constructor(_routerId: number, _defaultRoute: string | null, _baseURL: URL) {
         this._routerId = _routerId;
-        if (!document.querySelector('.react-motion-router')) {
-            _baseURL = _baseURL || new URL('/', window.location.origin); // if base URL unspecified base URL is '/'
-            this.state.set("routerId", this._routerId);
-        }
-        
             
         _baseURL = _baseURL || new URL(window.location.toString());
         _baseURL = new URL(_baseURL.href.replace(/\/$/, '')); // negate trailing slash

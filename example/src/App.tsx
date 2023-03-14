@@ -176,7 +176,7 @@ function Routes() {
           fallback={<div className='screen-fallback home'></div>}
         />
         <Stack.Screen
-          path={/^\/tiles?[0-9]?/}
+          path="/tiles"
           name="Tiles"
           component={Tiles}
           defaultParams={{params: "data"}}
@@ -191,7 +191,7 @@ function Routes() {
             }
           }}
         />
-        <Stack.Screen component={Nested} path='/nested' />
+        <Stack.Screen component={Nested} path='/nested/**' />
         <Stack.Screen name="Not Found" component={NotFound} fallback={<div className='screen-fallback not-found'></div>} />
       </Router>
   );

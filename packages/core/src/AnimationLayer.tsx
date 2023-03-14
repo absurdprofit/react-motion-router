@@ -89,7 +89,8 @@ function StateFromChildren(
             }
             // match resolved pathname instead to avoid matching the next component first
             // this can happen if the same component matches both current and next paths
-            if (matchRoute(child.props.resolvedPathname, currentPath)) {
+            const matchInfo = matchRoute(child.props.resolvedPathname, currentPath);
+            if (matchInfo) {
                 if (!currentMatched) {
                     let mountProps = {out: true, in: false};
                     if (state.gestureNavigating) mountProps = {in: true, out: false};
@@ -97,7 +98,7 @@ function StateFromChildren(
                     children.push(
                         React.cloneElement(child, {
                             ...mountProps,
-                            resolvedPathname: currentPath
+                            resolvedPathname: window.location.pathname.replace(new RegExp(`${matchInfo.rest}$`), '')
                         }) as ScreenChild
                     );
                 }
@@ -111,8 +112,8 @@ function StateFromChildren(
         (child) => {
             if (!React.isValidElement(child)) return;
             if (!state.paths.length) paths.push(child.props.path);
-            
-            if (matchRoute(child.props.path, nextPath)) {
+            const matchInfo = matchRoute(child.props.path, nextPath);
+            if (matchInfo) {
                 if (!nextMatched) {
                     nextMatched = true;
                     const {config} = child.props;
@@ -128,7 +129,7 @@ function StateFromChildren(
                     children.push(
                         React.cloneElement(child, {
                             ...mountProps,
-                            resolvedPathname: nextPath,
+                            resolvedPathname: window.location.pathname.replace(new RegExp(`${matchInfo.rest}$`), ''),
                             key
                         }) as ScreenChild
                     );

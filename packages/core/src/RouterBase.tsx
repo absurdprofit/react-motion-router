@@ -13,6 +13,7 @@ import RouterData, { RoutesData, RouterDataContext } from './RouterData';
 import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
 import { PageAnimationEndEvent } from './MotionEvents';
 import { dispatchEvent } from './common/utils';
+import ScreenData, { ScreenDataContext } from './ScreenData';
 
 interface Config {
     animation: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig;
@@ -51,6 +52,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     protected abstract _routerData: RouterData;
     protected config: Config;
     protected dispatchEvent: ((event: Event) => Promise<boolean>) | null = null;
+    protected parentScreenData: ScreenData | undefined; // in case of nested router
 
     static defaultProps = {
         config: {
@@ -173,35 +175,42 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
         
         return (
             <div id={this.id.toString()} className="react-motion-router" style={{width: '100%', height: '100%'}} ref={this.setRef}>
-                <RouterDataContext.Provider value={this._routerData}>
-                    <AnimationLayerDataContext.Provider value={this.animationLayerData}>
-                        <GhostLayer
-                            instance={(instance: GhostLayer | null) => {
-                                this._routerData.ghostLayer = instance;
-                            }}
-                            backNavigating={this.state.backNavigating}
-                            gestureNavigating={this.state.gestureNavigating}
-                        />
-                        <AnimationLayer
-                            disableBrowserRouting={this.props.config.disableBrowserRouting || false}
-                            disableDiscovery={this.props.config.disableDiscovery || false}
-                            hysteresis={this.props.config.hysteresis || 50}
-                            minFlingVelocity={this.props.config.minFlingVelocity || 400}
-                            swipeAreaWidth={this.props.config.swipeAreaWidth || 100}
-                            swipeDirection={this.props.config.swipeDirection || 'right'}
-                            navigation={this._routerData.navigation}
-                            backNavigating={this.state.backNavigating}
-                            currentPath={this.navigation.history.current}
-                            lastPath={this.navigation.history.previous}
-                            onGestureNavigationStart={this.onGestureNavigationStart}
-                            onGestureNavigationEnd={this.onGestureNavigationEnd}
-                            onDocumentTitleChange={this.onDocumentTitleChange}
-                            dispatchEvent={this.dispatchEvent}
-                        >
-                            {this.props.children}
-                        </AnimationLayer>
-                    </AnimationLayerDataContext.Provider>
-                </RouterDataContext.Provider>
+                <ScreenDataContext.Consumer>
+                    {(screenData) => {
+                        this.parentScreenData = screenData;
+                        return (
+                            <RouterDataContext.Provider value={this._routerData}>
+                                <AnimationLayerDataContext.Provider value={this.animationLayerData}>
+                                    <GhostLayer
+                                        instance={(instance: GhostLayer | null) => {
+                                            this._routerData.ghostLayer = instance;
+                                        }}
+                                        backNavigating={this.state.backNavigating}
+                                        gestureNavigating={this.state.gestureNavigating}
+                                    />
+                                    <AnimationLayer
+                                        disableBrowserRouting={this.props.config.disableBrowserRouting || false}
+                                        disableDiscovery={this.props.config.disableDiscovery || false}
+                                        hysteresis={this.props.config.hysteresis || 50}
+                                        minFlingVelocity={this.props.config.minFlingVelocity || 400}
+                                        swipeAreaWidth={this.props.config.swipeAreaWidth || 100}
+                                        swipeDirection={this.props.config.swipeDirection || 'right'}
+                                        navigation={this._routerData.navigation}
+                                        backNavigating={this.state.backNavigating}
+                                        currentPath={this.navigation.history.current}
+                                        lastPath={this.navigation.history.previous}
+                                        onGestureNavigationStart={this.onGestureNavigationStart}
+                                        onGestureNavigationEnd={this.onGestureNavigationEnd}
+                                        onDocumentTitleChange={this.onDocumentTitleChange}
+                                        dispatchEvent={this.dispatchEvent}
+                                    >
+                                        {this.props.children}
+                                    </AnimationLayer>
+                                </AnimationLayerDataContext.Provider>
+                            </RouterDataContext.Provider>
+                        );
+                    }}
+                </ScreenDataContext.Consumer>
             </div>
         );
     }
