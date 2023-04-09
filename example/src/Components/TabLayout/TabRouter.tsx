@@ -14,6 +14,7 @@ interface TabRouterProps extends RouterProps {
     onChangeIndex(value: number): void;
     onMotionProgress(value: number): void;
     onBackNavigationChange(value: boolean): void;
+    onMount?(navigation: TabNavigation): void;
 }
 
 interface TabRouterState extends RouterState {
@@ -26,9 +27,7 @@ export default class TabRouter extends RouterBase<TabRouterProps, TabRouterState
 
     constructor(props: RouterProps) {
         super(props);
-
         
-
         this._routerData = new RouterData<TabNavigation>();
         
         if (props.config) {
@@ -73,6 +72,7 @@ export default class TabRouter extends RouterBase<TabRouterProps, TabRouterState
     };
 
     componentDidMount(): void {
+        super.componentDidMount();
         this._routerData.navigation = new TabNavigation(
             this.id,
             true,
@@ -81,10 +81,11 @@ export default class TabRouter extends RouterBase<TabRouterProps, TabRouterState
             this.state.tabHistory,
             this.props.backBehaviour || 'none'
         );
-        super.componentDidMount();
+        this.initialise(this.navigation);
+        if (this.props.onMount) this.props.onMount(this.navigation);
     }
 
-    componentDidUpdate(lastProps: TabRouterProps, lastState: TabRouterState) {
+    componentDidUpdate(_: TabRouterProps, lastState: TabRouterState) {
         if (lastState.backNavigating !== this.state.backNavigating) {
             this.props.onBackNavigationChange(this.state.backNavigating);
         }

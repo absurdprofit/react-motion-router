@@ -1,4 +1,4 @@
-import { NavigationBase, NavigateEventDetail, matchRoute, NavigateOptions, BackEventDetail } from '@react-motion-router/core';
+import { NavigationBase, NavigateEventDetail, matchRoute, NavigateOptions, BackEventDetail, searchParamsFromObject } from '@react-motion-router/core';
 import TabHistory, { BackBehaviour } from './TabHistory';
 
 export default class TabNavigation extends NavigationBase {
@@ -133,7 +133,7 @@ export default class TabNavigation extends NavigationBase {
                 location.reload();
             },
             replace: this._replace.bind(this),
-            search: this.searchParamsFromObject(this._currentParams)
+            search: searchParamsFromObject(this._currentParams, this.paramsSerializer || null)
         }
     }
 }

@@ -41,7 +41,7 @@ export default class Router extends RouterBase {
     
     componentDidMount(): void {
         super.componentDidMount();
-        // console.log(this.parentScreenData?.resolvedPathname);
+        this.initialise(this.navigation);
     }
 
     onGestureNavigationStart = () => {

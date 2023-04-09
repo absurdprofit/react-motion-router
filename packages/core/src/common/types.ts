@@ -74,3 +74,6 @@ export type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<
 export type MetaTypeKey = 'http-equiv' | 'name' | 'itemprop' | 'property' | 'charset';
 export type MetaType = [MetaTypeKey, string];
 export type MetaKey = `${MetaTypeKey}=${string}`;
+
+export type SearchParamsDeserializer = (queryString: string) => {[key:string]: any};
+export type SearchParamsSerializer = (params: {[key:string]: any}) => string;

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigation } from './common/hooks';
 import { XOR } from './common/types';
+import { searchParamsFromObject } from './common/utils';
+import { RouterDataContext } from './RouterData';
 
 interface BaseAnchorProps extends React.DetailedHTMLProps<React.AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
     params?: {[key:string]: any};
@@ -20,6 +22,7 @@ interface BackAnchorProps extends BaseAnchorProps {
 type AnchorProps = XOR<ForwardAnchorProps, BackAnchorProps>;
 
 export default function Anchor(props: AnchorProps) {
+    const routerData = React.useContext(RouterDataContext);
     const navigation = useNavigation();
     const [url, setURL] = useState('');
     const [external, setExternal] = useState(false);
@@ -27,14 +30,15 @@ export default function Anchor(props: AnchorProps) {
     useEffect(() => {
         if (!navigation) return;
 
-        let href;
-        let search;
+        let href: string;
+        let search: string;
         if ('goBack' in props) {
             href = navigation.history.previous || navigation.history.defaultRoute;
             search = '';
         } else {
+            const paramsSerializer = routerData?.paramsSerializer || null;
             href = props.href;
-            search = navigation.searchParamsFromObject(props.params || {});
+            search = searchParamsFromObject(props.params || {}, paramsSerializer) || "";
         }
         const uri = new URL(href, navigation.location.origin);
         uri.hash = props.hash || '';

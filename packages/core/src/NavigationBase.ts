@@ -67,25 +67,6 @@ export default abstract class NavigationBase {
 
     abstract goBack(options?: GoBackOptions): void;
 
-    searchParamsToObject(searchPart: string) {
-        const deserializer = this._paramsDeserializer || this._history.searchParamsToObject;
-        this._currentParams = deserializer(searchPart) || {};
-        return this._currentParams;
-    }
-
-    searchParamsFromObject(params: {[key: string]: any}) {
-        try {
-            const serializer = this._paramsSerializer || function(paramsObj) {
-                return new URLSearchParams(paramsObj).toString();
-            }
-            return serializer(params);
-        } catch (e) {
-            console.error(e);
-            console.warn("Non JSON serialisable value was passed as route param to Anchor.");
-        }
-        return '';
-    }
-
     set dispatchEvent(_dispatchEvent: ((event: Event) => Promise<boolean>) | null) {
         this._dispatchEvent = _dispatchEvent;
     }

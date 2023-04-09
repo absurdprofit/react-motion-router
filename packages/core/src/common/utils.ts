@@ -1,3 +1,5 @@
+import { SearchParamsDeserializer, SearchParamsSerializer } from "./types";
+
 export function getCSSData(styles: CSSStyleDeclaration, object: boolean = true): [string, {[key:string]:string}] {
     let text = '';
     const styleObject: {[key:string]: string} = {};
@@ -133,4 +135,40 @@ export function concatenateURL(path: string | URL, base: string | URL) {
         base = new URL(base.href + '/');
     }
     return new URL(path, base);
+}
+
+export function defaultSearchParamsToObject(searchPart: string) {
+    const entries = new URLSearchParams(decodeURI(searchPart)).entries();
+    const result: {[key:string]: string} = {};
+    
+    for(const [key, value] of entries) { // each 'entry' is a [key, value] tuple
+        let parsedValue = '';
+        try {
+            parsedValue = JSON.parse(value);
+        } catch (e) {
+            console.warn("Non JSON serialisable value was passed as URL route param.");
+            parsedValue = value;
+        }
+        result[key] = parsedValue;
+    }
+    return Object.keys(result).length ? result : undefined;
+}
+
+export function searchParamsToObject(searchPart: string, paramsDeserializer: SearchParamsDeserializer | null) {
+    const deserializer = paramsDeserializer || defaultSearchParamsToObject;
+    const currentParams = deserializer(searchPart) || {};
+    return currentParams;
+}
+
+export function searchParamsFromObject(params: {[key: string]: any}, paramsSerializer: SearchParamsSerializer | null) {
+    try {
+        const serializer = paramsSerializer || function(paramsObj) {
+            return new URLSearchParams(paramsObj).toString();
+        }
+        return serializer(params);
+    } catch (e) {
+        console.error(e);
+        console.warn("Non JSON serialisable value was passed as route param to Anchor.");
+    }
+    return '';
 }

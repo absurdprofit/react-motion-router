@@ -1,9 +1,11 @@
 import {
     BackEventDetail,
+    concatenateURL,
     GoBackOptions,
     NavigateEventDetail,
     NavigateOptions,
-    NavigationBase
+    NavigationBase,
+    searchParamsFromObject
 } from '@react-motion-router/core';
 import type { AnimationLayerData } from '@react-motion-router/core';
 import History from './History';
@@ -37,7 +39,7 @@ export default class Navigation extends NavigationBase {
 
     navigate(route: string, routeParams?: {[key:string]: any}, options: NavigateOptions = {}) {
         const {replace, hash} = options;
-        const search = this.searchParamsFromObject(routeParams || {});
+        const search = searchParamsFromObject(routeParams || {}, this.paramsSerializer || null);
 
         if (this._disableBrowserRouting) {
             this._history.implicitPush(route, Boolean(replace));
@@ -165,23 +167,23 @@ export default class Navigation extends NavigationBase {
 
     get location() {
         const {location} = window;
-        
+        const url = concatenateURL(this._history.current, this.history.baseURL);
         return {
             ancestorOrigins: location.ancestorOrigins,
             assign: this.assign.bind(this),
             hash: location.hash,
             host: location.host,
             hostname: location.hostname,
-            href: new URL(this._history.current, location.origin).href,
+            href: url.href,
             origin: location.origin,
-            pathname: this._history.current,
+            pathname: url.pathname,
             port: location.port,
             protocol: location.protocol,
             reload() {
                 location.reload();
             },
             replace: this.replace.bind(this),
-            search: this.searchParamsFromObject(this._currentParams)
+            search: searchParamsFromObject(this._currentParams, this.paramsSerializer || null)
         }
     }
 }

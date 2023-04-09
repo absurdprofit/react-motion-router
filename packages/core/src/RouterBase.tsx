@@ -12,7 +12,7 @@ import {
 import RouterData, { RoutesData, RouterDataContext } from './RouterData';
 import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
 import { PageAnimationEndEvent } from './MotionEvents';
-import { concatenateURL, dispatchEvent } from './common/utils';
+import { concatenateURL, dispatchEvent, searchParamsToObject } from './common/utils';
 
 interface Config {
     animation: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig;
@@ -31,7 +31,6 @@ interface Config {
 export interface RouterBaseProps {
     config: Config;
     children: ScreenChild | ScreenChild[];
-    onMount?(navigation: NavigationBase): void;
 }
 
 export interface RouterBaseState {
@@ -94,33 +93,35 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     } as S;
 
     componentDidMount() {
-        // get url search params and append to existing route params
-        this.navigation.paramsDeserializer = this.config.paramsDeserializer;
-        this.navigation.paramsSerializer = this.config.paramsSerializer;
-        const searchParams = this.navigation.searchParamsToObject(window.location.search);
-        const routesData = this.state.routesData;
-        
-        if (searchParams) {
-            routesData.set(this.navigation.location.pathname, {
-                ...this.state.routesData.get(this.navigation.location.pathname),
-                params: searchParams
-            });
-        }
-
-        let currentPath = this.navigation.location.pathname;
-        this._routerData.routesData = this.state.routesData;
         this._routerData.paramsDeserializer = this.props.config.paramsDeserializer;
         this._routerData.paramsSerializer = this.props.config.paramsSerializer;
-        this.setState({currentPath: currentPath, routesData: routesData});
-        this._routerData.currentPath = this.navigation.location.pathname;
         window.addEventListener('popstate', this.onPopStateListener);
-
-        if (this.props.onMount) this.props.onMount(this.navigation);
     }
 
     componentWillUnmount() {
         if (this.ref) this.removeNavigationEventListeners(this.ref);
         window.removeEventListener('popstate', this.onPopStateListener);
+    }
+
+    /**
+     * Initialises current path and routes data from URL search params.
+     */
+    protected initialise(navigation: NavigationBase) {
+        // get url search params and append to existing route params
+        let currentPath = navigation.location.pathname;
+        const paramsDeserializer = this._routerData.paramsDeserializer || null;
+        const searchParams = searchParamsToObject(window.location.search, paramsDeserializer);
+        const routesData = this.state.routesData;
+        this._routerData.routesData = this.state.routesData;
+        
+        if (searchParams) {
+            routesData.set(currentPath, {
+                ...this.state.routesData.get(currentPath),
+                params: searchParams
+            });
+        }
+        this.setState({currentPath, routesData});
+        this._routerData.currentPath = currentPath;
     }
 
     protected get baseURL() {
@@ -164,11 +165,9 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     }
 
     private setRef = (ref: HTMLElement | null) => {
-        if (!this._routerData.navigation) return;
-
         if (this.ref) {
             this.dispatchEvent = null;
-            this._routerData.navigation.dispatchEvent = this.dispatchEvent;
+            this._routerData.dispatchEvent = this.dispatchEvent;
             this.removeNavigationEventListeners(this.ref);  
         }
 
@@ -176,7 +175,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
             this.dispatchEvent = (event) => {
                 return dispatchEvent(event, ref);
             }
-            this._routerData.navigation.dispatchEvent = this.dispatchEvent;
+            this._routerData.dispatchEvent = this.dispatchEvent;
             this.addNavigationEventListeners(ref);
         }
     }
