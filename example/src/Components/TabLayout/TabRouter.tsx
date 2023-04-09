@@ -1,6 +1,5 @@
 import React from "react";
-import { RouterProps, RouterState } from "@react-motion-router/stack";
-import { RouterBase, RouterData } from "@react-motion-router/core";
+import { RouterBase, RouterBaseProps, RouterBaseState, RouterData } from "@react-motion-router/core";
 import type {
     BackEvent,
     NavigateEvent,
@@ -8,8 +7,9 @@ import type {
 } from "@react-motion-router/core";
 import { BackBehaviour } from "../../common/Tab/TabHistory";
 import TabNavigation from "../../common/Tab/TabNavigation";
+import { TabChild } from "./TabLayout";
 
-interface TabRouterProps extends RouterProps {
+interface TabRouterProps extends RouterBaseProps {
     backBehaviour: BackBehaviour;
     onChangeIndex(value: number): void;
     onMotionProgress(value: number): void;
@@ -17,7 +17,7 @@ interface TabRouterProps extends RouterProps {
     onMount?(navigation: TabNavigation): void;
 }
 
-interface TabRouterState extends RouterState {
+interface TabRouterState extends RouterBaseState {
     tabHistory: string[];
     index: number;
 }
@@ -25,10 +25,10 @@ interface TabRouterState extends RouterState {
 export default class TabRouter extends RouterBase<TabRouterProps, TabRouterState> {
     protected _routerData: RouterData<TabNavigation>;
 
-    constructor(props: RouterProps) {
+    constructor(props: RouterBaseProps) {
         super(props);
         
-        this._routerData = new RouterData<TabNavigation>();
+        this._routerData = new RouterData<TabNavigation>(this);
         
         if (props.config) {
             this.config = props.config;
@@ -75,6 +75,7 @@ export default class TabRouter extends RouterBase<TabRouterProps, TabRouterState
         super.componentDidMount();
         this._routerData.navigation = new TabNavigation(
             this.id,
+            this._routerData,
             true,
             null,
             this.baseURL,

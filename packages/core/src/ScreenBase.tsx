@@ -5,6 +5,7 @@ import {
     AnimationConfigFactory,
     AnimationConfigSet,
     AnimationKeyframeEffectConfig,
+    LazyExoticComponent,
     ReducedAnimationConfigSet,
     SwipeDirection
 } from "./common/types";
@@ -14,7 +15,7 @@ import SharedElement from "./SharedElement";
 export interface ScreenBaseProps {
     out?: boolean;
     in?: boolean;
-    component: React.JSXElementConstructor<any>;
+    component: React.JSXElementConstructor<any> | LazyExoticComponent<any>;
     fallback?: React.ReactNode;
     path?: string;
     resolvedPathname?: string;
@@ -37,8 +38,8 @@ export interface ScreenBaseState {
 }
 
 export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState> extends React.Component<P, S> {
-    private sharedElementScene: SharedElement.Scene = new SharedElement.Scene(this.props.component.name || this.props.path?.toString() || 'not-found');
-    private name = this.props.name?.toLowerCase().replace(' ', '-') || this.props.component.name || this.props.path?.toString().slice(1).replace('/', '-') || 'not-found';
+    private name = this.props.name?.toLowerCase().replace(' ', '-') || this.props.path?.toString().slice(1).replace('/', '-') || 'not-found';
+    private sharedElementScene: SharedElement.Scene = new SharedElement.Scene(this.name);
     private ref: HTMLElement | null = null;
     private contextParams = this.context?.routesData.get(this.props.path)?.params;
     private onRef = this.setRef.bind(this);

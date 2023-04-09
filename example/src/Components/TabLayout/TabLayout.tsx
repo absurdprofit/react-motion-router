@@ -10,7 +10,7 @@ import '../../css/Tabs.css';
 import { ANIMATION_DURATION, TabAnimation } from './Animations';
 
 
-type TabChild = ScreenChild<Tab.TabProps, typeof Tab.Screen>;
+export type TabChild = ScreenChild<Tab.TabProps, typeof Tab.Screen>;
 
 interface TabLayoutProps {
     children: TabChild | TabChild[];

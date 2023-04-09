@@ -6,6 +6,7 @@ export default abstract class HistoryBase {
     
     constructor(_routerId: number, _defaultRoute: string | null, _baseURL: URL) {
         this._routerId = _routerId;
+        this.state.set("routerId", _routerId);
             
         _baseURL = _baseURL || new URL(window.location.toString());
         _baseURL = new URL(_baseURL.href.replace(/\/$/, '')); // negate trailing slash

@@ -49,7 +49,6 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     protected abstract _routerData: RouterData;
     protected config: Config;
     protected dispatchEvent: ((event: Event) => Promise<boolean>) | null = null;
-    protected parentRouterData: RouterData | null = null;
 
     static defaultProps = {
         config: {
@@ -99,6 +98,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     }
 
     componentWillUnmount() {
+        this.navigation.destructor();
         if (this.ref) this.removeNavigationEventListeners(this.ref);
         window.removeEventListener('popstate', this.onPopStateListener);
     }
@@ -122,6 +122,10 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
         }
         this.setState({currentPath, routesData});
         this._routerData.currentPath = currentPath;
+    }
+
+    protected get parentRouterData() {
+        return this._routerData.parentRouterData;
     }
 
     protected get baseURL() {
@@ -185,7 +189,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
             <div id={this.id.toString()} className="react-motion-router" style={{width: '100%', height: '100%'}} ref={this.setRef}>
                 <RouterDataContext.Consumer>
                     {(routerData) => {
-                        this.parentRouterData = routerData;
+                        this._routerData.parentRouterData = routerData;
                         return (
                             <RouterDataContext.Provider value={this._routerData}>
                                 <AnimationLayerDataContext.Provider value={this.animationLayerData}>

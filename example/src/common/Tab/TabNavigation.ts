@@ -1,4 +1,4 @@
-import { NavigationBase, NavigateEventDetail, matchRoute, NavigateOptions, BackEventDetail, searchParamsFromObject } from '@react-motion-router/core';
+import { NavigationBase, NavigateEventDetail, matchRoute, NavigateOptions, BackEventDetail, searchParamsFromObject, RouterData } from '@react-motion-router/core';
 import TabHistory, { BackBehaviour } from './TabHistory';
 
 export default class TabNavigation extends NavigationBase {
@@ -7,13 +7,14 @@ export default class TabNavigation extends NavigationBase {
 
     constructor(
         _routerId: number,
+        _routerData: RouterData<TabNavigation>,
         _disableBrowserRouting: boolean = false,
         _defaultRoute: string | null = null,
         _baseURL: URL,
         _stack: string[] = [],
         _backBehaviour: BackBehaviour = "none"
     ) {
-        super(_routerId, _disableBrowserRouting, _defaultRoute);
+        super(_routerId, _routerData, _disableBrowserRouting, _defaultRoute);
 
         const _history = new TabHistory(_routerId, _defaultRoute, _baseURL, _stack, _backBehaviour);
         this._history = _history;
@@ -76,7 +77,7 @@ export default class TabNavigation extends NavigationBase {
                 bubbles: true
             });
     
-            if (this._dispatchEvent) this._dispatchEvent(event);
+            if (this.dispatchEvent) this.dispatchEvent(event);
             this._currentParams = {};
         } else { // go back
             let event = new CustomEvent<BackEventDetail>('go-back', {
@@ -86,7 +87,7 @@ export default class TabNavigation extends NavigationBase {
                 }
             });
     
-            if (this._dispatchEvent) this._dispatchEvent(event);
+            if (this.dispatchEvent) this.dispatchEvent(event);
         }
     }
     

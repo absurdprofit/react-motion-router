@@ -1,4 +1,7 @@
-import { SearchParamsDeserializer, SearchParamsSerializer } from "./types";
+import React from "react";
+import RouterData from "../RouterData";
+import { ScreenBaseProps } from "../ScreenBase";
+import { LazyExoticComponent, ScreenChild, SearchParamsDeserializer, SearchParamsSerializer } from "./types";
 
 export function getCSSData(styles: CSSStyleDeclaration, object: boolean = true): [string, {[key:string]:string}] {
     let text = '';
@@ -171,4 +174,53 @@ export function searchParamsFromObject(params: {[key: string]: any}, paramsSeria
         console.warn("Non JSON serialisable value was passed as route param to Anchor.");
     }
     return '';
+}
+
+export function lazy<T extends React.ComponentType<any>>(
+    factory: () => Promise<{ default: T }>
+): LazyExoticComponent<T> {
+    const Component = React.lazy(factory) as LazyExoticComponent<T>;
+    Component.preload = factory;
+    return Component;
+}
+
+/**
+ * Searches router data tree for matching screen. Once the screen is found
+ * its component is preloaded.
+ * @param path 
+ * @param routerData 
+ * @returns 
+ */
+export function prefetchRoute(path: string, routerData: RouterData) {
+    let currentRouterData: RouterData | null = routerData;
+    return new Promise<boolean>((resolve, reject) => {
+        let found = false;
+        while(currentRouterData) {
+            const routes = currentRouterData.routes;
+            React.Children.forEach<ScreenChild<ScreenBaseProps>>(routes, (route) => {
+                if (found) return; // stop after first
+                if (!React.isValidElement(route)) return;
+                const matchInfo = matchRoute(route.props.path, path);
+                if (!matchInfo) return;
+                found = true;
+                queueMicrotask(async () => {
+                    if ('preload' in route.props.component) {
+                        try {
+                            await route.props.component.preload();
+                            resolve(found);
+                        } catch (e) {
+                            reject(e);
+                        }
+                    }
+                });
+            });
+            if (!found) {
+                currentRouterData = routerData.parentRouterData;
+            } else {
+                break;
+            }
+        }
+        if (!found)
+            resolve(false);
+    });
 }

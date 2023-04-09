@@ -5,6 +5,7 @@ import {
     NavigateEventDetail,
     NavigateOptions,
     NavigationBase,
+    RouterData,
     searchParamsFromObject
 } from '@react-motion-router/core';
 import type { AnimationLayerData } from '@react-motion-router/core';
@@ -15,8 +16,8 @@ export default class Navigation extends NavigationBase {
     private _animationLayerData: AnimationLayerData;
     private isInternalBack = false;
 
-    constructor(_routerId: number, _history: History, _animationLayerData: AnimationLayerData, _disableBrowserRouting: boolean = false, _defaultRoute: string | null = null) {
-        super(_routerId, _disableBrowserRouting, _defaultRoute);
+    constructor(_routerId: number, _routerData: RouterData<Navigation>, _history: History, _animationLayerData: AnimationLayerData, _disableBrowserRouting: boolean = false, _defaultRoute: string | null = null) {
+        super(_routerId, _routerData, _disableBrowserRouting, _defaultRoute);
 
         this._history = _history;
         this._animationLayerData = _animationLayerData;
@@ -61,7 +62,7 @@ export default class Navigation extends NavigationBase {
             bubbles: true
         });
 
-        if (this._dispatchEvent) this._dispatchEvent(event);
+        if (this.dispatchEvent) this.dispatchEvent(event);
         this._currentParams = routeParams || {};
 
         return new Promise<void>(async (resolve, reject) => {
@@ -87,7 +88,7 @@ export default class Navigation extends NavigationBase {
             bubbles: true
         });
 
-        if (this._dispatchEvent) this._dispatchEvent(event);
+        if (this.dispatchEvent) this.dispatchEvent(event);
         this._currentParams = routeParams || {};
     }
 
@@ -103,7 +104,7 @@ export default class Navigation extends NavigationBase {
                 signal: controller.signal
             }
         });
-        if (this._dispatchEvent) this._dispatchEvent(event);
+        if (this.dispatchEvent) this.dispatchEvent(event);
     }
 
     goBack(options: GoBackOptions = {}) {
@@ -136,7 +137,7 @@ export default class Navigation extends NavigationBase {
             }
         } 
 
-        if (this._dispatchEvent) this._dispatchEvent(event);
+        if (this.dispatchEvent) this.dispatchEvent(event);
 
         return new Promise<void>(async (resolve, reject) => {
             await this._animationLayerData.started;

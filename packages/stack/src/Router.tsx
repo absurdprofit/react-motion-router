@@ -9,22 +9,12 @@ export interface RouterProps extends RouterBaseProps {}
 export interface RouterState extends RouterBaseState {}
 
 export default class Router extends RouterBase {
-    protected navigation: Navigation;
-    protected _routerData: RouterData;
+    protected _routerData: RouterData<Navigation>;
 
     constructor(props: RouterProps) {
         super(props);
 
-        const baseURL = this.baseURL;
-        this.navigation = new Navigation(
-            this.id,
-            new History(this.id, props.config.defaultRoute ?? null, baseURL),
-            this.animationLayerData,
-            props.config.disableBrowserRouting,
-            props.config.defaultRoute
-        );
-
-        this._routerData = new RouterData(this.navigation);
+        this._routerData = new RouterData(this);
 
         if ('in' in this.config.animation) {
             this._routerData.animation = {
@@ -41,7 +31,19 @@ export default class Router extends RouterBase {
     
     componentDidMount(): void {
         super.componentDidMount();
+        this._routerData.navigation = new Navigation(
+            this.id,
+            this._routerData,
+            new History(this.id, this.props.config.defaultRoute ?? null, this.baseURL),
+            this.animationLayerData,
+            this.props.config.disableBrowserRouting,
+            this.props.config.defaultRoute
+        );
         this.initialise(this.navigation);
+    }
+
+    get navigation() {
+        return this._routerData.navigation;
     }
 
     onGestureNavigationStart = () => {

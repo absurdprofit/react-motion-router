@@ -1,13 +1,16 @@
 import React, {createContext} from 'react';
+import { prefetchRoute } from '.';
 import { AnimationConfigSet, SearchParamsDeserializer, SearchParamsSerializer } from './common/types';
-import { defaultSearchParamsToObject } from './common/utils';
 import GhostLayer from './GhostLayer';
 import NavigationBase from './NavigationBase';
+import RouterBase from './RouterBase';
 import { ScrollRestorationData } from './ScrollRestorationData';
 
 export type RoutesData = Map<string | undefined, {[key:string]: any}>;
 
 export default class RouterData<N extends NavigationBase = NavigationBase> {
+    private routerInstance: RouterBase;
+    private _parentRouterData: RouterData<NavigationBase> | null = null;
     private _dispatchEvent: ((event: Event) => Promise<boolean>) | null = null;
     private _currentPath: string = '';
     private _routesData: RoutesData = new Map();
@@ -29,16 +32,23 @@ export default class RouterData<N extends NavigationBase = NavigationBase> {
     };
     private _ghostLayer: GhostLayer | null = null;
 
-    constructor(navigation?: N) {
+    constructor(routerInstance: RouterBase, navigation?: N) {
+        this.routerInstance = routerInstance;
         if (navigation) {
             this.navigation = navigation;
         }
     }
 
+    public prefetchRoute(path: string): Promise<boolean> {
+        return prefetchRoute(path, this);
+    }
+
+    set parentRouterData(parentRouterData: RouterData<NavigationBase> | null) {
+        this._parentRouterData = parentRouterData;
+    }
+
     set dispatchEvent(_dispatchEvent: ((event: Event) => Promise<boolean>) | null) {
         this._dispatchEvent = _dispatchEvent;
-        if (this._navigation)
-            this._navigation.dispatchEvent = _dispatchEvent
     }
 
     set currentPath(_currentPath: string) {
@@ -49,9 +59,6 @@ export default class RouterData<N extends NavigationBase = NavigationBase> {
     }
     set navigation(_navigation: N) {
         this._navigation = _navigation;
-        _navigation.paramsDeserializer = this._paramsDeserializer;
-        _navigation.paramsSerializer = this._paramsSerializer;
-        _navigation.dispatchEvent = this._dispatchEvent;
     }
     set animation(_animation: AnimationConfigSet) {
         this._animation = _animation;
@@ -67,15 +74,20 @@ export default class RouterData<N extends NavigationBase = NavigationBase> {
     }
     set paramsSerializer(_paramsSerializer: ((params: {[key:string]: any}) => string) | undefined) {
         this._paramsSerializer = _paramsSerializer;
-        if (this._navigation)
-            this._navigation.paramsSerializer = _paramsSerializer;
     }
     set paramsDeserializer(_paramsDeserializer: ((queryString: string) => {[key:string]: any}) | undefined) {
         this._paramsDeserializer = _paramsDeserializer;
-        if (this._navigation)
-            this._navigation.paramsDeserializer = _paramsDeserializer;
     }
-
+    
+    get routes() {
+        return this.routerInstance.props.children;
+    }
+    get parentRouterData() {
+        return this._parentRouterData;
+    }
+    get dispatchEvent() {
+        return this._dispatchEvent;
+    }
     get currentPath() {
         return this._currentPath;
     }
