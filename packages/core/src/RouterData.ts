@@ -13,8 +13,8 @@ export default class RouterData<N extends NavigationBase = NavigationBase> {
     private _navigation?: N;
     private _backNavigating: boolean = false;
     private _gestureNavigating: boolean = false;
-    private _paramsSerialiser?: (params: {[key:string]: any}) => string;
-    private _paramsDeserialiser?:(queryString: string) => {[key:string]: any};
+    private _paramsSerializer?: (params: {[key:string]: any}) => string;
+    private _paramsDeserializer?:(queryString: string) => {[key:string]: any};
     private _animation: AnimationConfigSet = {
         in: {
             type: "none",
@@ -52,11 +52,11 @@ export default class RouterData<N extends NavigationBase = NavigationBase> {
     set gestureNavigating(_gestureNavigating: boolean) {
         this._gestureNavigating = _gestureNavigating;
     }
-    set paramsSerialiser(_paramsSerialiser: ((params: {[key:string]: any}) => string) | undefined) {
-        this._paramsSerialiser = _paramsSerialiser;
+    set paramsSerializer(_paramsSerializer: ((params: {[key:string]: any}) => string) | undefined) {
+        this._paramsSerializer = _paramsSerializer;
     }
-    set paramsDeserialiser(_paramsDeserialiser: ((queryString: string) => {[key:string]: any}) | undefined) {
-        this._paramsDeserialiser = _paramsDeserialiser;
+    set paramsDeserializer(_paramsDeserializer: ((queryString: string) => {[key:string]: any}) | undefined) {
+        this._paramsDeserializer = _paramsDeserializer;
     }
 
     get currentPath() {
@@ -83,11 +83,11 @@ export default class RouterData<N extends NavigationBase = NavigationBase> {
     get gestureNavigating() {
         return this._gestureNavigating;
     }
-    get paramsSerialiser(): ((params: {[key:string]: any}) => string) | undefined {
-        return this._paramsSerialiser;
+    get paramsSerializer(): ((params: {[key:string]: any}) => string) | undefined {
+        return this._paramsSerializer;
     }
-    get paramsDeserialiser():( (queryString: string) => {[key:string]: any}) | undefined {
-        return this._paramsDeserialiser;
+    get paramsDeserializer():( (queryString: string) => {[key:string]: any}) | undefined {
+        return this._paramsDeserializer;
     }
 }
 

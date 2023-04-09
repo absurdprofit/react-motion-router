@@ -33,8 +33,8 @@ enum EasingFunctionKeywordEnum {
 export type EasingFunctionKeyword = keyof typeof EasingFunctionKeywordEnum;
 export type EasingFunction = EasingFunctionKeyword  | `cubic-bezier(${number},${' ' | ''}${number},${' ' | ''}${number},${' ' | ''}${number})`;
 
-export type ParamsSerialiser = (params: {[key:string]: any}) => string;
-export type ParamsDeserialiser = (queryString: string) => {[key:string]: any};
+export type ParamsSerializer = (params: {[key:string]: any}) => string;
+export type ParamsDeserializer = (queryString: string) => {[key:string]: any};
 
 export type AnimationType = keyof typeof AnimationTypeEnum;
 export type AnimationDirection = keyof typeof AnimationDirectionEnum;

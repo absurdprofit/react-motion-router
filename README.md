@@ -141,17 +141,17 @@ To access this data on the next screen:
 
 All data passed to the navigate function is accessible on the target screen through the route prop.
 
-Parameters can also be parsed from URL parameters for example a pathname with a search part such as `/slides?hero=0` will be parsed into an object with key `hero` and value `0`. To customise this behaviour you can pass a custom deserialiser or serialiser function to the `Router` component which will be used to convert between URL parameters and React Motion Router parameters and vice-versa.
+Parameters can also be parsed from URL parameters for example a pathname with a search part such as `/slides?hero=0` will be parsed into an object with key `hero` and value `0`. To customise this behaviour you can pass a custom deserializer or serializer function to the `Router` component which will be used to convert between URL parameters and React Motion Router parameters and vice-versa.
 
 ```
 <Router
     config={{
-        paramsSerialiser: (params) => {
+        paramsSerializer: (params) => {
             const searchPart = new URLSearchParams(params).toString()
 
             return btoa(searchPart); // search encoded as Base64 string
         },
-        paramsDeserialiser: (b64SearchPart) => {
+        paramsDeserializer: (b64SearchPart) => {
             const searchPart = atob(b64SearchPart.slice(1)); // start after the ?
             const searchParams = new URLSearchParams(searchPart);
 
@@ -321,8 +321,8 @@ This way the X and Y axis are animated independently and can alter the path of t
 | hysteresis            | number          | Percent from 0-100 which specifies minimum gesture progress before navigation is triggered.                                                                                 |
 | minFlingVelocity      | number          | Minimum average velocity of swipe gesture before navigation is triggered even if hysteresis was not reached.                                                                |
 | swipeDirection      | "left", "right", "up" or "down"          | The direction to swipe in order to trigger a gesture navigation.                                                                |
-| paramsDeserialiser    | Function        | A function that takes a URL search part string as input and outputs a valid JavaScript object.                                                                              |
-| paramsSerialiser      | Function        | A function that takes a valid JavaScript object as input and outputs a URL search part string.                                                                              |
+| paramsDeserializer    | Function        | A function that takes a URL search part string as input and outputs a valid JavaScript object.                                                                              |
+| paramsSerializer      | Function        | A function that takes a valid JavaScript object as input and outputs a URL search part string.                                                                              |
 
 #### AnimationConfig
 

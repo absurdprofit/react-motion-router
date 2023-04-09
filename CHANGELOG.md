@@ -57,7 +57,7 @@ If you find any bugs you think may be related to migration feel free to open an 
 ## Features
 - `Stack.Screen` now supports components imported using `React.lazy()`. You can pass a fallback component similar to how you pass a fallback component to `React.Suspense`. What happens is screens now use `React.Suspense` under the hood. The fallback component will animate while the lazy component loads over the network. Essentially you can now split your projects up on a page by page basis. Once each page has been routed to once however they typically stay in memory just as if they were all downloaded on page load. What is downloaded on the client on page load is essentially only what is absolutely necessary (using this pattern).
 
-- You can now pass a `paramsSerialiser` and `paramsDeserialiser` function to the `Router` config prop. This is useful for when you want to have your screen parameters in a specific format when they are parsed from the search part of the page url on page load. 
+- You can now pass a `paramsSerializer` and `paramsDeserializer` function to the `Router` config prop. This is useful for when you want to have your screen parameters in a specific format when they are parsed from the search part of the page url on page load. 
 
 ## Enhancements
 

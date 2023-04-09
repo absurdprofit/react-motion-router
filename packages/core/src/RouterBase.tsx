@@ -24,8 +24,8 @@ interface Config {
     disableDiscovery?: boolean;
     swipeDirection?: SwipeDirection;
     disableBrowserRouting?: boolean;
-    paramsSerialiser?(params: {[key:string]: any}): string;
-    paramsDeserialiser?(queryString: string): {[key:string]: any};
+    paramsSerializer?(params: {[key:string]: any}): string;
+    paramsDeserializer?(queryString: string): {[key:string]: any};
 }
 
 export interface RouterBaseProps {
@@ -95,8 +95,8 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
 
     componentDidMount() {
         // get url search params and append to existing route params
-        this.navigation.paramsDeserialiser = this.config.paramsDeserialiser;
-        this.navigation.paramsSerialiser = this.config.paramsSerialiser;
+        this.navigation.paramsDeserializer = this.config.paramsDeserializer;
+        this.navigation.paramsSerializer = this.config.paramsSerializer;
         const searchParams = this.navigation.searchParamsToObject(window.location.search);
         const routesData = this.state.routesData;
         
@@ -109,8 +109,8 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
 
         let currentPath = this.navigation.location.pathname;
         this._routerData.routesData = this.state.routesData;
-        this._routerData.paramsDeserialiser = this.props.config.paramsDeserialiser;
-        this._routerData.paramsSerialiser = this.props.config.paramsSerialiser;
+        this._routerData.paramsDeserializer = this.props.config.paramsDeserializer;
+        this._routerData.paramsSerializer = this.props.config.paramsSerializer;
         this.setState({currentPath: currentPath, routesData: routesData});
         this._routerData.currentPath = this.navigation.location.pathname;
         window.addEventListener('popstate', this.onPopStateListener);
