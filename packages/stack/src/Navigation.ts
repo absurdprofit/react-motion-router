@@ -18,16 +18,10 @@ export default class Navigation extends NavigationBase {
 
         this._history = _history;
         this._animationLayerData = _animationLayerData;
-
-        window.addEventListener('popstate', this.onPopState);
     }
 
     onPopState = (e: Event) => {
         e.preventDefault();
-        if (this.history.state.get<number>('routerId') === this._routerId) {
-            console.log("Match");
-            e.stopImmediatePropagation();
-        }
         if (this.isInternalBack) {
             this.isInternalBack = false;
             return;

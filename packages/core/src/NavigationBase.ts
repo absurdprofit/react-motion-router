@@ -29,26 +29,39 @@ export interface NavigateOptions extends NavigationOptions {
 export interface GoBackOptions extends NavigationOptions {}
 
 export default abstract class NavigationBase {
+    private static rootNavigatorRef: WeakRef<NavigationBase> | null = null;
     protected readonly _routerId: number;
     private _metaData = new MetaData();
     protected abstract _history: HistoryBase;
-    // private _history;
     protected readonly _disableBrowserRouting: boolean;
     protected _currentParams: {[key:string]: any} = {};
-    // private _currentParams: {[key:string]: any} = {};
     private _paramsSerialiser?: ParamsSerialiser;
     private _paramsDeserialiser?: ParamsDeserialiser;
     protected _dispatchEvent: ((event: Event) => Promise<boolean>) | null = null;
-    // private _dispatchEvent: ((event: Event) => boolean) | null = null;
 
     constructor(_routerId: number, _disableBrowserRouting: boolean = false, _defaultRoute: string | null = null) {
         this._disableBrowserRouting = _disableBrowserRouting;
         this._routerId = _routerId;
+        const rootNavigator = NavigationBase.rootNavigatorRef?.deref();
+        if (!rootNavigator || !rootNavigator.isInDocument)
+            NavigationBase.rootNavigatorRef = new WeakRef(this);
+
+        window.addEventListener('popstate', (e) => {
+            const rootNavigator = NavigationBase.rootNavigatorRef?.deref();
+            const isRoot = rootNavigator?.routerId === this.routerId;
+            if ((this.history.state.get<number>('routerId') === null && isRoot)
+                || this.history.state.get<number>('routerId') === this._routerId
+            ) {
+                this.onPopState(e);
+            }
+        });
     }
 
     get routerId() {
         return this._routerId;
     }
+
+    abstract onPopState(e: Event): void;
 
     abstract navigate(route: string, routeParams?: {[key:string]: any}, options?: NavigateOptions): void;
 
@@ -102,4 +115,8 @@ export default abstract class NavigationBase {
     }
     
     abstract get location(): Location;
+
+    private get isInDocument() {
+        return document.getElementById(`${this.routerId}`);
+    }
 }

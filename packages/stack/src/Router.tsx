@@ -15,7 +15,7 @@ export default class Router extends RouterBase {
     constructor(props: RouterProps) {
         super(props);
 
-        const baseURL = props.config.basePathname ? new URL(props.config.basePathname, window.location.origin) : undefined;
+        const baseURL = this.baseURL;
         this.navigation = new Navigation(
             this.id,
             new History(this.id, props.config.defaultRoute ?? null, baseURL),
@@ -65,32 +65,7 @@ export default class Router extends RouterBase {
         }
     }
 
-    onPopStateListener = (e: Event) => {
-        // e.preventDefault();
-
-        // console.log(window.location.pathname, this.navigation.history.previous);
-        // if (window.location.pathname === this.navigation.history.previous) {
-        //     if (!this.state.implicitBack) {
-        //         this.setState({backNavigating: true});
-        //         this._routerData.backNavigating = true;
-        //     } else {
-        //         this.setState({implicitBack: false});
-        //     }
-
-        //     this.navigation.implicitBack();
-        // } else {
-        //     if (!this.state.backNavigating && !this.state.implicitBack) {
-        //         this.navigation.implicitNavigate(window.location.pathname);
-        //     }
-        //     if (this.state.implicitBack) {
-        //         this.setState({implicitBack: false});
-        //     }
-        // }
-
-        // window.addEventListener('page-animation-end', this.onAnimationEnd.bind(this), {once: true});
-        // this._routerData.currentPath = window.location.pathname;
-        // this.setState({currentPath: window.location.pathname});
-    }
+    onPopStateListener = (e: Event) => {}
 
     onBackListener = (e: BackEvent) => {
         e.stopImmediatePropagation();

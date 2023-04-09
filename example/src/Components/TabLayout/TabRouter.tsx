@@ -22,25 +22,14 @@ interface TabRouterState extends RouterState {
 }
 
 export default class TabRouter extends RouterBase<TabRouterProps, TabRouterState> {
-    protected navigation: TabNavigation;
-    protected _routerData: RouterData;
-    readonly baseURL: URL;
+    protected _routerData: RouterData<TabNavigation>;
 
     constructor(props: RouterProps) {
         super(props);
 
-        const baseURL = new URL(props.config.basePathname || '/', window.location.origin);
-        this.navigation = new TabNavigation(
-            this.id,
-            true,
-            null,
-            baseURL,
-            this.state.tabHistory,
-            this.props.backBehaviour || 'none'
-        );
-        this.baseURL = this.navigation.history.baseURL;
+        
 
-        this._routerData = new RouterData(this.navigation);
+        this._routerData = new RouterData<TabNavigation>();
         
         if (props.config) {
             this.config = props.config;
@@ -84,29 +73,25 @@ export default class TabRouter extends RouterBase<TabRouterProps, TabRouterState
     };
 
     componentDidMount(): void {
+        this._routerData.navigation = new TabNavigation(
+            this.id,
+            true,
+            null,
+            this.baseURL,
+            this.state.tabHistory,
+            this.props.backBehaviour || 'none'
+        );
         super.componentDidMount();
-        console.log(this.parentScreenData?.resolvedPathname);
-        if (this.parentScreenData?.resolvedPathname) {
-            const baseURL = new URL(
-                this.parentScreenData.resolvedPathname.replace(/^\//, ''),
-                `${window.location.origin}/`
-            );
-            console.log(baseURL);
-            this.navigation = new TabNavigation(
-                this.id,
-                true,
-                null,
-                baseURL,
-                this.state.tabHistory,
-                this.props.backBehaviour || 'none'
-            );
-        }
     }
 
     componentDidUpdate(lastProps: TabRouterProps, lastState: TabRouterState) {
         if (lastState.backNavigating !== this.state.backNavigating) {
             this.props.onBackNavigationChange(this.state.backNavigating);
         }
+    }
+
+    get navigation() {
+        return this._routerData.navigation;
     }
 
     onGestureNavigationStart = () => {
@@ -130,31 +115,7 @@ export default class TabRouter extends RouterBase<TabRouterProps, TabRouterState
         });
     }
 
-    onPopStateListener = (e: Event) => {
-        e.preventDefault();
-
-        if (window.location.pathname === this.navigation.history.previous) {
-            if (!this.state.implicitBack) {
-                this.setState({backNavigating: true});
-                this._routerData.backNavigating = true;
-            } else {
-                this.setState({implicitBack: false});
-            }
-
-            this.navigation.implicitBack();
-        } else {
-            if (!this.state.backNavigating && !this.state.implicitBack) {
-                this.navigation.implicitNavigate(window.location.pathname);
-            }
-            if (this.state.implicitBack) {
-                this.setState({implicitBack: false});
-            }
-        }
-
-        window.addEventListener('page-animation-end', this.onAnimationEnd.bind(this), {once: true});
-        this._routerData.currentPath = window.location.pathname;
-        this.setState({currentPath: window.location.pathname});
-    }
+    onPopStateListener = (e: Event) => {}
 
     onBackListener = (e: BackEvent) => {
         e.stopImmediatePropagation();

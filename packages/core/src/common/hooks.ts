@@ -33,5 +33,9 @@ export function useMotion() {
 
 export function useNavigation() {
     const routerData = React.useContext(RouterDataContext);
-    return routerData.navigation;
+    if (routerData) {
+        return routerData.navigation;
+    } else {
+        throw new Error("RouterData is null. You may be trying to call useNavigation outside a Router.");
+    }
 }

@@ -6,11 +6,11 @@ import { ScrollRestorationData } from './ScrollRestorationData';
 
 export type RoutesData = Map<string | undefined, {[key:string]: any}>;
 
-export default class RouterData {
+export default class RouterData<N extends NavigationBase = NavigationBase> {
     private _currentPath: string = '';
     private _routesData: RoutesData = new Map();
     private static _scrollRestorationData = new ScrollRestorationData();
-    private _navigation?: NavigationBase;
+    private _navigation?: N;
     private _backNavigating: boolean = false;
     private _gestureNavigating: boolean = false;
     private _paramsSerialiser?: (params: {[key:string]: any}) => string;
@@ -27,7 +27,7 @@ export default class RouterData {
     };
     private _ghostLayer: GhostLayer | null = null;
 
-    constructor(navigation?: NavigationBase) {
+    constructor(navigation?: N) {
         this._navigation = navigation;
     }
 
@@ -37,7 +37,7 @@ export default class RouterData {
     set routesData(_routesData: RoutesData) {
         this._routesData = _routesData;
     }
-    set navigation(_navigation: NavigationBase) {
+    set navigation(_navigation: N) {
         this._navigation = _navigation;
     }
     set animation(_animation: AnimationConfigSet) {
@@ -68,7 +68,7 @@ export default class RouterData {
     get scrollRestorationData() {
         return RouterData._scrollRestorationData;
     }
-    get navigation() {
+    get navigation(): N {
         return this._navigation!;
     }
     get animation() {
@@ -91,4 +91,4 @@ export default class RouterData {
     }
 }
 
-export const RouterDataContext = createContext<RouterData>(new RouterData());
+export const RouterDataContext = createContext<RouterData | null>(null);

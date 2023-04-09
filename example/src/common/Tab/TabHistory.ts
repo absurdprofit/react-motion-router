@@ -20,7 +20,7 @@ export default class TabHistory extends HistoryBase {
     go(delta: number) {
         this._index = this._index + delta;
         const url = this.baseURL.href + this._stack[this._index];
-        this.replaceState({stack: this._stack, routerId: this._routerId}, "", url);
+        this.pushState({stack: this._stack, routerId: this._routerId}, "", url);
     }
     
     set stack(_stack: string[]) {

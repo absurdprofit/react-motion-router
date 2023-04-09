@@ -3,6 +3,7 @@ import TabHistory, { BackBehaviour } from './TabHistory';
 
 export default class TabNavigation extends NavigationBase {
     _history: TabHistory;
+    private isInternalBack = false;
 
     constructor(
         _routerId: number,
@@ -24,6 +25,24 @@ export default class TabNavigation extends NavigationBase {
 
     implicitBack() {
         this.goBack();
+    }
+
+    onPopState = (e: Event) => {
+        e.preventDefault();
+        if (this.history.state.get<number>('routerId') === this._routerId) {
+            console.log("Tab Router Match");
+        }
+        if (this.isInternalBack) {
+            this.isInternalBack = false;
+            return;
+        }
+
+        const pathname = window.location.pathname.replace(this.history.baseURL.pathname, '');
+        if (pathname === this.history.previous) {
+            this.implicitBack();
+        } else {
+            this.implicitNavigate(pathname);
+        }
     }
 
     navigate(route: string, routeParams?: {[key:string]: any}, options: NavigateOptions = {}) {

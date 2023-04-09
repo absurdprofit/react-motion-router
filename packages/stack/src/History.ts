@@ -94,4 +94,8 @@ export default class History extends HistoryBase {
         }
         return null;
     }
+
+    get stack() {
+        return this._stack;
+    }
 }

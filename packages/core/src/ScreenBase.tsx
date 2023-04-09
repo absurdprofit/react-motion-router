@@ -1,4 +1,4 @@
-import React, { createContext, Suspense } from "react";
+import React, { Suspense } from "react";
 import AnimationProvider from "./AnimationProvider";
 import {
     AnimationConfig,
@@ -9,7 +9,6 @@ import {
     SwipeDirection
 } from "./common/types";
 import { RouterDataContext } from "./RouterData";
-import ScreenData, { ScreenDataContext } from "./ScreenData";
 import SharedElement from "./SharedElement";
 
 export interface ScreenBaseProps {
@@ -39,10 +38,9 @@ export interface ScreenBaseState {
 
 export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState> extends React.Component<P, S> {
     private sharedElementScene: SharedElement.Scene = new SharedElement.Scene(this.props.component.name || this.props.path?.toString() || 'not-found');
-    private screenData: ScreenData = new ScreenData(this);
     private name = this.props.name?.toLowerCase().replace(' ', '-') || this.props.component.name || this.props.path?.toString().slice(1).replace('/', '-') || 'not-found';
     private ref: HTMLElement | null = null;
-    private contextParams = this.context.routesData.get(this.props.path)?.params;
+    private contextParams = this.context?.routesData.get(this.props.path)?.params;
     private onRef = this.setRef.bind(this);
     private animation: AnimationConfigSet | (() => AnimationConfigSet) = {
         in: {
@@ -71,7 +69,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
         if (this.props.fallback && React.isValidElement(this.props.fallback)) {
             this.setState({
                 fallback: React.cloneElement<any>(this.props.fallback, {
-                    navigation: this.context.navigation,
+                    navigation: this.context!.navigation,
                     route: {
                         params: {
                             ...this.props.defaultParams,
@@ -100,16 +98,16 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
                 }
             }
         } else {
-            this.animation = this.context.animation;
+            this.animation = this.context!.animation;
         }
 
-        this.contextParams = this.context.routesData.get(this.props.path)?.params;
+        this.contextParams = this.context!.routesData.get(this.props.path)?.params;
         this.forceUpdate();
     }
 
     shouldComponentUpdate(nextProps: P) {
-        if (this.context.routesData.get(this.props.path)?.params !== this.contextParams) {
-            this.contextParams = this.context.routesData.get(this.props.path)?.params;
+        if (this.context!.routesData.get(this.props.path)?.params !== this.contextParams) {
+            this.contextParams = this.context!.routesData.get(this.props.path)?.params;
             return true;
         }
         if (nextProps.out && !nextProps.in) {
@@ -132,7 +130,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
             if (this.props.fallback && React.isValidElement(this.props.fallback)) {
                 this.setState({
                     fallback: React.cloneElement<any>(this.props.fallback, {
-                        navigation: this.context.navigation,
+                        navigation: this.context!.navigation,
                         route: {
                             params: {
                                 ...this.props.defaultParams,
@@ -149,16 +147,16 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
 
     animationFactory(): AnimationConfigSet {
         if (typeof this.props.config?.animation === "function") {
-            let currentPath = this.context.navigation!.history.next;
-            if (!this.context.backNavigating) {
-                currentPath = this.context.navigation!.history.previous;
+            let currentPath = this.context!.navigation!.history.next;
+            if (!this.context!.backNavigating) {
+                currentPath = this.context!.navigation!.history.previous;
             }
-            let nextPath = this.context.navigation!.history.current;
+            let nextPath = this.context!.navigation!.history.current;
 
             const animationConfig = this.props.config.animation(
                 currentPath || '',
                 nextPath,
-                this.context.gestureNavigating
+                this.context!.gestureNavigating
             );
 
             if ('in' in animationConfig) {
@@ -174,11 +172,11 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
             }
         }
 
-        return this.context.animation;
+        return this.context!.animation;
     }
     
     onExit = () => {
-        if (this.context.backNavigating)
+        if (this.context!.backNavigating)
             this.setState({shouldKeepAlive: false});
         else {
             if (this.ref) {
@@ -190,14 +188,14 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
             this.setState({shouldKeepAlive: true});
         }
 
-        if (this.context.ghostLayer) {
-            this.context.ghostLayer.currentScene = this.sharedElementScene;
+        if (this.context!.ghostLayer) {
+            this.context!.ghostLayer.currentScene = this.sharedElementScene;
         }
     }
 
     onEnter = () => {
-        if (this.context.ghostLayer) {
-            this.context.ghostLayer.nextScene = this.sharedElementScene;
+        if (this.context!.ghostLayer) {
+            this.context!.ghostLayer.nextScene = this.sharedElementScene;
         }
     }
 
@@ -236,7 +234,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
                 name={this.name}
                 resolvedPathname={this.props.resolvedPathname}
                 animation={this.animation}
-                backNavigating={this.context.backNavigating}
+                backNavigating={this.context!.backNavigating}
                 keepAlive={this.state.shouldKeepAlive ? this.props.config?.keepAlive || false : false}
             >
                 <div
@@ -253,19 +251,17 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
                     }}
                 >
                     <SharedElement.SceneContext.Provider value={this.sharedElementScene}>
-                        <ScreenDataContext.Provider value={this.screenData}>
-                            <Suspense fallback={this.state.fallback}>
-                                <Component
-                                    route={{
-                                        params: {
-                                            ...this.props.defaultParams,
-                                            ...this.contextParams
-                                        }
-                                    }}
-                                    navigation={this.context.navigation}
-                                />
-                            </Suspense>
-                        </ScreenDataContext.Provider>
+                        <Suspense fallback={this.state.fallback}>
+                            <Component
+                                route={{
+                                    params: {
+                                        ...this.props.defaultParams,
+                                        ...this.contextParams
+                                    }
+                                }}
+                                navigation={this.context!.navigation}
+                            />
+                        </Suspense>
                     </SharedElement.SceneContext.Provider>
                 </div>
             </AnimationProvider>

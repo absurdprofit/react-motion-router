@@ -98,7 +98,7 @@ function StateFromChildren(
                     children.push(
                         React.cloneElement(child, {
                             ...mountProps,
-                            resolvedPathname: window.location.pathname.replace(new RegExp(`${matchInfo.rest}$`), '')
+                            resolvedPathname: matchInfo.matchedPathname
                         }) as ScreenChild
                     );
                 }
@@ -129,7 +129,7 @@ function StateFromChildren(
                     children.push(
                         React.cloneElement(child, {
                             ...mountProps,
-                            resolvedPathname: window.location.pathname.replace(new RegExp(`${matchInfo.rest}$`), ''),
+                            resolvedPathname: matchInfo.matchedPathname,
                             key
                         }) as ScreenChild
                     );
@@ -228,7 +228,12 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
                     disableDiscovery = config?.disableDiscovery;
                     minFlingVelocity = config?.minFlingVelocity;
                     this.props.onDocumentTitleChange(child.props.name || null);
-                    return React.cloneElement(child, {in: true, out: false}) as ScreenChild;
+                    return React.cloneElement(
+                        child, {
+                            in: true,
+                            out: false,
+                        }
+                    ) as ScreenChild;
                 }
             });
 
