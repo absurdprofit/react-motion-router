@@ -5,7 +5,6 @@ import {
   AnimationKeyframeEffectConfig,
   AnimationConfig,
   AnimationConfigFactory,
-  lazy
 } from '@react-motion-router/core';
 import { iOS, isPWA } from './common/utils';
 import { ModalAnimation } from './Screens/Modal/Animations';
@@ -15,15 +14,15 @@ import theme from './Theme';
 import Nested from './Screens/Nested';
 import "./css/App.css";
 
-const NotFound = lazy(() => import('./Screens/NotFound'));
-const Home = lazy(() => import('./Screens/Home'));
-const Cards = lazy(() => import('./Screens/Cards'));
-const Cards2 = lazy(() => import('./Screens/Cards2'));
-const Slides = lazy(() => import('./Screens/Slides'));
-const Tiles = lazy(() => import('./Screens/Tiles'));
-const Details = lazy(() => import('./Screens/Details'));
-const ModalExample = lazy(() => import('./Screens/Modal'));
-const Overlays = lazy(() => import('./Screens/Overlays'));
+const NotFound = React.lazy(() => import('./Screens/NotFound'));
+const Home = React.lazy(() => import('./Screens/Home'));
+const Cards = React.lazy(() => import('./Screens/Cards'));
+const Cards2 = React.lazy(() => import('./Screens/Cards2'));
+const Slides = React.lazy(() => import('./Screens/Slides'));
+const Tiles = React.lazy(() => import('./Screens/Tiles'));
+const Details = React.lazy(() => import('./Screens/Details'));
+const ModalExample = React.lazy(() => import('./Screens/Modal'));
+const Overlays = React.lazy(() => import('./Screens/Overlays'));
 
 function DetailsFallback({route}: any) {
   const {hero} = route.params;
