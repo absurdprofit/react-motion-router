@@ -32,10 +32,12 @@ import {
     PageAnimationStartEvent
 } from './MotionEvents';
 import ScrollRestoration from './ScrollRestoration';
+import {URLPattern} from "urlpattern-polyfill";
 
 // @ts-ignore: Property 'UrlPattern' does not exist 
-if (!globalThis.URLPattern) { 
-    (async () => await import("urlpattern-polyfill"))();
+if (!globalThis.URLPattern) {
+    // @ts-ignore: Property 'UrlPattern' does not exist 
+    globalThis.URLPattern = URLPattern;
 }
 
 document.body.style.position = 'fixed';

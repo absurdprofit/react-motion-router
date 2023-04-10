@@ -226,8 +226,10 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
 
     render() {
         let Component = this.props.component as React.JSXElementConstructor<any>;
+        let preloaded = false;
         if ('preloaded' in this.props.component && this.props.component.preloaded) {
             Component = this.props.component.preloaded as React.JSXElementConstructor<any>;
+            preloaded = true;
         }
         return (
             <AnimationProvider
@@ -261,7 +263,8 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
                                     params: {
                                         ...this.props.defaultParams,
                                         ...this.contextParams
-                                    }
+                                    },
+                                    preloaded
                                 }}
                                 navigation={this.context!.navigation}
                             />

@@ -12,7 +12,8 @@ interface DetailsProps {
     route: {
         params: Hero & {
             noBg?: boolean;
-        }
+        };
+        preloaded: boolean;
     };
 }
 
@@ -21,6 +22,7 @@ let originalDesc: string | undefined;
 let lastHero = '';
 export default function Details(props: DetailsProps) {
     const {noBg, ...hero} = props.route.params;
+    isLoaded = props.route.preloaded;
     
     useEffect(() => {
         if (!hero.name) {
