@@ -180,7 +180,13 @@ export function lazy<T extends React.ComponentType<any>>(
     factory: () => Promise<{ default: T }>
 ): LazyExoticComponent<T> {
     const Component = React.lazy(factory) as LazyExoticComponent<T>;
-    Component.preload = factory;
+    Component.preload = () => {
+        const result = factory();
+        result
+        .then(moduleObject => Component.preloaded = moduleObject.default)
+        .catch(console.error);
+        return result;
+    };
     return Component;
 }
 

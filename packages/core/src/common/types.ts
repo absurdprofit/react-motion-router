@@ -80,4 +80,5 @@ export type SearchParamsSerializer = (params: {[key:string]: any}) => string;
 
 export interface LazyExoticComponent<T extends React.ComponentType<any>> extends React.LazyExoticComponent<T> {
     preload: () => Promise<{ default: T }>;
+    preloaded: T | undefined;
 }

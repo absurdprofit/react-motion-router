@@ -225,7 +225,10 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
     }
 
     render() {
-        const Component = this.props.component as React.JSXElementConstructor<any>;
+        let Component = this.props.component as React.JSXElementConstructor<any>;
+        if ('preloaded' in this.props.component && this.props.component.preloaded) {
+            Component = this.props.component.preloaded as React.JSXElementConstructor<any>;
+        }
         return (
             <AnimationProvider
                 onExit={this.onExit}
