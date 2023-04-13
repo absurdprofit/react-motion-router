@@ -47,7 +47,13 @@ export default class TabRouter extends RouterBase<TabRouterProps, TabRouterState
             }
         }
 
-        if ('in' in this.config.animation) {
+        if (!this.config.animation) {
+            this.config.animation = {
+                type: "none",
+                duration: 0
+            }
+        }
+        if ('in' in this.config?.animation) {
             this._routerData.animation = {
                 in: this.config.animation.in,
                 out: this.config.animation.out || this.config.animation.in

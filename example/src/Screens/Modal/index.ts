@@ -1,3 +1,3 @@
-import Modal from './Modal';
+import Modal from '../Overlays/Modals/Modal';
 
 export default Modal;

@@ -16,6 +16,12 @@ export default class Router extends RouterBase {
 
         this._routerData = new RouterData(this);
 
+        if (!this.config.animation) {
+            this.config.animation = {
+                type: "none",
+                duration: 0
+            }
+        }
         if ('in' in this.config.animation) {
             this._routerData.animation = {
                 in: this.config.animation.in,

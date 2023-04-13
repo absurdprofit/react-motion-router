@@ -8,8 +8,7 @@ import {
   lazy
 } from '@react-motion-router/core';
 import { iOS, isPWA } from './common/utils';
-import { ModalAnimation } from './Screens/Modal/Animations';
-import { OverlaysAnimation } from './Screens/Overlays/Animations';
+import { ModalAnimation, OverlaysAnimation } from './Screens/Overlays/Animations';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './Theme';
 import Nested from './Screens/Nested';
@@ -113,7 +112,7 @@ function Routes() {
             animation: OverlaysAnimation
           }}
         />
-        <Stack.Screen
+        {/* <Stack.Screen
           path='/modal'
           name="Modal"
           component={ModalExample}
@@ -125,7 +124,7 @@ function Routes() {
             disableDiscovery: false,
             hysteresis: 15
           }}
-        />
+        /> */}
         <Stack.Screen
           path={'/slides'}
           name="Slides"

@@ -1,10 +1,10 @@
 import React, { Suspense } from 'react';
 import { Motion } from '@react-motion-router/core';
 import { Navigation } from '@react-motion-router/stack';
-import Default from './Default';
-import '../../css/Modal.css';
+import Default from './Sheet';
 import { motion, AnimationProps } from 'framer-motion';
-import { lerp } from '../../common/utils';
+import { lerp } from '../../../common/utils';
+import '../../../css/Modal.css';
 
 const Player = React.lazy(() => import('./Player'));
 
@@ -133,9 +133,6 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
                             >
                                 <div className="notch" style={{opacity: lerp(0, 1, progress)}}></div>
                                 <Suspense fallback={<div className='content'></div>}>
-                                    {!sheetView ?
-                                    <Default onClose={this.onClose} />
-                                    : <Player progress={progress} />}
                                 </Suspense>
                             </motion.div>
                         );

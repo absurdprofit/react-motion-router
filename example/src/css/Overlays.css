@@ -1,12 +1,18 @@
 .overlays.suspense > * {
   animation: overlays-fade-in .5s ease forwards;
 }
-.overlays {
+.overlays .navbar {
+    background-color: transparent;
+    color: transparent;
+}
+.overlays dialog {
     padding: 
         calc(env(safe-area-inset-top) + 15px)
         calc(env(safe-area-inset-right) + 15px)
         calc(env(safe-area-inset-bottom) + 15px)
         calc(env(safe-area-inset-left) + 15px);
+}
+.overlays {
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -17,8 +23,10 @@
     justify-content: center;
     align-items: center;
 }
-.overlays .go-back a {
-    padding: 10px;
+.overlays .go-back {
+    position: absolute;
+    z-index: 1;
+    transform: translate(15px, calc(env(safe-area-inset-top) + 12px));
 }
 @keyframes overlays-fade-in {
     from {

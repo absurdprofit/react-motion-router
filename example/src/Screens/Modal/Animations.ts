@@ -1,34 +1,3 @@
 import { matchRoute, AnimationConfigFactory, AnimationConfig } from '@react-motion-router/core';
 import { iOS, isPWA } from '../../common/utils';
 
-export const ModalAnimation: AnimationConfigFactory = (c, n, gestureNavigating) => {
-    const slideDefaultAnimation: AnimationConfig = {
-        type: 'slide',
-        direction: 'right',
-        duration: 350
-    };
-    const fadeIn = {
-        keyframes: [
-            {backgroundColor: 'rgba(0, 0, 0, 0)'},
-            {backgroundColor: 'rgba(0, 0, 0, 0.3)'}
-        ],
-        options: {
-            duration: 150,
-        }
-    };
-    const fadeOut = {
-        keyframes: [
-            {backgroundColor: 'rgba(0, 0, 0, 0.3)'},
-            {backgroundColor: 'rgba(0, 0, 0, 0)'}
-        ],
-        options: {
-            duration: 250,
-        }
-    };
-    if (matchRoute(n, '/')) return slideDefaultAnimation;
-    
-    return {
-        in: fadeIn,
-        out: fadeOut
-    }
-};

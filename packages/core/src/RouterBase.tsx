@@ -15,7 +15,7 @@ import { PageAnimationEndEvent } from './MotionEvents';
 import { concatenateURL, dispatchEvent, searchParamsToObject } from './common/utils';
 
 interface Config {
-    animation: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig;
+    animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig;
     defaultRoute?: string;
     swipeAreaWidth?: number;
     minFlingVelocity?: number;
