@@ -1,12 +1,10 @@
-import { IconButton } from "@mui/material";
-import { Anchor } from "@react-motion-router/core";
+
 import { Router, Stack } from "@react-motion-router/stack";
 import Home from "./Home";
 import Player from "./Modals/Player";
 import Sheet from "./Modals/Sheet";
-import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import { useEffect } from "react";
-import { ModalAnimation, OverlaysAnimation } from "./Animations";
+import { ModalAnimation } from "./Animations";
 import '../../css/Modal.css';
 import { iOS, isPWA } from "../..//common/utils";
 
@@ -39,13 +37,6 @@ export default function Overlays() {
     } as const;
     return (
         <div className={`overlays ${isLoaded ? 'loaded' : 'suspense'}`}>
-            <div className="go-back">
-                <Anchor goBack>
-                    <IconButton disableRipple>
-                        <ArrowBackIosIcon style={{zIndex: 100}} />
-                    </IconButton>
-                </Anchor>
-            </div>
             <div style={{position: "absolute", width: "100vw", height: "100vh"}}>
                 <Router config={{
                     disableBrowserRouting: isPWA() && iOS(),

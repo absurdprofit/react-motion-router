@@ -38,7 +38,7 @@ export interface ScreenBaseState {
 }
 
 export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState> extends React.Component<P, S> {
-    private name = this.props.name?.toLowerCase().replace(' ', '-') || this.props.path === undefined ? 'not-found' : this.props.path?.toString().slice(1).replace('/', '-') || 'index';
+    private name = this.props.path === undefined ? 'not-found' : this.props.path?.toString().slice(1).replace('/', '-') || 'index';
     private sharedElementScene: SharedElement.Scene = new SharedElement.Scene(this.name);
     private ref: HTMLElement | null = null;
     private contextParams = this.context?.routesData.get(this.props.path)?.params;
@@ -237,7 +237,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
                 onEnter={this.onEnter}
                 in={this.props.in || false}
                 out={this.props.out || false}
-                name={this.name}
+                name={this.props.name?.toLowerCase().replace(' ', '-') ?? this.name}
                 resolvedPathname={this.props.resolvedPathname}
                 animation={this.animation}
                 backNavigating={this.context!.backNavigating}

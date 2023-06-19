@@ -5,6 +5,8 @@ import { Navigation } from '@react-motion-router/stack';
 import King from "../../assets/king.webp";
 import SkipNextIcon from '@mui/icons-material/SkipNext';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import { IconButton } from "@mui/material";
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import '../../css/Overlays.css';
 
 interface OverlaysProps {
@@ -25,6 +27,13 @@ export default function Overlays({navigation}: OverlaysProps) {
 
     return (
         <>
+            <div className="go-back">
+                <Anchor goBack>
+                    <IconButton disableRipple>
+                        <ArrowBackIosIcon style={{zIndex: 100}} />
+                    </IconButton>
+                </Anchor>
+            </div>
             <div className="modal-example" style={{marginBlockStart: "100px"}}>
                 <Anchor href="/sheet">
                     <Button>Open Modal</Button>

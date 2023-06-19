@@ -121,14 +121,8 @@ export default class Navigation extends NavigationBase {
                 signal: controller.signal
             }
         });
-        if (this._history.defaultRoute && this._history.length === 1) {
-            this._history.back(true);
-            event = new CustomEvent<BackEventDetail>('go-back', {
-                detail: {
-                    replace: true,
-                    signal: controller.signal
-                }
-            });
+        if (this._history.length === 1) {
+            this.parent?.goBack();
         } else {
             if (this._disableBrowserRouting) {
                 this._history.implicitBack();
