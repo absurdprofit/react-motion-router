@@ -22,7 +22,7 @@ const transition = {
 }
 export default function Sheet({navigation, route}: SheetProps) {
     const [disabled, setDisabled] = useState(false);
-    const [stiffness, setStiffness] = useState(50);
+    const [stiffness] = useState(50);
 
     const onClose = async (ev: React.MouseEvent<HTMLDialogElement | HTMLButtonElement, MouseEvent>) => {
         ev.stopPropagation();

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Motion } from "..";
+import { Motion, NavigationBase } from "..";
 import { MotionProgressEvent } from "../MotionEvents";
 import { RouterDataContext } from "../RouterData";
 
@@ -31,10 +31,10 @@ export function useMotion() {
     return motion;
 }
 
-export function useNavigation() {
+export function useNavigation<T extends NavigationBase = NavigationBase>() {
     const routerData = React.useContext(RouterDataContext);
     if (routerData) {
-        return routerData.navigation;
+        return routerData.navigation as NavigationBase;
     } else {
         throw new Error("RouterData is null. You may be trying to call useNavigation outside a Router.");
     }

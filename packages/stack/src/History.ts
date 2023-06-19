@@ -20,8 +20,9 @@ export default class History extends HistoryBase {
                 }
             }
         }
+
         if (!this._stack.length || !this._stack.includes(pathname))
-            this._stack.push(pathname);
+            this._stack.push(pathname || '/');
     }
 
     push(route: string, search: string = '', hash: string = '', replace: boolean = false) {

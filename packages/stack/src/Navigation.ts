@@ -166,6 +166,10 @@ export default class Navigation extends NavigationBase {
         }
     }
 
+    get parent() {
+        return this.routerData.parentRouterData?.navigation ?? null;
+    }
+
     get location() {
         const {location} = window;
         const url = concatenateURL(this._history.current, this.history.baseURL);

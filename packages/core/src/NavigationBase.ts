@@ -57,6 +57,8 @@ export default abstract class NavigationBase {
         window.removeEventListener('popstate', this.popStateListener);
     }
 
+    abstract get parent(): NavigationBase | null;
+
     get routerId() {
         return this._routerId;
     }

@@ -38,7 +38,7 @@ export interface ScreenBaseState {
 }
 
 export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState> extends React.Component<P, S> {
-    private name = this.props.name?.toLowerCase().replace(' ', '-') || this.props.path?.toString().slice(1).replace('/', '-') || 'not-found';
+    private name = this.props.name?.toLowerCase().replace(' ', '-') || this.props.path === undefined ? 'not-found' : this.props.path?.toString().slice(1).replace('/', '-') || 'index';
     private sharedElementScene: SharedElement.Scene = new SharedElement.Scene(this.name);
     private ref: HTMLElement | null = null;
     private contextParams = this.context?.routesData.get(this.props.path)?.params;
