@@ -6,10 +6,7 @@
   "description": "Declarative routing library for ReactJS ⚛ with animations baked in ⏮",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rimraf ./build/* && tsc && python3 ./post_build.py",
-    "dev": "tsc -w",
-    "webpack:prod": "webpack",
-    "webpack:dev": "webpack -w"
+    "build": "lerna run build"
   },
   "repository": {
     "type": "git",

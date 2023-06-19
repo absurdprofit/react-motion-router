@@ -45,7 +45,7 @@ export default function Anchor(props: AnchorProps) {
         uri.search = search;
         if (uri.origin === navigation.location.origin) {
             setExternal(false);
-            setURL(uri.href.replace(navigation.location.origin, navigation.history.baseURL.pathname)); // pathname with search part
+            setURL(uri.href.replace(navigation.location.origin, '')); // pathname with search part
         } else {
             setExternal(true);
             setURL(uri.href);
@@ -54,6 +54,7 @@ export default function Anchor(props: AnchorProps) {
     
     const {href, goBack, hash, onClick: propsOnClick, replace, params, ...aProps} = props;
     const onClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+        e.stopPropagation();
         if (!navigation) return;
 
         if (!external) e.preventDefault();
@@ -61,7 +62,7 @@ export default function Anchor(props: AnchorProps) {
 
         if (propsOnClick) propsOnClick(e);
         
-        if (goBack) navigation.goBack({});
+        if (goBack) navigation.goBack();
         if (href) navigation.navigate(href, params, {
             hash,
             replace

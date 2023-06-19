@@ -6,16 +6,13 @@ export default abstract class HistoryBase {
     
     constructor(_routerId: number, _defaultRoute: string | null, _baseURL: URL) {
         this._routerId = _routerId;
-        this.state.set("routerId", _routerId);
+        window.history.replaceState({...history.state, routerId: this._routerId}, "", window.location.toString());
             
         _baseURL = _baseURL || new URL(window.location.toString());
         _baseURL = new URL(_baseURL.href.replace(/\/$/, '')); // negate trailing slash
         this._baseURL = _baseURL;
 
         this._defaultRoute = _defaultRoute || this._baseURL.pathname;
-        if (!window.history.state)
-            window.history.replaceState({}, "", window.location.toString());
-
         if (!this.state.has(this.baseURL.pathname)) this.state.set(this.baseURL.pathname, {});
         const persistedStack = this.state.get<{stack: string[]}>(this.baseURL.pathname)?.stack;
         if (persistedStack) this._stack = [...persistedStack.filter(entry => Boolean(entry))];

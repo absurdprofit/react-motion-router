@@ -28,7 +28,7 @@ export default function Overlays() {
     }, []);
 
     const onProgress = (progress: number) => {
-        console.log(progress);
+        // console.log(progress);
     }
     const modalConfig = {
         swipeDirection: 'down',
