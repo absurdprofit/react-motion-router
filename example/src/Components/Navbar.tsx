@@ -27,7 +27,9 @@ function Navbar(props: NavbarProps) {
                 }
             </div>
             <div className="title">
-                <h2>{props.title}</h2>
+                <SharedElement id={props.title.toLowerCase().split(' ').join('-') + "-title"}>
+                    <h2>{props.title}</h2>
+                </SharedElement>
             </div>
         </div>
     );

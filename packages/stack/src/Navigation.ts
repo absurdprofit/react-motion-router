@@ -122,7 +122,12 @@ export default class Navigation extends NavigationBase {
             }
         });
         if (this._history.length === 1) {
-            this.parent?.goBack();
+            if (this.parent === null) {
+                // if no history in root router, fallback to browser back
+                window.history.back();
+                return;
+            }
+            this.parent.goBack();
         } else {
             if (this._disableBrowserRouting) {
                 this._history.implicitBack();

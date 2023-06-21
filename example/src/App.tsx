@@ -11,7 +11,6 @@ import { iOS, isPWA } from './common/utils';
 import { ModalAnimation, OverlaysAnimation } from './Screens/Overlays/Animations';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './Theme';
-import Nested from './Screens/Nested';
 import "./css/App.css";
 
 const NotFound = lazy(() => import('./Screens/NotFound'));
@@ -191,7 +190,6 @@ function Routes() {
             }
           }}
         />
-        <Stack.Screen component={Nested} path='/nested/**' />
         <Stack.Screen name="Not Found" component={NotFound} fallback={<div className='screen-fallback not-found'></div>} />
       </Router>
   );

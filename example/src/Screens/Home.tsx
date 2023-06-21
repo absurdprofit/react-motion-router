@@ -37,11 +37,6 @@ export default function Home(props: HomeProps) {
             title: 'Overlay Demo',
             description: 'Various Overlays such as modals with spring and default timing functions',
             href: '/overlays'
-        },
-        {
-            title: 'Nested Demo',
-            description: 'Tab layout implemented using nested routing',
-            href: '/nested'
         }
     ];
 

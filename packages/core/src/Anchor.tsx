@@ -3,6 +3,7 @@ import { useNavigation } from './common/hooks';
 import { XOR } from './common/types';
 import { searchParamsFromObject } from './common/utils';
 import { RouterDataContext } from './RouterData';
+import type NavigationBase from './NavigationBase';
 
 interface BaseAnchorProps extends React.DetailedHTMLProps<React.AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
     params?: {[key:string]: any};
@@ -33,7 +34,7 @@ export default function Anchor(props: AnchorProps) {
         let href: string;
         let search: string;
         if ('goBack' in props) {
-            href = navigation.history.previous || navigation.history.defaultRoute;
+            href = resolveBackPath(navigation);
             search = '';
         } else {
             const paramsSerializer = routerData?.paramsSerializer || null;
@@ -78,4 +79,16 @@ export default function Anchor(props: AnchorProps) {
             {...aProps}
         >{props.children}</a>
     );
+}
+
+function resolveBackPath(navigation: NavigationBase): string {
+    if (navigation.history.previous) {
+        return navigation.history.previous;
+    } else {
+        if (navigation.parent) {
+            return resolveBackPath(navigation.parent);
+        } else {
+            return document.referrer;
+        }
+    }
 }

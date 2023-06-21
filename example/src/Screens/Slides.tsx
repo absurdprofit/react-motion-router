@@ -2,11 +2,12 @@ import React, {useEffect, useState} from 'react';
 import { Hero, Heroes } from '../assets/Heroes';
 import ClearIcon from '@mui/icons-material/Clear';
 import { Navigation } from '@react-motion-router/stack';
-import { SharedElement, Motion, Anchor } from '@react-motion-router/core';
+import { SharedElement, Anchor } from '@react-motion-router/core';
 import IconButton from '@mui/material/IconButton';
 import '../css/Slides.css';
 import { SwipeStartEvent, SwipeEvent, SwipeEndEvent } from 'web-gesture-events';
-import { lerp } from '../common/utils';
+import { bindKeyboard } from 'react-swipeable-views-utils';
+import SwipeableViews from 'react-swipeable-views';
 
 interface SlidesProps {
     navigation: Navigation;
@@ -16,6 +17,8 @@ interface SlidesProps {
         }
     }
 }
+
+const KeyboardSwipeableViews = bindKeyboard(SwipeableViews);
 
 let isLoaded = false;
 export default function Slides(props: SlidesProps) {
@@ -81,23 +84,12 @@ export default function Slides(props: SlidesProps) {
                     </IconButton>
                 </Anchor>
             </div>
-            <Motion.Consumer>
-                {(progress) => {
-                    progress = progress / 100;
-                    return (
-                        <div
-                            className="title"
-                            style={{
-                                transform: `translate(-50%, ${lerp(-100, 0, progress)}px)`,
-                                opacity: lerp(0, 1, progress)
-                            }}
-                        >
-                            <h2>{Heroes[index].name}</h2>
-                        </div>
-                    );
-                }}
-            </Motion.Consumer>
-            <div>
+            <div className="title">
+                <SharedElement id="tiles-demo-title" config={{type: 'fade-through'}}>
+                    <h2>{Heroes[index].name}</h2>
+                </SharedElement>
+            </div>
+            <KeyboardSwipeableViews onChangeIndex={(index: number) => setIndex(index)} index={index}>
             {
                 Heroes.map((hero: Hero, _index: number) => {
                     return (
@@ -116,7 +108,7 @@ export default function Slides(props: SlidesProps) {
                     );
                 })
             }
-            </div>
+            </KeyboardSwipeableViews>
         </div>
     );
 }
