@@ -6,6 +6,7 @@ namespace SharedElement {
     //https://developer.mozilla.org/en-US/docs/Web/CSS/transform-origin#formal_syntax
     //https://stackoverflow.com/questions/51445767/how-to-define-a-regex-matched-string-type-in-typescript
     enum TransformOriginKeywordEnum {
+        center,
         top,
         bottom,
         left,
@@ -194,7 +195,7 @@ namespace SharedElement {
         private _ref: HTMLDivElement | null = null;
         private _scene: Scene | null = null;
         private _mutationObserver = new MutationObserver(this.updateScene.bind(this));
-        private _idleCallbackID: number = 0;
+        private _callbackID: number = 0;
         private _computedStyle: CSSStyleDeclaration | null = null;
         private _isMounted = false;
         private onRef = this.setRef.bind(this);
@@ -287,13 +288,15 @@ namespace SharedElement {
         }
 
         updateScene() {
-            cancelIdleCallback(this._idleCallbackID);
-            this._idleCallbackID = requestIdleCallback(() => {
+            const cancelCallback = window.cancelIdleCallback ? window.cancelIdleCallback : window.clearTimeout;
+            const requestCallback = window.requestIdleCallback ? window.requestIdleCallback : window.setTimeout;
+            cancelCallback(this._callbackID);
+            this._callbackID = requestCallback(() => {
                 if (this._ref) {
                     this.scene?.removeNode(this._id);
                     this.scene?.addNode(nodeFromRef(this._id, this._ref, this));
                 }
-                this._idleCallbackID = 0;
+                this._callbackID = 0;
             });
         }
 

@@ -85,7 +85,7 @@ export default function Slides(props: SlidesProps) {
                 </Anchor>
             </div>
             <div className="title">
-                <SharedElement id="tiles-demo-title" config={{type: 'fade-through'}}>
+                <SharedElement id="tiles-demo-title" config={{type: 'fade-through', transformOrigin: 'center center'}}>
                     <h2>{Heroes[index].name}</h2>
                 </SharedElement>
             </div>

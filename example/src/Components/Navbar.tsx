@@ -1,7 +1,7 @@
 import React, {memo} from 'react';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import IconButton from '@mui/material/IconButton';
-import { Anchor, SharedElement, useNavigation } from '@react-motion-router/core';
+import { Anchor, SharedElement } from '@react-motion-router/core';
 import '../css/Navbar.css';
 
 interface NavbarProps {
@@ -27,7 +27,7 @@ function Navbar(props: NavbarProps) {
                 }
             </div>
             <div className="title">
-                <SharedElement id={props.title.toLowerCase().split(' ').join('-') + "-title"}>
+                <SharedElement id={props.title.toLowerCase().split(' ').join('-') + "-title"} config={{transformOrigin: 'center center'}}>
                     <h2>{props.title}</h2>
                 </SharedElement>
             </div>
