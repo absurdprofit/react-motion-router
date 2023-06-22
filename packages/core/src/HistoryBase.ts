@@ -2,9 +2,9 @@ export default abstract class HistoryBase {
     private _baseURL: URL;
     protected _stack: string[] = [];
     private _defaultRoute: string;
-    protected readonly _routerId: number;
+    protected readonly _routerId: string;
     
-    constructor(_routerId: number, _defaultRoute: string | null, _baseURL: URL) {
+    constructor(_routerId: string, _defaultRoute: string | null, _baseURL: URL) {
         this._routerId = _routerId;
         window.history.replaceState({...history.state, routerId: this._routerId}, "", window.location.toString());
             

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Anchor, SharedElement } from '@react-motion-router/core';
-import { Navigation } from '@react-motion-router/stack';
+import { Navigation, Stack } from '@react-motion-router/stack';
 import Navbar from '../Components/Navbar';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -10,9 +10,7 @@ import { Hero, Heroes } from '../assets/Heroes';
 import ButtonBase from '@mui/material/ButtonBase';
 import '../css/Cards.css';
 
-interface CardsProps {
-    navigation: Navigation;
-}
+interface CardsProps extends Stack.ScreenComponentProps {}
 
 interface CardListProps extends CardsProps {
     observer: IntersectionObserver;

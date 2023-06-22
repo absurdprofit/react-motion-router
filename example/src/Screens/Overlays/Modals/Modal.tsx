@@ -1,22 +1,18 @@
 import React, { Suspense } from 'react';
 import { Motion } from '@react-motion-router/core';
-import { Navigation } from '@react-motion-router/stack';
-import Default from './Sheet';
+import { Stack } from '@react-motion-router/stack';
 import { motion, AnimationProps } from 'framer-motion';
 import { lerp } from '../../../common/utils';
 import '../../../css/Modal.css';
 
 const Player = React.lazy(() => import('./Player'));
 
-interface ModalScreenProps {
-    navigation: Navigation;
-    route: {
-        params: {
-            sheetView: boolean;
-            top?: number
-        }
-    }
+interface ModalParams {
+    sheetView: boolean;
+    top?: number
 }
+
+interface ModalScreenProps extends Stack.ScreenComponentProps<ModalParams> {}
 
 interface ModalScreenState {
     disabled: boolean;

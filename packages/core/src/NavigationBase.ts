@@ -9,7 +9,7 @@ export interface BackEventDetail {
 }
 
 export interface NavigateEventDetail {
-    routerId: number;
+    routerId: string;
     route: string;
     routeParams?: any;
     replace: boolean;

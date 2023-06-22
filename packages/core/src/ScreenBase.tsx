@@ -267,6 +267,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
                                     preloaded
                                 }}
                                 navigation={this.context!.navigation}
+                                orientation={screen.orientation}
                             />
                         </Suspense>
                     </SharedElement.SceneContext.Provider>

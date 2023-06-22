@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import King from "../../../assets/king.webp";
 import { Motion, SharedElement, useMotion } from '@react-motion-router/core';
+import { Stack } from '@react-motion-router/stack';
 import SkipPreviousIcon from '@mui/icons-material/SkipPrevious';
 import SkipNextIcon from '@mui/icons-material/SkipNext';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -8,22 +9,17 @@ import ShareIcon from '@mui/icons-material/Share';
 import VolumeDownIcon from '@mui/icons-material/VolumeDown';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import Slider from '@mui/material/Slider';
-import Stack from '@mui/material/Stack';
+import StackComponent from '@mui/material/Stack';
 import { motion } from 'framer-motion';
 import { lerp } from '../../../common/utils';
 import '../../../css/Player.css';
-import { Navigation } from '@react-motion-router/stack';
 
-
-interface PlayerProps {
-    navigation: Navigation;
-    route: {
-        params: {
-            top: number;
-            onProgress: (progress: number) => void;
-        }
-    }
+interface PlayerParams {
+    top: number;
+    onProgress: (progress: number) => void;
 }
+
+interface PlayerProps extends Stack.ScreenComponentProps<PlayerParams> {}
 
 let seekStart = 30;
 let volumeStart = 50;
@@ -157,13 +153,13 @@ export default function Player({navigation, route}: PlayerProps) {
                                     </div>
                                 </div>
                                 <div className="volume" style={{opacity: progress}}>
-                                <Stack spacing={2} direction="row" sx={{ mb: 1 }} alignItems="center">
+                                <StackComponent spacing={2} direction="row" sx={{ mb: 1 }} alignItems="center">
                                     <VolumeDownIcon />
                                     <Slider aria-label="Volume" value={volume} onChange={handleVolumeChange} style={{
                                         transition: 'left 300ms ease-in'
                                     }} />
                                     <VolumeUpIcon />
-                                </Stack>
+                                </StackComponent>
                                 </div>
                             </div>
                         </motion.div>

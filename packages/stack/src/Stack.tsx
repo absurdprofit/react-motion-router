@@ -1,12 +1,14 @@
 import React from 'react';
 import { ScreenBase } from '@react-motion-router/core';
-import type { ScreenBaseProps, ScreenBaseState } from '@react-motion-router/core';
+import type { ScreenBaseProps, ScreenBaseState, ScreenComponentBaseProps } from '@react-motion-router/core';
+import Navigation from './Navigation';
 
 export namespace Stack {
+    export interface ScreenComponentProps<T extends { [key: string]: any; } = {}> extends ScreenComponentBaseProps<T, Navigation> {}
 
-    export interface ScreenProps extends ScreenBaseProps {}
+    interface ScreenProps extends ScreenBaseProps {}
     
-    export interface ScreenState extends ScreenBaseState {}
+    interface ScreenState extends ScreenBaseState {}
     
-    export class Screen extends ScreenBase {}
+    export class Screen extends ScreenBase<ScreenProps, ScreenState> {}
 }

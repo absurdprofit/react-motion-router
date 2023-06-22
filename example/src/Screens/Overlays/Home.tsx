@@ -1,7 +1,7 @@
 import { Button } from '@mui/material';
 import React, { useRef } from 'react';
 import { Anchor, SharedElement } from '@react-motion-router/core';
-import { Navigation } from '@react-motion-router/stack';
+import { Navigation, Stack } from '@react-motion-router/stack';
 import King from "../../assets/king.webp";
 import SkipNextIcon from '@mui/icons-material/SkipNext';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -9,9 +9,7 @@ import { IconButton } from "@mui/material";
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import '../../css/Overlays.css';
 
-interface OverlaysProps {
-    navigation: Navigation;
-}
+interface OverlaysProps extends Stack.ScreenComponentProps {}
 
 export default function Overlays({navigation}: OverlaysProps) {
     const playerRef = useRef<HTMLDivElement | null>(null);

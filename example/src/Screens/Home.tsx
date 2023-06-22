@@ -1,13 +1,11 @@
 import React, { useEffect } from 'react';
 import { SharedElement } from '@react-motion-router/core';
-import { Navigation } from '@react-motion-router/stack';
+import { Stack } from '@react-motion-router/stack';
 import ListItemComponent from '../Components/ListItem';
 import Navbar from '../Components/Navbar';
 import '../css/Home.css';
 
-interface HomeProps {
-    navigation: Navigation;
-}
+interface HomeProps extends Stack.ScreenComponentProps {}
 
 interface ListItem {
     title: string;
@@ -41,10 +39,11 @@ export default function Home(props: HomeProps) {
     ];
 
     useEffect(() => {
+        props.orientation.lock?.('portrait');
         window.addEventListener('page-animation-end', () => {
             isLoaded = true;
         }, {once: true});
-    });
+    }, []);
 
     return (
         <div className={`home ${isLoaded ? 'loaded' : 'suspense'}`}>

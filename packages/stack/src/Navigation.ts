@@ -16,7 +16,7 @@ export default class Navigation extends NavigationBase {
     private _animationLayerData: AnimationLayerData;
     private isInternalBack = false;
 
-    constructor(_routerId: number, _routerData: RouterData<Navigation>, _history: History, _animationLayerData: AnimationLayerData, _disableBrowserRouting: boolean = false, _defaultRoute: string | null = null) {
+    constructor(_routerId: string, _routerData: RouterData<Navigation>, _history: History, _animationLayerData: AnimationLayerData, _disableBrowserRouting: boolean = false, _defaultRoute: string | null = null) {
         super(_routerId, _routerData, _disableBrowserRouting, _defaultRoute);
 
         this._history = _history;

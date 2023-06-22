@@ -1,21 +1,17 @@
 import React, { useEffect } from 'react';
 import { Anchor, SharedElement, ScrollRestoration } from '@react-motion-router/core';
-import { Navigation } from '@react-motion-router/stack';
+import { Navigation, Stack } from '@react-motion-router/stack';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import ClearIcon from '@mui/icons-material/Clear';
 import { Hero } from '../assets/Heroes';
 import '../css/Details.css';
 
-interface DetailsProps {
-    navigation: Navigation;
-    route: {
-        params: Hero & {
-            noBg?: boolean;
-        };
-        preloaded: boolean;
-    };
-}
+type DetailsParams = Hero & {
+    noBg?: boolean;
+};
+
+interface DetailsProps extends Stack.ScreenComponentProps<DetailsParams> {}
 
 let isLoaded = false;
 let originalDesc: string | undefined;

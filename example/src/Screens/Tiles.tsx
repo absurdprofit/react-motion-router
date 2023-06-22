@@ -1,14 +1,12 @@
 import React from 'react';
 import { Heroes, Hero } from '../assets/Heroes';
 import {Anchor, SharedElement} from '@react-motion-router/core';
-import { Navigation } from '@react-motion-router/stack';
+import { Navigation, Stack } from '@react-motion-router/stack';
 import Navbar from '../Components/Navbar';
 import Tile from '../Components/Tile';
 import '../css/Tiles.css';
 
-interface TilesProps {
-    navigation: Navigation;
-}
+interface TilesProps extends Stack.ScreenComponentProps {}
 
 interface TilesState {
     heroes: Hero[];

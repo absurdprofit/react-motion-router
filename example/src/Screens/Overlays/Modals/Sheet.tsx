@@ -1,18 +1,15 @@
 import React, {useState} from 'react';
 import { Anchor, Motion } from '@react-motion-router/core';
 import { Button } from '@mui/material';
-import { Navigation } from '@react-motion-router/stack';
+import { Navigation, Stack } from '@react-motion-router/stack';
 import { motion, AnimationProps } from 'framer-motion';
 import { lerp } from '../../../common/utils';
 
-interface SheetProps {
-    navigation: Navigation;
-    route: {
-        params: {
-            onProgress: (progress: number) => void;
-        }
-    }
+interface SheetParams {
+    onProgress: (progress: number) => void;
 }
+
+interface SheetProps extends Stack.ScreenComponentProps<SheetParams> {}
 
 let isLoaded = true;
 const transition = {
