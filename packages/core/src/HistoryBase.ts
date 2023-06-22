@@ -38,6 +38,8 @@ export default abstract class HistoryBase {
         return this._defaultRoute || '/';
     }
 
+    abstract canGoBack(): boolean;
+
     abstract get next(): string | null;
 
     abstract get previous(): string | null;

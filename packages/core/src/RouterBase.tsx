@@ -29,6 +29,7 @@ interface Config {
 }
 
 export interface RouterBaseProps {
+    id?: string;
     config: Config;
     children: ScreenChild | ScreenChild[];
 }
@@ -43,7 +44,7 @@ export interface RouterBaseState {
 }
 
 export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState> extends React.Component<P, S> {
-    protected readonly id: number = Math.random();
+    protected readonly id: string;
     protected readonly animationLayerData = new AnimationLayerData();
     protected ref: HTMLElement | null = null;
     protected abstract _routerData: RouterData;
@@ -63,6 +64,8 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
 
     constructor(props: RouterBaseProps) {
         super(props as P);
+
+        this.id = props.id || Math.random().toString();
         
         if (props.config) {
             this.config = props.config;

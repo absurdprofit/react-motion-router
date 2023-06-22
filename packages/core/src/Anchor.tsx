@@ -82,8 +82,8 @@ export default function Anchor(props: AnchorProps) {
 }
 
 function resolveBackPath(navigation: NavigationBase): string {
-    if (navigation.history.previous) {
-        return navigation.history.previous;
+    if (navigation.canGoBack()) {
+        return navigation.history.previous!;
     } else {
         if (navigation.parent) {
             return resolveBackPath(navigation.parent);

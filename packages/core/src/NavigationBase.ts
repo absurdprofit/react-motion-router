@@ -32,13 +32,13 @@ export interface GoBackOptions extends NavigationOptions {}
 export default abstract class NavigationBase {
     protected readonly routerData: RouterData;
     private static rootNavigatorRef: WeakRef<NavigationBase> | null = null;
-    protected readonly _routerId: number;
+    protected readonly _routerId: string;
     private _metaData = new MetaData();
     protected abstract _history: HistoryBase;
     protected readonly _disableBrowserRouting: boolean;
     protected _currentParams: {[key:string]: any} = {};
 
-    constructor(_routerId: number, _routerData: RouterData, _disableBrowserRouting: boolean = false, _defaultRoute: string | null = null) {
+    constructor(_routerId: string, _routerData: RouterData, _disableBrowserRouting: boolean = false, _defaultRoute: string | null = null) {
         this.routerData = _routerData;
         this._disableBrowserRouting = _disableBrowserRouting;
         this._routerId = _routerId;
@@ -63,15 +63,30 @@ export default abstract class NavigationBase {
         return this._routerId;
     }
 
+    canGoBack() {
+        return this.history.canGoBack();
+    }
+
     private popStateListener = (e: Event) => {
         const routerId = this._routerId;
-        const historyRouterId = this.history.state.get<number>('routerId');
+        const historyRouterId = this.history.state.get<string>('routerId');
         const rootNavigator = NavigationBase.rootNavigatorRef?.deref();
         const isRoot = rootNavigator?.routerId === this.routerId;
-        if ((this.history.state.get<number>('routerId') === null && isRoot)
-            || this.history.state.get<number>('routerId') === this._routerId
+        if ((this.history.state.get<string>('routerId') === null && isRoot)
+            || this.history.state.get<string>('routerId') === this._routerId
         ) {
             this.onPopState(e);
+        }
+    }
+
+    public getNavigatorById(routerId: string, target?: NavigationBase) {
+        const navigator = target ?? NavigationBase.rootNavigatorRef?.deref();
+        if (navigator!.routerId === routerId) {
+            return navigator;
+        } else if (navigator!.routerData.childRouterData) {
+            this.getNavigatorById(routerId, navigator!.routerData.childRouterData.navigation);
+        } else {
+            return null;
         }
     }
 

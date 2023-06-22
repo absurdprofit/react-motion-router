@@ -73,6 +73,10 @@ export default class History extends HistoryBase {
         return this.previous;
     }
 
+    canGoBack(): boolean {
+        return this.stack.length > 1;
+    }
+
     set next(_next: string | null) {
         this._next = _next;
     }

@@ -11,6 +11,7 @@ export type RoutesData = Map<string | undefined, {[key:string]: any}>;
 export default class RouterData<N extends NavigationBase = NavigationBase> {
     private routerInstance: RouterBase;
     private _parentRouterData: RouterData<NavigationBase> | null = null;
+    private _childRouterData: WeakRef<RouterData<NavigationBase>> | null = null;
     private _dispatchEvent: ((event: Event) => Promise<boolean>) | null = null;
     private _currentPath: string = '';
     private _routesData: RoutesData = new Map();
@@ -45,6 +46,19 @@ export default class RouterData<N extends NavigationBase = NavigationBase> {
 
     set parentRouterData(parentRouterData: RouterData<NavigationBase> | null) {
         this._parentRouterData = parentRouterData;
+        if (this._parentRouterData) {
+            this._parentRouterData.childRouterData = this;
+        }
+    }
+
+    set childRouterData(childRouterData: RouterData<NavigationBase> | null) {
+        if (this._childRouterData?.deref() !== undefined) {
+            throw new Error("It looks like you have two navigators at the same level. Try simplifying your navigation structure by using a nested router instead.");
+        }
+        if (childRouterData) 
+            this._childRouterData = new WeakRef(childRouterData);
+        else
+            this._childRouterData = null;
     }
 
     set dispatchEvent(_dispatchEvent: ((event: Event) => Promise<boolean>) | null) {
@@ -84,6 +98,9 @@ export default class RouterData<N extends NavigationBase = NavigationBase> {
     }
     get parentRouterData() {
         return this._parentRouterData;
+    }
+    get childRouterData() {
+        return this._childRouterData?.deref() ?? null;
     }
     get dispatchEvent() {
         return this._dispatchEvent;
