@@ -1,6 +1,6 @@
 import React, { createContext } from 'react';
 import { getCSSData } from './common/utils';
-import { EasingFunction, Vec2 } from './common/types';
+import { EasingFunction, PlainObject, Vec2 } from './common/types';
 
 namespace SharedElement {
     //https://developer.mozilla.org/en-US/docs/Web/CSS/transform-origin#formal_syntax
@@ -222,7 +222,7 @@ namespace SharedElement {
             return new DOMRect();
         }
     
-        get CSSData(): [string, {[key:string]:string}] {
+        get CSSData(): [string, PlainObject<string>] {
             const _computedStyle = this._computedStyle;
             if (_computedStyle) return getCSSData(_computedStyle);
             return ['', {}];

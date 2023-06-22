@@ -7,7 +7,8 @@ import {
     AnimationKeyframeEffectConfig,
     ReducedAnimationConfigSet,
     SwipeDirection,
-    ScreenChild
+    ScreenChild,
+    PlainObject
 } from './common/types';
 import RouterData, { RoutesData, RouterDataContext } from './RouterData';
 import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
@@ -24,8 +25,8 @@ interface Config {
     disableDiscovery?: boolean;
     swipeDirection?: SwipeDirection;
     disableBrowserRouting?: boolean;
-    paramsSerializer?(params: {[key:string]: any}): string;
-    paramsDeserializer?(queryString: string): {[key:string]: any};
+    paramsSerializer?(params: PlainObject): string;
+    paramsDeserializer?(queryString: string): PlainObject;
 }
 
 export interface RouterBaseProps {

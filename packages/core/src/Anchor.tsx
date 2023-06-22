@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigation } from './common/hooks';
-import { XOR } from './common/types';
+import { PlainObject, XOR } from './common/types';
 import { searchParamsFromObject } from './common/utils';
 import { RouterDataContext } from './RouterData';
 import type NavigationBase from './NavigationBase';
 
 interface BaseAnchorProps extends React.DetailedHTMLProps<React.AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
-    params?: {[key:string]: any};
+    params?: PlainObject;
     hash?: string;
     onClick?: React.MouseEventHandler<HTMLAnchorElement>;
 }

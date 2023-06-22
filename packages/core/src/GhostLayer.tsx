@@ -1,7 +1,7 @@
 import React from 'react';
 import SharedElement from './SharedElement';
 import { clamp } from './common/utils';
-import { EasingFunction } from './common/types';
+import { EasingFunction, PlainObject } from './common/types';
 import { MotionProgressEvent } from './MotionEvents';
 import { AnimationLayerDataContext } from './AnimationLayerData';
 
@@ -35,7 +35,7 @@ interface TransitionState {
     }
 }
 
-type AnimationMap = Map<string, {[key:string]: Animation}>;
+type AnimationMap = Map<string, PlainObject<Animation>>;
 
 export default class GhostLayer extends React.Component<GhostLayerProps, GhostLayerState> {
     private ref: HTMLDivElement | null = null;
@@ -111,9 +111,9 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     console.log({id, endRect});
 
                     let startCSSText: string;
-                    let startCSSObject: {[key:string]: string} = {};
+                    let startCSSObject: PlainObject<string> = {};
                     let endCSSText: string;
-                    let endCSSObject: {[key:string]: string} = {};
+                    let endCSSObject: PlainObject<string> = {};
 
                     // only get css object when transition type is morph
                     if (transitionType === "morph") {

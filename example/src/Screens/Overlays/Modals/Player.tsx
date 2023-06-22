@@ -14,7 +14,7 @@ import { motion } from 'framer-motion';
 import { lerp } from '../../../common/utils';
 import '../../../css/Player.css';
 
-interface PlayerParams {
+export interface PlayerParams {
     top: number;
     onProgress: (progress: number) => void;
 }

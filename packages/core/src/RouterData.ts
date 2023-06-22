@@ -1,12 +1,12 @@
 import React, {createContext} from 'react';
 import { prefetchRoute } from '.';
-import { AnimationConfigSet, SearchParamsDeserializer, SearchParamsSerializer } from './common/types';
+import { AnimationConfigSet, PlainObject, SearchParamsDeserializer, SearchParamsSerializer } from './common/types';
 import GhostLayer from './GhostLayer';
 import NavigationBase from './NavigationBase';
 import RouterBase from './RouterBase';
 import { ScrollRestorationData } from './ScrollRestorationData';
 
-export type RoutesData = Map<string | undefined, {[key:string]: any}>;
+export type RoutesData = Map<string | undefined, PlainObject>;
 
 export default class RouterData<N extends NavigationBase = NavigationBase> {
     private routerInstance: RouterBase;
@@ -86,10 +86,10 @@ export default class RouterData<N extends NavigationBase = NavigationBase> {
     set gestureNavigating(_gestureNavigating: boolean) {
         this._gestureNavigating = _gestureNavigating;
     }
-    set paramsSerializer(_paramsSerializer: ((params: {[key:string]: any}) => string) | undefined) {
+    set paramsSerializer(_paramsSerializer: ((params: PlainObject) => string) | undefined) {
         this._paramsSerializer = _paramsSerializer;
     }
-    set paramsDeserializer(_paramsDeserializer: ((queryString: string) => {[key:string]: any}) | undefined) {
+    set paramsDeserializer(_paramsDeserializer: ((queryString: string) => PlainObject) | undefined) {
         this._paramsDeserializer = _paramsDeserializer;
     }
     
@@ -129,10 +129,10 @@ export default class RouterData<N extends NavigationBase = NavigationBase> {
     get gestureNavigating() {
         return this._gestureNavigating;
     }
-    get paramsSerializer(): ((params: {[key:string]: any}) => string) | undefined {
+    get paramsSerializer(): ((params: PlainObject) => string) | undefined {
         return this._paramsSerializer;
     }
-    get paramsDeserializer():( (queryString: string) => {[key:string]: any}) | undefined {
+    get paramsDeserializer():( (queryString: string) => PlainObject) | undefined {
         return this._paramsDeserializer;
     }
 }

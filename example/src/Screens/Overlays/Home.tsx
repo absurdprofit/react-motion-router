@@ -8,6 +8,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { IconButton } from "@mui/material";
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import '../../css/Overlays.css';
+import { PlayerParams } from './Modals/Player';
 
 interface OverlaysProps extends Stack.ScreenComponentProps {}
 
@@ -18,8 +19,9 @@ export default function Overlays({navigation}: OverlaysProps) {
         let top = 0.9 * window.innerHeight;
         if (playerRef.current) top = playerRef.current.getBoundingClientRect().top + (0.05 * window.innerHeight);
         
-        navigation.navigate('/player', {
-            top: (top / window.innerHeight) * 100 // vh units
+        navigation.navigate<PlayerParams>('/player', {
+            top: (top / window.innerHeight) * 100, // vh units
+            onProgress: () => {}
         }).catch((e) => console.log(e));
     }
 

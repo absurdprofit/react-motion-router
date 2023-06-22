@@ -6,6 +6,7 @@ import {
     AnimationConfigSet,
     AnimationKeyframeEffectConfig,
     LazyExoticComponent,
+    PlainObject,
     ReducedAnimationConfigSet,
     SwipeDirection
 } from "./common/types";
@@ -19,7 +20,7 @@ export interface ScreenBaseProps {
     fallback?: React.ReactNode;
     path?: string;
     resolvedPathname?: string;
-    defaultParams?: {[key:string]: any};
+    defaultParams?: PlainObject;
     name?: string;
     config?: {
         animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig | AnimationConfigFactory;

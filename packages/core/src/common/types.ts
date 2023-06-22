@@ -33,8 +33,8 @@ enum EasingFunctionKeywordEnum {
 export type EasingFunctionKeyword = keyof typeof EasingFunctionKeywordEnum;
 export type EasingFunction = EasingFunctionKeyword  | `cubic-bezier(${number},${' ' | ''}${number},${' ' | ''}${number},${' ' | ''}${number})`;
 
-export type ParamsSerializer = (params: {[key:string]: any}) => string;
-export type ParamsDeserializer = (queryString: string) => {[key:string]: any};
+export type ParamsSerializer = (params: PlainObject) => string;
+export type ParamsDeserializer = (queryString: string) => PlainObject;
 
 export type AnimationType = keyof typeof AnimationTypeEnum;
 export type AnimationDirection = keyof typeof AnimationDirectionEnum;
@@ -75,15 +75,15 @@ export type MetaTypeKey = 'http-equiv' | 'name' | 'itemprop' | 'property' | 'cha
 export type MetaType = [MetaTypeKey, string];
 export type MetaKey = `${MetaTypeKey}=${string}`;
 
-export type SearchParamsDeserializer = (queryString: string) => {[key:string]: any};
-export type SearchParamsSerializer = (params: {[key:string]: any}) => string;
+export type SearchParamsDeserializer = (queryString: string) => PlainObject;
+export type SearchParamsSerializer = (params: PlainObject) => string;
 
 export interface LazyExoticComponent<T extends React.ComponentType<any>> extends React.LazyExoticComponent<T> {
     preload: () => Promise<{ default: T }>;
     preloaded: T | undefined;
 }
 
-export interface ScreenComponentBaseProps<T extends {[key:string]: any} = {}, N extends NavigationBase = NavigationBase> {
+export interface ScreenComponentBaseProps<T extends PlainObject = {}, N extends NavigationBase = NavigationBase> {
     route: {
         params: T;
         preloaded: boolean;
@@ -91,3 +91,5 @@ export interface ScreenComponentBaseProps<T extends {[key:string]: any} = {}, N 
     navigation: N;
     orientation: ScreenOrientation;
 }
+
+export type PlainObject<T = any> = {[key:string]: T};

@@ -1,4 +1,4 @@
-import { ParamsDeserializer, ParamsSerializer } from "./common/types";
+import { ParamsDeserializer, ParamsSerializer, PlainObject } from "./common/types";
 import HistoryBase from "./HistoryBase";
 import MetaData from "./MetaData";
 import RouterData from "./RouterData";
@@ -36,7 +36,7 @@ export default abstract class NavigationBase {
     private _metaData = new MetaData();
     protected abstract _history: HistoryBase;
     protected readonly _disableBrowserRouting: boolean;
-    protected _currentParams: {[key:string]: any} = {};
+    protected _currentParams: PlainObject = {};
 
     constructor(_routerId: string, _routerData: RouterData, _disableBrowserRouting: boolean = false, _defaultRoute: string | null = null) {
         this.routerData = _routerData;
@@ -96,7 +96,7 @@ export default abstract class NavigationBase {
 
     abstract onPopState(e: Event): void;
 
-    abstract navigate(route: string, routeParams?: {[key:string]: any}, options?: NavigateOptions): void;
+    abstract navigate<T extends PlainObject = PlainObject>(route: string, routeParams?: T, options?: NavigateOptions): void;
 
     abstract goBack(options?: GoBackOptions): void;
 

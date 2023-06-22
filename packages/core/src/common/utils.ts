@@ -1,11 +1,11 @@
 import React from "react";
 import RouterData from "../RouterData";
 import { ScreenBaseProps } from "../ScreenBase";
-import { LazyExoticComponent, ScreenChild, SearchParamsDeserializer, SearchParamsSerializer } from "./types";
+import { LazyExoticComponent, PlainObject, ScreenChild, SearchParamsDeserializer, SearchParamsSerializer } from "./types";
 
-export function getCSSData(styles: CSSStyleDeclaration, object: boolean = true): [string, {[key:string]:string}] {
+export function getCSSData(styles: CSSStyleDeclaration, object: boolean = true): [string, PlainObject<string>] {
     let text = '';
-    const styleObject: {[key:string]: string} = {};
+    const styleObject: PlainObject<string> = {};
     let j = 0;
     for (let property in styles) {
         if (j < styles.length) {
@@ -49,8 +49,8 @@ export function getCSSData(styles: CSSStyleDeclaration, object: boolean = true):
     return [text, styleObject];
 }
 
-export function getStyleObject(styles: CSSStyleDeclaration): {[key:string]: string} {
-    const styleObject: {[key:string]:string} = {};
+export function getStyleObject(styles: CSSStyleDeclaration): PlainObject<string> {
+    const styleObject: PlainObject<string> = {};
     for (const key in styles) {
         if (styles[key] && styles[key].length && typeof styles[key] !== "function") {
             if (/^\d+$/.test(key)) continue;
@@ -142,7 +142,7 @@ export function concatenateURL(path: string | URL, base: string | URL) {
 
 export function defaultSearchParamsToObject(searchPart: string) {
     const entries = new URLSearchParams(decodeURI(searchPart)).entries();
-    const result: {[key:string]: string} = {};
+    const result: PlainObject<string> = {};
     
     for(const [key, value] of entries) { // each 'entry' is a [key, value] tuple
         let parsedValue = '';

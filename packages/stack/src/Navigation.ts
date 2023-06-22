@@ -8,7 +8,7 @@ import {
     RouterData,
     searchParamsFromObject
 } from '@react-motion-router/core';
-import type { AnimationLayerData } from '@react-motion-router/core';
+import type { AnimationLayerData, PlainObject } from '@react-motion-router/core';
 import History from './History';
 
 export default class Navigation extends NavigationBase {
@@ -38,7 +38,11 @@ export default class Navigation extends NavigationBase {
         }
     }
 
-    navigate(route: string, routeParams?: {[key:string]: any}, options: NavigateOptions = {}) {
+    navigate<T extends PlainObject = PlainObject>(
+        route: string,
+        routeParams?: T,
+        options: NavigateOptions = {}
+    ) {
         const {replace, hash} = options;
         const search = searchParamsFromObject(routeParams || {}, this.paramsSerializer || null);
 
@@ -71,7 +75,7 @@ export default class Navigation extends NavigationBase {
         });
     }
 
-    implicitNavigate(route: string, routeParams?: {[key:string]: any}) {
+    private implicitNavigate(route: string, routeParams?: PlainObject) {
         this._history.implicitPush(route);
         
         const controller = new AbortController();
@@ -92,7 +96,7 @@ export default class Navigation extends NavigationBase {
         this._currentParams = routeParams || {};
     }
 
-    implicitBack() {
+    private implicitBack() {
         this._history.implicitBack();
 
         const controller = new AbortController();
