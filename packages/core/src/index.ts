@@ -1,6 +1,5 @@
 import {
     ScreenChild,
-    SharedElement,
     AnimationConfig,
     AnimationConfigFactory
 } from './common/types';
@@ -33,6 +32,7 @@ import {
 } from './MotionEvents';
 import ScrollRestoration from './ScrollRestoration';
 import {URLPattern} from "urlpattern-polyfill";
+import {SharedElement} from './SharedElement';
 
 // @ts-ignore: Property 'UrlPattern' does not exist 
 if (!globalThis.URLPattern) {

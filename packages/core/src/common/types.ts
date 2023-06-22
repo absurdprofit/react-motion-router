@@ -1,9 +1,7 @@
 import HistoryBase from '../HistoryBase';
 import NavigationBase from '../NavigationBase';
 import ScreenBase, { ScreenBaseProps } from '../ScreenBase';
-import _SharedElement from '../SharedElement';
 
-const SharedElement = _SharedElement.SharedElement;
 export type ScreenChild<P extends ScreenBaseProps = any, E extends typeof ScreenBase = any> = React.ReactElement<P, React.JSXElementConstructor<E>>;
 
 enum AnimationDirectionEnum {
@@ -58,8 +56,6 @@ export interface AnimationConfigSet {
 export type ReducedAnimationConfigSet = Partial<AnimationConfigSet> & Pick<AnimationConfigSet, 'in'>;
 
 export type AnimationConfigFactory = (currentPath: string, nextPath: string, gestureNavigating: boolean) => AnimationConfig | AnimationKeyframeEffectConfig | ReducedAnimationConfigSet;
-
-export {SharedElement};
 
 export interface Vec2 {
     x: number;

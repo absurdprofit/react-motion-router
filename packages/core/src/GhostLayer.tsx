@@ -1,5 +1,5 @@
 import React from 'react';
-import SharedElement from './SharedElement';
+import { SharedElement, SharedElementNode, SharedElementScene } from './SharedElement';
 import { clamp } from './common/utils';
 import { EasingFunction, PlainObject } from './common/types';
 import { MotionProgressEvent } from './MotionEvents';
@@ -39,8 +39,8 @@ type AnimationMap = Map<string, PlainObject<Animation>>;
 
 export default class GhostLayer extends React.Component<GhostLayerProps, GhostLayerState> {
     private ref: HTMLDivElement | null = null;
-    private _currentScene: SharedElement.Scene | null = null;
-    private _nextScene: SharedElement.Scene | null = null;
+    private _currentScene: SharedElementScene | null = null;
+    private _nextScene: SharedElementScene | null = null;
     static contextType = AnimationLayerDataContext;
     context!: React.ContextType<typeof AnimationLayerDataContext>;
     private onProgressStartListener = this.onProgressStart.bind(this) as EventListener;
@@ -53,11 +53,11 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
     }
 
 
-    set currentScene(scene: SharedElement.Scene) {
+    set currentScene(scene: SharedElementScene) {
         this._currentScene = scene;
     }
 
-    set nextScene(scene: SharedElement.Scene) {
+    set nextScene(scene: SharedElementScene) {
         this._nextScene = scene;
 
             if (this._currentScene) {
@@ -77,7 +77,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
         }
     }
 
-    sharedElementTransition(currentScene: SharedElement.Scene, nextScene: SharedElement.Scene) {
+    sharedElementTransition(currentScene: SharedElementScene, nextScene: SharedElementScene) {
         if (this.context.duration === 0) return;
 
         if (this.state.transitioning) {
@@ -95,7 +95,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
             for (const [id, start] of currentScene.nodes) {
                 //if id exists in next scene
                 if (nextScene.nodes.has(id)) {
-                    const end = nextScene.nodes.get(id) as SharedElement.SharedElementNode;
+                    const end = nextScene.nodes.get(id) as SharedElementNode;
                     const endInstance = end.instance;
                     const startInstance = start.instance;
                     const transitionType = endInstance.transitionType || startInstance.transitionType || 'morph';

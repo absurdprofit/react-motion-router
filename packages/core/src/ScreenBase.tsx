@@ -11,7 +11,7 @@ import {
     SwipeDirection
 } from "./common/types";
 import { RouterDataContext } from "./RouterData";
-import SharedElement from "./SharedElement";
+import { SharedElement, SharedElementScene, SharedElementSceneContext } from "./SharedElement";
 
 export interface ScreenBaseProps {
     out?: boolean;
@@ -40,7 +40,7 @@ export interface ScreenBaseState {
 
 export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState> extends React.Component<P, S> {
     private name = this.props.path === undefined ? 'not-found' : this.props.path?.toString().slice(1).replace('/', '-') || 'index';
-    private sharedElementScene: SharedElement.Scene = new SharedElement.Scene(this.name);
+    private sharedElementScene: SharedElementScene = new SharedElementScene(this.name);
     private ref: HTMLElement | null = null;
     private contextParams = this.context?.routesData.get(this.props.path)?.params;
     private onRef = this.setRef.bind(this);
@@ -257,7 +257,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
                         overflowY: 'auto'
                     }}
                 >
-                    <SharedElement.SceneContext.Provider value={this.sharedElementScene}>
+                    <SharedElementSceneContext.Provider value={this.sharedElementScene}>
                         <Suspense fallback={this.state.fallback}>
                             <Component
                                 route={{
@@ -271,7 +271,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
                                 orientation={screen.orientation}
                             />
                         </Suspense>
-                    </SharedElement.SceneContext.Provider>
+                    </SharedElementSceneContext.Provider>
                 </div>
             </AnimationProvider>
         );
