@@ -107,8 +107,6 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     if (!startChild || !endChild) continue;
                     const startRect = startInstance.clientRect;
                     const endRect = endInstance.clientRect;
-                    console.log({id, startRect});
-                    console.log({id, endRect});
 
                     let startCSSText: string;
                     let startCSSObject: PlainObject<string> = {};
@@ -361,7 +359,6 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             duration: transitionState.end.x.duration,
                             id: `${id}-x-end`
                         });
-                        console.log(transitionState.start.x.position, transitionState.end.x.position);
                         endYAnimation = transitionState.end.y.node.animate(
                             [
                                 {
@@ -378,7 +375,6 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 id: `${id}-y-end`
                             }
                         );
-                        console.log(transitionState.start.y.position, transitionState.end.y.position);
                     } else { // cross-fade
                         startXAnimation = transitionState.start.x.node.animate([
                             {
