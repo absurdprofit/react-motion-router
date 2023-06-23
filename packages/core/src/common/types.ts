@@ -89,3 +89,5 @@ export interface ScreenComponentBaseProps<T extends PlainObject = {}, N extends 
 }
 
 export type PlainObject<T = any> = {[key:string]: T};
+
+export type RouterEventMap = Pick<HTMLElementEventMap, "navigate" | "go-back" | "motion-progress" | "motion-progress-start" | "motion-progress-end" | "page-animation-start" | "page-animation-end" | "page-animation-cancel">;

@@ -1,4 +1,4 @@
-import { ParamsDeserializer, ParamsSerializer, PlainObject } from "./common/types";
+import { ParamsDeserializer, ParamsSerializer, PlainObject, RouterEventMap } from "./common/types";
 import HistoryBase from "./HistoryBase";
 import MetaData from "./MetaData";
 import RouterData from "./RouterData";
@@ -55,6 +55,14 @@ export default abstract class NavigationBase {
         if (isRoot)
             NavigationBase.rootNavigatorRef = null;
         window.removeEventListener('popstate', this.popStateListener);
+    }
+
+    addEventListener<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined): void {
+        this.routerData.addEventListener?.(type, listener, options);
+    }
+
+    removeEventListener<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | EventListenerOptions | undefined): void {
+        return this.routerData.removeEventListener?.(type, listener, options);
     }
 
     abstract get parent(): NavigationBase | null;

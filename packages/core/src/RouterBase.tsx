@@ -167,6 +167,10 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
         else document.title = this.state.defaultDocumentTitle;
     }
 
+    get addEventListener() {
+        return this.ref?.removeEventListener;
+    }
+
     addNavigationEventListeners(ref: HTMLElement) {
         ref.addEventListener('go-back', this.onBackListener);
         ref.addEventListener('navigate', this.onNavigateListener);

@@ -1,6 +1,6 @@
 import React, {createContext} from 'react';
 import { prefetchRoute } from '.';
-import { AnimationConfigSet, PlainObject, SearchParamsDeserializer, SearchParamsSerializer } from './common/types';
+import { AnimationConfigSet, PlainObject, RouterEventMap, SearchParamsDeserializer, SearchParamsSerializer } from './common/types';
 import GhostLayer from './GhostLayer';
 import NavigationBase from './NavigationBase';
 import RouterBase from './RouterBase';
@@ -13,6 +13,8 @@ export default class RouterData<N extends NavigationBase = NavigationBase> {
     private _parentRouterData: RouterData<NavigationBase> | null = null;
     private _childRouterData: WeakRef<RouterData<NavigationBase>> | null = null;
     private _dispatchEvent: ((event: Event) => Promise<boolean>) | null = null;
+    private _addEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined) => void) | null = null;
+    private _removeEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | EventListenerOptions | undefined) => void) | null = null;
     private _currentPath: string = '';
     private _routesData: RoutesData = new Map();
     private static _scrollRestorationData = new ScrollRestorationData();
@@ -74,6 +76,14 @@ export default class RouterData<N extends NavigationBase = NavigationBase> {
         this._dispatchEvent = _dispatchEvent;
     }
 
+    set addEventListener(_addEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined)=> void) | null) {
+        this._addEventListener = _addEventListener;
+    }
+
+    set removeEventListener(_removeEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | EventListenerOptions | undefined) => void) | null) {
+        this._removeEventListener = _removeEventListener;
+    }
+
     set currentPath(_currentPath: string) {
         this._currentPath = _currentPath;
     }
@@ -116,6 +126,12 @@ export default class RouterData<N extends NavigationBase = NavigationBase> {
     }
     get dispatchEvent() {
         return this._dispatchEvent;
+    }
+    get addEventListener() {
+        return this._addEventListener;
+    }
+    get removeEventListener() {
+        return this._removeEventListener;
     }
     get currentPath() {
         return this._currentPath;
