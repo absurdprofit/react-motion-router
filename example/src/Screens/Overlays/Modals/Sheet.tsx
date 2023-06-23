@@ -37,6 +37,10 @@ export default function Sheet({navigation, route}: SheetProps) {
 
         setDisabled(true);
     }
+
+    const goHome = () => {
+        navigation.parent?.goBack();
+    }
     return (
         <dialog
             open
@@ -77,9 +81,9 @@ export default function Sheet({navigation, route}: SheetProps) {
                                 <p>
                                     You can swipe from the top to dismiss or press the button below.
                                 </p>
-                                <Anchor goBack>
-                                    <Button variant="contained" className="close">Close</Button>
-                                </Anchor>
+                                <Button onClick={goHome} variant="contained" className="close">
+                                    Go Home
+                                </Button>
                             </div>
                         </motion.div>
                     );

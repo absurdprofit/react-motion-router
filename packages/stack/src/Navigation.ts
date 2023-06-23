@@ -118,7 +118,6 @@ export default class Navigation extends NavigationBase {
         const controller = new AbortController();
         this._animationLayerData.started.then(() => this._animationLayerData.finished.catch(() => controller.abort()));
 
-
         let event = new CustomEvent<BackEventDetail>('go-back', {
             detail: {
                 replace: Boolean(replace),
@@ -136,7 +135,27 @@ export default class Navigation extends NavigationBase {
             if (this._disableBrowserRouting) {
                 this._history.implicitBack();
             } else {
-                this._history.back(Boolean(replace));
+                if (this.history.state.get<string>("routerId") !== this.routerId) {
+                    // handle superfluous history entries on call to go back on ancestor navigator
+                    // delta = 1 for current navigator stack entry pop
+                    let delta = 0;
+                    // travel down navigator tree to find all current history entries
+                    let navigator: Navigation | undefined = this;
+                    while (navigator) {
+                        if (!navigator.disableBrowserRouting) {
+                            if (navigator === this) {
+                                delta += 1;
+                            } else {
+                                delta += navigator.history.length;
+                            }
+                        }
+                        navigator = navigator.routerData.childRouterData?.navigation as Navigation;
+                    }
+                    window.history.go(-delta);
+                    this._history.implicitBack();
+                } else {
+                    this._history.back();
+                }
             }
         } 
 

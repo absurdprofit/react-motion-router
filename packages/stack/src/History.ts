@@ -52,18 +52,10 @@ export default class History extends HistoryBase {
         }
     }
 
-    back(replace: boolean): string; // used so the default route will be at the top of the browser stack
-    back(): string;
-    back(replace?: boolean) {
+    back() {
         this.next = this._stack.pop() || null;
-        
-        if (replace && this.defaultRoute) {
-            this._stack.push(this.defaultRoute);
-            this.replaceState({stack: this._stack}, "", this.defaultRoute);
-        } else {
-            window.history.back();
-        }
-        
+        window.history.back();
+
         return this.previous;
     }
 

@@ -39,7 +39,13 @@ export default function Home(props: HomeProps) {
     ];
 
     useEffect(() => {
-        props.orientation.lock?.('portrait');
+        props.orientation.onchange = async () => {
+            if (props.orientation.type !== "portrait-primary") {
+                try {
+                    await props.orientation.lock?.('portrait');
+                } catch (e) {}
+            }
+        }
         window.addEventListener('page-animation-end', () => {
             isLoaded = true;
         }, {once: true});

@@ -59,6 +59,10 @@ export default abstract class NavigationBase {
 
     abstract get parent(): NavigationBase | null;
 
+    get disableBrowserRouting() {
+        return this._disableBrowserRouting;
+    }
+
     get routerId() {
         return this._routerId;
     }

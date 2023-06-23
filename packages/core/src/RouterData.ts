@@ -40,6 +40,11 @@ export default class RouterData<N extends NavigationBase = NavigationBase> {
         }
     }
 
+    destructor() {
+        if (this.parentRouterData)
+            this.parentRouterData.childRouterData = null;
+    }
+
     public prefetchRoute(path: string): Promise<boolean> {
         return prefetchRoute(path, this);
     }
@@ -52,7 +57,12 @@ export default class RouterData<N extends NavigationBase = NavigationBase> {
     }
 
     set childRouterData(childRouterData: RouterData<NavigationBase> | null) {
-        if (this._childRouterData?.deref() !== undefined) {
+        const currentChildRouterData = this._childRouterData?.deref();
+        if (currentChildRouterData !== undefined
+            && childRouterData
+            && childRouterData.routerId !== currentChildRouterData.routerId
+        ) {
+            console.log(currentChildRouterData, childRouterData);
             throw new Error("It looks like you have two navigators at the same level. Try simplifying your navigation structure by using a nested router instead.");
         }
         if (childRouterData) 
@@ -93,6 +103,9 @@ export default class RouterData<N extends NavigationBase = NavigationBase> {
         this._paramsDeserializer = _paramsDeserializer;
     }
     
+    get routerId() {
+        return this.routerInstance.id;
+    }
     get routes() {
         return this.routerInstance.props.children;
     }
