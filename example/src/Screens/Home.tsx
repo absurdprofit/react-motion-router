@@ -42,7 +42,7 @@ export default function Home(props: HomeProps) {
         props.orientation.onchange = async () => {
             if (props.orientation.type !== "portrait-primary") {
                 try {
-                    await props.orientation.lock?.('portrait');
+                    await props.orientation?.lock?.('portrait');
                 } catch (e) {}
             }
         }

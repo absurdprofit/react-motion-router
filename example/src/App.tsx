@@ -163,7 +163,10 @@ function Routes() {
           name="Details"
           component={Details}
           config={{
-            animation: staticAnimation
+            animation: staticAnimation,
+            swipeDirection: "down",
+            swipeAreaWidth: window.innerHeight,
+            hysteresis: .3
           }}
           defaultParams={{data: "Default"}}
           fallback={<DetailsFallback />}
