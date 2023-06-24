@@ -212,7 +212,6 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     }
     
     render() {
-        if (!this._routerData.navigation) return <></>;
         return (
             <div id={this._id.toString()} className="react-motion-router" style={{width: '100%', height: '100%'}} ref={this.setRef}>
                 <RouterDataContext.Consumer>
@@ -221,14 +220,17 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
                         return (
                             <RouterDataContext.Provider value={this._routerData}>
                                 <AnimationLayerDataContext.Provider value={this.animationLayerData}>
-                                    <GhostLayer
-                                        instance={(instance: GhostLayer | null) => {
-                                            this._routerData.ghostLayer = instance;
-                                        }}
-                                        backNavigating={this.state.backNavigating}
-                                        gestureNavigating={this.state.gestureNavigating}
-                                        navigation={this._routerData.navigation}
-                                    />
+                                    {Boolean(this.navigation)
+                                    && (
+                                        <GhostLayer
+                                            instance={(instance: GhostLayer | null) => {
+                                                this._routerData.ghostLayer = instance;
+                                            }}
+                                            backNavigating={this.state.backNavigating}
+                                            gestureNavigating={this.state.gestureNavigating}
+                                            navigation={this._routerData.navigation}
+                                        />
+                                    )}
                                     {Boolean(this.navigation)
                                     && (
                                         <AnimationLayer
