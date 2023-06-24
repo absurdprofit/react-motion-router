@@ -14,15 +14,15 @@ interface TilesState {
 
 
 export default class Tiles extends React.Component<TilesProps, TilesState> {
-    static isLoaded = false;
+    static isFirstLoad = false;
     state: TilesState = {
         heroes: Heroes
     }
 
     componentDidMount() {
         this.props.navigation.addEventListener('page-animation-end', () => {
-            if (!Tiles.isLoaded) {
-                Tiles.isLoaded = true;
+            if (!Tiles.isFirstLoad) {
+                Tiles.isFirstLoad = true;
                 this.forceUpdate();
             }
         }, {once: true});
@@ -30,7 +30,7 @@ export default class Tiles extends React.Component<TilesProps, TilesState> {
 
     render(): React.ReactNode {
         return(
-            <div className={`tiles ${Tiles.isLoaded ? 'loaded' : 'suspense'}`}>
+            <div className={`tiles ${Tiles.isFirstLoad ? 'loaded' : 'suspense'}`}>
                 <SharedElement id="navbar">
                     <Navbar title="Tiles Demo" backButton />
                 </SharedElement>

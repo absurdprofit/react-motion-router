@@ -11,7 +11,7 @@ interface SheetParams {
 
 interface SheetProps extends Stack.ScreenComponentProps<SheetParams> {}
 
-let isLoaded = true;
+let isFirstLoad = true;
 const transition = {
     type: 'spring',
     mass: 0.25,
@@ -44,7 +44,7 @@ export default function Sheet({navigation, route}: SheetProps) {
     return (
         <dialog
             open
-            className={`modal-presentation ${isLoaded ? 'loaded' : 'suspense'}`}
+            className={`modal-presentation ${isFirstLoad ? 'loaded' : 'suspense'}`}
             onClick={onClose}
         >
             <Motion.Consumer>

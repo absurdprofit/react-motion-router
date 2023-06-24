@@ -20,7 +20,6 @@ const Cards2 = lazy(() => import('./Screens/Cards2'));
 const Slides = lazy(() => import('./Screens/Slides'));
 const Tiles = lazy(() => import('./Screens/Tiles'));
 const Details = lazy(() => import('./Screens/Details'));
-const ModalExample = lazy(() => import('./Screens/Modal'));
 const Overlays = lazy(() => import('./Screens/Overlays'));
 
 function DetailsFallback({route}: any) {

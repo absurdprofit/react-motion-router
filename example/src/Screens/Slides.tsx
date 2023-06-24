@@ -13,7 +13,7 @@ interface SlidesProps extends Stack.ScreenComponentProps<{hero: number;}> {}
 
 const KeyboardSwipeableViews = bindKeyboard(SwipeableViews);
 
-let isLoaded = false;
+let isFirstLoad = false;
 export default function Slides(props: SlidesProps) {
     const [index, setIndex] = useState(props.route.params.hero);
     let y = 0;
@@ -54,7 +54,7 @@ export default function Slides(props: SlidesProps) {
         }, {once: true, capture: true});
 
         props.navigation.addEventListener('page-animation-end', () => {
-            isLoaded = true;
+            isFirstLoad = true;
         }, {once: true});
         window.addEventListener('swipestart', onSwipeStart);
     
@@ -65,7 +65,7 @@ export default function Slides(props: SlidesProps) {
     }, []);
 
     return (
-        <div className={`slides ${isLoaded ? 'loaded' : 'suspense'}`}>
+        <div className={`slides ${isFirstLoad ? 'loaded' : 'suspense'}`}>
             <div className="back">
                 <Anchor goBack>
                     <IconButton style={{color: 'white'}} disableRipple>

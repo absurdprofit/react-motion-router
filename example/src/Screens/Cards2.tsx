@@ -138,7 +138,7 @@ let titleInset = '';
 let bgInset = '';
 
 export default class Cards2 extends React.Component<CardsProps> {
-    static isLoaded = false;
+    static isFirstLoad = false;
     private ref: HTMLElement | null = null;
     private observer = new IntersectionObserver(this.observe.bind(this), {
         root: document.querySelector('.card-list')
@@ -149,8 +149,8 @@ export default class Cards2 extends React.Component<CardsProps> {
     }
 
     pageAnimationEnd() {
-        if (!Cards2.isLoaded) {
-            Cards2.isLoaded = true;
+        if (!Cards2.isFirstLoad) {
+            Cards2.isFirstLoad = true;
             this.forceUpdate();
         }
         if (this.props.navigation.location.pathname === '/cards-2') {
@@ -200,7 +200,7 @@ export default class Cards2 extends React.Component<CardsProps> {
             <ScrollRestoration id="cards-2-scroll-area" hashScrollConfig={{
                 behavior: 'smooth'
             }}>
-                <div className={`cards cards-2 ${Cards2.isLoaded ? 'loaded' : 'suspense'}`}>
+                <div className={`cards cards-2 ${Cards2.isFirstLoad ? 'loaded' : 'suspense'}`}>
                     <SharedElement id="navbar">
                         <Navbar title="Cards Demo 2" backButton />
                     </SharedElement>

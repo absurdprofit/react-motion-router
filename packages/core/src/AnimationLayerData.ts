@@ -2,6 +2,7 @@ import React, { createContext } from 'react';
 import AnimationProvider from './AnimationProvider';
 import { clamp } from './common/utils';
 import AnimationKeyframePresets from './Animations';
+import { RouterEventMap } from './common/types';
 
 export default class AnimationLayerData {
     private _progress: number = 0;
@@ -21,6 +22,7 @@ export default class AnimationLayerData {
     private _onProgress: ((progress: number) => void) | null = null;
     private _shouldAnimate: boolean = true;
     private _dispatchEvent: ((event: Event) => Promise<boolean>) | null = null;
+    private _addEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined) => void) | null = null
 
     private updateProgress() {
         if (this._gestureNavigating && !this._play) {
@@ -329,8 +331,16 @@ export default class AnimationLayerData {
         this._onExit = _onExit;
     }
 
+    set addEventListener(_addEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined)=> void) | null) {
+        this._addEventListener = _addEventListener;
+    }
+
     set dispatchEvent(_dispatchEvent: ((event: Event) => Promise<boolean>) | null) {
         this._dispatchEvent = _dispatchEvent;
+    }
+
+    get addEventListener() {
+        return this._addEventListener;
     }
 
     get dispatchEvent() {
@@ -370,7 +380,7 @@ export default class AnimationLayerData {
 
     get started() {
         return new Promise<void>(async (resolve) => {
-            window.addEventListener('page-animation-start', () => {
+            this.addEventListener?.('page-animation-start', () => {
                 resolve();
             }, {once: true});
         });

@@ -24,7 +24,7 @@ interface PlayerProps extends Stack.ScreenComponentProps<PlayerParams> {}
 let seekStart = 30;
 let volumeStart = 50;
 let timeStart = lerp(0, 139, seekStart/100);
-let isLoaded = true;
+let isFirstLoad = true;
 const transition = {
     type: 'tween',
     duration: 0,
@@ -78,7 +78,7 @@ export default function Player({navigation, route}: PlayerProps) {
     return (
         <dialog
             open
-            className={`modal-presentation ${isLoaded ? 'loaded' : 'suspense'}`}
+            className={`modal-presentation ${isFirstLoad ? 'loaded' : 'suspense'}`}
             onClick={onClose}
         >
             <Motion.Consumer>

@@ -22,7 +22,7 @@ interface ModalScreenState {
     transition: AnimationProps['transition'];
 }
 
-let isLoaded = true;
+let isFirstLoad = true;
 export default class ModalExample extends React.Component<ModalScreenProps, ModalScreenState> {
     private ref: HTMLDialogElement | null = null;
     state: ModalScreenState = {
@@ -44,7 +44,7 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
         this.props.navigation.metaData.set('theme-color', '#b19e3b');
 
         this.props.navigation.addEventListener('page-animation-end', () => {
-            isLoaded = true;
+            isFirstLoad = true;
             this.setState({stiffness: 200});
         }, {once: true});
         const {sheetView, top} = this.props.route.params;
@@ -101,7 +101,7 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
         return (
             <dialog
                 open
-                className={`modal-presentation ${isLoaded ? 'loaded' : 'suspense'}`}
+                className={`modal-presentation ${isFirstLoad ? 'loaded' : 'suspense'}`}
                 ref={c => this.ref = c}            
                 onClick={this.onClose}
             >

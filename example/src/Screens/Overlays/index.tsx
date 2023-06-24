@@ -9,7 +9,7 @@ import '../../css/Modal.css';
 import { iOS, isPWA } from "../..//common/utils";
 
 interface OverlaysProps extends Stack.ScreenComponentProps {}
-let isLoaded = false;
+let isFirstLoad = false;
 export default function Overlays(props: OverlaysProps) {
     useEffect(() => {
         props.navigation.addEventListener('navigate', (e) => {
@@ -18,7 +18,7 @@ export default function Overlays(props: OverlaysProps) {
             });
         }, {once: true, capture: true});
         
-        props.navigation.addEventListener('page-animation-end', () => isLoaded = true, {once: true});
+        props.navigation.addEventListener('page-animation-end', () => isFirstLoad = true, {once: true});
         document.body.style.backgroundColor = 'rgba(254, 226, 85)';
 
         return () => {
@@ -37,7 +37,7 @@ export default function Overlays(props: OverlaysProps) {
         hysteresis: 15
     } as const;
     return (
-        <div className={`overlays ${isLoaded ? 'loaded' : 'suspense'}`}>
+        <div className={`overlays ${isFirstLoad ? 'loaded' : 'suspense'}`}>
             <div style={{position: "absolute", width: "100vw", height: "100vh"}}>
                 <Router config={{
                     disableBrowserRouting: isPWA() && iOS(),

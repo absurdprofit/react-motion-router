@@ -13,7 +13,7 @@ interface ListItem {
     description: string;
 }
 
-let isLoaded = false;
+let isFirstLoad = false;
 export default function Home(props: HomeProps) {
     const list = [
         {
@@ -40,7 +40,7 @@ export default function Home(props: HomeProps) {
 
     useEffect(() => {
         props.navigation.addEventListener('page-animation-end', () => {
-            isLoaded = true;
+            isFirstLoad = true;
         }, {once: true});
         if (!props.orientation) return;
         props.orientation.onchange = async () => {
@@ -53,7 +53,7 @@ export default function Home(props: HomeProps) {
     }, []);
 
     return (
-        <div className={`home ${isLoaded ? 'loaded' : 'suspense'}`}>
+        <div className={`home ${isFirstLoad ? 'loaded' : 'suspense'}`}>
             <SharedElement id="navbar" config={{
                 type: 'fade'
             }}>

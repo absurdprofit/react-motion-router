@@ -112,7 +112,7 @@ let bgInset = '';
 let heroName = '';
 let titleInset = '';
 export default class Cards extends React.Component<CardsProps> {
-    static isLoaded = false;
+    static isFirstLoad = false;
     private ref: HTMLElement | null = null;
     private observer = new IntersectionObserver(this.observe.bind(this), {
         root: document.querySelector('.card-list')
@@ -123,7 +123,7 @@ export default class Cards extends React.Component<CardsProps> {
     }
 
     pageAnimationEnd() {
-        Cards.isLoaded = true;
+        Cards.isFirstLoad = true;
         if (this.props.navigation.location.pathname === '/cards') {
             inset = '';
             textInset = '';
@@ -168,7 +168,7 @@ export default class Cards extends React.Component<CardsProps> {
 
     render() {
         return (
-            <div className={`cards ${Cards.isLoaded ? 'loaded' : 'suspense'}`}>
+            <div className={`cards ${Cards.isFirstLoad ? 'loaded' : 'suspense'}`}>
                 <SharedElement id="navbar">
                     <Navbar title="Cards Demo" backButton />
                 </SharedElement>

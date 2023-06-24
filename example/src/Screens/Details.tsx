@@ -13,12 +13,12 @@ type DetailsParams = Hero & {
 
 interface DetailsProps extends Stack.ScreenComponentProps<DetailsParams> {}
 
-let isLoaded = false;
+let isFirstLoad = false;
 let originalDesc: string | undefined;
 let lastHero = '';
 export default function Details(props: DetailsProps) {
     const {noBg, ...hero} = props.route.params;
-    isLoaded = props.route.preloaded;
+    isFirstLoad = props.route.preloaded;
     
     useEffect(() => {
         if (!hero.name) {
@@ -41,7 +41,7 @@ export default function Details(props: DetailsProps) {
         }, {once: true, capture: true});
 
         props.navigation.addEventListener('page-animation-end', () => {
-            isLoaded = true;
+            isFirstLoad = true;
         }, {once: true});
     }, []);
 
@@ -57,7 +57,7 @@ export default function Details(props: DetailsProps) {
                 behavior: 'smooth'
             }}
         >
-            <article aria-label={`Character profile: ${hero.name}`} className={`details ${isLoaded ? 'loaded' : 'suspense'}`} style={{width: "100%", height: "100%", backgroundColor: Boolean(noBg) ? 'white' : undefined}}>
+            <article aria-label={`Character profile: ${hero.name}`} className={`details ${isFirstLoad ? 'loaded' : 'suspense'}`} style={{width: "100%", height: "100%", backgroundColor: Boolean(noBg) ? 'white' : undefined}}>
                 {!Boolean(noBg)
                 &&
                 <SharedElement id={`${hero.id}-card-bg`}>
