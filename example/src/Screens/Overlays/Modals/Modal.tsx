@@ -43,7 +43,7 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
     componentDidMount() {
         this.props.navigation.metaData.set('theme-color', '#b19e3b');
 
-        window.addEventListener('page-animation-end', () => {
+        this.props.navigation.addEventListener('page-animation-end', () => {
             isLoaded = true;
             this.setState({stiffness: 200});
         }, {once: true});
@@ -63,8 +63,8 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
                 }
             });
         }
-        window.addEventListener('motion-progress-start', this.disable);
-        window.addEventListener('motion-progress-end', this.enable);
+        this.props.navigation.addEventListener('motion-progress-start', this.disable);
+        this.props.navigation.addEventListener('motion-progress-end', this.enable);
         if (this.ref) {
             if (this.ref.parentElement?.parentElement) {
                 this.ref.parentElement.parentElement.style.width = '100vw';
@@ -74,8 +74,8 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
     }
 
     componentWillUnmount() {
-        window.removeEventListener('motion-progress-start', this.disable);
-        window.removeEventListener('motion-progress-end', this.enable);
+        this.props.navigation.removeEventListener('motion-progress-start', this.disable);
+        this.props.navigation.removeEventListener('motion-progress-end', this.enable);
         this.props.navigation.metaData.set('theme-color', '#fee255a1');
     }
 

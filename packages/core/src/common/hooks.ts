@@ -16,21 +16,6 @@ export function useReducedMotion() {
     return prefersReducedMotion;
 }
 
-export function useMotion() {
-    const [motion, setMotion] = useState(React.useContext(Motion));
-    
-    useEffect(() => {
-        const onProgress = ({detail}: MotionProgressEvent) => {
-            setMotion(detail.progress);
-        }
-        window.addEventListener('motion-progress', onProgress);
-
-        return () => window.removeEventListener('motion-progress', onProgress);
-    }, []);
-    
-    return motion;
-}
-
 export function useNavigation<T extends NavigationBase = NavigationBase>() {
     const routerData = React.useContext(RouterDataContext);
     if (routerData) {
@@ -39,3 +24,20 @@ export function useNavigation<T extends NavigationBase = NavigationBase>() {
         throw new Error("RouterData is null. You may be trying to call useNavigation outside a Router.");
     }
 }
+
+export function useMotion() {
+    const [motion, setMotion] = useState(React.useContext(Motion));
+    const navigation = useNavigation();
+    
+    useEffect(() => {
+        const onProgress = ({detail}: MotionProgressEvent) => {
+            setMotion(detail.progress);
+        }
+        navigation.addEventListener('motion-progress', onProgress);
+
+        return () => navigation.removeEventListener('motion-progress', onProgress);
+    }, []);
+    
+    return motion;
+}
+

@@ -1,6 +1,6 @@
 import React, { createContext } from 'react';
 import AnimationProvider from './AnimationProvider';
-import { clamp, dispatchEvent } from './common/utils';
+import { clamp } from './common/utils';
 import AnimationKeyframePresets from './Animations';
 
 export default class AnimationLayerData {
@@ -20,6 +20,7 @@ export default class AnimationLayerData {
     private _onEnd: Function | null = null;
     private _onProgress: ((progress: number) => void) | null = null;
     private _shouldAnimate: boolean = true;
+    private _dispatchEvent: ((event: Event) => Promise<boolean>) | null = null;
 
     private updateProgress() {
         if (this._gestureNavigating && !this._play) {
@@ -28,11 +29,12 @@ export default class AnimationLayerData {
             return;
         }
         const update = () => {
-            if (!this._outAnimation && !this._inAnimation) return;
-            const currentTime = this._gestureNavigating ? this._outAnimation?.currentTime || 0 : this._inAnimation?.currentTime || 0;
-            const progress = clamp((currentTime / this._duration) * 100, 0, 100);
+            if (!this._outAnimation || !this._inAnimation) return;
+            const progress = this._gestureNavigating
+                ? this._outAnimation.effect?.getComputedTiming().progress || this._inAnimation.effect?.getComputedTiming().progress
+                : this._inAnimation.effect?.getComputedTiming().progress || this._outAnimation.effect?.getComputedTiming().progress;
 
-            this._progress = progress;
+            this._progress = (Number(progress) || 1) * 100;
 
             if (this._onProgress) {
                 this._onProgress(this._progress);
@@ -74,8 +76,8 @@ export default class AnimationLayerData {
             this._outAnimation.cancel();
             this.reset();
 
-            const cancelAnimationEvent = new CustomEvent('page-animation-cancel');
-            dispatchEvent(cancelAnimationEvent);
+            const cancelAnimationEvent = new CustomEvent('page-animation-cancel', {bubbles: true});
+            this.dispatchEvent?.(cancelAnimationEvent);
         }
     }
 
@@ -176,8 +178,8 @@ export default class AnimationLayerData {
 
             this._isPlaying = true;
             
-            const startAnimationEvent = new CustomEvent('page-animation-start');
-            dispatchEvent(startAnimationEvent);
+            const startAnimationEvent = new CustomEvent('page-animation-start', {bubbles: true});
+            this.dispatchEvent?.(startAnimationEvent);
 
             if (this._inAnimation && this._outAnimation) {
                 if (!this._shouldAnimate) {
@@ -237,8 +239,8 @@ export default class AnimationLayerData {
                     this._onEnd();
                 }
                 this._isPlaying = false;
-                const endAnimationEvent = new CustomEvent('page-animation-end');
-                dispatchEvent(endAnimationEvent);
+                const endAnimationEvent = new CustomEvent('page-animation-end', {bubbles: true});
+                this.dispatchEvent?.(endAnimationEvent);
             }
         } else {
             this._shouldAnimate = true;
@@ -325,6 +327,14 @@ export default class AnimationLayerData {
 
     set onExit(_onExit: Function | undefined) {
         this._onExit = _onExit;
+    }
+
+    set dispatchEvent(_dispatchEvent: ((event: Event) => Promise<boolean>) | null) {
+        this._dispatchEvent = _dispatchEvent;
+    }
+
+    get dispatchEvent() {
+        return this._dispatchEvent;
     }
 
     get duration() {

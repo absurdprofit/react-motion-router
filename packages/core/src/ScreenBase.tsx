@@ -183,7 +183,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
         else {
             if (this.ref) {
                 this.setTransforms(this.ref); // replace stale transforms
-                window.addEventListener('page-animation-end', () => { // scale transforms were stale after animation
+                this.context!.navigation.addEventListener('page-animation-end', () => { // scale transforms were stale after animation
                     if (this.ref) this.setTransforms(this.ref);
                 }, {once: true});
             }
@@ -243,6 +243,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
                 animation={this.animation}
                 backNavigating={this.context!.backNavigating}
                 keepAlive={this.state.shouldKeepAlive ? this.props.config?.keepAlive || false : false}
+                navigation={this.context!.navigation}
             >
                 <div
                     ref={this.onRef}

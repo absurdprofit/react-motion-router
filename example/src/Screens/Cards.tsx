@@ -133,7 +133,7 @@ export default class Cards extends React.Component<CardsProps> {
     }
 
     componentDidMount() {
-        window.addEventListener('page-animation-end', this.pageAnimationEnd.bind(this), {once: true});
+        this.props.navigation.addEventListener('page-animation-end', this.pageAnimationEnd.bind(this), {once: true});
         if (this.ref) {
             this.ref.scrollTo(Cards.scrollPos.x, Cards.scrollPos.y); // scroll restoration
         } 

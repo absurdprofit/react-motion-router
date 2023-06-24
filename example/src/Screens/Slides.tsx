@@ -49,11 +49,11 @@ export default function Slides(props: SlidesProps) {
     useEffect(() => {
         props.navigation.metaData.set('theme-color', '#222222');
 
-        window.addEventListener('go-back', () => {
+        props.navigation.addEventListener('go-back', () => {
             props.navigation.metaData.set('theme-color', '#fee2551');
         }, {once: true, capture: true});
 
-        window.addEventListener('page-animation-end', () => {
+        props.navigation.addEventListener('page-animation-end', () => {
             isLoaded = true;
         }, {once: true});
         window.addEventListener('swipestart', onSwipeStart);

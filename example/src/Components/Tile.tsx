@@ -22,7 +22,7 @@ export default class Tile extends React.Component<TileProps> {
     }
 
     componentDidMount() {
-        window.addEventListener('page-animation-end', this.pageAnimationEnd.bind(this), {once: true});
+        this.props.navigation.addEventListener('page-animation-end', this.pageAnimationEnd.bind(this), {once: true});
     }
 
     render() {

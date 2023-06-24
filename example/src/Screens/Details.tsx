@@ -35,12 +35,12 @@ export default function Details(props: DetailsProps) {
         }
 
 
-        window.addEventListener('go-back', () => {
+        props.navigation.addEventListener('go-back', () => {
             props.navigation.metaData.set('description', originalDesc);
             originalDesc = undefined;
         }, {once: true, capture: true});
 
-        window.addEventListener('page-animation-end', () => {
+        props.navigation.addEventListener('page-animation-end', () => {
             isLoaded = true;
         }, {once: true});
     }, []);

@@ -94,7 +94,11 @@ export default class Router extends RouterBase {
 
         if (!this.state.backNavigating && !this.state.implicitBack) {
             this.setState({backNavigating: true});
-            window.addEventListener('page-animation-end', this.onAnimationEnd.bind(this), {once: true});
+            this._routerData.navigation.addEventListener(
+                'page-animation-end',
+                this.onAnimationEnd.bind(this),
+                {once: true}
+            );
             this._routerData.backNavigating = true;
         }
     }

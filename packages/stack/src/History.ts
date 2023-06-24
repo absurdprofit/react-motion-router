@@ -27,9 +27,10 @@ export default class History extends HistoryBase {
 
     push(route: string, search: string = '', hash: string = '', replace: boolean = false) {
         const url = History.getURL(route, this.baseURL);
-        url.hash = hash;
-        url.search = search;
-        
+        url.hash = hash || url.hash;
+        url.search = search || url.search;
+        route = url.pathname.replace(this.baseURL.pathname, '');
+
         this.next = null;
         
         if (replace) {

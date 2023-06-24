@@ -29,7 +29,7 @@ export default function Home(props: HomeProps) {
         {
             title: 'Cards Demo 2',
             description: 'Heavier card demo with fading gradient overlay and cross-fading texts',
-            href: '/cards-2'
+            href: '/cards-2#garou'
         },
         {
             title: 'Overlay Demo',
@@ -39,7 +39,7 @@ export default function Home(props: HomeProps) {
     ];
 
     useEffect(() => {
-        window.addEventListener('page-animation-end', () => {
+        props.navigation.addEventListener('page-animation-end', () => {
             isLoaded = true;
         }, {once: true});
         if (!props.orientation) return;

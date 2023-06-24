@@ -8,16 +8,17 @@ import { ModalAnimation } from "./Animations";
 import '../../css/Modal.css';
 import { iOS, isPWA } from "../..//common/utils";
 
+interface OverlaysProps extends Stack.ScreenComponentProps {}
 let isLoaded = false;
-export default function Overlays() {
+export default function Overlays(props: OverlaysProps) {
     useEffect(() => {
-        window.addEventListener('navigate', (e) => {
+        props.navigation.addEventListener('navigate', (e) => {
             e.detail.signal.addEventListener('abort', () => {
                 console.log("Aborted");
             });
         }, {once: true, capture: true});
         
-        window.addEventListener('page-animation-end', () => isLoaded = true, {once: true});
+        props.navigation.addEventListener('page-animation-end', () => isLoaded = true, {once: true});
         document.body.style.backgroundColor = 'rgba(254, 226, 85)';
 
         return () => {

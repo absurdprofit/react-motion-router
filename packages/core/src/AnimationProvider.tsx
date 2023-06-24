@@ -2,6 +2,7 @@ import React from 'react';
 import { AnimationConfigSet, AnimationDirection, AnimationKeyframeEffectConfig, EasingFunction } from './common/types';
 import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
 import AnimationKeyframePresets from './Animations';
+import NavigationBase from './NavigationBase';
 
 interface AnimationProviderProps {
     onExit: Function;
@@ -13,7 +14,8 @@ interface AnimationProviderProps {
     animation: AnimationConfigSet | (() => AnimationConfigSet);
     backNavigating: boolean;
     keepAlive: boolean;
-    children: React.ReactNode;
+    children: React.ReactNode
+    navigation: NavigationBase;
 }
 
 interface AnimationProviderState {
@@ -61,10 +63,10 @@ export default class AnimationProvider extends React.Component<AnimationProvider
     }
 
     componentDidMount() {
-        window.addEventListener('page-animation-start', this.onNavigate);
-        window.addEventListener('motion-progress-start', this.onNavigate);
-        window.addEventListener('page-animation-end', this.onAnimationEnd);
-        window.addEventListener('motion-progress-end', this.onAnimationEnd);
+        this.props.navigation.addEventListener('page-animation-start', this.onNavigate);
+        this.props.navigation.addEventListener('motion-progress-start', this.onNavigate);
+        this.props.navigation.addEventListener('page-animation-end', this.onAnimationEnd);
+        this.props.navigation.addEventListener('motion-progress-end', this.onAnimationEnd);
         if (this._animationLayerData) {
             if (this.props.in) {
                 this._animationLayerData.nextScreen = this;
@@ -91,10 +93,10 @@ export default class AnimationProvider extends React.Component<AnimationProvider
     }
 
     componentWillUnmount() {
-        window.removeEventListener('page-animation-start', this.onNavigate);
-        window.removeEventListener('motion-progress-start', this.onNavigate);
-        window.removeEventListener('page-animation-end', this.onAnimationEnd);
-        window.removeEventListener('motion-progress-end', this.onAnimationEnd);
+        this.props.navigation.removeEventListener('page-animation-start', this.onNavigate);
+        this.props.navigation.removeEventListener('motion-progress-start', this.onNavigate);
+        this.props.navigation.removeEventListener('page-animation-end', this.onAnimationEnd);
+        this.props.navigation.removeEventListener('motion-progress-end', this.onAnimationEnd);
     }
 
     get inAnimation(): AnimationKeyframeEffectConfig | [keyof typeof AnimationKeyframePresets, number, EasingFunction | undefined] {

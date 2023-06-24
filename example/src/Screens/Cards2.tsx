@@ -163,7 +163,7 @@ export default class Cards2 extends React.Component<CardsProps> {
 
     componentDidMount() {
         this.props.navigation.prefetchRoute('/details');
-        window.addEventListener('page-animation-end', this.pageAnimationEnd.bind(this), {once: true});
+        this.props.navigation.addEventListener('page-animation-end', this.pageAnimationEnd.bind(this), {once: true});
         if (this.ref) {
             this.ref.scrollTo(Cards2.scrollPos.x, Cards2.scrollPos.y); // scroll restoration
         } 

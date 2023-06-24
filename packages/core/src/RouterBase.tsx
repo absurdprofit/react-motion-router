@@ -185,6 +185,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
             this.dispatchEvent = null;
             this.addEventListener = null;
             this.removeEventListener = null;
+            this.animationLayerData.dispatchEvent = this.dispatchEvent;
             this._routerData.dispatchEvent = this.dispatchEvent;
             this._routerData.addEventListener = this.addEventListener;
             this._routerData.removeEventListener = this.removeEventListener;
@@ -202,6 +203,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
             this.removeEventListener = (type, listener, options) => {
                 return ref.removeEventListener(type, listener, options);
             };
+            this.animationLayerData.dispatchEvent = this.dispatchEvent;
             this._routerData.dispatchEvent = this.dispatchEvent;
             this._routerData.addEventListener = this.addEventListener;
             this._routerData.removeEventListener = this.removeEventListener;
@@ -210,6 +212,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     }
     
     render() {
+        if (!this._routerData.navigation) return <></>;
         return (
             <div id={this._id.toString()} className="react-motion-router" style={{width: '100%', height: '100%'}} ref={this.setRef}>
                 <RouterDataContext.Consumer>
@@ -224,6 +227,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
                                         }}
                                         backNavigating={this.state.backNavigating}
                                         gestureNavigating={this.state.gestureNavigating}
+                                        navigation={this._routerData.navigation}
                                     />
                                     {Boolean(this.navigation)
                                     && (

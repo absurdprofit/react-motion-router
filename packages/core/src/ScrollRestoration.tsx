@@ -33,6 +33,7 @@ export default class ScrollRestoration extends React.Component<ScrollRestoration
             });
         }
 
+        this.routerData?.navigation.addEventListener('page-animation-end', this.onPageAnimationEnd);
         window.addEventListener('hashchange', this.onHashChange);
     }
 
@@ -43,14 +44,20 @@ export default class ScrollRestoration extends React.Component<ScrollRestoration
         }
         this.routerData?.scrollRestorationData.set(this.props.id, scrollPos);
     
+        this.routerData?.navigation.removeEventListener('page-animation-end', this.onPageAnimationEnd);
         window.removeEventListener('hashchange', this.onHashChange);
     }
 
-    onHashChange() {
+    onPageAnimationEnd = () => {
+        if (window.location.hash) requestAnimationFrame(this.onHashChange.bind(this));
+    }
+
+    onHashChange = () => {
         if (this.ref) {
             const id = location.hash;
             try {
                 // for when hash is invalid css selector
+                console.log(this.ref.querySelector(id));
                 this.ref.querySelector(id)?.scrollIntoView(this.props.hashScrollConfig);
             } catch {}
         }
