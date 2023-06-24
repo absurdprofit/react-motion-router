@@ -56,14 +56,14 @@ export default class Navigation extends NavigationBase {
         this._animationLayerData.started.then(() => this._animationLayerData.finished.catch(() => controller.abort()));
 
         const event = new CustomEvent<NavigateEventDetail>('navigate', {
+            bubbles: true,
             detail: {
                 routerId: this.routerId,
                 route: route,
                 routeParams: routeParams,
                 replace: Boolean(replace),
                 signal: controller.signal
-            },
-            bubbles: true
+            }
         });
 
         if (this.dispatchEvent) this.dispatchEvent(event);
@@ -82,14 +82,14 @@ export default class Navigation extends NavigationBase {
         this._animationLayerData.started.then(() => this._animationLayerData.finished.catch(() => controller.abort()));
 
         const event = new CustomEvent<NavigateEventDetail>('navigate', {
+            bubbles: true,
             detail: {
                 routerId: this.routerId,
                 route: route,
                 routeParams: routeParams,
                 replace: false,
                 signal: controller.signal
-            },
-            bubbles: true
+            }
         });
 
         if (this.dispatchEvent) this.dispatchEvent(event);
@@ -103,7 +103,9 @@ export default class Navigation extends NavigationBase {
         this._animationLayerData.started.then(() => this._animationLayerData.finished.catch(() => controller.abort()));
 
         let event = new CustomEvent<BackEventDetail>('go-back', {
+            bubbles: true,
             detail: {
+                routerId: this.routerId,
                 replace: false,
                 signal: controller.signal
             }
@@ -117,13 +119,7 @@ export default class Navigation extends NavigationBase {
 
         const controller = new AbortController();
         this._animationLayerData.started.then(() => this._animationLayerData.finished.catch(() => controller.abort()));
-
-        let event = new CustomEvent<BackEventDetail>('go-back', {
-            detail: {
-                replace: Boolean(replace),
-                signal: controller.signal
-            }
-        });
+        
         if (this._history.length === 1) {
             if (this.parent === null) {
                 // if no history in root router, fallback to browser back
@@ -132,6 +128,14 @@ export default class Navigation extends NavigationBase {
             }
             this.parent.goBack();
         } else {
+            let event = new CustomEvent<BackEventDetail>('go-back', {
+                bubbles: true,
+                detail: {
+                    routerId: this.routerId,
+                    replace: Boolean(replace),
+                    signal: controller.signal
+                }
+            });
             if (this._disableBrowserRouting) {
                 this._history.implicitBack();
             } else {
@@ -157,9 +161,9 @@ export default class Navigation extends NavigationBase {
                     this._history.back();
                 }
             }
+            if (this.dispatchEvent) this.dispatchEvent(event);
         } 
 
-        if (this.dispatchEvent) this.dispatchEvent(event);
 
         return new Promise<void>(async (resolve, reject) => {
             await this._animationLayerData.started;

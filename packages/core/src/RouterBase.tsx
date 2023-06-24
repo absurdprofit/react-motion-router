@@ -8,7 +8,8 @@ import {
     ReducedAnimationConfigSet,
     SwipeDirection,
     ScreenChild,
-    PlainObject
+    PlainObject,
+    RouterEventMap
 } from './common/types';
 import RouterData, { RoutesData, RouterDataContext } from './RouterData';
 import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
@@ -51,6 +52,8 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     protected abstract _routerData: RouterData;
     protected config: Config;
     protected dispatchEvent: ((event: Event) => Promise<boolean>) | null = null;
+    protected addEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined) => void) | null = null;
+    protected removeEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | EventListenerOptions | undefined) => void) | null = null;
 
     static defaultProps = {
         config: {
@@ -167,10 +170,6 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
         else document.title = this.state.defaultDocumentTitle;
     }
 
-    get addEventListener() {
-        return this.ref?.removeEventListener;
-    }
-
     addNavigationEventListeners(ref: HTMLElement) {
         ref.addEventListener('go-back', this.onBackListener);
         ref.addEventListener('navigate', this.onNavigateListener);
@@ -184,15 +183,28 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     private setRef = (ref: HTMLElement | null) => {
         if (this.ref) {
             this.dispatchEvent = null;
+            this.addEventListener = null;
+            this.removeEventListener = null;
             this._routerData.dispatchEvent = this.dispatchEvent;
+            this._routerData.addEventListener = this.addEventListener;
+            this._routerData.removeEventListener = this.removeEventListener;
             this.removeNavigationEventListeners(this.ref);  
         }
 
         if (ref) {
             this.dispatchEvent = (event) => {
+                // return async version
                 return dispatchEvent(event, ref);
             }
+            this.addEventListener = (type, listener, options) => {
+                return ref.addEventListener(type, listener, options);
+            };
+            this.removeEventListener = (type, listener, options) => {
+                return ref.removeEventListener(type, listener, options);
+            };
             this._routerData.dispatchEvent = this.dispatchEvent;
+            this._routerData.addEventListener = this.addEventListener;
+            this._routerData.removeEventListener = this.removeEventListener;
             this.addNavigationEventListeners(ref);
         }
     }

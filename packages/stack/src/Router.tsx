@@ -76,8 +76,7 @@ export default class Router extends RouterBase {
     onPopStateListener = (e: Event) => {}
 
     onBackListener = (e: BackEvent) => {
-        e.stopImmediatePropagation();
-
+        if (e.detail.routerId !== this.id) return;
         let pathname = this.navigation.location.pathname;
 
         if (e.detail.replace && !this.config.disableBrowserRouting) { // replaced state with default route
@@ -101,7 +100,7 @@ export default class Router extends RouterBase {
     }
 
     onNavigateListener = (e: NavigateEvent) => {
-        e.stopImmediatePropagation();
+        if (e.detail.routerId !== this.id) return;
         const currentPath = e.detail.route;
         this._routerData.currentPath = currentPath;
         if (e.detail.routeParams) {

@@ -264,6 +264,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
     }
 
     onSwipeStart(ev: SwipeStartEvent) {
+        if (ev.touches.length > 1) return; // disable if more than one finger engaged
         if (this.state.disableDiscovery) return;
         if (this.context.isPlaying) return;
         let swipePos: number; // 1D
@@ -293,7 +294,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             const {children, currentPath, paths, name, ...nextState} = StateFromChildren(this.props, {...this.state, gestureNavigating: true}, this.props.currentPath, this.props.lastPath);
             
             this.onGestureSuccess = this.onGestureSuccess.bind(this, nextState, name);
-            window.addEventListener('go-back', this.onGestureSuccess as unknown as EventListener, {once: true});
+            this.props.navigation.addEventListener('go-back', this.onGestureSuccess as unknown as EventListener, {once: true});
 
             this.props.onGestureNavigationStart();
             this.setState({
@@ -368,7 +369,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         } else {
             this.context.playbackRate = 0.5;
             onEnd = () => {
-                window.removeEventListener('go-back', this.onGestureSuccess as unknown as EventListener);
+                this.props.navigation.removeEventListener('go-back', this.onGestureSuccess as unknown as EventListener);
                 this.context.reset();
                 
                 if (this.props.dispatchEvent) this.props.dispatchEvent(motionEndEvent);

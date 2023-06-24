@@ -4,6 +4,7 @@ import MetaData from "./MetaData";
 import RouterData from "./RouterData";
 
 export interface BackEventDetail {
+    routerId: string;
     replace: boolean;
     signal: AbortSignal;
 }
