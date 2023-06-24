@@ -57,7 +57,6 @@ export default class ScrollRestoration extends React.Component<ScrollRestoration
             const id = location.hash;
             try {
                 // for when hash is invalid css selector
-                console.log(this.ref.querySelector(id));
                 this.ref.querySelector(id)?.scrollIntoView(this.props.hashScrollConfig);
             } catch {}
         }

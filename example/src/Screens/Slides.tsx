@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import { Hero, Heroes } from '../assets/Heroes';
 import ClearIcon from '@mui/icons-material/Clear';
-import { Navigation, Stack } from '@react-motion-router/stack';
+import { Stack } from '@react-motion-router/stack';
 import { SharedElement, Anchor } from '@react-motion-router/core';
 import IconButton from '@mui/material/IconButton';
 import '../css/Slides.css';
