@@ -150,7 +150,9 @@ export default class Navigation extends NavigationBase {
                             if (navigator === this) {
                                 delta += 1;
                             } else {
-                                delta += navigator.history.length;
+                                if (navigator.history.length > 1) {
+                                    delta += navigator.history.length;
+                                }
                             }
                         }
                         navigator = navigator.routerData.childRouterData?.navigation as Navigation;

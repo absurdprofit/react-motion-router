@@ -32,11 +32,9 @@ export default class AnimationLayerData {
         }
         const update = () => {
             if (!this._outAnimation || !this._inAnimation) return;
-            const progress = this._gestureNavigating
-                ? this._outAnimation.effect?.getComputedTiming().progress || this._inAnimation.effect?.getComputedTiming().progress
-                : this._inAnimation.effect?.getComputedTiming().progress || this._outAnimation.effect?.getComputedTiming().progress;
+            const progress = this.animation?.effect?.getComputedTiming().progress;
 
-            this._progress = (Number(progress) || 1) * 100;
+            this._progress = (Number(progress) || 0) * 100;
 
             if (this._onProgress) {
                 this._onProgress(this._progress);
@@ -49,7 +47,9 @@ export default class AnimationLayerData {
         const onEnd = () => {
             window.cancelAnimationFrame(this._progressUpdateID);
             if (this._progress !== 100) {
-                update();
+                this._progress = 100;
+                if (this._onProgress)
+                    this._onProgress(this._progress);
             }
         };
         Promise.all([this._inAnimation?.finished, this._outAnimation?.finished])
@@ -349,6 +349,15 @@ export default class AnimationLayerData {
 
     get duration() {
         return this._duration;
+    }
+
+    get animation() {
+        const outDuration = this._outAnimation?.effect?.getComputedTiming().duration;
+        const inDuration = this._inAnimation?.effect?.getComputedTiming().duration;
+        if (Number(outDuration) > Number(inDuration)) {
+            return this._outAnimation;
+        }
+        return this._inAnimation;
     }
 
     get progress() {

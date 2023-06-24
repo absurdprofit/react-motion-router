@@ -29,7 +29,7 @@ export default function Home(props: HomeProps) {
         {
             title: 'Cards Demo 2',
             description: 'Heavier card demo with fading gradient overlay and cross-fading texts',
-            href: '/cards-2#garou'
+            href: '/cards-2'
         },
         {
             title: 'Overlay Demo',
