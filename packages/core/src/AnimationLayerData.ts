@@ -5,14 +5,12 @@ import AnimationKeyframePresets from './Animations';
 import { RouterEventMap } from './common/types';
 
 export default class AnimationLayerData {
-    private _progress: number = 0;
     private _play: boolean = true;
     private _isPlaying: boolean = false;
     private _currentScreen: AnimationProvider | null = null;
     private _nextScreen: AnimationProvider | null = null;
     private _onExit: Function | undefined;
     private _progressUpdateID: number = 0;
-    private _duration: number = 0;
     private _inAnimation: Animation | null = null;
     private _outAnimation: Animation | null = null;
     private _playbackRate: number = 1;
@@ -31,13 +29,8 @@ export default class AnimationLayerData {
             return;
         }
         const update = () => {
-            if (!this._outAnimation || !this._inAnimation) return;
-            const progress = this.animation?.effect?.getComputedTiming().progress;
-
-            this._progress = (Number(progress) || 0) * 100;
-
             if (this._onProgress) {
-                this._onProgress(this._progress);
+                this._onProgress(this.progress);
             }
         }
 
@@ -46,10 +39,9 @@ export default class AnimationLayerData {
         this._progressUpdateID = window.requestAnimationFrame(this.updateProgress.bind(this));
         const onEnd = () => {
             window.cancelAnimationFrame(this._progressUpdateID);
-            if (this._progress !== 100) {
-                this._progress = 100;
+            if (this.progress !== 100) {
                 if (this._onProgress)
-                    this._onProgress(this._progress);
+                    this._onProgress(100);
             }
         };
         Promise.all([this._inAnimation?.finished, this._outAnimation?.finished])
@@ -61,7 +53,6 @@ export default class AnimationLayerData {
         this._onEnd = null;
         this._playbackRate = 1;
         this._play = true;
-        this._progress = 0;
         this._gestureNavigating = false;
     }
 
@@ -103,12 +94,7 @@ export default class AnimationLayerData {
                 this._nextScreen.zIndex = 1;
             }
 
-            if (this._gestureNavigating) {
-                this._progress = 100;
-            } else {
-                this._progress = 0;
-            }
-            if (this._onProgress) this._onProgress(this._progress);
+            if (this._onProgress) this._onProgress(this.progress);
 
             // failing to call _onExit to disable SETs
             if (this._onExit && this._shouldAnimate) this._onExit();
@@ -122,7 +108,6 @@ export default class AnimationLayerData {
                     duration: duration,
                     easing: userDefinedEasingFunction || easingFunction
                 });
-                if (this._gestureNavigating || this._backNavigating) this._duration = duration;
             } else { // user provided animation
                 let {keyframes, options} = this._currentScreen.outAnimation;
                 if (typeof options === "number") {
@@ -140,11 +125,6 @@ export default class AnimationLayerData {
                     };
                 }
                 this._outAnimation = this._currentScreen.animate(keyframes, options);
-                if (this._gestureNavigating || this._backNavigating) {
-                    let duration = this._outAnimation?.effect?.getTiming().duration;
-                    if (typeof duration === "string") duration = parseFloat(duration);
-                    this._duration = duration || this._duration;
-                }
             }
             if (Array.isArray(this._nextScreen.inAnimation)) { // predefined animation
                 const [animation, duration, userDefinedEasingFunction] = this._nextScreen.inAnimation;
@@ -153,7 +133,6 @@ export default class AnimationLayerData {
                     duration: duration,
                     easing: userDefinedEasingFunction || easingFunction
                 });
-                if (!this.gestureNavigating && !this._backNavigating) this._duration = duration;
             } else { // user provided animation
                 let {keyframes, options} = this._nextScreen.inAnimation;
                 if (typeof options === "number") {
@@ -171,11 +150,6 @@ export default class AnimationLayerData {
                     };
                 }
                 this._inAnimation = this._nextScreen.animate(keyframes, options);
-                if (!this._gestureNavigating && !this._backNavigating) {
-                    let duration = this._inAnimation?.effect?.getTiming().duration;
-                    if (typeof duration === "string") duration = parseFloat(duration);
-                    this._duration = duration || this._duration;
-                }
             }
 
             this._isPlaying = true;
@@ -195,13 +169,11 @@ export default class AnimationLayerData {
                 this._outAnimation.playbackRate = this._playbackRate;
                 
                 if (this._gestureNavigating) {
-                    let inDuration = this._inAnimation.effect?.getTiming().duration || this._duration;
-                    if (typeof inDuration === "string") inDuration = parseFloat(inDuration);
+                    let inDuration = this._inAnimation.effect?.getTiming().duration || this.duration;
 
-                    let outDuration = this._outAnimation.effect?.getTiming().duration || this._duration;
-                    if (typeof outDuration === "string") outDuration = parseFloat(outDuration);
-                    this._inAnimation.currentTime = inDuration;
-                    this._outAnimation.currentTime = outDuration;
+                    let outDuration = this._outAnimation.effect?.getTiming().duration || this.duration;
+                    this._inAnimation.currentTime = Number(inDuration);
+                    this._outAnimation.currentTime = Number(outDuration);
                 }
 
                 if (!this._play) {
@@ -298,17 +270,14 @@ export default class AnimationLayerData {
     }
 
     set progress(_progress: number) {
-        this._progress = _progress;
         if (this._onProgress) {
-            this._onProgress(this._progress);
+            this._onProgress(_progress);
         }
-        let inDuration = this._inAnimation?.effect?.getTiming().duration || this._duration;
-        if (typeof inDuration === "string") inDuration = parseFloat(inDuration);
-        const inCurrentTime = (this._progress / 100) * inDuration;
+        let inDuration = this._inAnimation?.effect?.getTiming().duration || this.duration;
+        const inCurrentTime = (_progress / 100) * Number(inDuration);
 
-        let outDuration = this._outAnimation?.effect?.getTiming().duration || this._duration;
-        if (typeof outDuration === "string") outDuration = parseFloat(outDuration);
-        const outCurrentTime = (this._progress / 100) * outDuration;
+        let outDuration = this._outAnimation?.effect?.getTiming().duration || this.duration;
+        const outCurrentTime = (_progress / 100) * Number(outDuration);
         if (this._inAnimation && this._outAnimation) {
             this._inAnimation.currentTime = inCurrentTime;
             this._outAnimation.currentTime = outCurrentTime;
@@ -348,7 +317,12 @@ export default class AnimationLayerData {
     }
 
     get duration() {
-        return this._duration;
+        const outDuration = this._outAnimation?.effect?.getComputedTiming().duration;
+        const inDuration = this._inAnimation?.effect?.getComputedTiming().duration;
+        if (Number(outDuration) > Number(inDuration)) {
+            return Number(outDuration) || 0;
+        }
+        return Number(inDuration) || 0;
     }
 
     get animation() {
@@ -361,7 +335,15 @@ export default class AnimationLayerData {
     }
 
     get progress() {
-        return this._progress;
+        const outDuration = this._outAnimation?.effect?.getComputedTiming().duration;
+        const inDuration = this._inAnimation?.effect?.getComputedTiming().duration;
+        let progress;
+        if (Number(outDuration) > Number(inDuration)) {
+            progress = this._outAnimation?.effect?.getComputedTiming().progress;
+        } else {
+            progress = this._inAnimation?.effect?.getComputedTiming().progress;
+        }
+        return Number(progress);
     }
 
     get gestureNavigating() {
