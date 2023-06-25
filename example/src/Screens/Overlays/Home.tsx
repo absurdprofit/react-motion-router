@@ -15,14 +15,19 @@ interface OverlaysProps extends Stack.ScreenComponentProps {}
 export default function Overlays({navigation}: OverlaysProps) {
     const playerRef = useRef<HTMLDivElement | null>(null);
 
-    const openSheet = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    const openPlayer = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         let top = 0.9 * window.innerHeight;
         if (playerRef.current) top = playerRef.current.getBoundingClientRect().top + (0.05 * window.innerHeight);
         
+        const controller = new AbortController();
         navigation.navigate<PlayerParams>('/player', {
             top: (top / window.innerHeight) * 100, // vh units
             onProgress: () => {}
-        }).catch((e) => console.log(e));
+        }, {controller}).catch((e) => console.log(e));
+
+        setTimeout(() => {
+            controller.abort();
+        }, 50);
     }
 
     return (
@@ -39,7 +44,7 @@ export default function Overlays({navigation}: OverlaysProps) {
                     <Button>Open Modal</Button>
                 </Anchor>
             </div>
-            <div className="player" onClick={openSheet} ref={playerRef}>
+            <div className="player" onClick={openPlayer} ref={playerRef}>
                 <div className="info">
                     <div className="cover-art">
                         <SharedElement id="cover-art" config={{

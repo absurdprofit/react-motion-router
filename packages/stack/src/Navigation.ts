@@ -54,27 +54,9 @@ export default class Navigation extends NavigationBase {
         }
 
         const controller = options.controller ?? new AbortController();
-        this._finished = new Promise<void>(async (resolve, reject) => {
-            try {
-                await this._animationLayerData.started;
-                await this._animationLayerData.finished;
-                resolve();
-            } catch (e) {
-                controller.abort(e);
-                reject(e);
-            }
-        });
-        const event = new CustomEvent<NavigateEventDetail>('navigate', {
-            bubbles: true,
-            detail: {
-                routerId: this.routerId,
-                route: route,
-                routeParams: routeParams,
-                replace: Boolean(replace),
-                signal: controller.signal,
-                finished: this._finished
-            }
-        });
+        controller.signal.addEventListener('abort', this.onNavigateAbort.bind(this), {once: true});
+        this._finished = this.createFinishedPromise(controller);
+        const event = this.createNavigateEvent(route, routeParams, Boolean(replace), controller);
 
         if (this.dispatchEvent) this.dispatchEvent(event);
         this._currentParams = routeParams || {};
@@ -86,27 +68,8 @@ export default class Navigation extends NavigationBase {
         this._history.implicitPush(route);
         
         const controller = new AbortController();
-        this._finished = new Promise<void>(async (resolve, reject) => {
-            try {
-                await this._animationLayerData.started;
-                await this._animationLayerData.finished;
-                resolve();
-            } catch (e) {
-                controller.abort(e);
-                reject(e);
-            }
-        });
-        const event = new CustomEvent<NavigateEventDetail>('navigate', {
-            bubbles: true,
-            detail: {
-                routerId: this.routerId,
-                route: route,
-                routeParams: routeParams,
-                replace: false,
-                signal: controller.signal,
-                finished: this._finished
-            }
-        });
+        this._finished = this.createFinishedPromise(controller);
+        const event = this.createNavigateEvent(route, routeParams, false, controller);
 
         if (this.dispatchEvent) this.dispatchEvent(event);
         this._currentParams = routeParams || {};
@@ -117,25 +80,8 @@ export default class Navigation extends NavigationBase {
         this._history.implicitBack();
 
         const controller = new AbortController();
-        this._finished = new Promise<void>(async (resolve, reject) => {
-            try {
-                await this._animationLayerData.started;
-                await this._animationLayerData.finished;
-                resolve();
-            } catch (e) {
-                controller.abort(e);
-                reject(e);
-            }
-        });
-        let event = new CustomEvent<BackEventDetail>('go-back', {
-            bubbles: true,
-            detail: {
-                routerId: this.routerId,
-                replace: false,
-                signal: controller.signal,
-                finished: this._finished
-            }
-        });
+        this._finished = this.createFinishedPromise(controller);
+        let event = this.createBackEvent(false, controller);
         if (this.dispatchEvent) this.dispatchEvent(event);
         return this._finished;
     }
@@ -145,16 +91,8 @@ export default class Navigation extends NavigationBase {
         const {replace} = options;
 
         const controller = options.controller ?? new AbortController();
-        this._finished = new Promise<void>(async (resolve, reject) => {
-            try {
-                await this._animationLayerData.started;
-                await this._animationLayerData.finished;
-                resolve();
-            } catch (e) {
-                controller.abort(e);
-                reject(e);
-            }
-        });
+        controller.signal.addEventListener('abort', this.onBackAbort.bind(this), {once: true});
+        this._finished = this.createFinishedPromise(controller);
         if (this._history.length === 1) {
             if (this.parent === null) {
                 // if no history in root router, fallback to browser back
@@ -163,15 +101,7 @@ export default class Navigation extends NavigationBase {
             }
             this.parent.goBack();
         } else {
-            let event = new CustomEvent<BackEventDetail>('go-back', {
-                bubbles: true,
-                detail: {
-                    routerId: this.routerId,
-                    replace: Boolean(replace),
-                    signal: controller.signal,
-                    finished: this._finished
-                }
-            });
+            let event = this.createBackEvent(Boolean(replace), controller);
             if (this._disableBrowserRouting) {
                 this._history.implicitBack();
             } else {
@@ -204,6 +134,61 @@ export default class Navigation extends NavigationBase {
 
 
         return this._finished;
+    }
+
+    private createBackEvent(replace: boolean, controller: AbortController) {
+        return new CustomEvent<BackEventDetail>('go-back', {
+            bubbles: true,
+            detail: {
+                routerId: this.routerId,
+                replace: replace,
+                signal: controller.signal,
+                finished: this._finished
+            }
+        });
+    }
+
+    private createNavigateEvent(
+        route: string,
+        routeParams: PlainObject | undefined,
+        replace: boolean,
+        controller: AbortController
+    ) {
+        return new CustomEvent<NavigateEventDetail>('navigate', {
+            bubbles: true,
+            detail: {
+                routerId: this.routerId,
+                route: route,
+                routeParams: routeParams,
+                replace: replace,
+                signal: controller.signal,
+                finished: this._finished
+            }
+        })
+    }
+
+    private createFinishedPromise(controller: AbortController) {
+        return new Promise<void>(async (resolve, reject) => {
+            try {
+                await this._animationLayerData.started;
+                await this._animationLayerData.finished;
+                resolve();
+            } catch (e) {
+                controller.abort(e);
+                reject(e);
+            }
+        });
+    }
+
+    private onNavigateAbort() {
+        this._animationLayerData.cancel();
+        this.goBack();
+    }
+
+    private onBackAbort() {
+        this._animationLayerData.cancel();
+        if (!this.history.next) return;
+        this.navigate(this.history.next);
     }
 
     assign(url: string | URL) {
