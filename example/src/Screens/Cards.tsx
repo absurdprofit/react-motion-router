@@ -122,18 +122,16 @@ export default class Cards extends React.Component<CardsProps> {
         y: 0
     }
 
-    pageAnimationEnd() {
-        Cards.isFirstLoad = true;
-        if (this.props.navigation.location.pathname === '/cards') {
-            inset = '';
-            textInset = '';
-            titleInset = '';
-        }
-        this.forceUpdate();
-    }
-
     componentDidMount() {
-        this.props.navigation.addEventListener('page-animation-end', this.pageAnimationEnd.bind(this), {once: true});
+        this.props.navigation.finished.then(() => {
+            Cards.isFirstLoad = true;
+            if (this.props.navigation.location.pathname === '/cards') {
+                inset = '';
+                textInset = '';
+                titleInset = '';
+            }
+            this.forceUpdate();
+        });
         if (this.ref) {
             this.ref.scrollTo(Cards.scrollPos.x, Cards.scrollPos.y); // scroll restoration
         } 

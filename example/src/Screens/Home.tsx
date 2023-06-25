@@ -39,9 +39,9 @@ export default function Home(props: HomeProps) {
     ];
 
     useEffect(() => {
-        props.navigation.addEventListener('page-animation-end', () => {
+        props.navigation.finished.then(() => {
             isFirstLoad = true;
-        }, {once: true});
+        });
         if (!props.orientation) return;
         props.orientation.onchange = async () => {
             if (props.orientation.type !== "portrait-primary") {

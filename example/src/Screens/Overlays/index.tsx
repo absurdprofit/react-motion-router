@@ -18,7 +18,7 @@ export default function Overlays(props: OverlaysProps) {
             });
         }, {once: true, capture: true});
         
-        props.navigation.addEventListener('page-animation-end', () => isFirstLoad = true, {once: true});
+        props.navigation.finished.then(() => isFirstLoad = true);
         document.body.style.backgroundColor = 'rgba(254, 226, 85)';
 
         return () => {

@@ -40,9 +40,9 @@ export default function Details(props: DetailsProps) {
             originalDesc = undefined;
         }, {once: true, capture: true});
 
-        props.navigation.addEventListener('page-animation-end', () => {
+        props.navigation.finished.then(() => {
             isFirstLoad = true;
-        }, {once: true});
+        });
     }, []);
 
     if (!hero.name) return <></>;

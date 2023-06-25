@@ -53,9 +53,9 @@ export default function Slides(props: SlidesProps) {
             props.navigation.metaData.set('theme-color', '#fee2551');
         }, {once: true, capture: true});
 
-        props.navigation.addEventListener('page-animation-end', () => {
+        props.navigation.finished.then(() => {
             isFirstLoad = true;
-        }, {once: true});
+        });
         window.addEventListener('swipestart', onSwipeStart);
     
 

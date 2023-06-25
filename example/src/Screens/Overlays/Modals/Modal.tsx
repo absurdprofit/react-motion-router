@@ -43,10 +43,10 @@ export default class ModalExample extends React.Component<ModalScreenProps, Moda
     componentDidMount() {
         this.props.navigation.metaData.set('theme-color', '#b19e3b');
 
-        this.props.navigation.addEventListener('page-animation-end', () => {
+        this.props.navigation.finished.then(() => {
             isFirstLoad = true;
             this.setState({stiffness: 200});
-        }, {once: true});
+        });
         const {sheetView, top} = this.props.route.params;
         this.setState({
             opacity: 1,

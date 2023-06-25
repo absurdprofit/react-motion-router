@@ -15,6 +15,7 @@ export default class Navigation extends NavigationBase {
     protected _history: History;
     private _animationLayerData: AnimationLayerData;
     private isInternalBack = false;
+    private _finished: Promise<void> = new Promise(() => {});
 
     constructor(_routerId: string, _routerData: RouterData<Navigation>, _history: History, _animationLayerData: AnimationLayerData, _disableBrowserRouting: boolean = false, _defaultRoute: string | null = null) {
         super(_routerId, _routerData, _disableBrowserRouting, _defaultRoute);
@@ -52,9 +53,17 @@ export default class Navigation extends NavigationBase {
             this._history.push(route, search, hash || '', Boolean(replace));
         }
 
-        const controller = new AbortController();
-        this._animationLayerData.started.then(() => this._animationLayerData.finished.catch(() => controller.abort()));
-
+        const controller = options.controller ?? new AbortController();
+        this._finished = new Promise<void>(async (resolve, reject) => {
+            try {
+                await this._animationLayerData.started;
+                await this._animationLayerData.finished;
+                resolve();
+            } catch (e) {
+                controller.abort(e);
+                reject(e);
+            }
+        });
         const event = new CustomEvent<NavigateEventDetail>('navigate', {
             bubbles: true,
             detail: {
@@ -62,25 +71,31 @@ export default class Navigation extends NavigationBase {
                 route: route,
                 routeParams: routeParams,
                 replace: Boolean(replace),
-                signal: controller.signal
+                signal: controller.signal,
+                finished: this._finished
             }
         });
 
         if (this.dispatchEvent) this.dispatchEvent(event);
         this._currentParams = routeParams || {};
 
-        return new Promise<void>(async (resolve, reject) => {
-            await this._animationLayerData.started;
-            this._animationLayerData.finished.then(resolve).catch(reject);
-        });
+        return this._finished;
     }
 
     private implicitNavigate(route: string, routeParams?: PlainObject) {
         this._history.implicitPush(route);
         
         const controller = new AbortController();
-        this._animationLayerData.started.then(() => this._animationLayerData.finished.catch(() => controller.abort()));
-
+        this._finished = new Promise<void>(async (resolve, reject) => {
+            try {
+                await this._animationLayerData.started;
+                await this._animationLayerData.finished;
+                resolve();
+            } catch (e) {
+                controller.abort(e);
+                reject(e);
+            }
+        });
         const event = new CustomEvent<NavigateEventDetail>('navigate', {
             bubbles: true,
             detail: {
@@ -88,38 +103,58 @@ export default class Navigation extends NavigationBase {
                 route: route,
                 routeParams: routeParams,
                 replace: false,
-                signal: controller.signal
+                signal: controller.signal,
+                finished: this._finished
             }
         });
 
         if (this.dispatchEvent) this.dispatchEvent(event);
         this._currentParams = routeParams || {};
+        return this._finished;
     }
 
     private implicitBack() {
         this._history.implicitBack();
 
         const controller = new AbortController();
-        this._animationLayerData.started.then(() => this._animationLayerData.finished.catch(() => controller.abort()));
-
+        this._finished = new Promise<void>(async (resolve, reject) => {
+            try {
+                await this._animationLayerData.started;
+                await this._animationLayerData.finished;
+                resolve();
+            } catch (e) {
+                controller.abort(e);
+                reject(e);
+            }
+        });
         let event = new CustomEvent<BackEventDetail>('go-back', {
             bubbles: true,
             detail: {
                 routerId: this.routerId,
                 replace: false,
-                signal: controller.signal
+                signal: controller.signal,
+                finished: this._finished
             }
         });
         if (this.dispatchEvent) this.dispatchEvent(event);
+        return this._finished;
     }
 
     goBack(options: GoBackOptions = {}) {
         this.isInternalBack = true;
         const {replace} = options;
 
-        const controller = new AbortController();
-        this._animationLayerData.started.then(() => this._animationLayerData.finished.catch(() => controller.abort()));
-        
+        const controller = options.controller ?? new AbortController();
+        this._finished = new Promise<void>(async (resolve, reject) => {
+            try {
+                await this._animationLayerData.started;
+                await this._animationLayerData.finished;
+                resolve();
+            } catch (e) {
+                controller.abort(e);
+                reject(e);
+            }
+        });
         if (this._history.length === 1) {
             if (this.parent === null) {
                 // if no history in root router, fallback to browser back
@@ -133,7 +168,8 @@ export default class Navigation extends NavigationBase {
                 detail: {
                     routerId: this.routerId,
                     replace: Boolean(replace),
-                    signal: controller.signal
+                    signal: controller.signal,
+                    finished: this._finished
                 }
             });
             if (this._disableBrowserRouting) {
@@ -167,10 +203,7 @@ export default class Navigation extends NavigationBase {
         } 
 
 
-        return new Promise<void>(async (resolve, reject) => {
-            await this._animationLayerData.started;
-            this._animationLayerData.finished.then(resolve).catch(reject);
-        });
+        return this._finished;
     }
 
     assign(url: string | URL) {
@@ -192,6 +225,10 @@ export default class Navigation extends NavigationBase {
         } else {
             location.replace(url);
         }
+    }
+
+    get finished() {
+        return this._finished;
     }
 
     get parent() {

@@ -7,6 +7,7 @@ export interface BackEventDetail {
     routerId: string;
     replace: boolean;
     signal: AbortSignal;
+    finished: Promise<void>;
 }
 
 export interface NavigateEventDetail {
@@ -15,6 +16,7 @@ export interface NavigateEventDetail {
     routeParams?: any;
     replace: boolean;
     signal: AbortSignal;
+    finished: Promise<void>;
 }
 
 export type NavigateEvent = CustomEvent<NavigateEventDetail>;
@@ -22,6 +24,7 @@ export type BackEvent = CustomEvent<BackEventDetail>;
 
 export interface NavigationOptions {
     replace?: boolean;
+    controller?: AbortController;
 }
 
 export interface NavigateOptions extends NavigationOptions {
@@ -106,6 +109,8 @@ export default abstract class NavigationBase {
     public prefetchRoute(path: string) {
         return this.routerData.prefetchRoute(path);
     }
+
+    abstract get finished(): Promise<void>;
 
     abstract onPopState(e: Event): void;
 

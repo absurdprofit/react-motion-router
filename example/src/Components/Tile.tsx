@@ -14,15 +14,13 @@ let heroID = '';
 export default class Tile extends React.Component<TileProps> {
     private ref: HTMLImageElement | null = null;
 
-    pageAnimationEnd() {
-        if (this.props.navigation.location.pathname === '/tiles') {
-            inset = '';
-            this.forceUpdate();
-        }
-    }
-
     componentDidMount() {
-        this.props.navigation.addEventListener('page-animation-end', this.pageAnimationEnd.bind(this), {once: true});
+        this.props.navigation.finished.then(() => {
+            if (this.props.navigation.location.pathname === '/tiles') {
+                inset = '';
+                this.forceUpdate();
+            }
+        });
     }
 
     render() {

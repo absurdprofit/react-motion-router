@@ -20,12 +20,12 @@ export default class Tiles extends React.Component<TilesProps, TilesState> {
     }
 
     componentDidMount() {
-        this.props.navigation.addEventListener('page-animation-end', () => {
+        this.props.navigation.finished.then(() => {
             if (!Tiles.isFirstLoad) {
                 Tiles.isFirstLoad = true;
                 this.forceUpdate();
             }
-        }, {once: true});
+        });
     }
 
     render(): React.ReactNode {
