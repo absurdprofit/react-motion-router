@@ -175,7 +175,7 @@ export default class AnimationProvider extends React.Component<AnimationProvider
         }
     }
 
-    getAnimationDuration() {
+    get duration() {
         const animation = this.props.in ? this.inAnimation : this.outAnimation;
         if (Array.isArray(animation)) {
             const [_, duration] = animation;
@@ -186,7 +186,7 @@ export default class AnimationProvider extends React.Component<AnimationProvider
         }
     }
 
-    getAnimation() {
+    get animation() {
         if (!this.ref) return null;
         let easingFunction = this._animationLayerData?.gestureNavigating ? 'linear' : 'ease-out';
         if (this.props.in) {

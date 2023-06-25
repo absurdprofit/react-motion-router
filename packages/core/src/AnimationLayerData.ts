@@ -99,8 +99,8 @@ export default class AnimationLayerData {
             if (this._onExit && this._shouldAnimate) this._onExit();
             await this._nextScreen.mounted(true);
 
-            this._outAnimation = this._currentScreen.getAnimation();
-            this._inAnimation = this._nextScreen.getAnimation();
+            this._outAnimation = this._currentScreen.animation;
+            this._inAnimation = this._nextScreen.animation;
 
             this._isPlaying = true;
             
@@ -269,21 +269,12 @@ export default class AnimationLayerData {
     }
 
     get duration() {
-        const outDuration = this._currentScreen?.getAnimationDuration();
-        const inDuration = this._nextScreen?.getAnimationDuration();
+        const outDuration = this._currentScreen?.duration;
+        const inDuration = this._nextScreen?.duration;
         if (Number(outDuration) > Number(inDuration)) {
             return Number(outDuration) || 0;
         }
         return Number(inDuration) || 0;
-    }
-
-    get animation() {
-        const outDuration = this._outAnimation?.effect?.getComputedTiming().duration;
-        const inDuration = this._inAnimation?.effect?.getComputedTiming().duration;
-        if (Number(outDuration) > Number(inDuration)) {
-            return this._outAnimation;
-        }
-        return this._inAnimation;
     }
 
     get progress() {
@@ -295,7 +286,7 @@ export default class AnimationLayerData {
         } else {
             progress = this._inAnimation?.effect?.getComputedTiming().progress;
         }
-        return Number(progress);
+        return (Number(progress) || 0) * 100;
     }
 
     get gestureNavigating() {
