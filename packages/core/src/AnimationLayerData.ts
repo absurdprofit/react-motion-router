@@ -1,7 +1,6 @@
 import React, { createContext } from 'react';
 import AnimationProvider from './AnimationProvider';
 import { clamp } from './common/utils';
-import AnimationKeyframePresets from './Animations';
 import { RouterEventMap } from './common/types';
 
 export default class AnimationLayerData {
@@ -100,63 +99,11 @@ export default class AnimationLayerData {
             if (this._onExit && this._shouldAnimate) this._onExit();
             await this._nextScreen.mounted(true);
 
-            let easingFunction = this._gestureNavigating ? 'linear' : 'ease-out';
-            if (Array.isArray(this._currentScreen.outAnimation)) { // predefined animation
-                const [animation, duration, userDefinedEasingFunction] = this._currentScreen.outAnimation;
-                this._outAnimation = this._currentScreen.animate(AnimationKeyframePresets[animation], {
-                    fill: 'both',
-                    duration: duration,
-                    easing: userDefinedEasingFunction || easingFunction
-                });
-            } else { // user provided animation
-                let {keyframes, options} = this._currentScreen.outAnimation;
-                if (typeof options === "number") {
-                    options = {
-                        duration: options,
-                        easing: easingFunction,
-                        fill: 'both'
-                    };
-                } else {
-                    options = {
-                        ...options,
-                        easing: options?.easing || easingFunction,
-                        duration: options?.duration || this.duration,
-                        fill: options?.fill || 'both'
-                    };
-                }
-                this._outAnimation = this._currentScreen.animate(keyframes, options);
-            }
-            if (Array.isArray(this._nextScreen.inAnimation)) { // predefined animation
-                const [animation, duration, userDefinedEasingFunction] = this._nextScreen.inAnimation;
-                this._inAnimation = this._nextScreen.animate(AnimationKeyframePresets[animation], {
-                    fill: 'both',
-                    duration: duration,
-                    easing: userDefinedEasingFunction || easingFunction
-                });
-            } else { // user provided animation
-                let {keyframes, options} = this._nextScreen.inAnimation;
-                if (typeof options === "number") {
-                    options = {
-                        duration: options,
-                        easing: easingFunction,
-                        fill: 'both'
-                    };
-                } else {
-                    options = {
-                        ...options,
-                        fill: options?.fill || 'both',
-                        duration: options?.duration || this.duration,
-                        easing: options?.easing || easingFunction
-                    };
-                }
-                this._inAnimation = this._nextScreen.animate(keyframes, options);
-            }
+            this._outAnimation = this._currentScreen.getAnimation();
+            this._inAnimation = this._nextScreen.getAnimation();
 
             this._isPlaying = true;
             
-            const startAnimationEvent = new CustomEvent('page-animation-start', {bubbles: true});
-            this.dispatchEvent?.(startAnimationEvent);
-
             if (this._inAnimation && this._outAnimation) {
                 if (!this._shouldAnimate) {
                     this.finish();
@@ -176,13 +123,17 @@ export default class AnimationLayerData {
                     this._outAnimation.currentTime = Number(outDuration);
                 }
 
+                await Promise.all([this._inAnimation.ready, this._outAnimation.ready]);
                 if (!this._play) {
                     this._inAnimation.pause();
                     this._outAnimation.pause();
                     this._isPlaying = false;
+                } else {
+                    this._outAnimation.play();
+                    this._inAnimation.play();
                 }
-
-                await Promise.all([this._inAnimation.ready, this._outAnimation.ready]);
+                const startAnimationEvent = new CustomEvent('page-animation-start', {bubbles: true});
+                this.dispatchEvent?.(startAnimationEvent);
 
                 this.updateProgress();
 
@@ -197,6 +148,10 @@ export default class AnimationLayerData {
                     this._outAnimation.cancel();
                     this._outAnimation = null;
                 }
+                this._isPlaying = false;
+                const endAnimationEvent = new CustomEvent('page-animation-end', {bubbles: true});
+                this.dispatchEvent?.(endAnimationEvent);
+
                 // if playback rate is 2 then gesture navigation was aborted
                 if (!this._gestureNavigating || this._playbackRate === 0.5) {
                     this._currentScreen.zIndex = 0;
@@ -212,9 +167,6 @@ export default class AnimationLayerData {
                 if (this._onEnd) {
                     this._onEnd();
                 }
-                this._isPlaying = false;
-                const endAnimationEvent = new CustomEvent('page-animation-end', {bubbles: true});
-                this.dispatchEvent?.(endAnimationEvent);
             }
         } else {
             this._shouldAnimate = true;
@@ -317,8 +269,8 @@ export default class AnimationLayerData {
     }
 
     get duration() {
-        const outDuration = this._outAnimation?.effect?.getComputedTiming().duration;
-        const inDuration = this._inAnimation?.effect?.getComputedTiming().duration;
+        const outDuration = this._currentScreen?.getAnimationDuration();
+        const inDuration = this._nextScreen?.getAnimationDuration();
         if (Number(outDuration) > Number(inDuration)) {
             return Number(outDuration) || 0;
         }
@@ -356,6 +308,17 @@ export default class AnimationLayerData {
 
     get isPlaying() {
         return this._isPlaying;
+    }
+
+    get ready() {
+        return new Promise<void>(async (resolve, reject) => {
+            try {
+                await Promise.all([this._outAnimation?.ready, this._inAnimation?.ready]);
+                resolve();
+            } catch (e) {
+                reject(e);
+            }
+        });
     }
 
     get finished() {

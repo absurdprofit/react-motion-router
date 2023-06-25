@@ -204,6 +204,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
                 return ref.removeEventListener(type, listener, options);
             };
             this.animationLayerData.dispatchEvent = this.dispatchEvent;
+            this.animationLayerData.addEventListener = this.addEventListener;
             this._routerData.dispatchEvent = this.dispatchEvent;
             this._routerData.addEventListener = this.addEventListener;
             this._routerData.removeEventListener = this.removeEventListener;
@@ -229,6 +230,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
                                             backNavigating={this.state.backNavigating}
                                             gestureNavigating={this.state.gestureNavigating}
                                             navigation={this._routerData.navigation}
+                                            animationLayerData={this.animationLayerData}
                                         />
                                     )}
                                     {Boolean(this.navigation)

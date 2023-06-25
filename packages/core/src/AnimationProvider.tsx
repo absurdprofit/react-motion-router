@@ -175,6 +175,83 @@ export default class AnimationProvider extends React.Component<AnimationProvider
         }
     }
 
+    getAnimationDuration() {
+        const animation = this.props.in ? this.inAnimation : this.outAnimation;
+        if (Array.isArray(animation)) {
+            const [_, duration] = animation;
+            return duration;
+        } else {
+            if (typeof animation.options === "number") return animation.options;
+            return animation.options?.duration;
+        }
+    }
+
+    getAnimation() {
+        if (!this.ref) return null;
+        let easingFunction = this._animationLayerData?.gestureNavigating ? 'linear' : 'ease-out';
+        if (this.props.in) {
+            if (Array.isArray(this.inAnimation)) { // predefined animation
+                const [animation, duration, userDefinedEasingFunction] = this.inAnimation;
+                return new Animation(
+                    new KeyframeEffect(this.ref, AnimationKeyframePresets[animation], {
+                        fill: 'both',
+                        duration: duration,
+                        easing: userDefinedEasingFunction || easingFunction
+                    })
+                );
+            } else { // user provided animation
+                let {keyframes, options} = this.inAnimation;
+                if (typeof options === "number") {
+                    options = {
+                        duration: options,
+                        easing: easingFunction,
+                        fill: 'both'
+                    };
+                } else {
+                    options = {
+                        ...options,
+                        fill: options?.fill || 'both',
+                        duration: options?.duration || this._animationLayerData?.duration,
+                        easing: options?.easing || easingFunction
+                    };
+                }
+                return new Animation(
+                    new KeyframeEffect(this.ref, keyframes, options)
+                );
+            }
+        } else {
+            if (Array.isArray(this.outAnimation)) { // predefined animation
+                const [animation, duration, userDefinedEasingFunction] = this.outAnimation;
+                return new Animation(
+                    new KeyframeEffect(this.ref, AnimationKeyframePresets[animation], {
+                        fill: 'both',
+                        duration: duration,
+                        easing: userDefinedEasingFunction || easingFunction
+                    })
+                );
+            } else { // user provided animation
+                let {keyframes, options} = this.outAnimation;
+                if (typeof options === "number") {
+                    options = {
+                        duration: options,
+                        easing: easingFunction,
+                        fill: 'both'
+                    };
+                } else {
+                    options = {
+                        ...options,
+                        easing: options?.easing || easingFunction,
+                        duration: options?.duration || this._animationLayerData?.duration,
+                        fill: options?.fill || 'both'
+                    };
+                }
+                return new Animation(
+                    new KeyframeEffect(this.ref, keyframes, options)
+                );
+            }
+        }
+    }
+
     animate(keyframes: Keyframe[] | PropertyIndexedKeyframes | null, options?: number | KeyframeAnimationOptions | undefined): Animation | null {
         if (typeof options === "number")
             options = {duration: options};

@@ -3,7 +3,7 @@ import { SharedElement, SharedElementNode, SharedElementScene } from './SharedEl
 import { clamp } from './common/utils';
 import { EasingFunction, PlainObject } from './common/types';
 import { MotionProgressEvent } from './MotionEvents';
-import { AnimationLayerDataContext } from './AnimationLayerData';
+import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
 import NavigationBase from './NavigationBase';
 
 interface GhostLayerProps {
@@ -11,6 +11,7 @@ interface GhostLayerProps {
     backNavigating: boolean;
     gestureNavigating: boolean;
     navigation: NavigationBase;
+    animationLayerData: AnimationLayerData;
 }
 
 interface GhostLayerState {
@@ -62,14 +63,14 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
     set nextScene(scene: SharedElementScene) {
         this._nextScene = scene;
 
-            if (this._currentScene) {
-                if (!this._currentScene.isEmpty() && !this._nextScene.isEmpty()) {
-                    this.sharedElementTransition(this._currentScene, this._nextScene);
-                    return;
-                }
+        if (this._currentScene) {
+            if (!this._currentScene.isEmpty() && !this._nextScene.isEmpty()) {
+                this.sharedElementTransition(this._currentScene, this._nextScene);
+                return;
             }
-            this._currentScene = null;
-            this._nextScene = null;
+        }
+        this._currentScene = null;
+        this._nextScene = null;
     }
 
     finish() {
@@ -80,8 +81,6 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
     }
 
     sharedElementTransition(currentScene: SharedElementScene, nextScene: SharedElementScene) {
-        if (this.context!.duration === 0) return;
-
         if (this.state.transitioning) {
             this.finish(); // cancel playing animation
             return;
@@ -94,6 +93,8 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
         };
         
         this.setState({transitioning: true}, async () => {
+            if (this.context!.duration === 0) return;
+            
             for (const [id, start] of currentScene.nodes) {
                 //if id exists in next scene
                 if (nextScene.nodes.has(id)) {
