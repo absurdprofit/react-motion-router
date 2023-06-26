@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { Anchor, SharedElement, ScrollRestoration } from '@react-motion-router/core';
-import { Navigation, Stack } from '@react-motion-router/stack';
+import { SharedElement, ScrollRestoration, Anchor } from '@react-motion-router/core';
+import { Stack } from '@react-motion-router/stack';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import ClearIcon from '@mui/icons-material/Clear';
@@ -63,16 +63,12 @@ export default function Details(props: DetailsProps) {
                 <SharedElement id={`${hero.id}-card-bg`}>
                     <div className="card-bg" aria-hidden="true"></div>
                 </SharedElement>}
-                {/* <Anchor aria-label='Go Back' goBack tabIndex={-1}> */}
+                <Anchor aria-label='Go Back' goBack tabIndex={-1}>
                     <IconButton style={{
                         position: "absolute",
                         color: 'grey',
                         zIndex: 10000
-                    }} disableRipple onClick={() => {
-                        const controller = new AbortController();
-                        props.navigation.goBack({controller});
-                        setTimeout(() => controller.abort(), 50);
-                    }}>
+                    }} disableRipple>
                         <SharedElement id="back" config={{
                             type: 'fade-through'
                         }}>
@@ -81,7 +77,7 @@ export default function Details(props: DetailsProps) {
                             }} />
                         </SharedElement>
                     </IconButton>
-                {/* </Anchor> */}
+                </Anchor>
                 <div className="profile-info">
                     <SharedElement id={`${hero.id}-gradient-overlay`}>
                         <div

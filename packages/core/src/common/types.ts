@@ -2,7 +2,7 @@ import HistoryBase from '../HistoryBase';
 import NavigationBase from '../NavigationBase';
 import ScreenBase, { ScreenBaseProps } from '../ScreenBase';
 
-export type ScreenChild<P extends ScreenBaseProps = any, E extends typeof ScreenBase = any> = React.ReactElement<P, React.JSXElementConstructor<E>>;
+export type ScreenChild<P extends ScreenBaseProps = ScreenBaseProps, E extends typeof ScreenBase = typeof ScreenBase> = React.ReactElement<P, React.JSXElementConstructor<E>>;
 
 enum AnimationDirectionEnum {
     up,

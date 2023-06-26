@@ -8,7 +8,7 @@ import {
   lazy
 } from '@react-motion-router/core';
 import { iOS, isPWA } from './common/utils';
-import { ModalAnimation, OverlaysAnimation } from './Screens/Overlays/Animations';
+import { OverlaysAnimation } from './Screens/Overlays/Animations';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './Theme';
 import "./css/App.css";

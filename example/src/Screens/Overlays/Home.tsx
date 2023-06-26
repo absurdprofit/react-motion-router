@@ -1,7 +1,7 @@
 import { Button } from '@mui/material';
 import React, { useRef } from 'react';
 import { Anchor, SharedElement } from '@react-motion-router/core';
-import { Navigation, Stack } from '@react-motion-router/stack';
+import { Stack } from '@react-motion-router/stack';
 import King from "../../assets/king.webp";
 import SkipNextIcon from '@mui/icons-material/SkipNext';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -19,15 +19,10 @@ export default function Overlays({navigation}: OverlaysProps) {
         let top = 0.9 * window.innerHeight;
         if (playerRef.current) top = playerRef.current.getBoundingClientRect().top + (0.05 * window.innerHeight);
         
-        const controller = new AbortController();
         navigation.navigate<PlayerParams>('/player', {
             top: (top / window.innerHeight) * 100, // vh units
             onProgress: () => {}
-        }, {controller}).catch((e) => console.log(e));
-
-        setTimeout(() => {
-            controller.abort();
-        }, 50);
+        }).catch((e) => console.log(e));
     }
 
     return (

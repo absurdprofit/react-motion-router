@@ -24,7 +24,7 @@ export type BackEvent = CustomEvent<BackEventDetail>;
 
 export interface NavigationOptions {
     replace?: boolean;
-    controller?: AbortController;
+    signal?: AbortSignal;
 }
 
 export interface NavigateOptions extends NavigationOptions {

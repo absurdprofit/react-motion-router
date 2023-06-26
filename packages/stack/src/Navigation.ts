@@ -53,8 +53,9 @@ export default class Navigation extends NavigationBase {
             this._history.push(route, search, hash || '', Boolean(replace));
         }
 
-        const controller = options.controller ?? new AbortController();
+        const controller = new AbortController();
         controller.signal.addEventListener('abort', this.onNavigateAbort.bind(this), {once: true});
+        options.signal?.addEventListener('abort', this.onNavigateAbort.bind(this), {once: true});
         this._finished = this.createFinishedPromise(controller);
         const event = this.createNavigateEvent(route, routeParams, Boolean(replace), controller);
 
@@ -90,8 +91,9 @@ export default class Navigation extends NavigationBase {
         this.isInternalBack = true;
         const {replace} = options;
 
-        const controller = options.controller ?? new AbortController();
+        const controller = new AbortController();
         controller.signal.addEventListener('abort', this.onBackAbort.bind(this), {once: true});
+        options.signal?.addEventListener('abort', this.onBackAbort.bind(this), {once: true});
         this._finished = this.createFinishedPromise(controller);
         if (this._history.length === 1) {
             if (this.parent === null) {

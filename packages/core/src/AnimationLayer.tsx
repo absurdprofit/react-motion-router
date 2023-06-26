@@ -149,7 +149,7 @@ function StateFromChildren(
                 hysteresis = config?.hysteresis;
                 disableDiscovery = config?.disableDiscovery;
                 minFlingVelocity = config?.minFlingVelocity;
-                name = child.props.name;
+                name = child.props.name ?? null;
                 return React.cloneElement(
                     child, {
                         in: true,
