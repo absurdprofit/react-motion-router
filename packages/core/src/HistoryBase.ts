@@ -1,7 +1,7 @@
 export default abstract class HistoryBase {
     private _baseURL: URL;
     protected _stack: string[] = [];
-    private _defaultRoute: string;
+    private _defaultRoute: string | null;
     protected readonly _routerId: string;
     
     constructor(_routerId: string, _defaultRoute: string | null, _baseURL: URL) {
@@ -12,7 +12,7 @@ export default abstract class HistoryBase {
         _baseURL = new URL(_baseURL.href.replace(/\/$/, '')); // negate trailing slash
         this._baseURL = _baseURL;
 
-        this._defaultRoute = _defaultRoute || this._baseURL.pathname;
+        this._defaultRoute = _defaultRoute;
         if (!this.state.has(this.baseURL.pathname)) this.state.set(this.baseURL.pathname, {});
         const persistedStack = this.state.get<{stack: string[]}>(this.baseURL.pathname)?.stack;
         if (persistedStack) this._stack = [...persistedStack.filter(entry => Boolean(entry))];

@@ -138,6 +138,38 @@ function StateFromChildren(
         }
     );
 
+    // not found case
+    if (!React.Children.count(children)) {
+        const children = React.Children.map(props.children, (child: ScreenChild) => {
+            if (!React.isValidElement(child)) return undefined;
+            if (matchRoute(child.props.path, undefined)) {
+                const {config} = child.props;
+                swipeDirection = config?.swipeDirection;
+                swipeAreaWidth = config?.swipeAreaWidth;
+                hysteresis = config?.hysteresis;
+                disableDiscovery = config?.disableDiscovery;
+                minFlingVelocity = config?.minFlingVelocity;
+                name = child.props.name;
+                return React.cloneElement(
+                    child, {
+                        in: true,
+                        out: false,
+                    }
+                ) as ScreenChild;
+            }
+        });
+
+        return {
+            children,
+            name,
+            swipeDirection: swipeDirection || props.swipeDirection,
+            swipeAreaWidth: swipeAreaWidth || props.swipeAreaWidth,
+            hysteresis: hysteresis || props.hysteresis,
+            disableDiscovery: disableDiscovery === undefined ? props.disableDiscovery : disableDiscovery,
+            minFlingVelocity: minFlingVelocity || props.minFlingVelocity
+        };
+    }
+
     return {
         paths,
         children,
@@ -163,7 +195,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
     state: AnimationLayerState = {
         currentPath: '',
         children: this.props.children,
-        progress: 0,
+        progress: 100,
         shouldPlay: true,
         gestureNavigating: false,
         shouldAnimate: true,
@@ -212,40 +244,6 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
     }
 
     componentDidUpdate(prevProps: AnimationLayerProps, prevState: AnimationLayerState) {
-        if (!React.Children.count(this.state.children)) {
-            let swipeDirection: SwipeDirection | undefined;
-            let swipeAreaWidth: number | undefined;
-            let minFlingVelocity: number | undefined;
-            let hysteresis: number | undefined;
-            let disableDiscovery: boolean | undefined;
-            const children = React.Children.map(this.props.children, (child: ScreenChild) => {
-                if (!React.isValidElement(child)) return undefined;
-                if (matchRoute(child.props.path, undefined)) {
-                    const {config} = child.props;
-                    swipeDirection = config?.swipeDirection;
-                    swipeAreaWidth = config?.swipeAreaWidth;
-                    hysteresis = config?.hysteresis;
-                    disableDiscovery = config?.disableDiscovery;
-                    minFlingVelocity = config?.minFlingVelocity;
-                    this.props.onDocumentTitleChange(child.props.name || null);
-                    return React.cloneElement(
-                        child, {
-                            in: true,
-                            out: false,
-                        }
-                    ) as ScreenChild;
-                }
-            });
-
-            this.setState({
-                children: children,
-                swipeDirection: swipeDirection || this.props.swipeDirection,
-                swipeAreaWidth: swipeAreaWidth || this.props.swipeAreaWidth,
-                hysteresis: hysteresis || this.props.hysteresis,
-                disableDiscovery: disableDiscovery === undefined ? this.props.disableDiscovery : disableDiscovery,
-                minFlingVelocity: minFlingVelocity || this.props.minFlingVelocity
-            });
-        }
         if (prevProps.currentPath !== this.state.currentPath) {
             if (!this.state.gestureNavigating && prevState.shouldAnimate) {
                 this.context!.play = true;

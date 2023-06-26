@@ -101,7 +101,7 @@ function Routes() {
         minFlingVelocity: 1000
       }}>
         <Stack.Screen
-          path='/overlays'
+          path='/overlays/**'
           name="Overlays"
           component={Overlays}
           fallback={<div className='screen-fallback overlays'></div>}

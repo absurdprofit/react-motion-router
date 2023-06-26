@@ -145,7 +145,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
         const basePathname = this.props.config.basePathname || "";
         if (this.parentRouterData) {
             const parentBaseURL = this.parentRouterData.navigation.history.baseURL;
-            const parentCurrentPath = this.parentRouterData.navigation.history.current || "";
+            const parentCurrentPath = this.parentRouterData.mountedScreen?.resolvedPathname || "";
             return concatenateURL(basePathname, concatenateURL(parentCurrentPath, parentBaseURL));
         } else {
             return new URL(basePathname, origin);

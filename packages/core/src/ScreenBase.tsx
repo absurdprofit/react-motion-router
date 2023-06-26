@@ -104,6 +104,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
         }
 
         this.contextParams = this.context!.routesData.get(this.props.path)?.params;
+        this.context!.mountedScreen = this;
         this.forceUpdate();
     }
 

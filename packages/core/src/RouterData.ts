@@ -1,5 +1,5 @@
 import React, {createContext} from 'react';
-import { prefetchRoute } from '.';
+import { ScreenBase, prefetchRoute } from '.';
 import { AnimationConfigSet, PlainObject, RouterEventMap, SearchParamsDeserializer, SearchParamsSerializer } from './common/types';
 import GhostLayer from './GhostLayer';
 import NavigationBase from './NavigationBase';
@@ -23,6 +23,7 @@ export default class RouterData<N extends NavigationBase = NavigationBase> {
     private _gestureNavigating: boolean = false;
     private _paramsSerializer?: SearchParamsSerializer;
     private _paramsDeserializer?: SearchParamsDeserializer;
+    private _mountedScreen: ScreenBase | null = null;
     private _animation: AnimationConfigSet = {
         in: {
             type: "none",
@@ -111,7 +112,13 @@ export default class RouterData<N extends NavigationBase = NavigationBase> {
     set paramsDeserializer(_paramsDeserializer: ((queryString: string) => PlainObject) | undefined) {
         this._paramsDeserializer = _paramsDeserializer;
     }
+    set mountedScreen(_mountedScreen: ScreenBase | null) {
+        this._mountedScreen = _mountedScreen;
+    }
     
+    get mountedScreen() {
+        return this._mountedScreen;
+    }
     get routerId() {
         return this.routerInstance.id;
     }
