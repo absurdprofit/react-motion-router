@@ -76,10 +76,11 @@ export default class Router extends RouterBase {
     onPopStateListener = (e: Event) => {}
 
     onBackListener = (e: BackEvent) => {
+        console.log("Back", e.detail.routerId, this.id);
         if (e.detail.routerId !== this.id) return;
         let pathname = this.navigation.location.pathname;
 
-        if (e.detail.replace && !this.config.disableBrowserRouting) { // replaced state with default route
+        if (!this.config.disableBrowserRouting) { // replaced state with default route
             this._routerData.currentPath = pathname;
             this.setState({currentPath: pathname});
         }

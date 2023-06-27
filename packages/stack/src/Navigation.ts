@@ -82,14 +82,13 @@ export default class Navigation extends NavigationBase {
 
         const controller = new AbortController();
         this._finished = this.createFinishedPromise(controller);
-        let event = this.createBackEvent(false, controller);
+        let event = this.createBackEvent(controller);
         if (this.dispatchEvent) this.dispatchEvent(event);
         return this._finished;
     }
 
     goBack(options: GoBackOptions = {}) {
         this.isInternalBack = true;
-        const {replace} = options;
 
         const controller = new AbortController();
         controller.signal.addEventListener('abort', this.onBackAbort.bind(this), {once: true});
@@ -103,7 +102,7 @@ export default class Navigation extends NavigationBase {
             }
             this.parent.goBack();
         } else {
-            let event = this.createBackEvent(Boolean(replace), controller);
+            let event = this.createBackEvent(controller);
             if (this._disableBrowserRouting) {
                 this._history.implicitBack();
             } else {
@@ -138,12 +137,11 @@ export default class Navigation extends NavigationBase {
         return this._finished;
     }
 
-    private createBackEvent(replace: boolean, controller: AbortController) {
+    private createBackEvent(controller: AbortController) {
         return new CustomEvent<BackEventDetail>('go-back', {
             bubbles: true,
             detail: {
                 routerId: this.routerId,
-                replace: replace,
                 signal: controller.signal,
                 finished: this._finished
             }

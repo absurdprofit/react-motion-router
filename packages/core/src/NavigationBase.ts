@@ -5,7 +5,6 @@ import RouterData from "./RouterData";
 
 export interface BackEventDetail {
     routerId: string;
-    replace: boolean;
     signal: AbortSignal;
     finished: Promise<void>;
 }
@@ -23,11 +22,11 @@ export type NavigateEvent = CustomEvent<NavigateEventDetail>;
 export type BackEvent = CustomEvent<BackEventDetail>;
 
 export interface NavigationOptions {
-    replace?: boolean;
     signal?: AbortSignal;
 }
 
 export interface NavigateOptions extends NavigationOptions {
+    replace?: boolean;
     hash?: string;
 }
 

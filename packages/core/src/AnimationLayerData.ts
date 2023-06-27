@@ -193,13 +193,11 @@ export default class AnimationLayerData {
                 if (!this._gestureNavigating || this._playbackRate === 0.5) {
                     this._currentScreen.zIndex = 0;
                     this._nextScreen.zIndex = 1;
-                    if (this._currentScreen)
-                        this._currentScreen.mounted(false); // awaiting causes flicker bug on iOS
+                    this._currentScreen.mounted(false); // awaiting causes flicker bug on iOS
                 } else {
                     this._nextScreen.zIndex = 0;
                     this._currentScreen.zIndex = 1;
-                    if (this._nextScreen)
-                        await this._nextScreen.mounted(false);
+                    await this._nextScreen.mounted(false);
                 }
                 if (this._onEnd) {
                     this._onEnd();
