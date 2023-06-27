@@ -169,11 +169,14 @@ interface SharedElementConfig {
     transformOrigin?: TransformOrigin;
     easingFunction?: EasingFunction;
     duration?: number;
+    delay?: number;
     x?: {
+        delay?: number;
         duration?: number;
         easingFunction?: EasingFunction
     };
     y?: {
+        delay?: number;
         duration?: number;
         easingFunction?: EasingFunction
     };

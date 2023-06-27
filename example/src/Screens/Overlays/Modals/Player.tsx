@@ -86,21 +86,11 @@ export default function Player({navigation, route}: PlayerProps) {
                     route.params.onProgress(progress);
                     progress = progress / 100; // in the range 0 - 1
                     return (
-                        <motion.div
+                        <div
                             className="modal"
-                            initial={{
-                                transform: `translateY(${y}vh)`
-                            }}
                             style={{
-                                // opacity: sheetView ? this.state.opacity : 1,
-                                
-                            }}
-                            animate={{
-                                transform: `translateY(${lerp(y, 15, progress)}vh)`,
+                                transform: `translateY(15vh)`,
                                 borderRadius: `${lerp(0, 15, progress)}px`
-                            }}
-                            transition={{
-                                ...transition,
                             }}
                         >
                             <div className="notch" style={{opacity: lerp(0, 1, progress)}}></div>
@@ -162,7 +152,7 @@ export default function Player({navigation, route}: PlayerProps) {
                                 </StackComponent>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
                     );
                 }}
             </Motion.Consumer>

@@ -12,6 +12,10 @@ interface AnimationProviderProps {
     name: string;
     resolvedPathname?: string;
     animation: AnimationConfigSet | (() => AnimationConfigSet);
+    pseudoElement?: {
+        selector: string;
+        animation: AnimationConfigSet | (() => AnimationConfigSet);
+    }
     backNavigating: boolean;
     keepAlive: boolean;
     children: React.ReactNode
@@ -99,79 +103,76 @@ export default class AnimationProvider extends React.Component<AnimationProvider
         this.props.navigation.removeEventListener('motion-progress-end', this.onAnimationEnd);
     }
 
-    get inAnimation(): AnimationKeyframeEffectConfig | [keyof typeof AnimationKeyframePresets, number, EasingFunction | undefined] {
-        let animation;
-        if (typeof this.props.animation === "function") {
-            animation = this.props.animation();
+    private getAnimationConfig(
+        type: "in" | "out",
+        animation: AnimationConfigSet | (() => AnimationConfigSet)
+    ): AnimationKeyframeEffectConfig | [keyof typeof AnimationKeyframePresets, number, EasingFunction | undefined] {
+        if (typeof animation === "function") {
+            animation = animation();
         } else {
-            animation = this.props.animation;
+            animation = animation;
         }
 
-        if ('type' in animation.in) {
-            let direction: AnimationDirection | undefined = animation.in.direction;
+        const animationConfig = animation[type];
+        if ('type' in animationConfig) {
+            let direction: AnimationDirection | undefined = animationConfig.direction;
             let directionPrefix: '' | 'back-' = '' as const;
             const backNavigating = this.props.backNavigating;
             if (backNavigating && direction) {
-                if (animation.in.type === "zoom" || animation.in.type === "slide") {
+                if (animationConfig.type === "zoom" || animationConfig.type === "slide") {
                     direction = OppositeDirection[direction];
                     directionPrefix = 'back-' as const;
                 }
             }
-            switch(animation.in.type) {
+            switch(animationConfig.type) {
                 case "slide":
                     if (direction === 'in' || direction === 'out') direction = 'left';
-                    return [`slide-${directionPrefix}${direction || 'left'}-in`, animation.in.duration, animation.in.easingFunction];
+                    return [`slide-${directionPrefix}${direction || 'left'}-${type}`, animationConfig.duration, animationConfig.easingFunction];
     
                 case "zoom":
                     if (direction !== 'in' && direction !== 'out') direction = 'in';
-                    return [`zoom-${direction || 'in'}-in`, animation.in.duration, animation.in.easingFunction];
+                    return [`zoom-${direction || 'in'}-${type}`, animationConfig.duration, animationConfig.easingFunction];
                 
                 case "fade":
-                    return ["fade-in", animation.in.duration, animation.in.easingFunction];
+                    return [`fade-${type}`, animationConfig.duration, animationConfig.easingFunction];
                 
                 default:
-                    return ["none", animation.in.duration, undefined];
+                    return ["none", animationConfig.duration, undefined];
             }
         } else {
-            return animation.in;
+            return animationConfig;
         }
     }
 
+    get pseudoElementInAnimation() {
+        if (this.props.pseudoElement)
+            return this.getAnimationConfig("in", this.props.pseudoElement.animation);
+        return null;
+    }
+
+    get pseudoElementOutAnimation() {
+        if (this.props.pseudoElement)
+            return this.getAnimationConfig("out", this.props.pseudoElement.animation);
+        return null;
+    }
+
+    get inAnimation() {
+        return this.getAnimationConfig("in", this.props.animation);
+    }
+
     get outAnimation(): AnimationKeyframeEffectConfig | [keyof typeof AnimationKeyframePresets, number, EasingFunction | undefined] {
-        let animation;
-        if (typeof this.props.animation === "function")  {
-            animation = this.props.animation();
-        } else {
-            animation = this.props.animation;
-        }
+        return this.getAnimationConfig("out", this.props.animation);
+    }
 
-        if ('type' in animation.out) {
-            let direction: AnimationDirection | undefined = animation.out.direction;
-            let directionPrefix: '' | 'back-' = '' as const;
-            const backNavigating = this.props.backNavigating;
-            if (backNavigating && direction) {
-                if (animation.out.type === "zoom" || animation.out.type === "slide") {
-                    direction = OppositeDirection[direction];
-                    directionPrefix = 'back-' as const;
-                }
-            }
-            switch(animation.out.type) {
-                case "slide":
-                    if (direction === "in" || direction === "out") direction = 'left';
-                    return [`slide-${directionPrefix}${direction || 'left'}-out`, animation.out.duration, animation.out.easingFunction];
-
-                case "zoom":
-                    if (direction !== "in" && direction !== "out") direction = 'in';
-                    return [`zoom-${direction || 'in'}-out`, animation.out.duration, animation.out.easingFunction];
-                
-                case "fade":
-                    return ["fade-out", animation.out.duration, animation.out.easingFunction];
-                
-                default:
-                    return ["none", animation.out.duration, undefined];
-            }
+    get pseudoElementDuration() {
+        const animation = this.props.in ? this.pseudoElementInAnimation : this.pseudoElementOutAnimation;
+        if (!animation) return null;
+        if (Array.isArray(animation)) {
+            const [_, duration] = animation;
+            return duration;
         } else {
-            return animation.out;
+            if (typeof animation.options === "number") return animation.options;
+            return animation.options?.duration;
         }
     }
 
@@ -183,6 +184,79 @@ export default class AnimationProvider extends React.Component<AnimationProvider
         } else {
             if (typeof animation.options === "number") return animation.options;
             return animation.options?.duration;
+        }
+    }
+
+    get pseudoElementAnimation() {
+        if (!this.ref || !this.props.pseudoElement) return null;
+        const pseudoElement = this.props.pseudoElement.selector;
+        let easingFunction = this._animationLayerData?.gestureNavigating ? 'linear' : 'ease-out';
+        if (this.props.in) {
+            if (Array.isArray(this.pseudoElementInAnimation)) { // predefined animation
+                const [animation, duration, userDefinedEasingFunction] = this.pseudoElementInAnimation;
+                return new Animation(
+                    new KeyframeEffect(this.ref, AnimationKeyframePresets[animation], {
+                        fill: 'both',
+                        duration: duration,
+                        easing: userDefinedEasingFunction || easingFunction,
+                        pseudoElement
+                    })
+                );
+            } else { // user provided animation
+                let {keyframes, options} = this.pseudoElementInAnimation!;
+                if (typeof options === "number") {
+                    options = {
+                        duration: options,
+                        easing: easingFunction,
+                        fill: 'both',
+                        pseudoElement
+                    };
+                } else {
+                    options = {
+                        ...options,
+                        fill: options?.fill || 'both',
+                        duration: options?.duration || this._animationLayerData?.duration,
+                        easing: options?.easing || easingFunction,
+                        pseudoElement
+                    };
+                }
+                return new Animation(
+                    new KeyframeEffect(this.ref, keyframes, options)
+                );
+            }
+        } else {
+            if (Array.isArray(this.pseudoElementOutAnimation)) { // predefined animation
+                const [animation, duration, userDefinedEasingFunction] = this.pseudoElementOutAnimation;
+                return new Animation(
+                    new KeyframeEffect(this.ref, AnimationKeyframePresets[animation], {
+                        fill: 'both',
+                        duration: duration,
+                        easing: userDefinedEasingFunction || easingFunction,
+                        pseudoElement
+                    })
+                );
+            } else { // user provided animation
+                let {keyframes, options} = this.pseudoElementOutAnimation!;
+                if (typeof options === "number") {
+                    options = {
+                        duration: options,
+                        easing: easingFunction,
+                        fill: 'both',
+                        pseudoElement
+                    };
+                } else {
+                    options = {
+                        ...options,
+                        easing: options?.easing || easingFunction,
+                        duration: options?.duration || this._animationLayerData?.duration,
+                        fill: options?.fill || 'both',
+                        pseudoElement
+                    };
+                }
+                return new Animation(
+                    new KeyframeEffect(this.ref, keyframes, options)
+                );
+            }
         }
     }
 
@@ -252,16 +326,6 @@ export default class AnimationProvider extends React.Component<AnimationProvider
         }
     }
 
-    animate(keyframes: Keyframe[] | PropertyIndexedKeyframes | null, options?: number | KeyframeAnimationOptions | undefined): Animation | null {
-        if (typeof options === "number")
-            options = {duration: options};
-        options = {
-            ...options,
-            id: `${this.props.name}-${this.props.in ? 'in' : 'out'}`
-        }
-        return this.ref?.animate(keyframes, options) || null;
-    }
-
     set zIndex(_zIndex: number) {
         this.setState({zIndex: _zIndex});
     }
@@ -294,14 +358,19 @@ export default class AnimationProvider extends React.Component<AnimationProvider
 
     render() {
         return (
-            <div id={this.props.name} className="animation-provider" ref={this.setRef} style={{
-                position: 'absolute',
-                width: '100%',
-                height: '100%',
-                contain: 'strict',
-                transformOrigin: 'center center',
-                zIndex: this.state.zIndex
-            }}>
+            <div
+                id={`${this.props.name}-animation-provider`}
+                className="animation-provider"
+                ref={this.setRef}
+                style={{
+                    position: 'absolute',
+                    width: '100%',
+                    height: '100%',
+                    contain: 'strict',
+                    transformOrigin: 'center center',
+                    zIndex: this.state.zIndex
+                }}
+            >
                 <AnimationLayerDataContext.Consumer>
                     {(animationLayerData) => {
                         this._animationLayerData = animationLayerData;

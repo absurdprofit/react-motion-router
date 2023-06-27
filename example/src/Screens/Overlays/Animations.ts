@@ -1,4 +1,4 @@
-import { matchRoute, AnimationConfigFactory, AnimationConfig } from '@react-motion-router/core';
+import { matchRoute, AnimationConfigFactory, AnimationConfig, AnimationConfigSet, ReducedAnimationConfigSet } from '@react-motion-router/core';
 import { iOS, isPWA } from '../../common/utils';
 
 export const OverlaysAnimation: AnimationConfigFactory = (currentPath: string, nextPath: string) => {
@@ -48,28 +48,38 @@ export const OverlaysAnimation: AnimationConfigFactory = (currentPath: string, n
     }
 }
 
-export const ModalAnimation: AnimationConfigFactory = (c, n, gestureNavigating) => {
-    const fadeIn = {
-        keyframes: [
-            {backgroundColor: 'rgba(0, 0, 0, 0)'},
-            {backgroundColor: 'rgba(0, 0, 0, 0.3)'}
-        ],
-        options: {
-            duration: 150,
-        }
-    };
-    const fadeOut = {
-        keyframes: [
-            {backgroundColor: 'rgba(0, 0, 0, 0.3)'},
-            {backgroundColor: 'rgba(0, 0, 0, 0)'}
-        ],
-        options: {
-            duration: 250,
-        }
-    };
-    
-    return {
-        in: fadeIn,
-        out: fadeOut
+export const ModalAnimation: AnimationConfigSet = {
+    in: {
+        type: "slide",
+        direction: "up",
+        duration: 150
+    },
+    out: {
+        type: "slide",
+        direction: "up",
+        duration: 250
     }
+};
+
+const fadeIn = {
+    keyframes: [
+        {backgroundColor: 'rgba(0, 0, 0, 0)'},
+        {backgroundColor: 'rgba(0, 0, 0, 0.3)'}
+    ],
+    options: {
+        duration: 300,
+    }
+};
+const fadeOut = {
+    keyframes: [
+        {backgroundColor: 'rgba(0, 0, 0, 0.3)'},
+        {backgroundColor: 'rgba(0, 0, 0, 0)'}
+    ],
+    options: {
+        duration: 350,
+    }
+};
+export const BackdropAnimation: AnimationConfigSet = {
+    in: fadeIn,
+    out: fadeOut
 };

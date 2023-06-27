@@ -13,6 +13,17 @@ import {
 import { RouterDataContext } from "./RouterData";
 import { SharedElement, SharedElementScene, SharedElementSceneContext } from "./SharedElement";
 
+const DEFAULT_ANIMATION = {
+    in: {
+        type: 'none',
+        duration: 0
+    },
+    out: {
+        type: 'none',
+        duration: 0
+    }
+} as const;
+
 export interface ScreenBaseProps {
     out?: boolean;
     in?: boolean;
@@ -24,6 +35,10 @@ export interface ScreenBaseProps {
     name?: string;
     config?: {
         animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig | AnimationConfigFactory;
+        pseudoElement?: {
+            selector: string;
+            animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig | AnimationConfigFactory;
+        };
         keepAlive?: boolean;
         swipeDirection?: SwipeDirection;
         swipeAreaWidth?: number;
@@ -44,16 +59,8 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
     private ref: HTMLElement | null = null;
     private contextParams = this.context?.routesData.get(this.props.path)?.params;
     private onRef = this.setRef.bind(this);
-    private animation: AnimationConfigSet | (() => AnimationConfigSet) = {
-        in: {
-            type: 'none',
-            duration: 0
-        },
-        out: {
-            type: 'none',
-            duration: 0
-        }
-    };
+    private animation: AnimationConfigSet | (() => AnimationConfigSet) = DEFAULT_ANIMATION;
+    private pseudoElementAnimation: AnimationConfigSet | (() => AnimationConfigSet) = DEFAULT_ANIMATION;
     static contextType = RouterDataContext;
     context!: React.ContextType<typeof RouterDataContext>;
     static defaultProps = {
@@ -83,25 +90,8 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
         } else {
             this.setState({fallback: this.props.fallback});
         }
-        if (this.props.config?.animation) {
-            if (typeof this.props.config.animation === "function") {
-                this.animation = this.animationFactory.bind(this);
-            } else {
-                if ('in' in this.props.config.animation) {
-                    this.animation = {
-                        in: this.props.config.animation.in,
-                        out: this.props.config.animation.out || this.props.config.animation.in
-                    };
-                } else {
-                    this.animation = {
-                        in: this.props.config.animation,
-                        out: this.props.config.animation
-                    };
-                }
-            }
-        } else {
-            this.animation = this.context!.animation;
-        }
+        this.animation = this.setupAnimation(this.props.config?.animation) ?? this.context!.animation;
+        this.pseudoElementAnimation = this.setupAnimation(this.props.config?.pseudoElement?.animation) ?? DEFAULT_ANIMATION;
 
         this.contextParams = this.context!.routesData.get(this.props.path)?.params;
         this.context!.mountedScreen = this;
@@ -148,15 +138,36 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
         }
     }
 
-    animationFactory(): AnimationConfigSet {
-        if (typeof this.props.config?.animation === "function") {
+    setupAnimation(animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig | AnimationConfigFactory) {
+        if (animation) {
+            if (typeof animation === "function") {
+                return this.animationFactory.bind(this, animation);
+            } else {
+                if ('in' in animation) {
+                    return {
+                        in: animation.in,
+                        out: animation.out || animation.in
+                    };
+                } else {
+                    return {
+                        in: animation,
+                        out: animation
+                    };
+                }
+            }
+        }
+        return null;
+    }
+
+    animationFactory(animation?: AnimationKeyframeEffectConfig | AnimationConfig | ReducedAnimationConfigSet | AnimationConfigFactory): AnimationConfigSet {
+        if (typeof animation === "function") {
             let currentPath = this.context!.navigation!.history.next;
             if (!this.context!.backNavigating) {
                 currentPath = this.context!.navigation!.history.previous;
             }
             let nextPath = this.context!.navigation!.history.current;
 
-            const animationConfig = this.props.config.animation(
+            const animationConfig = animation(
                 currentPath || '',
                 nextPath,
                 this.context!.gestureNavigating
@@ -233,6 +244,13 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
             Component = this.props.component.preloaded as React.JSXElementConstructor<any>;
             preloaded = true;
         }
+        let pseudoElement = undefined;
+        if (this.props.config?.pseudoElement) {
+            pseudoElement = {
+                selector: this.props.config?.pseudoElement.selector,
+                animation: this.pseudoElementAnimation
+            };
+        }
         return (
             <AnimationProvider
                 onExit={this.onExit}
@@ -242,11 +260,13 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
                 name={this.props.name?.toLowerCase().replace(' ', '-') ?? this.name}
                 resolvedPathname={this.props.resolvedPathname}
                 animation={this.animation}
+                pseudoElement={pseudoElement}
                 backNavigating={this.context!.backNavigating}
                 keepAlive={this.state.shouldKeepAlive ? this.props.config?.keepAlive || false : false}
                 navigation={this.context!.navigation}
             >
                 <div
+                    id={this.name}
                     ref={this.onRef}
                     className="screen"
                     style={{

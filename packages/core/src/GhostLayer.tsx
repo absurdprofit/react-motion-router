@@ -20,6 +20,7 @@ interface GhostLayerState {
 }
 
 interface TransitionXYState {
+    delay: number;
     duration: number;
     easingFunction: EasingFunction;
     position: number;
@@ -146,6 +147,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         start: {
                             x: {
                                 node: startNode,
+                                delay: startInstance.props.config?.x?.delay ?? endInstance.props.config?.delay ?? 0,
                                 duration: startInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.context!.duration,
                                 easingFunction: startInstance.props.config?.x?.easingFunction || startInstance.props.config?.easingFunction ||'ease',
                                 position: startRect.x - (this.state.playing ? 0 : currentScene.x),
@@ -153,6 +155,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             },
                             y: {
                                 node: startChild,
+                                delay: startInstance.props.config?.y?.delay ?? endInstance.props.config?.delay ?? 0,
                                 duration: startInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.context!.duration,
                                 easingFunction: startInstance.props.config?.y?.easingFunction || startInstance.props.config?.easingFunction || 'ease',
                                 position: startRect.y - (this.state.playing ? 0 : currentScene.y)
@@ -161,12 +164,14 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         end: {
                             x: {
                                 node: endNode,
+                                delay: endInstance.props.config?.x?.delay ?? endInstance.props.config?.delay ?? 0,
                                 duration: endInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.context!.duration,
                                 easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
                                 position: endRect.x - (this.state.playing ? nextScene.x : 0)
                             },
                             y: {
                                 node: endChild,
+                                delay: endInstance.props.config?.y?.delay ?? endInstance.props.config?.delay ?? 0,
                                 duration: endInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.context!.duration,
                                 easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
                                 position: endRect.y - (this.state.playing ? nextScene.y : 0)
@@ -220,6 +225,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             fill: 'both',
                             easing: transitionState.end.x.easingFunction,
                             duration: transitionState.end.x.duration,
+                            delay: transitionState.end.x.delay,
                             id: `${id}-x-start`
                         });
                         startYAnimation = transitionState.start.y.node.animate(
@@ -237,6 +243,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 fill: 'both',
                                 easing: transitionState.end.y.easingFunction,
                                 duration: transitionState.end.y.duration,
+                                delay: transitionState.end.y.delay,
                                 id: `${id}-y-start`
                             }
                         );
@@ -255,6 +262,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             fill: 'both',
                             easing: transitionState.end.x.easingFunction,
                             duration: transitionState.end.x.duration,
+                            delay: transitionState.end.x.delay,
                             id: `${id}-x-start`
                         });
                         startYAnimation = transitionState.start.y.node.animate(
@@ -270,6 +278,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 fill: 'both',
                                 easing: transitionState.end.y.easingFunction,
                                 duration: transitionState.end.y.duration,
+                                delay: transitionState.end.y.delay,
                                 id: `${id}-y-start`
                             }
                         );
@@ -286,6 +295,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             fill: 'both',
                             easing: transitionState.end.x.easingFunction,
                             duration: transitionState.end.x.duration,
+                            delay: transitionState.end.x.delay,
                             id: `${id}-x-end`
                         });
                         endYAnimation = transitionState.end.y.node.animate(
@@ -301,6 +311,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 fill: 'both',
                                 easing: transitionState.end.y.easingFunction,
                                 duration: transitionState.end.y.duration,
+                                delay: transitionState.end.y.delay,
                                 id: `${id}-y-end`
                             }
                         );
@@ -323,6 +334,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             fill: 'both',
                             easing: transitionState.end.x.easingFunction,
                             duration: transitionState.end.x.duration,
+                            delay: transitionState.end.x.delay,
                             id: `${id}-x-start`
                         });
                         startYAnimation = transitionState.start.y.node.animate(
@@ -338,6 +350,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 fill: 'both',
                                 easing: transitionState.end.y.easingFunction,
                                 duration: transitionState.end.y.duration,
+                                delay: transitionState.end.y.delay,
                                 id: `${id}-y-start`
                             }
                         );
@@ -360,6 +373,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             fill: 'both',
                             easing: transitionState.end.x.easingFunction,
                             duration: transitionState.end.x.duration,
+                            delay: transitionState.end.x.delay,
                             id: `${id}-x-end`
                         });
                         endYAnimation = transitionState.end.y.node.animate(
@@ -375,6 +389,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 fill: 'both',
                                 easing: transitionState.end.y.easingFunction,
                                 duration: transitionState.end.y.duration,
+                                delay: transitionState.end.y.delay,
                                 id: `${id}-y-end`
                             }
                         );
@@ -393,6 +408,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             fill: 'both',
                             easing: transitionState.end.x.easingFunction,
                             duration: transitionState.end.x.duration,
+                            delay: transitionState.end.x.delay,
                             id: `${id}-x-start`
                         });
                         startYAnimation = transitionState.start.y.node.animate(
@@ -408,6 +424,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 fill: 'both',
                                 easing: transitionState.end.y.easingFunction,
                                 duration: transitionState.end.y.duration,
+                                delay: transitionState.end.y.delay,
                                 id: `${id}-y-start`
                             }
                         );
@@ -426,6 +443,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             fill: 'both',
                             easing: transitionState.end.x.easingFunction,
                             duration: transitionState.end.x.duration,
+                            delay: transitionState.end.x.delay,
                             id: `${id}-x-end`
                         });
                         endYAnimation = transitionState.end.y.node.animate(
@@ -441,6 +459,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 fill: 'both',
                                 easing: transitionState.end.y.easingFunction,
                                 duration: transitionState.end.y.duration,
+                                delay: transitionState.end.y.delay,
                                 id: `${id}-y-end`
                             }
                         );

@@ -90,7 +90,7 @@ export default function Details(props: DetailsProps) {
                         ></div>
                     </SharedElement>
                     <SharedElement id={hero.id}>
-                        <img src={hero.photoUrl} alt="Character Image" width={hero.photoWidth} height={hero.photoHeight} />
+                        <img src={hero.photoUrl} alt="Character" width={hero.photoWidth} height={hero.photoHeight} />
                     </SharedElement>
                     <div className="text-content" tabIndex={0}>
                         <SharedElement id={`title-${hero.id}`}>

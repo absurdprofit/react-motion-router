@@ -4,7 +4,7 @@ import Home from "./Home";
 import Player from "./Modals/Player";
 import Sheet from "./Modals/Sheet";
 import { useEffect } from "react";
-import { ModalAnimation } from "./Animations";
+import { BackdropAnimation, ModalAnimation } from "./Animations";
 import '../../css/Modal.css';
 import { iOS, isPWA } from "../..//common/utils";
 
@@ -32,7 +32,7 @@ export default function Overlays(props: OverlaysProps) {
     const modalConfig = {
         swipeDirection: 'down',
         swipeAreaWidth: window.innerHeight / 1.5,
-        animation: ModalAnimation,
+        animation: BackdropAnimation,
         disableDiscovery: false,
         hysteresis: 15
     } as const;
@@ -43,7 +43,14 @@ export default function Overlays(props: OverlaysProps) {
                     disableBrowserRouting: isPWA() && iOS(),
                 }}>
                     <Stack.Screen component={Home} path="/" config={{keepAlive: true}} />
-                    <Stack.Screen component={Player} path="/player" config={modalConfig} defaultParams={{onProgress}} />
+                    <Stack.Screen component={Player} path="/player" config={{
+                        ...modalConfig,
+                        animation: ModalAnimation,
+                        pseudoElement: {
+                            selector: "::before",
+                            animation: BackdropAnimation
+                        }
+                    }} defaultParams={{onProgress}} />
                     <Stack.Screen component={Sheet} path="/sheet" config={modalConfig} defaultParams={{onProgress}} />
                 </Router>
             </div>
