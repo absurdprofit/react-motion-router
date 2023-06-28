@@ -59,7 +59,7 @@ export default class Router extends RouterBase {
 
     onGestureNavigationEnd = () => {
         this._routerData.gestureNavigating = false;
-        this.setState({gestureNavigating: false}, () => {
+        this.setState({implicitBack: true, gestureNavigating: false}, () => {
             this.navigation.goBack();
             this.setState({backNavigating: false});
             this._routerData.backNavigating = false;
@@ -92,7 +92,7 @@ export default class Router extends RouterBase {
             }
         }
 
-        if (!this.state.backNavigating && !this.state.implicitBack) {
+        if (!this.state.backNavigating) {
             this.setState({backNavigating: true});
             e.detail.finished.then(this.onAnimationEnd.bind(this));
             this._routerData.backNavigating = true;
