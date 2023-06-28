@@ -92,6 +92,13 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
             this._nextScene = null;
             this._currentScene = null;
         };
+
+        const onCancel = () => {
+            const animations = this.ref?.getAnimations({subtree: true}) || [];
+            for (const animation of animations)
+                animation.cancel();
+            onEnd();
+        }
         
         this.setState({transitioning: true}, async () => {
             if (this.context!.duration === 0) return;
@@ -516,16 +523,9 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
             if (this.ref) {
                 Promise.all(
                     this.ref.getAnimations({subtree: true}).map(anim => anim.finished)
-                ).then(onEnd);
+                ).then(onEnd).catch(onCancel);
             }
         });
-
-        const onCancel = () => {
-            const animations = this.ref?.getAnimations({subtree: true}) || [];
-            for (const animation of animations)
-                animation.cancel();
-            onEnd();
-        }
 
         this.props.navigation.addEventListener('page-animation-cancel' , onCancel, {once: true});
     }
