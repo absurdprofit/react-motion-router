@@ -84,7 +84,6 @@ export default class AnimationLayerData {
         if (!animation) return;
         animation.commitStyles();
         animation.cancel();
-        animation = null;
     }
 
     async animate() {
@@ -182,6 +181,8 @@ export default class AnimationLayerData {
                 ]);
                 this.cleanUpAnimation(this._inAnimation);
                 this.cleanUpAnimation(this._outAnimation);
+                this._inAnimation = null;
+                this._outAnimation = null;
                 // this.cleanUpAnimation(this._pseudoElementInAnimation);
                 // this.cleanUpAnimation(this._pseudoElementOutAnimation);
 
