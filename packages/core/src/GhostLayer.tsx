@@ -482,6 +482,8 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     }
 
                     const onEnd = async () => {
+                        console.assert(id === endInstance.id, "Not sure what happened here.");
+                        console.assert(id === startInstance.id, "Not sure what happened here.");
                         startNode.style.willChange = 'auto';
                         endNode.style.willChange = 'auto';
                         await endInstance.hidden(false);
