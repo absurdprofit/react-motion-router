@@ -481,7 +481,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         });
                     }
 
-                    const onEnd = async ()=> {
+                    const onEnd = async () => {
                         startNode.style.willChange = 'auto';
                         endNode.style.willChange = 'auto';
                         await endInstance.hidden(false);
@@ -504,11 +504,9 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         await startInstance.hidden(false);
                         await endInstance.hidden(false);
                     };
-                    if (this.ref) {
-                        Promise.all(
-                            this.ref.getAnimations({subtree: true}).map(anim => anim.finished)
-                        ).then(onEnd).catch(onCancel);
-                    }
+                    Promise.all(
+                        animations.map(anim => anim?.finished)
+                    ).then(onEnd).catch(onCancel);
                     // this.props.navigation.addEventListener('page-animation-end', onEnd, {once:true});
                 }
             }

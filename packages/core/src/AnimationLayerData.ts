@@ -40,9 +40,10 @@ export default class AnimationLayerData {
         this._progressUpdateID = window.requestAnimationFrame(this.updateProgress.bind(this));
         const onEnd = () => {
             window.cancelAnimationFrame(this._progressUpdateID);
-            if (this.progress !== 100) {
+            const endTime = this._gestureNavigating ? 0 : 100;
+            if (this.progress !== endTime) {
                 if (this._onProgress)
-                    this._onProgress(100);
+                    this._onProgress(endTime);
             }
         };
         Promise.all([

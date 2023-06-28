@@ -231,11 +231,12 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
     componentDidMount() {
         this.context!.onProgress = (_progress: number) => {
             const progress = this.props.backNavigating && !this.state.gestureNavigating ? 99 - _progress : _progress;
-            this.setState({progress: clamp(progress, 0, 100)});
+            const clampedProgress = clamp(progress, 0, 100);
+            this.setState({progress: clampedProgress});
             
             const progressEvent = new CustomEvent<MotionProgressDetail>('motion-progress', {
                 detail: {
-                    progress: progress
+                    progress: clampedProgress
                 }
             });
     
