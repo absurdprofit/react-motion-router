@@ -1,7 +1,6 @@
 {
   "name": "@react-motion-router/example",
   "description": "Example React Motion Router app",
-  "version": "1.0.0",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.7.1",
