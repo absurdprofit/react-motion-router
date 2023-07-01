@@ -10,15 +10,15 @@ interface TileProps {
     navigation: Navigation;
 }
 
-let inset = '';
 let heroID = '';
 export default function Tile({hero, navigation, onClick}: TileProps) {
+    const [inset, setInset] = React.useState('');
     const imageRef = React.useRef<HTMLImageElement | null>(null);
 
     React.useEffect(() => {
         navigation.finished.then(() => {
             if (navigation.location.pathname === '/tiles') {
-                inset = '';
+                setInset('');
             }
         });
     }, []);
@@ -28,7 +28,9 @@ export default function Tile({hero, navigation, onClick}: TileProps) {
             const image = imageRef.current;
             if (image) {
                 const imageRect = image.getBoundingClientRect();
-                inset = getInset(-imageRect.top, -imageRect.right, -imageRect.bottom, -imageRect.left);
+                setInset(
+                    getInset(-imageRect.top, -imageRect.right, -imageRect.bottom, -imageRect.left)
+                );
             }
             heroID = hero.id;
             if (onClick) {
