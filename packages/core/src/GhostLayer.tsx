@@ -82,6 +82,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
     }
 
     sharedElementTransition(currentScene: SharedElementScene, nextScene: SharedElementScene) {
+        if (this.context!.duration === 0) return;
         if (this.state.transitioning) {
             this.finish(); // cancel playing animation
             return;
@@ -101,8 +102,6 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
         }
         
         this.setState({transitioning: true}, async () => {
-            if (this.context!.duration === 0) return;
-            
             for (const [id, start] of currentScene.nodes) {
                 //if id exists in next scene
                 if (nextScene.nodes.has(id)) {
