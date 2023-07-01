@@ -110,19 +110,6 @@ function Routes() {
             animation: OverlaysAnimation
           }}
         />
-        {/* <Stack.Screen
-          path='/modal'
-          name="Modal"
-          component={ModalExample}
-          fallback={<div className='screen-fallback modal'></div>}
-          config={{
-            swipeDirection: 'down',
-            swipeAreaWidth: window.innerHeight / 1.5,
-            animation: ModalAnimation,
-            disableDiscovery: false,
-            hysteresis: 15
-          }}
-        /> */}
         <Stack.Screen
           path={'/slides'}
           name="Slides"
@@ -180,7 +167,6 @@ function Routes() {
           path="/tiles"
           name="Tiles"
           component={Tiles}
-          defaultParams={{params: "data"}}
           fallback={<div className='screen-fallback tiles'></div>}
           config={{
             animation: (currentPath, nextPath) => {

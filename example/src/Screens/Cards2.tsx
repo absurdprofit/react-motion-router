@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography';
 import { Hero, Heroes } from '../assets/Heroes';
 import ButtonBase from '@mui/material/ButtonBase';
 import '../css/Cards.css';
+import { getInset } from '../common/utils';
 
 interface CardsProps extends Stack.ScreenComponentProps {}
 
@@ -16,126 +17,133 @@ interface CardListProps extends CardsProps {
     observer: IntersectionObserver;
 }
 
-const CardList = ({navigation, observer}: CardListProps) => {
-    const cards = Heroes.map((hero: Hero, index) => {
-        let imageRef: HTMLImageElement | null = null;
-        let paraRef: HTMLElement | null = null;
-        let titleRef: HTMLElement | null = null;
-        let gradientRef: HTMLElement | null = null;
-        let bgRef: HTMLElement | null = null;
-        const params = {
-            ...hero,
-            photoAspect: 0
-        };
-        const onClick = () => {
-            if (imageRef && paraRef && titleRef && gradientRef && bgRef) {
-                const imageRect = imageRef.getBoundingClientRect();
-                const paraRect = paraRef.getBoundingClientRect();
-                const titleRect = titleRef.getBoundingClientRect();
-                params.photoAspect = imageRef.naturalWidth / imageRef.naturalHeight;
-                titleInset = `inset(calc(${-titleRect.top}px + var(--navbar-safe-area)) ${-titleRect.right}px ${-titleRect.bottom}px ${-titleRect.left}px)`;
-                titleRef.style.clipPath = titleInset;
-                inset = `inset(calc(${-imageRect.top}px + var(--navbar-safe-area)) ${-imageRect.right}px ${-imageRect.bottom}px ${-imageRect.left}px)`;
-                imageRef.style.clipPath = inset;
-                gradientRef.style.clipPath = inset;
-                bgInset = `inset(calc(${-imageRect.top}px + var(--navbar-safe-area)) ${-imageRect.right}px ${-imageRect.bottom}px ${-imageRect.left}px)`;
-                bgRef.style.clipPath = bgInset;
-                textInset = `inset(calc(${-paraRect.top}px + var(--navbar-safe-area)) ${-paraRect.right}px ${-paraRect.bottom}px ${-paraRect.left}px)`;
-                paraRef.style.clipPath = textInset;
-                heroName = hero.id;
-            }
-        };
-        return (
-            <li role="menuitem" key={index}>
-                <Anchor href='/details' params={params} onClick={onClick}>
-                    <ButtonBase aria-label={`Character profile: ${hero.name}`} disableRipple>
-                        <SharedElement id={`${hero.id}-card-bg`}>
-                            <div
-                                id={`${hero.id}-bg`}
-                                className="card-bg"
-                                ref={(ref: HTMLElement | null) => bgRef = ref}
-                                style={{ width: 345 > window.screen.width ? 300 : 345, clipPath: (heroName === hero.id ? bgInset : '') }}
-                            ></div>
-                        </SharedElement>
-                        <Card sx={{ width: 345 > window.screen.width ? 300 : 345 }}>
-                            <SharedElement id={`${hero.id}-gradient-overlay`}>
-                                <div
-                                    ref={ref => gradientRef = ref}
-                                    className="gradient-overlay"
-                                    style={{
-                                        clipPath: (heroName === hero.id ? inset : '')
-                                    }}
-                                ></div>
-                            </SharedElement>
-                            <SharedElement id={hero.id}>
-                                <CardMedia
-                                    component="img"
-                                    height={345}
-                                    loading={heroName === hero.id ? "eager" : "lazy"}
-                                    decoding={heroName === hero.id ? "sync" : "async"}
-                                    src={hero.photoUrl}
-                                    alt={hero.name}
-                                    id={`${hero.id}`}
-                                    ref={(ref: HTMLImageElement | null) => {
-                                        if (imageRef) observer.unobserve(imageRef);
-                                        imageRef = ref;
-                                        if (ref) {
-                                            observer.observe(ref);
-                                        }
-                                    }}
-                                    style={{
-                                        clipPath: (heroName === hero.id ? inset : '')
-                                    }}
-                                />
-                            </SharedElement>
-                            <CardContent style={{position: 'absolute', bottom: '0', color: 'white'}}>
-                                <SharedElement id={`title-${hero.id}`} config={{
-                                    type: 'fade-through'
-                                }}>
-                                    <Typography
-                                        style={{
-                                            clipPath: (heroName === hero.id ? titleInset : ''),
-                                            fontWeight: 'bold',
-                                            zIndex: 10,
-                                            margin: 0,
-                                            position: 'relative',
-                                            fontSize: '28px'
-                                        }}
-                                        ref={(c: HTMLElement | null) => titleRef = c}
-                                        gutterBottom
-                                        variant="h4"
-                                        component="h4"
-                                    >{hero.name}</Typography>
-                                </SharedElement>
-                                <SharedElement id={`description-${hero.id}`} config={{
-                                    type: 'fade-through'
-                                }}>
-                                    <p 
-                                        ref={(c: HTMLElement | null) => paraRef = c}
-                                        style={{
-                                            fontSize: '16px',
-                                            zIndex: 10,
-                                            position: 'relative',
-                                            clipPath: (heroName === hero.id ? textInset : '')
-                                        }}
-                                    >{hero.description}</p>
-                                </SharedElement>
-                            </CardContent>
-                        </Card>
-                    </ButtonBase>
-                </Anchor>
-            </li>
-        );
-    });
-
-    return <>{cards}</>;
+interface CardProps extends CardsProps {
+    observer: IntersectionObserver;
+    hero: Hero;
 }
 
-let inset = '';
+let imageInset = '';
 let textInset = '';
 let heroName = '';
 let titleInset = '';
 let bgInset = '';
+const CardComponent = ({observer, navigation, hero}: CardProps) => {
+    const bgRef = React.useRef<HTMLDivElement | null>(null);
+    const titleRef = React.useRef<HTMLHeadingElement | null>(null);
+    const paraRef = React.useRef<HTMLParagraphElement | null>(null);
+    const imageRef = React.useRef<HTMLImageElement | null>(null);
+    const gradientRef = React.useRef<HTMLDivElement | null>(null);
+    const params = {
+        ...hero,
+        photoAspect: 0
+    };
+    const onClick = () => {
+        const image = imageRef.current;
+        const paragraph = paraRef.current;
+        const title = titleRef.current;
+        const bg = bgRef.current;
+        const gradient = gradientRef.current;
+        if (image && paragraph && title && gradient && bg) {
+            const imageRect = image.getBoundingClientRect();
+            const paraRect = paragraph.getBoundingClientRect();
+            const titleRect = title.getBoundingClientRect();
+            params.photoAspect = image.naturalWidth / image.naturalHeight;
+            titleInset = getInset(-titleRect.top, -titleRect.right, -titleRect.bottom, -titleRect.left);
+            title.style.clipPath = titleInset;
+            imageInset = getInset(-imageRect.top, -imageRect.right, -imageRect.bottom, -imageRect.left);
+            image.style.clipPath = imageInset;
+            gradient.style.clipPath = imageInset;
+            bgInset = getInset(-imageRect.top, -imageRect.right, -imageRect.bottom, -imageRect.left);
+            bg.style.clipPath = bgInset;
+            textInset = getInset(-paraRect.top, -paraRect.right, -paraRect.bottom, -paraRect.left);
+            paragraph.style.clipPath = textInset;
+            heroName = hero.id;
+        }
+    };
+    return (
+        <li role="menuitem">
+            <Anchor href='/details' params={params} onClick={onClick}>
+                <ButtonBase aria-label={`Character profile: ${hero.name}`} disableRipple>
+                    <SharedElement id={`${hero.id}-card-bg`}>
+                        <div
+                            id={`${hero.id}-bg`}
+                            className="card-bg"
+                            ref={bgRef}
+                            style={{ width: 345 > window.screen.width ? 300 : 345, clipPath: (heroName === hero.id ? bgInset : '') }}
+                        ></div>
+                    </SharedElement>
+                    <Card sx={{ width: 345 > window.screen.width ? 300 : 345 }}>
+                        <SharedElement id={`${hero.id}-gradient-overlay`}>
+                            <div
+                                ref={gradientRef}
+                                className="gradient-overlay"
+                                style={{
+                                    clipPath: (heroName === hero.id ? imageInset : '')
+                                }}
+                            ></div>
+                        </SharedElement>
+                        <SharedElement id={hero.id}>
+                            <CardMedia
+                                component="img"
+                                height={345}
+                                loading={heroName === hero.id ? "eager" : "lazy"}
+                                decoding={heroName === hero.id ? "sync" : "async"}
+                                src={hero.photoUrl}
+                                alt={hero.name}
+                                id={`${hero.id}`}
+                                ref={imageRef}
+                                style={{
+                                    clipPath: (heroName === hero.id ? imageInset : '')
+                                }}
+                            />
+                        </SharedElement>
+                        <CardContent style={{position: 'absolute', bottom: '0', color: 'white'}}>
+                            <SharedElement id={`title-${hero.id}`} config={{
+                                type: 'fade-through'
+                            }}>
+                                <Typography
+                                    style={{
+                                        clipPath: (heroName === hero.id ? titleInset : ''),
+                                        fontWeight: 'bold',
+                                        zIndex: 10,
+                                        margin: 0,
+                                        position: 'relative',
+                                        fontSize: '28px'
+                                    }}
+                                    ref={titleRef}
+                                    gutterBottom
+                                    variant="h4"
+                                    component="h4"
+                                >{hero.name}</Typography>
+                            </SharedElement>
+                            <SharedElement id={`description-${hero.id}`} config={{
+                                type: 'fade-through'
+                            }}>
+                                <p 
+                                    ref={paraRef}
+                                    style={{
+                                        fontSize: '16px',
+                                        zIndex: 10,
+                                        position: 'relative',
+                                        clipPath: (heroName === hero.id ? textInset : '')
+                                    }}
+                                >{hero.description}</p>
+                            </SharedElement>
+                        </CardContent>
+                    </Card>
+                </ButtonBase>
+            </Anchor>
+        </li>
+    );
+}
+
+const CardList = (props: CardListProps) => {
+    const cards = Heroes.map((hero: Hero, index) => {
+       return <CardComponent key={index} hero={hero} {...props} /> 
+    });
+
+    return <>{cards}</>;
+}
 
 export default class Cards2 extends React.Component<CardsProps> {
     static isFirstLoad = false;
@@ -156,7 +164,7 @@ export default class Cards2 extends React.Component<CardsProps> {
                 this.forceUpdate();
             }
             if (this.props.navigation.location.pathname === '/cards-2') {
-                inset = '';
+                imageInset = '';
                 textInset = '';
                 titleInset = '';
                 this.forceUpdate();
