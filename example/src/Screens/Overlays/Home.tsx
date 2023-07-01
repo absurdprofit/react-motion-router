@@ -8,7 +8,6 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { IconButton } from "@mui/material";
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import '../../css/Overlays.css';
-import { PlayerParams } from './Modals/Player';
 
 interface OverlaysProps extends Stack.ScreenComponentProps {}
 
@@ -16,12 +15,7 @@ export default function Overlays({navigation}: OverlaysProps) {
     const playerRef = useRef<HTMLDivElement | null>(null);
 
     const openPlayer = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-        let top = 0.9 * window.innerHeight;
-        if (playerRef.current) top = playerRef.current.getBoundingClientRect().top + (0.05 * window.innerHeight);
-        
-        navigation.navigate<PlayerParams>('/player', {
-            top: (top / window.innerHeight) * 100, // vh units
-        }).catch((e) => console.log(e));
+        navigation.navigate('/player').catch(console.log);
     }
 
     return (

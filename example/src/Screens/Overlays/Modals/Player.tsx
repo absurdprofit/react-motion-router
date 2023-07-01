@@ -14,21 +14,12 @@ import { motion } from 'framer-motion';
 import { lerp } from '../../../common/utils';
 import '../../../css/Player.css';
 
-export interface PlayerParams {
-    top: number;
-}
-
-interface PlayerProps extends Stack.ScreenComponentProps<PlayerParams> {}
+interface PlayerProps extends Stack.ScreenComponentProps {}
 
 let seekStart = 30;
 let volumeStart = 50;
 let timeStart = lerp(0, 139, seekStart/100);
 let isFirstLoad = true;
-const transition = {
-    type: 'tween',
-    duration: 0,
-    ease: 'linear'
-}
 export default function Player({navigation, route}: PlayerProps) {
     const progress = useMotion();
     const [volume, setVolume] = useState(volumeStart - 15);
@@ -72,8 +63,6 @@ export default function Player({navigation, route}: PlayerProps) {
         setDisabled(true);
     }
 
-    const {top} = route.params;
-    const y = top || 92;
     return (
         <dialog
             open
