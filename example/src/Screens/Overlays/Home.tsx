@@ -21,7 +21,6 @@ export default function Overlays({navigation}: OverlaysProps) {
         
         navigation.navigate<PlayerParams>('/player', {
             top: (top / window.innerHeight) * 100, // vh units
-            onProgress: () => {}
         }).catch((e) => console.log(e));
     }
 

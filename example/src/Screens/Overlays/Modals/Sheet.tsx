@@ -1,15 +1,11 @@
 import React, {useState} from 'react';
 import { Anchor, Motion } from '@react-motion-router/core';
 import { Button } from '@mui/material';
-import { Navigation, Stack } from '@react-motion-router/stack';
-import { motion, AnimationProps } from 'framer-motion';
+import { Stack } from '@react-motion-router/stack';
+import { motion } from 'framer-motion';
 import { lerp } from '../../../common/utils';
 
-interface SheetParams {
-    onProgress: (progress: number) => void;
-}
-
-interface SheetProps extends Stack.ScreenComponentProps<SheetParams> {}
+interface SheetProps extends Stack.ScreenComponentProps {}
 
 let isFirstLoad = true;
 const transition = {
@@ -49,7 +45,6 @@ export default function Sheet({navigation, route}: SheetProps) {
         >
             <Motion.Consumer>
                 {(progress) => {
-                    route.params.onProgress(progress);
                     progress = progress / 100; // in the range 0 - 1
                     return (
                         <motion.div

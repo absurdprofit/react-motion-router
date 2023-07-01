@@ -71,9 +71,6 @@ export default function Home(props: HomeProps) {
                     })
                 }
             </ul>
-            {/* <Anchor href="/video-test">
-                Video Text
-            </Anchor> */}
         </div>
     )
 }

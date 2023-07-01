@@ -1,6 +1,6 @@
 import React from 'react';
-import { Anchor, ScrollRestoration, SharedElement } from '@react-motion-router/core';
-import { Navigation, Stack } from '@react-motion-router/stack';
+import { Anchor, SharedElement } from '@react-motion-router/core';
+import { Stack } from '@react-motion-router/stack';
 import Navbar from '../Components/Navbar';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';

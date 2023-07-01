@@ -16,7 +16,6 @@ import '../../../css/Player.css';
 
 export interface PlayerParams {
     top: number;
-    onProgress: (progress: number) => void;
 }
 
 interface PlayerProps extends Stack.ScreenComponentProps<PlayerParams> {}
@@ -83,7 +82,6 @@ export default function Player({navigation, route}: PlayerProps) {
         >
             <Motion.Consumer>
                 {(progress) => {
-                    route.params.onProgress(progress);
                     progress = progress / 100; // in the range 0 - 1
                     return (
                         <div

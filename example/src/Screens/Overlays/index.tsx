@@ -6,7 +6,7 @@ import Sheet from "./Modals/Sheet";
 import { useEffect } from "react";
 import { BackdropAnimation, ModalAnimation } from "./Animations";
 import '../../css/Modal.css';
-import { iOS, isPWA } from "../..//common/utils";
+import { iOS, isPWA } from "../../common/utils";
 
 interface OverlaysProps extends Stack.ScreenComponentProps {}
 let isFirstLoad = false;
@@ -26,9 +26,6 @@ export default function Overlays(props: OverlaysProps) {
         }
     }, []);
 
-    const onProgress = (progress: number) => {
-        // console.log(progress);
-    }
     const modalConfig = {
         swipeDirection: 'down',
         swipeAreaWidth: window.innerHeight / 1.5,
@@ -50,8 +47,8 @@ export default function Overlays(props: OverlaysProps) {
                             selector: "::before",
                             animation: BackdropAnimation
                         }
-                    }} defaultParams={{onProgress}} />
-                    <Stack.Screen component={Sheet} path="/sheet" config={modalConfig} defaultParams={{onProgress}} />
+                    }} />
+                    <Stack.Screen component={Sheet} path="/sheet" config={modalConfig} />
                 </Router>
             </div>
         </div>
