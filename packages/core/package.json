@@ -1,6 +1,6 @@
 {
   "name": "@react-motion-router/core",
-  "version": "3.8.1",
+  "version": "1.0.0",
   "main": "build/index.js",
   "files": [
     "build"
