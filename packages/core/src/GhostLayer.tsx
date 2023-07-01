@@ -82,7 +82,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
     }
 
     sharedElementTransition(currentScene: SharedElementScene, nextScene: SharedElementScene) {
-        if (this.context!.duration === 0) return;
+        if (this.context.duration === 0) return;
         if (this.state.transitioning) {
             this.finish(); // cancel playing animation
             return;
@@ -154,7 +154,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             x: {
                                 node: startNode,
                                 delay: startInstance.props.config?.x?.delay ?? endInstance.props.config?.delay ?? 0,
-                                duration: startInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.context!.duration,
+                                duration: startInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.context.duration,
                                 easingFunction: startInstance.props.config?.x?.easingFunction || startInstance.props.config?.easingFunction ||'ease',
                                 position: startRect.x - (this.state.playing ? 0 : currentScene.x),
                                 
@@ -162,7 +162,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             y: {
                                 node: startChild,
                                 delay: startInstance.props.config?.y?.delay ?? endInstance.props.config?.delay ?? 0,
-                                duration: startInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.context!.duration,
+                                duration: startInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.context.duration,
                                 easingFunction: startInstance.props.config?.y?.easingFunction || startInstance.props.config?.easingFunction || 'ease',
                                 position: startRect.y - (this.state.playing ? 0 : currentScene.y)
                             }
@@ -171,14 +171,14 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             x: {
                                 node: endNode,
                                 delay: endInstance.props.config?.x?.delay ?? endInstance.props.config?.delay ?? 0,
-                                duration: endInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.context!.duration,
+                                duration: endInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.context.duration,
                                 easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
                                 position: endRect.x - (this.state.playing ? nextScene.x : 0)
                             },
                             y: {
                                 node: endChild,
                                 delay: endInstance.props.config?.y?.delay ?? endInstance.props.config?.delay ?? 0,
-                                duration: endInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.context!.duration,
+                                duration: endInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.context.duration,
                                 easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
                                 position: endRect.y - (this.state.playing ? nextScene.y : 0)
                             }
@@ -475,7 +475,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     if (!this.state.playing) {
                         animations.forEach((animation: Animation | undefined) => {
                             if (!animation) return;
-                            const defaultDuration = this.context!.duration;
+                            const defaultDuration = this.context.duration;
                             let duration = animation.effect?.getComputedTiming().duration;
                             if (typeof duration === "string") {
                                 duration = parseFloat(duration);
@@ -555,7 +555,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
             const animations = this.ref?.getAnimations({subtree: true}) || [];
             for (const animation of animations) {
                 const progress = e.detail.progress;
-                const defaultDuration = this.context!.duration;
+                const defaultDuration = this.context.duration;
                 let duration = animation.effect?.getComputedTiming().duration;
                 if (typeof duration === "string") {
                     duration = parseFloat(duration);

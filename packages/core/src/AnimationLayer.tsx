@@ -229,7 +229,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
     }
 
     componentDidMount() {
-        this.context!.onProgress = (_progress: number) => {
+        this.context.onProgress = (_progress: number) => {
             const progress = this.props.backNavigating && !this.state.gestureNavigating ? 99 - _progress : _progress;
             const clampedProgress = clamp(progress, 0, 100);
             this.setState({progress: clampedProgress});
@@ -247,9 +247,9 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
     componentDidUpdate(prevProps: AnimationLayerProps, prevState: AnimationLayerState) {
         if (prevProps.currentPath !== this.state.currentPath) {
             if (!this.state.gestureNavigating && prevState.shouldAnimate) {
-                this.context!.play = true;
-                this.context!.backNavigating = this.props.backNavigating;
-                this.context!.animate(); // children changes committed now animate
+                this.context.play = true;
+                this.context.backNavigating = this.props.backNavigating;
+                this.context.animate(); // children changes committed now animate
             }
         }
     }
@@ -265,8 +265,8 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
     onSwipeStart(ev: SwipeStartEvent) {
         if (ev.touches.length > 1) return; // disable if more than one finger engaged
         if (this.state.disableDiscovery) return;
-        if (this.context!.isPlaying) return;
-        if (this.context!.duration === 0) return;
+        if (this.context.isPlaying) return;
+        if (this.context.duration === 0) return;
         let swipePos: number; // 1D
         switch(this.state.swipeDirection) {
             case "left":
@@ -309,11 +309,11 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             }, () => {
                 const motionStartEvent = new CustomEvent('motion-progress-start');
 
-                this.context!.gestureNavigating = true;
-                this.context!.playbackRate = -1;
-                this.context!.play = false;
-                this.context!.backNavigating = this.props.backNavigating;
-                this.context!.animate();
+                this.context.gestureNavigating = true;
+                this.context.playbackRate = -1;
+                this.context.play = false;
+                this.context.backNavigating = this.props.backNavigating;
+                this.context.animate();
                 
                 if (this.props.dispatchEvent) this.props.dispatchEvent(motionStartEvent);
                 this.ref?.addEventListener('swipe', this.onSwipeListener);
@@ -346,7 +346,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             }
                 
         }
-        this.context!.progress = clamp(progress, 0.1, 100);
+        this.context.progress = clamp(progress, 0.1, 100);
     }
 
     onSwipeEnd(ev: SwipeEndEvent) {
@@ -356,12 +356,12 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         const motionEndEvent = new CustomEvent('motion-progress-end');
         if ((100 - this.state.progress) > this.state.hysteresis || ev.velocity > this.state.minFlingVelocity) {
             if (ev.velocity >= this.state.minFlingVelocity) {
-                this.context!.playbackRate = -5;
+                this.context.playbackRate = -5;
             } else {
-                this.context!.playbackRate = -1;
+                this.context.playbackRate = -1;
             }
             onEnd = () => {
-                this.context!.reset();
+                this.context.reset();
                 this.props.onGestureNavigationEnd();
                 
                 this.setState({gestureNavigating: false});
@@ -370,10 +370,10 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             }
             this.setState({shouldPlay: true, shouldAnimate: false});
         } else {
-            this.context!.playbackRate = 0.5;
+            this.context.playbackRate = 0.5;
             onEnd = () => {
                 this.props.navigation.removeEventListener('go-back', this.onGestureSuccess as unknown as EventListener);
-                this.context!.reset();
+                this.context.reset();
                 
                 if (this.props.dispatchEvent) this.props.dispatchEvent(motionEndEvent);
             }
@@ -381,8 +381,8 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         }
 
         this.setState({startX: 0, startY: 0});
-        this.context!.onEnd = onEnd;
-        this.context!.play = true;
+        this.context.onEnd = onEnd;
+        this.context.play = true;
         this.ref?.removeEventListener('swipe', this.onSwipeListener);
         this.ref?.removeEventListener('swipeend', this.onSwipeEndListener);
         
