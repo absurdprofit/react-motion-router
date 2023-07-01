@@ -1,15 +1,14 @@
 {
   "name": "@react-motion-router/example",
   "description": "Example React Motion Router app",
-  "version": "0.1.0",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.7.1",
     "@emotion/styled": "^11.6.0",
     "@mui/icons-material": "^5.2.5",
     "@mui/material": "^5.2.5",
-    "@react-motion-router/core": "*",
-    "@react-motion-router/stack": "*",
+    "@react-motion-router/core": "^1.0.0",
+    "@react-motion-router/stack": "^1.0.0",
     "@testing-library/jest-dom": "^5.15.0",
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^12.8.3",

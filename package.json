@@ -1,7 +1,6 @@
 {
   "name": "root",
   "private": true,
-  "version": "3.8.1",
   "browser": "index.js",
   "description": "Declarative routing library for ReactJS ⚛ with animations baked in ⏮",
   "scripts": {

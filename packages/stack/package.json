@@ -1,8 +1,11 @@
 {
   "name": "@react-motion-router/stack",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "description": "",
   "main": "build/index.js",
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "build"
   ],
@@ -22,5 +25,6 @@
   "homepage": "https://github.com/nxtexe/react-motion-router#readme",
   "peerDependencies": {
     "@react-motion-router/core": "*"
-  }
+  },
+  "gitHead": "38a495e365799d870713ad00fcffd26af293582f"
 }
