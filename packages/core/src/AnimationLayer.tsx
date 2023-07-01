@@ -266,6 +266,7 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
         if (ev.touches.length > 1) return; // disable if more than one finger engaged
         if (this.state.disableDiscovery) return;
         if (this.context!.isPlaying) return;
+        if (this.context!.duration === 0) return;
         let swipePos: number; // 1D
         switch(this.state.swipeDirection) {
             case "left":
@@ -285,7 +286,10 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
             // if gesture region in touch path return
             for (let target of ev.composedPath().reverse()) {
                 if ('classList' in target && (target as HTMLElement).classList.length) {
-                    if ((target as HTMLElement).classList.contains('gesture-region')) return;
+                    if (
+                        (target as HTMLElement).classList.contains('gesture-region')
+                        && (target as HTMLElement).dataset.disabled === "true"
+                    ) return;
                     if (target === ev.gestureTarget) break;
                 }
             }

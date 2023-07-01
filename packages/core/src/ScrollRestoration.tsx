@@ -2,7 +2,7 @@ import React from "react";
 import { Vec2 } from "./common/types";
 import RouterData, { RouterDataContext } from "./RouterData";
 
-interface ScrollRestorationProps extends React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement> {
+interface ScrollRestorationProps extends React.HTMLAttributes<HTMLDivElement> {
     id: string;
     children: JSX.Element;
     hashScrollConfig?: ScrollIntoViewOptions;
@@ -77,6 +77,21 @@ export default class ScrollRestoration extends React.Component<ScrollRestoration
         }
     }
 
+    get scrollTop () {
+        return this.ref?.scrollTop ?? 0;
+    }
+
+    get scrollLeft () {
+        return this.ref?.scrollLeft ?? 0;
+    }
+
+    get scrollWidth () {
+        return this.ref?.scrollWidth ?? 0;
+    }
+
+    get scrollHeight() {
+        return this.ref?.scrollHeight ?? 0;
+    }
     render() {
         return (
             <RouterDataContext.Consumer>

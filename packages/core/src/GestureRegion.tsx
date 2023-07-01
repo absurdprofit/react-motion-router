@@ -1,7 +1,17 @@
 import React from 'react';
 
-export default function GestureRegion(props: any) {
+interface GestureRegionProps extends React.HTMLAttributes<HTMLDivElement> {
+    disabled?: boolean;
+}
+export default function GestureRegion({disabled, children, ...props}: GestureRegionProps) {
     return (
-        <div className="gesture-region" style={{display: 'contents'}}>{props.children}</div>
+        <div
+            className="gesture-region"
+            data-disabled={disabled}
+            style={{display: 'contents'}}
+            {...props}
+        >
+            {children}
+        </div>
     );
 }
