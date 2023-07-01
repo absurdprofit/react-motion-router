@@ -1,6 +1,6 @@
 {
   "name": "@react-motion-router/stack",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "",
   "main": "build/index.js",
   "publishConfig": {
@@ -26,5 +26,5 @@
   "peerDependencies": {
     "@react-motion-router/core": "*"
   },
-  "gitHead": "56329c2f133dc376a8e865c760c2883be12f70dc"
+  "gitHead": "38a495e365799d870713ad00fcffd26af293582f"
 }
