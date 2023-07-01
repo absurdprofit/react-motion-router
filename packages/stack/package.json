@@ -3,6 +3,9 @@
   "version": "1.0.2",
   "description": "",
   "main": "build/index.js",
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "build"
   ],
@@ -23,5 +26,5 @@
   "peerDependencies": {
     "@react-motion-router/core": "*"
   },
-  "gitHead": "0802564445617acd8805999ac8e23d2855c7834f"
+  "gitHead": "56329c2f133dc376a8e865c760c2883be12f70dc"
 }

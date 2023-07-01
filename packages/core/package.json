@@ -2,6 +2,9 @@
   "name": "@react-motion-router/core",
   "version": "1.0.2",
   "main": "build/index.js",
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "build"
   ],
@@ -55,5 +58,5 @@
     "webpack": "^5.72.0",
     "webpack-cli": "^4.9.2"
   },
-  "gitHead": "0802564445617acd8805999ac8e23d2855c7834f"
+  "gitHead": "56329c2f133dc376a8e865c760c2883be12f70dc"
 }
