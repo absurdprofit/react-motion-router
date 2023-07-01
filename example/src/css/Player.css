@@ -53,3 +53,13 @@
     font-size: 0.8rem;
     font-weight: 400;
 }
+#player-animation-provider::before {
+    content: "A";
+    color: transparent;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
+}

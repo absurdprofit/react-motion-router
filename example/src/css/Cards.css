@@ -3,11 +3,14 @@
   padding-top: 64px;
   padding-bottom: 15px;
   overflow: hidden;
+  padding-top: var(--navbar-safe-area);
 }
 .cards button {
   text-align: left;
 }
 .cards .card-list {
+  list-style: none;
+  padding: 0;
   width: 100%;
   height: calc(100vh - 94px);
   display: flex;
@@ -18,6 +21,10 @@
   gap: 15px;
   overflow-y: scroll;
   contain: strict;
+}
+.cards .card-list a {
+  display: flex;
+  text-decoration: none;
 }
 .cards.suspense .card-list {
   animation: cards-fade-in .5s ease forwards;

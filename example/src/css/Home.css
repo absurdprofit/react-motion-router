@@ -1,7 +1,7 @@
 .home {
     background-color: #efefef;
     flex: 1;
-    padding-top: 64px;
+    padding-top: var(--navbar-safe-area);
 }
 .home .list {
     background-color: white;
@@ -15,4 +15,18 @@
     position: absolute;
     bottom: 25px;
     left: 50%;
+}
+.home .list {
+    list-style: none;
+    padding: 0;
+}
+.home .list li {
+    display: flex;
+}
+.home .list a {
+    flex: 1;
+    text-decoration: none;
+}
+.home .list button {
+    width: 100%;
 }

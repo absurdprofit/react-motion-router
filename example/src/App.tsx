@@ -1,43 +1,26 @@
 import React from 'react';
-import {Router, Stack, AnimationConfig, AnimationConfigFactory} from 'react-motion-router';
-import { AnimationKeyframeEffectConfig } from 'react-motion-router/common/types';
-import { matchRoute } from 'react-motion-router/common/utils';
+import {Router, Stack } from '@react-motion-router/stack';
+import {
+  matchRoute,
+  AnimationKeyframeEffectConfig,
+  AnimationConfig,
+  AnimationConfigFactory,
+  lazy
+} from '@react-motion-router/core';
 import { iOS, isPWA } from './common/utils';
-import { ModalAnimation } from './Screens/Modal/Animations';
 import { OverlaysAnimation } from './Screens/Overlays/Animations';
-import "./css/App.css";
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './Theme';
+import "./css/App.css";
 
-const NotFound = React.lazy(() => import('./Screens/NotFound'));
-const Home = React.lazy(() => import('./Screens/Home'));
-const Cards = React.lazy(() => import('./Screens/Cards'));
-const Cards2 = React.lazy(() => import('./Screens/Cards2'));
-const Slides = React.lazy(() => import('./Screens/Slides'));
-const Tiles = React.lazy(() => import('./Screens/Tiles'));
-const Details = React.lazy(() => import('./Screens/Details'));
-const ModalExample = React.lazy(() => import('./Screens/Modal'));
-const Overlays = React.lazy(() => import('./Screens/Overlays'));
-
-function DetailsFallback({route}: any) {
-  const {hero} = route.params;
-  return (
-    <div className='screen-fallback details'>
-      <img
-        src={hero.photo.url}
-        alt="profile-details"
-        width={hero.photo.width}
-        height={hero.photo.height}
-        style={{
-          width: '100%',
-          maxWidth: '1000px',
-          height: 'auto'
-        }}
-      />
-    </div>
-  );
-}
-
+const NotFound = lazy(() => import('./Screens/NotFound'));
+const Home = lazy(() => import('./Screens/Home'));
+const Cards = lazy(() => import('./Screens/Cards'));
+const Cards2 = lazy(() => import('./Screens/Cards2'));
+const Slides = lazy(() => import('./Screens/Slides'));
+const Tiles = lazy(() => import('./Screens/Tiles'));
+const Details = lazy(() => import('./Screens/Details'));
+const Overlays = lazy(() => import('./Screens/Overlays'));
 
 let animation: AnimationConfig = {
   type: "slide",
@@ -87,6 +70,7 @@ const cardsToDetails: AnimationConfigFactory = (currentPath, nextPath) => {
 function Routes() {
   return (
       <Router config={{
+        basePathname: '/index.html',
         defaultRoute: '/',
         disableDiscovery: false,
         disableBrowserRouting: isPWA() && iOS(),
@@ -94,26 +78,13 @@ function Routes() {
         minFlingVelocity: 1000
       }}>
         <Stack.Screen
-          path='/overlays'
+          path='/overlays/**'
           name="Overlays"
           component={Overlays}
           fallback={<div className='screen-fallback overlays'></div>}
           config={{
             keepAlive: true,
             animation: OverlaysAnimation
-          }}
-        />
-        <Stack.Screen
-          path='/modal'
-          name="Modal"
-          component={ModalExample}
-          fallback={<div className='screen-fallback modal'></div>}
-          config={{
-            swipeDirection: 'down',
-            swipeAreaWidth: window.innerHeight / 1.5,
-            animation: ModalAnimation,
-            disableDiscovery: false,
-            hysteresis: 15
           }}
         />
         <Stack.Screen
@@ -155,10 +126,13 @@ function Routes() {
           name="Details"
           component={Details}
           config={{
-            animation: staticAnimation
+            animation: staticAnimation,
+            swipeDirection: "down",
+            swipeAreaWidth: window.innerHeight,
+            hysteresis: .3
           }}
           defaultParams={{data: "Default"}}
-          fallback={<DetailsFallback />}
+          fallback={<div className='screen-fallback details'></div>}
         />
         <Stack.Screen
           path={"/"}
@@ -167,10 +141,9 @@ function Routes() {
           fallback={<div className='screen-fallback home'></div>}
         />
         <Stack.Screen
-          path={/^\/tiles?[0-9]?/}
+          path="/tiles"
           name="Tiles"
           component={Tiles}
-          defaultParams={{params: "data"}}
           fallback={<div className='screen-fallback tiles'></div>}
           config={{
             animation: (currentPath, nextPath) => {

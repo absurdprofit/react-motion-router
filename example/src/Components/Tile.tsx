@@ -1,6 +1,8 @@
 import React from 'react';
 import {Hero} from '../assets/Heroes';
-import {Navigation, SharedElement} from 'react-motion-router';
+import {SharedElement} from '@react-motion-router/core';
+import {Navigation} from '@react-motion-router/stack';
+import { getInset } from '../common/utils';
 
 interface TileProps {
     hero: Hero;
@@ -8,50 +10,48 @@ interface TileProps {
     navigation: Navigation;
 }
 
-let inset = '';
 let heroID = '';
-export default class Tile extends React.Component<TileProps> {
-    private ref: HTMLImageElement | null = null;
+export default function Tile({hero, navigation, onClick}: TileProps) {
+    const [inset, setInset] = React.useState('');
+    const imageRef = React.useRef<HTMLImageElement | null>(null);
 
-    pageAnimationEnd() {
-        if (this.props.navigation.location.pathname === '/tiles') {
-            inset = '';
-            this.forceUpdate();
-        }
-    }
+    React.useEffect(() => {
+        navigation.finished.then(() => {
+            if (navigation.location.pathname === '/tiles') {
+                setInset('');
+            }
+        });
+    }, []);
 
-    componentDidMount() {
-        window.addEventListener('page-animation-end', this.pageAnimationEnd.bind(this), {once: true});
-    }
-
-    render() {
-        return (
-            <div onClick={() => {
-                if (this.ref) {
-                    const imageRect = this.ref.getBoundingClientRect();
-                    inset = `inset(${-imageRect.top+64}px ${-imageRect.right}px ${-imageRect.bottom}px ${-imageRect.left}px)`;
-                }
-                heroID = this.props.hero.id;
-                if (this.props.onClick) {
-                    this.props.onClick();
-                }
-            }} className="tile">
-                <SharedElement id={this.props.hero.id} config={{
-                    duration: 200
-                }}>
-                    <img
-                        ref={c => this.ref = c}
-                        src={this.props.hero.photo.url}
-                        alt={this.props.hero.name}
-                        width={this.props.hero.photo.width}
-                        height={this.props.hero.photo.height}
-                        decoding="async"
-                        style={{
-                            clipPath: (heroID === this.props.hero.id ? inset : '')
-                        }}
-                    />
-                </SharedElement>
-            </div>
-        );
-    }
+    return (
+        <div onClick={() => {
+            const image = imageRef.current;
+            if (image) {
+                const imageRect = image.getBoundingClientRect();
+                setInset(
+                    getInset(-imageRect.top, -imageRect.right, -imageRect.bottom, -imageRect.left)
+                );
+            }
+            heroID = hero.id;
+            if (onClick) {
+                onClick();
+            }
+        }} className="tile">
+            <SharedElement id={hero.id} config={{
+                duration: 200
+            }}>
+                <img
+                    ref={imageRef}
+                    src={hero.photoUrl}
+                    alt={hero.name}
+                    width={hero.photoWidth}
+                    height={hero.photoHeight}
+                    decoding="async"
+                    style={{
+                        clipPath: (heroID === hero.id ? inset : '')
+                    }}
+                />
+            </SharedElement>
+        </div>
+    );
 }

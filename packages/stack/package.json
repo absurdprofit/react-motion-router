@@ -1,0 +1,26 @@
+{
+  "name": "@react-motion-router/stack",
+  "version": "1.0.0",
+  "description": "",
+  "main": "build/index.js",
+  "files": [
+    "build"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nxtexe/react-motion-router.git"
+  },
+  "author": "nxtexe",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/nxtexe/react-motion-router/issues"
+  },
+  "homepage": "https://github.com/nxtexe/react-motion-router#readme",
+  "peerDependencies": {
+    "@react-motion-router/core": "*"
+  }
+}

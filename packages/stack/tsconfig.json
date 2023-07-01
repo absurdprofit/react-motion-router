@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig",
+  "compilerOptions": {
+    "outDir": "./build"
+  },
+  "include": [
+    "src/**/*.tsx",
+    "src/**/*.ts",
+    "../core/build/index.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "build"
+  ]
+}

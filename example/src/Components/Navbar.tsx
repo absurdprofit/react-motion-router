@@ -1,7 +1,7 @@
 import React, {memo} from 'react';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import IconButton from '@mui/material/IconButton';
-import { SharedElement, useNavigation } from 'react-motion-router';
+import { Anchor, SharedElement } from '@react-motion-router/core';
 import '../css/Navbar.css';
 
 interface NavbarProps {
@@ -9,27 +9,27 @@ interface NavbarProps {
     backButton?: boolean;
 }
 function Navbar(props: NavbarProps) {
-    const navigation = useNavigation();
     
-    const onClick = () => {
-        navigation.goBack();
-    }
     return (
         <div className="navbar">
             <div className="back">
                 {
                     props.backButton ?
-                    <IconButton onClick={onClick} disableRipple>
-                        <SharedElement id="back">
-                            <ArrowBackIosIcon style={{zIndex: 100}} />
-                        </SharedElement>
-                    </IconButton>
+                    <Anchor goBack>
+                        <IconButton disableRipple>
+                            <SharedElement id="back">
+                                <ArrowBackIosIcon style={{zIndex: 100}} />
+                            </SharedElement>
+                        </IconButton>
+                    </Anchor>
                     :
                     undefined
                 }
             </div>
             <div className="title">
-                <h2>{props.title}</h2>
+                <SharedElement id={props.title.toLowerCase().split(' ').join('-') + "-title"} config={{transformOrigin: 'center center'}}>
+                    <h2>{props.title}</h2>
+                </SharedElement>
             </div>
         </div>
     );
