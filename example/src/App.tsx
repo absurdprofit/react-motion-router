@@ -22,29 +22,6 @@ const Tiles = lazy(() => import('./Screens/Tiles'));
 const Details = lazy(() => import('./Screens/Details'));
 const Overlays = lazy(() => import('./Screens/Overlays'));
 
-function DetailsFallback({route}: any) {
-  const {hero} = route.params;
-  if (!hero) {
-    return <></>;
-  }
-  return (
-    <div className='screen-fallback details'>
-      <img
-        src={hero.photoUrl}
-        alt="profile-details"
-        width={hero.photoWidth}
-        height={hero.photoHeight}
-        style={{
-          width: '100%',
-          maxWidth: '1000px',
-          height: 'auto'
-        }}
-      />
-    </div>
-  );
-}
-
-
 let animation: AnimationConfig = {
   type: "slide",
   direction: "right",
@@ -155,7 +132,7 @@ function Routes() {
             hysteresis: .3
           }}
           defaultParams={{data: "Default"}}
-          fallback={<DetailsFallback />}
+          fallback={<div className='screen-fallback details'></div>}
         />
         <Stack.Screen
           path={"/"}
