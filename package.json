@@ -5,7 +5,8 @@
   "description": "Declarative routing library for ReactJS ⚛ with animations baked in ⏮",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "lerna run build"
+    "build": "lerna run build",
+    "publish": "lerna run build && lerna publish"
   },
   "repository": {
     "type": "git",
