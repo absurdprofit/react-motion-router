@@ -213,7 +213,14 @@ export class SharedElement extends React.Component<SharedElementProps, SharedEle
     }
 
     get node() {
-        if (this._ref) return this._ref.cloneNode(true) as HTMLElement;
+        if (this._ref) {
+            const node = this._ref.cloneNode(true) as HTMLElement;
+            if (this._ref instanceof HTMLVideoElement) {
+                const video = node as HTMLVideoElement;
+                video.currentTime = this._ref.currentTime;
+            }
+            return node;
+        }
         else return null;
     }
     
