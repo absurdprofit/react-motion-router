@@ -56,7 +56,6 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
         playing: true
     }
 
-
     set currentScene(scene: SharedElementScene) {
         this._currentScene = scene;
     }
@@ -243,11 +242,11 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                             [
                                 {
                                     ...startCSSObject,
-                                    transform: `translate(0px, ${transitionState.start.y.position}px) ${startCSSObject.transform === 'none' ? '' : startCSSObject.transform}`
+                                    transform: `translate(0px, ${transitionState.start.y.position}px)`
                                 },
                                 {
                                     ...endCSSObject,
-                                    transform: `translate(0px, ${transitionState.end.y.position}px) ${endCSSObject.transform === 'none' ? '' : endCSSObject.transform}`
+                                    transform: `translate(0px, ${transitionState.end.y.position}px)`
                                 }
                             ],
                             {
