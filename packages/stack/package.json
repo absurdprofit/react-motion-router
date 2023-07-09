@@ -1,6 +1,6 @@
 {
   "name": "@react-motion-router/stack",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "",
   "main": "build/index.js",
   "publishConfig": {
