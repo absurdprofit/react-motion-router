@@ -79,11 +79,13 @@ export interface LazyExoticComponent<T extends React.ComponentType<any>> extends
     preloaded: T | undefined;
 }
 
+export interface RouteProp<T> {
+    path: string | undefined;
+    params: T;
+    preloaded: boolean;
+}
 export interface ScreenComponentBaseProps<T extends PlainObject = {}, N extends NavigationBase = NavigationBase> {
-    route: {
-        params: T;
-        preloaded: boolean;
-    };
+    route: RouteProp<T>;
     navigation: N;
     orientation: ScreenOrientation;
 }
@@ -91,3 +93,6 @@ export interface ScreenComponentBaseProps<T extends PlainObject = {}, N extends 
 export type PlainObject<T = any> = {[key:string]: T};
 
 export type RouterEventMap = Pick<HTMLElementEventMap, "navigate" | "go-back" | "motion-progress" | "motion-progress-start" | "motion-progress-end" | "page-animation-start" | "page-animation-end" | "page-animation-cancel">;
+
+export type NodeAppendedEvent = CustomEvent<{node: Node;}>;
+export type NodeRemovedEvent = CustomEvent<{node: Node;}>;

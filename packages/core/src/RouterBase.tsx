@@ -14,7 +14,7 @@ import {
 import RouterData, { RoutesData, RouterDataContext } from './RouterData';
 import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
 import { PageAnimationEndEvent } from './MotionEvents';
-import { concatenateURL, dispatchEvent, searchParamsToObject } from './common/utils';
+import { DEFAULT_ANIMATION, concatenateURL, dispatchEvent, searchParamsToObject } from './common/utils';
 
 interface Config {
     animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig;
@@ -57,12 +57,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
 
     static defaultProps = {
         config: {
-            animation: {
-                in: {
-                    type: "none",
-                    duration: 0,
-                }
-            }
+            animation: DEFAULT_ANIMATION
         }
     }
 
@@ -75,16 +70,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
             this.config = props.config;
         } else {
             this.config = {
-                animation: {
-                    in: {
-                        type: "none",
-                        duration: 0,
-                    },
-                    out: {
-                        type: "none",
-                        duration: 0,
-                    }
-                }
+                animation: DEFAULT_ANIMATION
             }
         }
     }

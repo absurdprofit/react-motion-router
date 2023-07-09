@@ -1,6 +1,6 @@
 import React, { createContext } from 'react';
 import { getCSSData } from './common/utils';
-import { EasingFunction, PlainObject, Vec2 } from './common/types';
+import { EasingFunction, NodeAppendedEvent, PlainObject, Vec2 } from './common/types';
 
 
 //https://developer.mozilla.org/en-US/docs/Web/CSS/transform-origin#formal_syntax
@@ -59,10 +59,7 @@ export class SharedElementScene {
     private _nodes: SharedElementNodeMap = new Map<string, SharedElementNode>();
     private _name: string = '';
     private _scrollPos: Vec2 | null = null;
-    private _x: number = 0;
-    private _y: number = 0;
-    private _xRatio: number = 0;
-    private _yRatio: number = 0;
+    private _getScreenRect: () => DOMRect = () => new DOMRect();
     private _keepAlive: boolean = false;
 
     constructor(name: string) {
@@ -79,11 +76,15 @@ export class SharedElementScene {
     }
 
     get xRatio() {
-        return this._xRatio;
+        const screenRect = this._getScreenRect();
+        const xRatio = (screenRect.width / window.innerWidth).toFixed(2);
+        return parseFloat(xRatio);
     }
 
     get yRatio() {
-        return this._yRatio;
+        const screenRect = this._getScreenRect();
+        const yRatio = (screenRect.height / window.innerHeight).toFixed(2);
+        return parseFloat(yRatio);
     }
 
     get nodes(): SharedElementNodeMap {
@@ -102,11 +103,11 @@ export class SharedElementScene {
     }
 
     get x() {
-        return this._x;
+        return this._getScreenRect().x;
     }
     
     get y() {
-        return this._y;
+        return this._getScreenRect().y;
     }
 
     get keepAlive() {
@@ -117,22 +118,10 @@ export class SharedElementScene {
         this._scrollPos = _scrollPos;
     }
 
-    set x(_x: number) {
-        this._x = _x;
+    set getScreenRect(_getScreenRect: () => DOMRect) {
+        this._getScreenRect = _getScreenRect;
     }
 
-    set y(_y: number) {
-        this._y = _y;
-    }
-
-    set xRatio(_xRatio: number) {
-        this._xRatio = _xRatio;
-    }
-
-    set yRatio(_yRatio: number) {
-        this._yRatio = _yRatio;
-    }
-    
     set keepAlive(_keepAlive: boolean) {
         this._keepAlive = _keepAlive
     }
@@ -149,8 +138,7 @@ function nodeFromRef(
     _ref: Element,
     instance: SharedElement
 ): SharedElementNode | null {
-    const node: HTMLElement = _ref.cloneNode(true) as HTMLElement;
-    const firstChild = node.firstElementChild as HTMLElement | null;
+    const firstChild = _ref.firstElementChild as HTMLElement;
     
     if (!firstChild) return null;
 
@@ -214,12 +202,13 @@ export class SharedElement extends React.Component<SharedElementProps, SharedEle
 
     get node() {
         if (this._ref) {
-            const node = this._ref.cloneNode(true) as HTMLElement;
-            if (this._ref instanceof HTMLVideoElement) {
-                const video = node as HTMLVideoElement;
-                video.currentTime = this._ref.currentTime;
+            if (
+                this._ref.firstElementChild instanceof HTMLVideoElement
+                && (this.transitionType ?? "morph") === "morph"
+            ) {
+                return this._ref;
             }
-            return node;
+            return this._ref.cloneNode(true) as HTMLElement;
         }
         else return null;
     }
@@ -253,6 +242,18 @@ export class SharedElement extends React.Component<SharedElementProps, SharedEle
 
     get transitionType() {
         return this.props.config?.type;
+    }
+
+    onCloneAppended = (e: HTMLElement) => {}
+
+    onCloneRemove = (e: HTMLElement) => {
+        if (this._ref?.firstElementChild instanceof HTMLVideoElement) {
+            const node = e.firstElementChild as HTMLVideoElement;
+            this._ref.firstElementChild.currentTime = node.currentTime;
+            if (!node.paused) {
+                node.pause();
+            }
+        }
     }
 
     keepAlive(_keepAlive: boolean): Promise<void> {

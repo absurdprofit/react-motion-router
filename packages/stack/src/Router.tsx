@@ -1,5 +1,5 @@
 import React from 'react';
-import { BackEvent, NavigateEvent, RouterBase, RouterData } from '@react-motion-router/core';
+import { BackEvent, DEFAULT_ANIMATION, NavigateEvent, RouterBase, RouterData } from '@react-motion-router/core';
 import type { RouterBaseProps, RouterBaseState } from '@react-motion-router/core';
 import Navigation from './Navigation';
 import History from './History';
@@ -17,10 +17,7 @@ export default class Router extends RouterBase {
         this._routerData = new RouterData(this);
 
         if (!this.config.animation) {
-            this.config.animation = {
-                type: "none",
-                duration: 0
-            }
+            this.config.animation = DEFAULT_ANIMATION;
         }
         if ('in' in this.config.animation) {
             this._routerData.animation = {

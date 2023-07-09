@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Motion, NavigationBase } from "..";
+import { Motion, NavigationBase, RouteProp } from "..";
 import { MotionProgressEvent } from "../MotionEvents";
 import { RouterDataContext } from "../RouterData";
+import { RouteDataContext } from "../RouteData";
 
 export function useReducedMotion() {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -41,3 +42,11 @@ export function useMotion() {
     return motion;
 }
 
+export function useRoute<T>(): RouteProp<T> {
+    const routeData = React.useContext(RouteDataContext);
+    if (routeData) {
+        return routeData as RouteProp<T>;
+    } else {
+        throw new Error("RouterData is null. You may be trying to call useRoute outside a Router.");
+    }
+}

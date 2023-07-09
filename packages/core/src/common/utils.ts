@@ -230,3 +230,14 @@ export function prefetchRoute(path: string, routerData: RouterData) {
             resolve(false);
     });
 }
+
+export const DEFAULT_ANIMATION = {
+    in: {
+        type: 'none',
+        duration: 0
+    },
+    out: {
+        type: 'none',
+        duration: 0
+    }
+} as const;

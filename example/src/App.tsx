@@ -21,6 +21,8 @@ const Slides = lazy(() => import('./Screens/Slides'));
 const Tiles = lazy(() => import('./Screens/Tiles'));
 const Details = lazy(() => import('./Screens/Details'));
 const Overlays = lazy(() => import('./Screens/Overlays'));
+const Video = lazy(() => import('./Screens/Video'));
+const FullscreenVideo = lazy(() => import('./Screens/FullscreenVideo'));
 
 let animation: AnimationConfig = {
   type: "slide",
@@ -155,6 +157,8 @@ function Routes() {
             }
           }}
         />
+        <Stack.Screen path="/video" component={Video} />
+        <Stack.Screen path="/fullscreen-video" component={FullscreenVideo} />
         <Stack.Screen name="Not Found" component={NotFound} fallback={<div className='screen-fallback not-found'></div>} />
       </Router>
   );
