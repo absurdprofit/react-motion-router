@@ -181,6 +181,7 @@ interface SharedElementState {
     keepAlive: boolean;
 }
 
+const transformKeys = ["transform", "top", "left", "right", "bottom"];
 export class SharedElement extends React.Component<SharedElementProps, SharedElementState> {
     private _id : string = this.props.id.toString();
     private _ref: HTMLDivElement | null = null;
@@ -223,14 +224,14 @@ export class SharedElement extends React.Component<SharedElementProps, SharedEle
 
     get CSSData(): [string, PlainObject<string>] {
         const _computedStyle = this._computedStyle;
-        if (_computedStyle) return getCSSData(_computedStyle);
+        if (_computedStyle) return getCSSData(_computedStyle, transformKeys);
         return ['', {}];
     }
 
     get CSSText(): string {
         const _computedStyle = this._computedStyle;
         if (_computedStyle) {
-            const [CSSText] = getCSSData(_computedStyle, false);
+            const [CSSText] = getCSSData(_computedStyle, transformKeys, false);
             return CSSText;
         };
         return '';

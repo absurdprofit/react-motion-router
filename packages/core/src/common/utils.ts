@@ -3,11 +3,12 @@ import RouterData from "../RouterData";
 import { ScreenBaseProps } from "../ScreenBase";
 import { LazyExoticComponent, PlainObject, ScreenChild, SearchParamsDeserializer, SearchParamsSerializer } from "./types";
 
-export function getCSSData(styles: CSSStyleDeclaration, object: boolean = true): [string, PlainObject<string>] {
+export function getCSSData(styles: CSSStyleDeclaration, exclude: string[] = [], object: boolean = true): [string, PlainObject<string>] {
     let text = '';
     const styleObject: PlainObject<string> = {};
     let j = 0;
     for (let property in styles) {
+        if (exclude.includes(property)) continue;
         if (j < styles.length) {
             const propertyName = styles[property];
             let propertyValue = styles.getPropertyValue(propertyName);
@@ -49,12 +50,13 @@ export function getCSSData(styles: CSSStyleDeclaration, object: boolean = true):
     return [text, styleObject];
 }
 
-export function getStyleObject(styles: CSSStyleDeclaration): PlainObject<string> {
+export function getStyleObject(styles: CSSStyleDeclaration, exclude: string[] = []): PlainObject<string> {
     const styleObject: PlainObject<string> = {};
     for (const key in styles) {
         if (styles[key] && styles[key].length && typeof styles[key] !== "function") {
             if (/^\d+$/.test(key)) continue;
             if (key === "offset") continue;
+            if (exclude.includes(key)) continue;
             styleObject[key] = styles[key];
         }
     }
