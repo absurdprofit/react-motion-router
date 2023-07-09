@@ -15,7 +15,7 @@ export default function NotFound(props: NotFoundProps) {
             <SharedElement id="navbar" config={{
                 type: 'fade'
             }}>
-                <Navbar title="Not Found" backButton />
+                <Navbar title="Not Found" />
             </SharedElement>
             <div className="page-content">
                 <h1>404 Not Found</h1>

@@ -35,6 +35,11 @@ export default function Home(props: HomeProps) {
             title: 'Overlay Demo',
             description: 'Various Overlays such as modals with spring and default timing functions',
             href: '/overlays'
+        },
+        {
+            title: 'Video Demo',
+            description: 'Video with shared element transitions',
+            href: '/video'
         }
     ];
 

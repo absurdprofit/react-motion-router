@@ -74,6 +74,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
     } as S;
 
     componentDidMount() {
+        this.sharedElementScene.getScreenRect = () => this.ref?.getBoundingClientRect() || new DOMRect();
         this.sharedElementScene.keepAlive = this.props.config?.keepAlive || false;
         if (this.props.fallback && React.isValidElement(this.props.fallback)) {
             this.setState({
@@ -193,12 +194,6 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
         if (this.context!.backNavigating)
             this.setState({shouldKeepAlive: false});
         else {
-            if (this.ref) {
-                this.setTransforms(this.ref); // replace stale transforms
-                this.context!.navigation.addEventListener('page-animation-end', () => { // scale transforms were stale after animation
-                    if (this.ref) this.setTransforms(this.ref);
-                }, {once: true});
-            }
             this.setState({shouldKeepAlive: true});
         }
 
@@ -213,23 +208,9 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
         }
     }
 
-    private setTransforms(ref: HTMLElement) {
-        const clientRect = ref.getBoundingClientRect();
-        const xRatio = (clientRect.width / window.innerWidth).toFixed(2); // transform scale factor due to zoom animation
-        const yRatio = (clientRect.height / window.innerHeight).toFixed(2);
-        this.sharedElementScene.x = clientRect.x;
-        this.sharedElementScene.y = clientRect.y;
-        this.sharedElementScene.xRatio = parseFloat(xRatio);
-        this.sharedElementScene.yRatio = parseFloat(yRatio);
-    }
-
     private setRef(ref: HTMLElement | null) {
         if (this.ref !== ref) {
             this.ref = ref;
-
-            if (ref) {
-                this.setTransforms(ref);
-            }
         }
     }
 

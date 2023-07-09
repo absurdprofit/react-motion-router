@@ -1,27 +1,19 @@
 import React, {memo} from 'react';
-import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
-import IconButton from '@mui/material/IconButton';
-import { Anchor, SharedElement } from '@react-motion-router/core';
+import { SharedElement, useNavigation } from '@react-motion-router/core';
 import '../css/Navbar.css';
+import BackButton from './BackButton';
 
 interface NavbarProps {
     title: string;
-    backButton?: boolean;
 }
 function Navbar(props: NavbarProps) {
-    
+    const navigation = useNavigation();
     return (
         <div className="navbar">
             <div className="back">
                 {
-                    props.backButton ?
-                    <Anchor goBack>
-                        <IconButton disableRipple>
-                            <SharedElement id="back">
-                                <ArrowBackIosIcon style={{zIndex: 100}} />
-                            </SharedElement>
-                        </IconButton>
-                    </Anchor>
+                    navigation.canGoBack() ?
+                    <BackButton />
                     :
                     undefined
                 }

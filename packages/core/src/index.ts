@@ -1,7 +1,9 @@
 import {
     ScreenChild,
     AnimationConfig,
-    AnimationConfigFactory
+    AnimationConfigFactory,
+    NodeAppendedEvent,
+    NodeRemovedEvent
 } from './common/types';
 import RouterData from './RouterData';
 import NavigationBase from './NavigationBase';
@@ -62,6 +64,8 @@ interface MotionEventsMap {
     "motion-progress-end": MotionProgressEndEvent;
     "go-back": BackEvent;
     "navigate": NavigateEvent;
+    "node-appended": NodeAppendedEvent;
+    "node-removed": NodeRemovedEvent;
 }
 
 declare global {

@@ -101,7 +101,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
             onEnd();
         }
         
-        this.setState({transitioning: true}, async () => {
+        const onFrame = requestAnimationFrame.bind(null, async () => {
             for (const [id, start] of currentScene.nodes) {
                 //if id exists in next scene
                 if (nextScene.nodes.has(id)) {
@@ -135,6 +135,12 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     startChild.style.cssText = startCSSText;
                     if (transitionType !== "morph") {
                         endChild.style.cssText = endCSSText;
+
+                        endNode.style.position = 'absolute';
+                        endChild.style.position = 'absolute';
+                        endNode.style.zIndex = endChild.style.zIndex;
+                        endNode.style.top = '0';
+                        endNode.style.left = '0';
                     }
                     
                     startNode.style.position = 'absolute';
@@ -142,12 +148,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     startNode.style.zIndex = startChild.style.zIndex;
                     startNode.style.top = '0';
                     startNode.style.left = '0';
-                    endNode.style.position = 'absolute';
-                    endChild.style.position = 'absolute';
-                    endNode.style.zIndex = endChild.style.zIndex;
-                    endNode.style.top = '0';
-                    endNode.style.left = '0';
-
+                    
                     const transitionState: TransitionState = {
                         id: startInstance.id,
                         start: {
@@ -195,16 +196,19 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     }
 
                     startNode.style.display = 'unset';
-                    endNode.style.display = 'unset';
-
-                    const startZIndex = parseInt(startNode.style.zIndex) || 0;
-                    const endZIndex = parseInt(endNode.style.zIndex) || 0;
-                    endNode.style.zIndex = `${clamp(endZIndex, 0, startZIndex - 1)}`;
 
                     this.ref?.appendChild(startNode);
+                    startInstance.onCloneAppended(startNode);
 
                     if (transitionType !== "morph") {
+                        const startZIndex = parseInt(startNode.style.zIndex) || 0;
+                        const endZIndex = parseInt(endNode.style.zIndex) || 0;
+                        endNode.style.zIndex = `${clamp(endZIndex, 0, startZIndex - 1)}`;
+                        endNode.style.display = 'unset';
                         this.ref?.appendChild(endNode);
+                        endInstance.onCloneAppended(endNode);
+                    } else {
+                        endInstance.onCloneAppended(startNode);
                     }
 
                     startInstance.hidden(true);
@@ -216,7 +220,8 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     let endYAnimation;
 
                     startNode.style.willChange = 'contents, transform, opacity';
-                    endNode.style.willChange = 'contents, transform, opacity';
+                    if (transitionType !== "morph")
+                        endNode.style.willChange = 'contents, transform, opacity';
 
                     if (transitionType === "morph") {
                         startXAnimation = transitionState.start.x.node.animate([
@@ -491,7 +496,8 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         console.assert(id === endInstance.id, "Not sure what happened here.");
                         console.assert(id === startInstance.id, "Not sure what happened here.");
                         startNode.style.willChange = 'auto';
-                        endNode.style.willChange = 'auto';
+                        if (transitionType !== "morph")
+                            endNode.style.willChange = 'auto';
                         await endInstance.hidden(false);
                         if (!currentScene.keepAlive || !this.state.playing) {
                             startInstance.keepAlive(false);
@@ -501,14 +507,19 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                         }
                         
                         if (!this.state.playing) return;
-                        this.ref?.removeChild(startNode);
+                        startInstance.onCloneRemove(startNode);
                         if (transitionType !== "morph") {
-                            this.ref?.removeChild(endNode);
+                            endInstance.onCloneRemove(endNode);
+                            endNode.remove();
+                        } else {
+                            endInstance.onCloneRemove(startNode);
                         }
+                        startNode.remove();
                     };
                     const onCancel = async () => {
                         startNode.style.willChange = 'auto';
-                        endNode.style.willChange = 'auto';
+                        if (transitionType !== "morph")
+                            endNode.style.willChange = 'auto';
                         await startInstance.hidden(false);
                         await endInstance.hidden(false);
                     };
@@ -525,6 +536,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                 ).then(onEnd).catch(onCancel);
             }
         });
+        this.setState({transitioning: true}, onFrame);
 
         this.props.navigation.addEventListener('page-animation-cancel' , onCancel, {once: true});
     }
