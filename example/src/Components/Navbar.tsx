@@ -1,5 +1,5 @@
 import React, {memo} from 'react';
-import { SharedElement, useNavigation } from '@react-motion-router/core';
+import { SharedElement, useNavigation, useRoute } from '@react-motion-router/core';
 import '../css/Navbar.css';
 import BackButton from './BackButton';
 
@@ -8,11 +8,17 @@ interface NavbarProps {
 }
 function Navbar(props: NavbarProps) {
     const navigation = useNavigation();
+    const route = useRoute();
+    const [canGoBack, setCanGoBack] = React.useState<boolean>(navigation.canGoBack() && route.path !== "/");
+
+    React.useEffect(() => {
+        setCanGoBack(navigation.canGoBack() && route.path !== "/");
+    }, [navigation, route.path]);
     return (
         <div className="navbar">
             <div className="back">
                 {
-                    navigation.canGoBack() ?
+                    canGoBack ?
                     <BackButton />
                     :
                     undefined

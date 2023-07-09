@@ -204,7 +204,7 @@ export class SharedElement extends React.Component<SharedElementProps, SharedEle
         if (this._ref) {
             if (
                 this._ref.firstElementChild instanceof HTMLVideoElement
-                && this.transitionType === "morph"
+                && (this.transitionType ?? "morph") === "morph"
             ) {
                 return this._ref;
             }
@@ -241,27 +241,15 @@ export class SharedElement extends React.Component<SharedElementProps, SharedEle
     }
 
     get transitionType() {
-        return this.props.config?.type ?? "morph";
+        return this.props.config?.type;
     }
 
-    onCloneAppended = (e: HTMLElement) => {
-        // if (isEndNode) return;
-        // if (this._ref?.firstElementChild instanceof HTMLVideoElement) {
-        //     const node = e as HTMLVideoElement;
-        //     node.currentTime = this._ref.firstElementChild.currentTime;
-        //     console.log(this.scene?.name, node.currentTime);
-        //     node.toggleAttribute('muted', this._ref.firstElementChild.muted);
-        //     if (!this._ref.firstElementChild.paused) {
-        //         this._ref.firstElementChild.pause();
-        //     }
-        // }
-    }
+    onCloneAppended = (e: HTMLElement) => {}
 
     onCloneRemove = (e: HTMLElement) => {
         if (this._ref?.firstElementChild instanceof HTMLVideoElement) {
             const node = e.firstElementChild as HTMLVideoElement;
             this._ref.firstElementChild.currentTime = node.currentTime;
-            console.log("Here", this.scene?.name, node.currentTime);
             if (!node.paused) {
                 node.pause();
             }

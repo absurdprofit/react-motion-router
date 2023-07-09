@@ -101,7 +101,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
             onEnd();
         }
         
-        const onFrame = requestAnimationFrame.bind(null, async () => {
+        const onFrame = queueMicrotask.bind(null, async () => {
             for (const [id, start] of currentScene.nodes) {
                 //if id exists in next scene
                 if (nextScene.nodes.has(id)) {

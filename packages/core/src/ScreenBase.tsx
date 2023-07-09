@@ -12,17 +12,8 @@ import {
 } from "./common/types";
 import { RouterDataContext } from "./RouterData";
 import { SharedElement, SharedElementScene, SharedElementSceneContext } from "./SharedElement";
-
-const DEFAULT_ANIMATION = {
-    in: {
-        type: 'none',
-        duration: 0
-    },
-    out: {
-        type: 'none',
-        duration: 0
-    }
-} as const;
+import { DEFAULT_ANIMATION } from "./common/utils";
+import { RouteDataContext } from "./RouteData";
 
 export interface ScreenBaseProps {
     out?: boolean;
@@ -232,6 +223,10 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
                 animation: this.pseudoElementAnimation
             };
         }
+        const params = {
+            ...this.props.defaultParams,
+            ...this.contextParams
+        };
         return (
             <AnimationProvider
                 onExit={this.onExit}
@@ -261,19 +256,23 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
                     }}
                 >
                     <SharedElementSceneContext.Provider value={this.sharedElementScene}>
-                        <Suspense fallback={this.state.fallback}>
-                            <Component
-                                route={{
-                                    params: {
-                                        ...this.props.defaultParams,
-                                        ...this.contextParams
-                                    },
-                                    preloaded
-                                }}
-                                navigation={this.context!.navigation}
-                                orientation={screen.orientation}
-                            />
-                        </Suspense>
+                        <RouteDataContext.Provider value={{
+                            preloaded,
+                            path: this.props.path,
+                            params
+                        }}>
+                            <Suspense fallback={this.state.fallback}>
+                                <Component
+                                    route={{
+                                        path: this.props.path,
+                                        params,
+                                        preloaded
+                                    }}
+                                    navigation={this.context!.navigation}
+                                    orientation={screen.orientation}
+                                />
+                            </Suspense>
+                        </RouteDataContext.Provider>
                     </SharedElementSceneContext.Provider>
                 </div>
             </AnimationProvider>
