@@ -102,7 +102,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
      */
     protected initialise(navigation: NavigationBase) {
         // get url search params and append to existing route params
-        let currentPath = navigation.location.pathname;
+        let currentPath = navigation.history.current;
         const paramsDeserializer = this._routerData.paramsDeserializer || null;
         const searchParams = searchParamsToObject(window.location.search, paramsDeserializer);
         const routesData = this.state.routesData;

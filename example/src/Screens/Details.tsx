@@ -46,7 +46,7 @@ export default function Details(props: DetailsProps) {
         props.navigation.finished.then(() => {
             isFirstLoad = true;
         });
-    }, []);
+    }, [hero.description, hero.name, props.navigation]);
 
     if (!hero.name) return <></>;
 

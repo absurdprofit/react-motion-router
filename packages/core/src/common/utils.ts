@@ -144,19 +144,18 @@ export function concatenateURL(path: string | URL, base: string | URL) {
 
 export function defaultSearchParamsToObject(searchPart: string) {
     const entries = new URLSearchParams(decodeURI(searchPart)).entries();
-    const result: PlainObject<string> = {};
+    const data: PlainObject<string> = {};
     
     for(const [key, value] of entries) { // each 'entry' is a [key, value] tuple
-        let parsedValue = '';
-        try {
-            parsedValue = JSON.parse(value);
-        } catch (e) {
-            console.warn("Non JSON serialisable value was passed as URL route param.");
-            parsedValue = value;
-        }
-        result[key] = parsedValue;
+        data[key] = value;
     }
-    return Object.keys(result).length ? result : undefined;
+
+    try {
+        return JSON.parse(JSON.stringify(data));
+    } catch (e) {
+        console.error(e);
+        console.warn("Non JSON serialisable value was passed as URL route param.");
+    }
 }
 
 export function searchParamsToObject(searchPart: string, paramsDeserializer: SearchParamsDeserializer | null) {

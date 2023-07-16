@@ -15,7 +15,7 @@ interface GhostLayerProps {
 }
 
 interface GhostLayerState {
-    transitioning: boolean;
+    hidden: boolean;
     playing: boolean;
 }
 
@@ -52,7 +52,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
     private onProgressEndListener = this.onProgressEnd.bind(this) as EventListener;
     
     state: GhostLayerState = {
-        transitioning: false,
+        hidden: true,
         playing: true
     }
 
@@ -82,13 +82,13 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
 
     sharedElementTransition(currentScene: SharedElementScene, nextScene: SharedElementScene) {
         if (this.context.duration === 0) return;
-        if (this.state.transitioning) {
+        if (!this.state.hidden) {
             this.finish(); // cancel playing animation
             return;
         }
         
         const onEnd = () => {
-            this.setState({transitioning: false});
+            this.setState({hidden: true});
             this._nextScene = null;
             this._currentScene = null;
         };
@@ -100,7 +100,7 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
             onEnd();
         }
         
-        const onFrame = queueMicrotask.bind(null, async () => {
+        const onReady = async () => {
             for (const [id, start] of currentScene.nodes) {
                 //if id exists in next scene
                 if (nextScene.nodes.has(id)) {
@@ -534,8 +534,8 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                     this.ref.getAnimations({subtree: true}).map(anim => anim.finished)
                 ).then(onEnd).catch(onCancel);
             }
-        });
-        this.setState({transitioning: true}, onFrame);
+        };
+        this.hidden(false).then(onReady);
 
         this.props.navigation.addEventListener('page-animation-cancel' , onCancel, {once: true});
     }
@@ -555,6 +555,12 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
         this.props.navigation.removeEventListener('motion-progress-start', this.onProgressStartListener, {capture: true});
         this.props.navigation.removeEventListener('motion-progress', this.onProgressListener, {capture: true});
         this.props.navigation.removeEventListener('motion-progress-end', this.onProgressEndListener, {capture: true});
+    }
+
+    hidden(hidden: boolean) {
+        return new Promise<void>((resolve) => {
+            this.setState({hidden}, resolve);
+        });
     }
 
     onProgressStart() {
@@ -582,11 +588,11 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
 
     onProgressEnd() {
         if (!this.state.playing) this.finish();
-        this.setState({playing: true, transitioning: false});
+        this.setState({playing: true, hidden: true});
     }
 
     render() {
-        if (this.state.transitioning) {
+        if (!this.state.hidden) {
             return (
                 <div id="ghost-layer" ref={c => this.ref = c} style={{
                     position: 'absolute',

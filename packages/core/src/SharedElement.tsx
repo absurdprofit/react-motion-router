@@ -266,9 +266,7 @@ export class SharedElement extends React.Component<SharedElementProps, SharedEle
     hidden(_hidden: boolean): Promise<void> {
         return new Promise((resolve, _) => {
             if (this._isMounted) {
-                this.setState({hidden: _hidden}, () => {
-                    resolve();
-                });
+                this.setState({hidden: _hidden}, resolve);
             } else {
                 resolve();
             }

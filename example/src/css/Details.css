@@ -17,6 +17,7 @@
 .details.suspense .text-content p,
 .details.suspense .text-content #title {
   animation: details-content-slide .5s ease-out forwards;
+  animation-delay: 350ms;
   transform: translateY(15px);
 }
 .details.suspense .text-content p {
