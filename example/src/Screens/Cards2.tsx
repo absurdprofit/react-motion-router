@@ -204,9 +204,6 @@ export default class Cards2 extends React.Component<CardsProps> {
     render() {
         return (
             <div className={`cards cards-2 ${Cards2.isFirstLoad ? 'loaded' : 'suspense'}`}>
-                <SharedElement id="navbar">
-                    <Navbar title="Cards Demo 2" />
-                </SharedElement>
                 <ul role="group" aria-label='One Punch Man Series Characters' className="card-list" ref={(ref: HTMLElement | null) => this.ref = ref}>
                     <CardList {...this.props} observer={this.observer} />
                 </ul>

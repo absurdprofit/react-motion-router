@@ -11,6 +11,7 @@ import { iOS, isPWA } from './common/utils';
 import { OverlaysAnimation } from './Screens/Overlays/Animations';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './Theme';
+import Navbar from './Components/Navbar';
 import "./css/App.css";
 
 const NotFound = lazy(() => import('./Screens/NotFound'));
@@ -110,6 +111,7 @@ function Routes() {
           name="Cards Demo"
           component={Cards}
           config={{
+            header: {component: () => <Navbar title="Cards Demo" />},
             animation: cardsToDetails
           }}
           fallback={<div className='screen-fallback cards'></div>}
@@ -119,6 +121,7 @@ function Routes() {
           name="Cards Demo 2"
           component={Cards2}
           config={{
+            header: {component: () => <Navbar title="Cards Demo 2" />},
             animation: cardsToDetails
           }}
           fallback={<div className='screen-fallback cards-2'></div>}
@@ -140,6 +143,9 @@ function Routes() {
           path={"/"}
           name='Home'
           component={Home}
+          config={{
+            header: {component: () => <Navbar title="React Motion Router" />}
+          }}
           fallback={<div className='screen-fallback home'></div>}
         />
         <Stack.Screen
@@ -148,6 +154,7 @@ function Routes() {
           component={Tiles}
           fallback={<div className='screen-fallback tiles'></div>}
           config={{
+            header: {component: () => <Navbar title="Tiles" />},
             animation: (currentPath, nextPath) => {
               if ((matchRoute(currentPath, "/tiles") && matchRoute(nextPath, "/slides"))
               || (matchRoute(currentPath, "/slides") && matchRoute(nextPath, "/tiles"))) {
@@ -159,7 +166,14 @@ function Routes() {
         />
         <Stack.Screen path="/video" component={Video} />
         <Stack.Screen path="/fullscreen-video" component={FullscreenVideo} />
-        <Stack.Screen name="Not Found" component={NotFound} fallback={<div className='screen-fallback not-found'></div>} />
+        <Stack.Screen
+          name="Not Found"
+          component={NotFound}
+          fallback={<div className='screen-fallback not-found'></div>}
+          config={{
+            header: {component: () => <Navbar title="Not Found" />}
+          }}
+        />
       </Router>
   );
 }

@@ -59,11 +59,6 @@ export default function Home(props: HomeProps) {
 
     return (
         <div className={`home ${isFirstLoad ? 'loaded' : 'suspense'}`}>
-            <SharedElement id="navbar" config={{
-                type: 'fade'
-            }}>
-                <Navbar title="React Motion Router" />
-            </SharedElement>
             <ul className={`list`} role="group" aria-label="Available Demos">
                 {
                     list.map((item: ListItem, index: number) => {
