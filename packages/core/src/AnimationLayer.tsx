@@ -2,7 +2,7 @@ import React, { createContext } from 'react';
 import { SwipeEndEvent, SwipeEvent, SwipeStartEvent } from 'web-gesture-events';
 import { clamp, matchRoute, includesRoute } from './common/utils';
 import Navigation from './NavigationBase';
-import { ScreenChild } from './index';
+import { NavigationBase, ScreenChild } from './index';
 import { AnimationLayerDataContext } from './AnimationLayerData';
 import { MotionProgressDetail } from './MotionEvents';
 import { SwipeDirection } from './common/types';
@@ -402,7 +402,16 @@ export default class AnimationLayer extends React.Component<AnimationLayerProps,
 
     render() {
         return (
-            <div className="animation-layer" ref={this.setRef} style={{width: '100%', height: '100%', position: 'relative'}}>
+            <div
+                className="animation-layer"
+                ref={this.setRef}
+                style={{
+                    width: '100%',
+                    height: '100%',
+                    position: 'relative',
+                    [`--${this.props.navigation.routerId}-progress`]: this.state.progress
+                }  as React.CSSProperties}
+            >
                 <Motion.Provider value={this.state.progress}>
                     {this.state.children}
                 </Motion.Provider>

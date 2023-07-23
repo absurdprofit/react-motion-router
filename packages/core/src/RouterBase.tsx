@@ -64,7 +64,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     constructor(props: RouterBaseProps) {
         super(props as P);
 
-        this._id = props.id || Math.random().toString();
+        this._id = props.id ?? Math.random().toString().replace('.', '-');
         
         if (props.config) {
             this.config = props.config;
