@@ -31,9 +31,6 @@ export default class Tiles extends React.Component<TilesProps, TilesState> {
     render(): React.ReactNode {
         return(
             <div className={`tiles ${Tiles.isFirstLoad ? 'loaded' : 'suspense'}`}>
-                <SharedElement id="navbar">
-                    <Navbar title="Tiles Demo" />
-                </SharedElement>
                 <div className="content">
                     {this.state.heroes.map((hero: Hero, index: number) => {
                         return (

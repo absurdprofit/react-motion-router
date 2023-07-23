@@ -1,3 +1,4 @@
+import React from 'react';
 import HistoryBase from '../HistoryBase';
 import NavigationBase from '../NavigationBase';
 import ScreenBase, { ScreenBaseProps } from '../ScreenBase';
@@ -88,6 +89,12 @@ export interface ScreenComponentBaseProps<T extends PlainObject = {}, N extends 
     route: RouteProp<T>;
     navigation: N;
     orientation: ScreenOrientation;
+}
+
+export function isValidComponentConstructor(value: any): value is React.ComponentType<any> {
+    if (value === null) return false;
+    return typeof value === 'function' ||
+        (typeof value === 'object' && value.$$typeof === Symbol.for('react.lazy'));
 }
 
 export type PlainObject<T = any> = {[key:string]: T};

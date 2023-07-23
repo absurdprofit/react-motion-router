@@ -8,12 +8,14 @@ import {
     LazyExoticComponent,
     PlainObject,
     ReducedAnimationConfigSet,
-    SwipeDirection
+    SwipeDirection,
+    isValidComponentConstructor
 } from "./common/types";
 import { RouterDataContext } from "./RouterData";
 import { SharedElement, SharedElementScene, SharedElementSceneContext } from "./SharedElement";
 import { DEFAULT_ANIMATION } from "./common/utils";
 import { RouteDataContext } from "./RouteData";
+import { useNavigation, useRoute } from ".";
 
 export interface ScreenBaseProps {
     out?: boolean;
@@ -25,6 +27,10 @@ export interface ScreenBaseProps {
     defaultParams?: PlainObject;
     name?: string;
     config?: {
+        header?: {
+            fallback?: React.ReactNode;
+            component: React.JSXElementConstructor<any> | LazyExoticComponent<any>
+        }
         animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig | AnimationConfigFactory;
         pseudoElement?: {
             selector: string;
@@ -40,7 +46,6 @@ export interface ScreenBaseProps {
 }
 
 export interface ScreenBaseState {
-    fallback?: React.ReactNode;
     shouldKeepAlive: boolean;
 }
 
@@ -67,21 +72,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
     componentDidMount() {
         this.sharedElementScene.getScreenRect = () => this.ref?.getBoundingClientRect() || new DOMRect();
         this.sharedElementScene.keepAlive = this.props.config?.keepAlive || false;
-        if (this.props.fallback && React.isValidElement(this.props.fallback)) {
-            this.setState({
-                fallback: React.cloneElement<any>(this.props.fallback, {
-                    navigation: this.context!.navigation,
-                    route: {
-                        params: {
-                            ...this.props.defaultParams,
-                            ...this.contextParams
-                        }
-                    }
-                })
-            });
-        } else {
-            this.setState({fallback: this.props.fallback});
-        }
+        
         this.animation = this.setupAnimation(this.props.config?.animation) ?? this.context!.animation;
         this.pseudoElementAnimation = this.setupAnimation(this.props.config?.pseudoElement?.animation) ?? DEFAULT_ANIMATION;
 
@@ -110,23 +101,6 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
     componentDidUpdate(prevProps: P) {
         if (prevProps.config?.keepAlive !== this.props.config?.keepAlive) {
             this.sharedElementScene.keepAlive = this.props.config?.keepAlive || false;
-        }
-        if (prevProps.fallback !== this.props.fallback) {
-            if (this.props.fallback && React.isValidElement(this.props.fallback)) {
-                this.setState({
-                    fallback: React.cloneElement<any>(this.props.fallback, {
-                        navigation: this.context!.navigation,
-                        route: {
-                            params: {
-                                ...this.props.defaultParams,
-                                ...this.contextParams
-                            }
-                        }
-                    })
-                });
-            } else {
-                this.setState({fallback: this.props.fallback});
-            }
         }
     }
 
@@ -211,10 +185,18 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
 
     render() {
         let Component = this.props.component as React.JSXElementConstructor<any>;
+        let HeaderComponent = this.props.config?.header?.component as React.JSXElementConstructor<any>;
         let preloaded = false;
-        if ('preloaded' in this.props.component && this.props.component.preloaded) {
-            Component = this.props.component.preloaded as React.JSXElementConstructor<any>;
+        let headerReloaded = false;
+        if ('preloaded' in Component && Component.preloaded) {
+            Component = Component.preloaded as React.JSXElementConstructor<any>;
             preloaded = true;
+        }
+        if (HeaderComponent) {
+            if ('preloaded' in HeaderComponent && HeaderComponent.preloaded) {
+                HeaderComponent = HeaderComponent.preloaded as React.JSXElementConstructor<any>;
+                headerReloaded = true;
+            }
         }
         let pseudoElement = undefined;
         if (this.props.config?.pseudoElement) {
@@ -261,16 +243,11 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
                             path: this.props.path,
                             params
                         }}>
-                            <Suspense fallback={this.state.fallback}>
-                                <Component
-                                    route={{
-                                        path: this.props.path,
-                                        params,
-                                        preloaded
-                                    }}
-                                    navigation={this.context!.navigation}
-                                    orientation={screen.orientation}
-                                />
+                            <Suspense fallback={<ComponentWithRouteData component={this.props.config?.header?.fallback} />}>
+                                <ComponentWithRouteData component={HeaderComponent} />
+                            </Suspense>
+                            <Suspense fallback={<ComponentWithRouteData component={this.props.fallback} />}>
+                                <ComponentWithRouteData component={Component} />
                             </Suspense>
                         </RouteDataContext.Provider>
                     </SharedElementSceneContext.Provider>
@@ -278,4 +255,29 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
             </AnimationProvider>
         );
     }
+}
+
+interface ComponentWithRouteDataProps {
+    component: React.JSXElementConstructor<any>  | LazyExoticComponent<any> | React.ReactNode;
+}
+function ComponentWithRouteData({component}: ComponentWithRouteDataProps) {
+    const navigation = useNavigation();
+    const route = useRoute<PlainObject>();
+    const Component = component ?? null;
+    if (React.isValidElement(Component)) {
+        return React.cloneElement<any>(Component, {
+            orientation: screen.orientation,
+            navigation,
+            route
+        });
+    } else if (isValidComponentConstructor(Component)) {
+        return (
+            <Component
+                orientation={screen.orientation}
+                navigation={navigation}
+                route={route}
+            />
+        );
+    }
+    return <>{Component}</>;
 }

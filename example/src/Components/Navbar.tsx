@@ -15,21 +15,25 @@ function Navbar(props: NavbarProps) {
         setCanGoBack(navigation.canGoBack() && route.path !== "/");
     }, [navigation, route.path]);
     return (
-        <div className="navbar">
-            <div className="back">
-                {
-                    canGoBack ?
-                    <BackButton />
-                    :
-                    undefined
-                }
+        <SharedElement id="navbar" config={{
+            type: 'fade'
+        }}>
+            <div className="navbar">
+                <div className="back">
+                    {
+                        canGoBack ?
+                        <BackButton />
+                        :
+                        undefined
+                    }
+                </div>
+                <div className="title">
+                    <SharedElement id={props.title.toLowerCase().split(' ').join('-') + "-title"} config={{transformOrigin: 'center center'}}>
+                        <h2>{props.title}</h2>
+                    </SharedElement>
+                </div>
             </div>
-            <div className="title">
-                <SharedElement id={props.title.toLowerCase().split(' ').join('-') + "-title"} config={{transformOrigin: 'center center'}}>
-                    <h2>{props.title}</h2>
-                </SharedElement>
-            </div>
-        </div>
+        </SharedElement>
     );
 }
 
