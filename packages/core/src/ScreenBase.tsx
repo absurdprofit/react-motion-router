@@ -232,9 +232,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
                         width: '100%',
                         display: 'flex',
                         flexDirection: 'column',
-                        pointerEvents: 'inherit',
-                        overflowX: 'auto',
-                        overflowY: 'auto'
+                        pointerEvents: 'inherit'
                     }}
                 >
                     <SharedElementSceneContext.Provider value={this.sharedElementScene}>
