@@ -12,9 +12,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack",
-    "dev": "tsc -w",
-    "webpack:prod": "webpack",
-    "webpack:dev": "webpack -w"
+    "dev": "webpack -w"
   },
   "repository": {
     "type": "git",
