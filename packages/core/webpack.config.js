@@ -41,7 +41,7 @@ module.exports = {
         minimizer: [new TerserPlugin()]
     },
     externals: {
-        react: 'commonjs react',
+        react: 'module react',
         'react-dom': 'commonjs react-dom'
     }
 };
