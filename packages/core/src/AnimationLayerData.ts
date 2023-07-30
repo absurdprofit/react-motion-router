@@ -1,6 +1,6 @@
 import React, { createContext } from 'react';
 import AnimationProvider from './AnimationProvider';
-import { clamp } from './common/utils';
+import { clamp, getAnimationDuration } from './common/utils';
 import { RouterEventMap } from './common/types';
 
 export default class AnimationLayerData {
@@ -136,18 +136,18 @@ export default class AnimationLayerData {
                     this._pseudoElementOutAnimation.playbackRate = this._playbackRate;
                 
                 if (this._gestureNavigating) {
-                    const inDuration = this._inAnimation.effect?.getTiming().duration || this.duration;
-                    const outDuration = this._outAnimation.effect?.getTiming().duration || this.duration;
-                    this._inAnimation.currentTime = Number(inDuration);
-                    this._outAnimation.currentTime = Number(outDuration);
+                    const inDuration = getAnimationDuration(this._inAnimation, this.duration);
+                    const outDuration = getAnimationDuration(this._outAnimation, this.duration);
+                    this._inAnimation.currentTime = inDuration;
+                    this._outAnimation.currentTime = outDuration;
 
                     if (this._pseudoElementInAnimation) {
-                        const inDuration = this._pseudoElementInAnimation.effect?.getTiming().duration || this.duration;
-                        this._pseudoElementInAnimation.currentTime = Number(inDuration);
+                        const inDuration = getAnimationDuration(this._pseudoElementInAnimation, this.duration);
+                        this._pseudoElementInAnimation.currentTime = inDuration;
                     }
                     if (this._pseudoElementOutAnimation) {
-                        const outDuration = this._pseudoElementOutAnimation.effect?.getTiming().duration || this.duration;
-                        this._pseudoElementOutAnimation.currentTime = Number(outDuration);
+                        const outDuration = getAnimationDuration(this._pseudoElementOutAnimation, this.duration);
+                        this._pseudoElementOutAnimation.currentTime = outDuration;
                     }
                 }
 
@@ -269,10 +269,10 @@ export default class AnimationLayerData {
             this._onProgress(_progress);
         }
         {
-            let inDuration = this._inAnimation?.effect?.getTiming().duration || this.duration;
+            let inDuration = getAnimationDuration(this._inAnimation, this.duration);
             const inCurrentTime = (_progress / 100) * Number(inDuration);
 
-            let outDuration = this._outAnimation?.effect?.getTiming().duration || this.duration;
+            let outDuration = getAnimationDuration(this._outAnimation, this.duration);
             const outCurrentTime = (_progress / 100) * Number(outDuration);
             if (this._inAnimation && this._outAnimation) {
                 this._inAnimation.currentTime = inCurrentTime;
@@ -280,15 +280,15 @@ export default class AnimationLayerData {
             }
         }
         {
-            let inDuration = this._pseudoElementInAnimation?.effect?.getTiming().duration || this.duration;
+            let inDuration = getAnimationDuration(this._pseudoElementInAnimation, this.duration);
             const inCurrentTime = (_progress / 100) * Number(inDuration);
 
-            let outDuration = this._pseudoElementOutAnimation?.effect?.getTiming().duration || this.duration;
+            let outDuration = getAnimationDuration(this._pseudoElementOutAnimation, this.duration);
             const outCurrentTime = (_progress / 100) * Number(outDuration);
             if (this._pseudoElementInAnimation)
-                this._pseudoElementInAnimation.currentTime = inCurrentTime ?? 0;
+                this._pseudoElementInAnimation.currentTime = inCurrentTime;
             if (this._pseudoElementOutAnimation) {
-                this._pseudoElementOutAnimation.currentTime = outCurrentTime ?? 0;
+                this._pseudoElementOutAnimation.currentTime = outCurrentTime;
             }
         }
     }
