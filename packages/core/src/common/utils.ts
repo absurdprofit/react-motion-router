@@ -97,12 +97,12 @@ export function matchRoute(
     const match = pattern.exec(routeURL);
     let matchedPathname = '';
     let rest = '';
-    for (let i = 0; i < routeTest.length; i++) {
-        if (routeTest[i] !== route[i]) {
-            rest = route.substring(i);
+    for (let i = 0; i < pattern.pathname.length; i++) {
+        if (pattern.pathname[i] !== routeURL.pathname[i]) {
+            rest = routeURL.pathname.substring(i);
             break;
         } else
-            matchedPathname += routeTest[i];
+            matchedPathname += pattern.pathname[i];
     }
     if (match) {
         return {
