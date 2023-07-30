@@ -286,9 +286,9 @@ export default class AnimationLayerData {
             let outDuration = this._pseudoElementOutAnimation?.effect?.getTiming().duration || this.duration;
             const outCurrentTime = (_progress / 100) * Number(outDuration);
             if (this._pseudoElementInAnimation)
-                this._pseudoElementInAnimation.currentTime = inCurrentTime;
+                this._pseudoElementInAnimation.currentTime = inCurrentTime ?? 0;
             if (this._pseudoElementOutAnimation) {
-                this._pseudoElementOutAnimation.currentTime = outCurrentTime;
+                this._pseudoElementOutAnimation.currentTime = outCurrentTime ?? 0;
             }
         }
     }
