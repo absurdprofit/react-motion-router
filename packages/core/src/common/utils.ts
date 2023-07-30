@@ -233,6 +233,11 @@ export function prefetchRoute(path: string, routerData: RouterData) {
     });
 }
 
+export function getAnimationDuration(animation: Animation | null, defaultDuration: number = 0) {
+    const duration = animation?.effect?.getTiming().duration;
+    return Number(duration) || defaultDuration;
+}
+
 export const DEFAULT_ANIMATION = {
     in: {
         type: 'none',
