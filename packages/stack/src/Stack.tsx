@@ -29,6 +29,8 @@ export namespace Stack {
             ) {
                 const navigation = this.context?.navigation;
                 this.animationProviderRef.showModal();
+                
+                // closed by navigation.goBack()
                 navigation?.addEventListener('go-back', (e) => {
                     if (this.animationProviderRef instanceof HTMLDialogElement) {
                         e.detail.finished.then(
@@ -39,11 +41,27 @@ export namespace Stack {
                         );
                     }
                 }, {once: true});
-                this.animationProviderRef.addEventListener('close', function() {
+
+                // closed by form submit or ESC key
+                this.animationProviderRef.addEventListener('close', function(e) {
                     if (this.returnValue !== "go-back") {
+                        this.style.display = "block";
                         navigation?.goBack();
                     }
                 }, {once: true});
+
+                // close by backdrop click
+                this.animationProviderRef.addEventListener('click', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const isInDialog = (
+                        rect.top <= e.clientY
+                        && e.clientY <= rect.top + rect.height
+                        && rect.left <= e.clientX
+                        && e.clientX <= rect.left + rect.width
+                    );
+                    if (!isInDialog)
+                        navigation?.goBack();
+                });
             }
         };
     }
