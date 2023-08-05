@@ -43,8 +43,9 @@ export default function Overlays(props: OverlaysProps) {
                     <Stack.Screen component={Player} path="/player" config={{
                         ...modalConfig,
                         animation: ModalAnimation,
+                        presentation: "dialog",
                         pseudoElement: {
-                            selector: "::before",
+                            selector: "::backdrop",
                             animation: BackdropAnimation
                         }
                     }} />

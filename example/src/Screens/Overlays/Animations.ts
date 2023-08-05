@@ -50,21 +50,25 @@ export const OverlaysAnimation: AnimationConfigFactory = (currentPath: string, n
 
 export const ModalAnimation: AnimationConfigSet = {
     in: {
-        type: "slide",
-        direction: "up",
-        duration: 150
+        keyframes: [
+            {transform: 'translateY(100%)', borderRadius: '0px'},
+            {transform: 'translateY(10%)', borderRadius: '10px 10px 0px 0px'}
+        ],
+        options: {duration: 350}
     },
     out: {
-        type: "slide",
-        direction: "up",
-        duration: 250
+        keyframes: [
+            {transform: 'translateY(10%)', borderRadius: '10px 10px 0px 0px'},
+            {transform: 'translateY(100%)', borderRadius: '0px'}
+        ],
+        options: {duration: 250}
     }
 };
 
 const fadeIn = {
     keyframes: [
         {backgroundColor: 'rgba(0, 0, 0, 0)'},
-        {backgroundColor: 'rgba(0, 0, 0, 0.3)'}
+        {backgroundColor: 'rgba(0, 0, 0, 0.8)'}
     ],
     options: {
         duration: 300,
@@ -72,7 +76,7 @@ const fadeIn = {
 };
 const fadeOut = {
     keyframes: [
-        {backgroundColor: 'rgba(0, 0, 0, 0.3)'},
+        {backgroundColor: 'rgba(0, 0, 0, 0.8)'},
         {backgroundColor: 'rgba(0, 0, 0, 0)'}
     ],
     options: {

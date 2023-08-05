@@ -1,11 +1,12 @@
 .modal {
-    width: 100vw;
-    height: 105vh;
-    position: absolute;
-    bottom: 0;
-    left: 0;
+    width: 100%;
+    height: 100%;
     background-color: rgba(34, 34, 34, 1);
-    border-radius: 10px 10px 0px 0px;
+    padding: 
+        calc(env(safe-area-inset-top) + 15px)
+        calc(env(safe-area-inset-right) + 15px)
+        calc(env(safe-area-inset-bottom) + 15px)
+        calc(env(safe-area-inset-left) + 15px);
 }
 .modal .notch {
     color: transparent;
@@ -20,14 +21,6 @@
 }
 div[role="presentation"] {
     position: absolute;
-}
-.modal-presentation {
-    width: 100vw;
-    height: 100vh;
-    contain: strict;
-    border: none;
-    padding: 0;
-    background-color: transparent;
 }
 .modal .content {
     padding: 15px;

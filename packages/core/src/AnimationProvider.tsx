@@ -1,10 +1,11 @@
-import { AnimationConfigSet, AnimationDirection, AnimationKeyframeEffectConfig, EasingFunction } from './common/types';
+import { AnimationConfigSet, AnimationDirection, AnimationKeyframeEffectConfig, CustomElementType, EasingFunction } from './common/types';
 import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
 import AnimationKeyframePresets from './Animations';
 import NavigationBase from './NavigationBase';
-import { Component } from 'react';
+import { Component, ElementType } from 'react';
 
 interface AnimationProviderProps {
+    onRef: (ref: HTMLElement | null) => void;
     onExit: Function;
     onEnter: Function;
     in: boolean;
@@ -20,6 +21,7 @@ interface AnimationProviderProps {
     keepAlive: boolean;
     children: React.ReactNode
     navigation: NavigationBase;
+    renderAs: ElementType | CustomElementType;
 }
 
 interface AnimationProviderState {
@@ -50,6 +52,7 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
     
     onRef(ref: HTMLElement | null) {
         this.ref = ref;
+        this.props.onRef(ref);
     }
 
     animationEnd() {
@@ -357,8 +360,9 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
     }
 
     render() {
+        const Element = this.props.renderAs;
         return (
-            <div
+            <Element
                 id={`${this.props.name}-animation-provider`}
                 className="animation-provider"
                 ref={this.setRef}
@@ -382,7 +386,7 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
                         }
                     }}
                 </AnimationLayerDataContext.Consumer>
-            </div>
+            </Element>
         ); 
     }
 }

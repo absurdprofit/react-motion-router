@@ -102,3 +102,4 @@ export type RouterEventMap = Pick<HTMLElementEventMap, "navigate" | "go-back" | 
 
 export type NodeAppendedEvent = CustomEvent<{node: Node;}>;
 export type NodeRemovedEvent = CustomEvent<{node: Node;}>;
+export type CustomElementType = string;

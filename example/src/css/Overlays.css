@@ -5,12 +5,11 @@
     background-color: transparent;
     color: transparent;
 }
-.overlays dialog {
-    padding: 
-        calc(env(safe-area-inset-top) + 15px)
-        calc(env(safe-area-inset-right) + 15px)
-        calc(env(safe-area-inset-bottom) + 15px)
-        calc(env(safe-area-inset-left) + 15px);
+.overlays dialog.animation-provider {
+    border: none;
+    background-color: transparent;
+    padding: 0px;
+    max-width: unset;
 }
 .overlays {
     flex: 1;

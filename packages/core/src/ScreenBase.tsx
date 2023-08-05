@@ -1,4 +1,4 @@
-import { Component, Suspense, cloneElement, isValidElement } from "react";
+import { Component, ElementType, Suspense, cloneElement, isValidElement } from "react";
 import AnimationProvider from "./AnimationProvider";
 import {
     AnimationConfig,
@@ -57,6 +57,8 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
     private onRef = this.setRef.bind(this);
     private animation: AnimationConfigSet | (() => AnimationConfigSet) = DEFAULT_ANIMATION;
     private pseudoElementAnimation: AnimationConfigSet | (() => AnimationConfigSet) = DEFAULT_ANIMATION;
+    protected elementType: ElementType | string = "div";
+    protected animationProviderRef: HTMLElement | null = null;
     static contextType = RouterDataContext;
     context!: React.ContextType<typeof RouterDataContext>;
     static defaultProps = {
@@ -155,7 +157,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
         return this.context!.animation;
     }
     
-    onExit = () => {
+    onExit() {
         if (this.context!.backNavigating)
             this.setState({shouldKeepAlive: false});
         else {
@@ -167,7 +169,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
         }
     }
 
-    onEnter = () => {
+    onEnter() {
         if (this.context!.ghostLayer) {
             this.context!.ghostLayer.nextScene = this.sharedElementScene;
         }
@@ -211,8 +213,10 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
         };
         return (
             <AnimationProvider
-                onExit={this.onExit}
-                onEnter={this.onEnter}
+                onRef={ref => this.animationProviderRef = ref}
+                renderAs={this.elementType}
+                onExit={this.onExit.bind(this)}
+                onEnter={this.onEnter.bind(this)}
                 in={this.props.in || false}
                 out={this.props.out || false}
                 name={this.props.name?.toLowerCase().replace(' ', '-') ?? this.name}
