@@ -1,4 +1,4 @@
-import React, { createContext } from 'react';
+import { Children, Component, cloneElement, createContext, isValidElement } from 'react';
 import { SwipeEndEvent, SwipeEvent, SwipeStartEvent } from 'web-gesture-events';
 import { clamp, matchRoute, includesRoute } from './common/utils';
 import Navigation from './NavigationBase';
@@ -72,10 +72,10 @@ function StateFromChildren(
     const children: ScreenChild[] = [];
     let keptAliveKey: React.Key | undefined = undefined;
     // get current child
-    React.Children.forEach(
+    Children.forEach(
         state.children, // match current child from state
         (child) => {
-            if (!React.isValidElement(child)) return;
+            if (!isValidElement(child)) return;
             if (
                 matchRoute(child.props.resolvedPathname, nextPath)
                 && (props.backNavigating || state.gestureNavigating)
@@ -96,7 +96,7 @@ function StateFromChildren(
                     if (state.gestureNavigating) mountProps = {in: true, out: false};
                     currentMatched = true;
                     children.push(
-                        React.cloneElement(child, {
+                        cloneElement(child, {
                             ...mountProps,
                             resolvedPathname: matchInfo.matchedPathname
                         }) as ScreenChild
@@ -107,10 +107,10 @@ function StateFromChildren(
     )
 
     // get next child
-    React.Children.forEach(
+    Children.forEach(
         props.children,
         (child) => {
-            if (!React.isValidElement(child)) return;
+            if (!isValidElement(child)) return;
             if (!state.paths.length) paths.push(child.props.path);
             const matchInfo = matchRoute(child.props.path, nextPath);
             if (matchInfo) {
@@ -127,7 +127,7 @@ function StateFromChildren(
                     if (state.gestureNavigating) mountProps = {out: true, in: false};
                     const key = keptAliveKey || Math.random();
                     children.push(
-                        React.cloneElement(child, {
+                        cloneElement(child, {
                             ...mountProps,
                             resolvedPathname: matchInfo.matchedPathname,
                             key
@@ -139,9 +139,9 @@ function StateFromChildren(
     );
 
     // not found case
-    if (!React.Children.count(children)) {
-        const children = React.Children.map(props.children, (child: ScreenChild) => {
-            if (!React.isValidElement(child)) return undefined;
+    if (!Children.count(children)) {
+        const children = Children.map(props.children, (child: ScreenChild) => {
+            if (!isValidElement(child)) return undefined;
             if (matchRoute(child.props.path, undefined)) {
                 const {config} = child.props;
                 swipeDirection = config?.swipeDirection;
@@ -150,7 +150,7 @@ function StateFromChildren(
                 disableDiscovery = config?.disableDiscovery;
                 minFlingVelocity = config?.minFlingVelocity;
                 name = child.props.name ?? null;
-                return React.cloneElement(
+                return cloneElement(
                     child, {
                         in: true,
                         out: false,
@@ -183,8 +183,8 @@ function StateFromChildren(
     }
 }
 
-// type of children coerces type in React.Children.map such that 'path' is available on props
-export default class AnimationLayer extends React.Component<AnimationLayerProps, AnimationLayerState> {
+// type of children coerces type in Children.map such that 'path' is available on props
+export default class AnimationLayer extends Component<AnimationLayerProps, AnimationLayerState> {
     private onSwipeStartListener = this.onSwipeStart.bind(this);
     private onSwipeListener = this.onSwipe.bind(this);
     private onSwipeEndListener = this.onSwipeEnd.bind(this);

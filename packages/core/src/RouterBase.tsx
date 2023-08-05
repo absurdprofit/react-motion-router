@@ -1,4 +1,3 @@
-import React from 'react';
 import NavigationBase, { NavigateEvent, BackEvent } from './NavigationBase';
 import AnimationLayer from './AnimationLayer';
 import GhostLayer from './GhostLayer';
@@ -15,6 +14,7 @@ import RouterData, { RoutesData, RouterDataContext } from './RouterData';
 import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
 import { PageAnimationEndEvent } from './MotionEvents';
 import { DEFAULT_ANIMATION, concatenateURL, dispatchEvent, searchParamsToObject } from './common/utils';
+import { Component } from 'react';
 
 interface Config {
     animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig;
@@ -45,7 +45,7 @@ export interface RouterBaseState {
     defaultDocumentTitle: string;
 }
 
-export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState> extends React.Component<P, S> {
+export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState> extends Component<P, S> {
     private readonly _id: string;
     protected readonly animationLayerData = new AnimationLayerData();
     protected ref: HTMLElement | null = null;

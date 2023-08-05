@@ -1,4 +1,3 @@
-import React from 'react';
 import HistoryBase from '../HistoryBase';
 import NavigationBase from '../NavigationBase';
 import ScreenBase, { ScreenBaseProps } from '../ScreenBase';

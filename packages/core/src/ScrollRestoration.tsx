@@ -1,4 +1,4 @@
-import React from "react";
+import { Component } from "react";
 import { Vec2 } from "./common/types";
 import RouterData, { RouterDataContext } from "./RouterData";
 
@@ -9,7 +9,7 @@ interface ScrollRestorationProps extends React.HTMLAttributes<HTMLDivElement> {
     shouldRestore?: boolean;
 }
 
-export default class ScrollRestoration extends React.Component<ScrollRestorationProps> {
+export default class ScrollRestoration extends Component<ScrollRestorationProps> {
     private ref: HTMLElement | null = null;
     private scrollPos: Vec2 = { x: 0, y: 0 };
     private routerData: RouterData | null = null;

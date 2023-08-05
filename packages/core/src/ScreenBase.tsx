@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import { Component, Suspense, cloneElement, isValidElement } from "react";
 import AnimationProvider from "./AnimationProvider";
 import {
     AnimationConfig,
@@ -49,7 +49,7 @@ export interface ScreenBaseState {
     shouldKeepAlive: boolean;
 }
 
-export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState> extends React.Component<P, S> {
+export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState> extends Component<P, S> {
     private name = this.props.path === undefined ? 'not-found' : this.props.path?.toString().slice(1).replace('/', '-') || 'index';
     private sharedElementScene: SharedElementScene = new SharedElementScene(this.name);
     private ref: HTMLElement | null = null;
@@ -262,8 +262,8 @@ function ComponentWithRouteData({component}: ComponentWithRouteDataProps) {
     const navigation = useNavigation();
     const route = useRoute<PlainObject>();
     const Component = component ?? null;
-    if (React.isValidElement(Component)) {
-        return React.cloneElement<any>(Component, {
+    if (isValidElement(Component)) {
+        return cloneElement<any>(Component, {
             orientation: screen.orientation,
             navigation,
             route

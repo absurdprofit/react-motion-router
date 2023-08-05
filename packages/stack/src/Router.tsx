@@ -1,4 +1,3 @@
-import React from 'react';
 import { BackEvent, DEFAULT_ANIMATION, NavigateEvent, RouterBase, RouterData } from '@react-motion-router/core';
 import type { RouterBaseProps, RouterBaseState } from '@react-motion-router/core';
 import Navigation from './Navigation';

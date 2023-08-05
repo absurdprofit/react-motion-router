@@ -1,4 +1,4 @@
-import React, { createContext } from 'react';
+import { Component, createContext } from 'react';
 import { getCSSData } from './common/utils';
 import { EasingFunction, NodeAppendedEvent, PlainObject, Vec2 } from './common/types';
 
@@ -182,7 +182,7 @@ interface SharedElementState {
 }
 
 const transformKeys = ["transform", "top", "left", "right", "bottom"];
-export class SharedElement extends React.Component<SharedElementProps, SharedElementState> {
+export class SharedElement extends Component<SharedElementProps, SharedElementState> {
     private _id : string = this.props.id.toString();
     private _ref: HTMLDivElement | null = null;
     private _scene: SharedElementScene | null = null;

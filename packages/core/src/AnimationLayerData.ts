@@ -1,6 +1,6 @@
-import React, { createContext } from 'react';
+import { createContext } from 'react';
 import AnimationProvider from './AnimationProvider';
-import { clamp, getAnimationDuration } from './common/utils';
+import { getAnimationDuration } from './common/utils';
 import { RouterEventMap } from './common/types';
 
 export default class AnimationLayerData {

@@ -1,8 +1,8 @@
-import React from 'react';
 import { AnimationConfigSet, AnimationDirection, AnimationKeyframeEffectConfig, EasingFunction } from './common/types';
 import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
 import AnimationKeyframePresets from './Animations';
 import NavigationBase from './NavigationBase';
+import { Component } from 'react';
 
 interface AnimationProviderProps {
     onExit: Function;
@@ -36,7 +36,7 @@ const OppositeDirection = {
     "out": "in" as const
 }
 
-export default class AnimationProvider extends React.Component<AnimationProviderProps, AnimationProviderState> {
+export default class AnimationProvider extends Component<AnimationProviderProps, AnimationProviderState> {
     private _animationLayerData: AnimationLayerData | null = null;
     private ref: HTMLElement | null = null;
     private onAnimationEnd = this.animationEnd.bind(this);

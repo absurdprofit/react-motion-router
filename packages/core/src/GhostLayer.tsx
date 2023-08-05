@@ -1,10 +1,10 @@
-import React from 'react';
 import { SharedElement, SharedElementNode, SharedElementScene } from './SharedElement';
 import { clamp } from './common/utils';
 import { EasingFunction, PlainObject } from './common/types';
 import { MotionProgressEvent } from './MotionEvents';
 import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
 import NavigationBase from './NavigationBase';
+import { Component } from 'react';
 
 interface GhostLayerProps {
     instance?: (instance: GhostLayer | null) => any;
@@ -41,7 +41,7 @@ interface TransitionState {
 
 type AnimationMap = Map<string, PlainObject<Animation>>;
 
-export default class GhostLayer extends React.Component<GhostLayerProps, GhostLayerState> {
+export default class GhostLayer extends Component<GhostLayerProps, GhostLayerState> {
     private ref: HTMLDivElement | null = null;
     private _currentScene: SharedElementScene | null = null;
     private _nextScene: SharedElementScene | null = null;
