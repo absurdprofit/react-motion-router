@@ -6,7 +6,7 @@ import Sheet from "./Modals/Sheet";
 import { useEffect } from "react";
 import { BackdropAnimation, ModalAnimation } from "./Animations";
 import '../../css/Modal.css';
-import { iOS, isPWA } from "../../common/utils";
+import { STATIC_ANIMATION, iOS, isPWA } from "../../common/utils";
 
 interface OverlaysProps extends Stack.ScreenComponentProps {}
 let isFirstLoad = false;
@@ -29,9 +29,14 @@ export default function Overlays(props: OverlaysProps) {
     const modalConfig = {
         swipeDirection: 'down',
         swipeAreaWidth: window.innerHeight / 1.5,
-        animation: BackdropAnimation,
+        animation: STATIC_ANIMATION,
         disableDiscovery: false,
-        hysteresis: 15
+        hysteresis: 15,
+        presentation: "modal",
+        pseudoElement: {
+            selector: "::backdrop",
+            animation: BackdropAnimation
+        }
     } as const;
     return (
         <div className={`overlays ${isFirstLoad ? 'loaded' : 'suspense'}`}>
@@ -42,14 +47,13 @@ export default function Overlays(props: OverlaysProps) {
                     <Stack.Screen component={Home} path="/" config={{keepAlive: true}} />
                     <Stack.Screen component={Player} path="/player" config={{
                         ...modalConfig,
-                        animation: ModalAnimation,
-                        presentation: "modal",
-                        pseudoElement: {
-                            selector: "::backdrop",
-                            animation: BackdropAnimation
-                        }
+                        animation: ModalAnimation
                     }} />
-                    <Stack.Screen component={Sheet} path="/sheet" config={modalConfig} />
+                    <Stack.Screen
+                        component={Sheet}
+                        path="/sheet"
+                        config={modalConfig}
+                    />
                 </Router>
             </div>
         </div>

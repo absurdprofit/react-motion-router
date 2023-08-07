@@ -36,6 +36,10 @@ export namespace Stack {
                 } else {
                     this.animationProviderRef.show();
                 }
+                this.animationProviderRef.style.maxHeight = 'unset';
+                this.animationProviderRef.style.maxWidth = 'unset';
+                this.animationProviderRef.style.width = '100vw';
+                this.animationProviderRef.style.height = '100vh';
                 
                 // closed by navigation.goBack()
                 navigation?.addEventListener('go-back', (e) => {
@@ -67,7 +71,7 @@ export namespace Stack {
                         && e.clientX <= rect.left + rect.width
                     );
                     if (!isInDialog)
-                        navigation?.goBack();
+                        this.close();
                 });
             }
         };

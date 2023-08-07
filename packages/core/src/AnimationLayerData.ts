@@ -96,7 +96,6 @@ export default class AnimationLayerData {
             this.reset();
         }
         if (this._currentScreen && this._nextScreen && this._shouldAnimate) {
-            this._isStarted = false;
             if (this._gestureNavigating) {
                 await this._currentScreen.mounted(true);
             } 
@@ -207,6 +206,7 @@ export default class AnimationLayerData {
                 if (this._onEnd) {
                     this._onEnd();
                 }
+                this._isStarted = false;
             }
         } else {
             this._shouldAnimate = true;
@@ -397,6 +397,7 @@ export default class AnimationLayerData {
     get finished() {
         return new Promise<void>(async (resolve, reject) => {
             try {
+                await this.started;
                 await Promise.all([
                     this._outAnimation?.finished,
                     this._inAnimation?.finished,

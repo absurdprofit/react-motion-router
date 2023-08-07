@@ -7,7 +7,7 @@ import {
   AnimationConfigFactory,
   lazy
 } from '@react-motion-router/core';
-import { iOS, isPWA } from './common/utils';
+import { STATIC_ANIMATION, iOS, isPWA } from './common/utils';
 import { OverlaysAnimation } from './Screens/Overlays/Animations';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './Theme';
@@ -36,25 +36,12 @@ let fadeAnimation: AnimationConfig = {
   duration: 350
 }
 
-let staticAnimation: AnimationKeyframeEffectConfig | AnimationConfig = {
-  keyframes: [],
-  options: {
-    duration: 350
-  }
-};
-
-
-
 if (iOS() && !isPWA()) {
   animation = {
     type: 'none',
     duration: 0
   }
   fadeAnimation = {
-    type: "none",
-    duration: 0
-  }
-  staticAnimation = {
     type: "none",
     duration: 0
   }
@@ -65,7 +52,7 @@ const cardsToDetails: AnimationConfigFactory = (currentPath, nextPath) => {
     matchRoute(nextPath, '/details')
     || matchRoute(currentPath, '/details')
   ) {
-    return staticAnimation;
+    return STATIC_ANIMATION;
   }
   return animation;
 }
@@ -131,7 +118,7 @@ function Routes() {
           name="Details"
           component={Details}
           config={{
-            animation: staticAnimation,
+            animation: STATIC_ANIMATION,
             swipeDirection: "down",
             swipeAreaWidth: window.innerHeight,
             hysteresis: .3

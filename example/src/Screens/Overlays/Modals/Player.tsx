@@ -67,7 +67,7 @@ export default function Player({navigation, route}: PlayerProps) {
         <div
             className={`modal ${isFirstLoad ? 'loaded' : 'suspense'}`}
         >
-            <div className="notch" style={{opacity: lerp(0, 1, progress)}}></div>
+            <div className="notch" style={{opacity: lerp(0, 1, progress / 100)}}></div>
             <div className="player">
                 <div className="cover-art">
                     <SharedElement id="cover-art" config={{
