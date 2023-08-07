@@ -90,8 +90,9 @@ export default class Router extends RouterBase {
 
         if (!this.state.backNavigating) {
             if (!this.state.implicitBack) {
-                this.setState({backNavigating: true});
-                e.detail.finished.then(this.onAnimationEnd.bind(this));
+                this.setState({backNavigating: true}, () => {
+                    e.detail.finished.then(this.onAnimationEnd.bind(this));
+                });
                 this._routerData.backNavigating = true;
             } else {
                 this.setState({implicitBack: false});

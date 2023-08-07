@@ -246,9 +246,9 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
 
     componentDidUpdate(prevProps: AnimationLayerProps, prevState: AnimationLayerState) {
         if (prevProps.currentPath !== this.state.currentPath) {
+            this.context.backNavigating = this.props.backNavigating;
             if (!this.state.gestureNavigating && prevState.shouldAnimate) {
                 this.context.play = true;
-                this.context.backNavigating = this.props.backNavigating;
                 this.context.animate(); // children changes committed now animate
             }
         }
