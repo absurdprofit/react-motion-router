@@ -408,7 +408,7 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
                 style={{
                     width: '100%',
                     height: '100%',
-                    position: 'relative',
+                    display: 'grid',
                     [`--${this.props.navigation.routerId}-motion-progress`]: this.state.progress
                 }  as React.CSSProperties}
             >
