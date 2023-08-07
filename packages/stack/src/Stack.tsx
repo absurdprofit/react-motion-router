@@ -5,7 +5,7 @@ import Navigation from './Navigation';
 export namespace Stack {
     export interface ScreenComponentProps<T extends { [key: string]: any; } = {}> extends ScreenComponentBaseProps<T, Navigation> {}
 
-    type Presentation = "default" | "dialog";
+    type Presentation = "default" | "dialog" | "modal";
     interface ScreenProps extends ScreenBaseProps {
         config?: ScreenBaseProps["config"] & {
             presentation?: Presentation;
@@ -18,7 +18,10 @@ export namespace Stack {
         constructor(props: ScreenProps) {
             super(props);
 
-            if (props.config?.presentation === "dialog")
+            if (
+                props.config?.presentation === "dialog"
+                || props.config?.presentation === "modal"
+            )
                 this.elementType = "dialog";
         }
         onEnter = () => {
@@ -28,7 +31,11 @@ export namespace Stack {
                 && this.animationProviderRef.open === false
             ) {
                 const navigation = this.context?.navigation;
-                this.animationProviderRef.showModal();
+                if (this.props.config?.presentation === "modal") {
+                    this.animationProviderRef.showModal();
+                } else {
+                    this.animationProviderRef.show();
+                }
                 
                 // closed by navigation.goBack()
                 navigation?.addEventListener('go-back', (e) => {
