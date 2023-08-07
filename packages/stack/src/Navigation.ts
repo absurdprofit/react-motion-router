@@ -31,7 +31,7 @@ export default class Navigation extends NavigationBase {
             return;
         }
 
-        const pathname = window.location.pathname.replace(this.history.baseURL.pathname, '');
+        const pathname = window.location.pathname.replace(this.history.baseURL.pathname, '') || '/';
         if (pathname === this.history.previous) {
             this.implicitBack();
         } else {
