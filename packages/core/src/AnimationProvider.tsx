@@ -27,6 +27,7 @@ interface AnimationProviderProps {
 interface AnimationProviderState {
     mounted: boolean;
     zIndex: number;
+    tabIndex: number;
 }
 
 const OppositeDirection = {
@@ -47,7 +48,8 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
 
     state: AnimationProviderState = {
         mounted: false,
-        zIndex: 0
+        zIndex: 0,
+        tabIndex: 0
     }
     
     onRef(ref: HTMLElement | null) {
@@ -330,7 +332,7 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
     }
 
     set zIndex(_zIndex: number) {
-        this.setState({zIndex: _zIndex});
+        this.setState({zIndex: _zIndex, tabIndex: _zIndex - 1});
     }
 
     mounted(_mounted: boolean, willAnimate: boolean = true): Promise<void> {
@@ -366,6 +368,7 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
                 id={`${this.props.name}-animation-provider`}
                 className="animation-provider"
                 ref={this.setRef}
+                tabIndex={this.state.tabIndex}
                 style={{
                     gridArea: '1 / 1',
                     width: '100%',
