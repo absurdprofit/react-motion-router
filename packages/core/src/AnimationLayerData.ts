@@ -6,6 +6,7 @@ import { RouterEventMap } from './common/types';
 export default class AnimationLayerData {
     private _play: boolean = true;
     private _isPlaying: boolean = false;
+    private _isStarted = false;
     private _currentScreen: AnimationProvider | null = null;
     private _nextScreen: AnimationProvider | null = null;
     private _onExit: Function | undefined;
@@ -21,7 +22,7 @@ export default class AnimationLayerData {
     private _onProgress: ((progress: number) => void) | null = null;
     private _shouldAnimate: boolean = true;
     private _dispatchEvent: ((event: Event) => Promise<boolean>) | null = null;
-    private _addEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined) => void) | null = null
+    private _addEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined) => void) | null = null;
 
     private updateProgress() {
         if (this._gestureNavigating && !this._play) {
@@ -95,6 +96,7 @@ export default class AnimationLayerData {
             this.reset();
         }
         if (this._currentScreen && this._nextScreen && this._shouldAnimate) {
+            this._isStarted = false;
             if (this._gestureNavigating) {
                 await this._currentScreen.mounted(true);
             } 
@@ -169,6 +171,7 @@ export default class AnimationLayerData {
                     this._pseudoElementInAnimation?.play();
                     this._pseudoElementOutAnimation?.play();
                 }
+                this._isStarted = true;
                 const startAnimationEvent = new CustomEvent('page-animation-start', {bubbles: true});
                 this.dispatchEvent?.(startAnimationEvent);
 
@@ -408,6 +411,7 @@ export default class AnimationLayerData {
     }
 
     get started() {
+        if (this._isStarted) return Promise.resolve();
         return new Promise<void>(async (resolve) => {
             this.addEventListener?.('page-animation-start', () => {
                 resolve();
