@@ -24,7 +24,7 @@ export default function Overlays(props: OverlaysProps) {
         return () => {
             document.body.style.backgroundColor = 'unset';
         }
-    }, []);
+    }, [props.navigation]);
 
     const modalConfig = {
         swipeDirection: 'down',

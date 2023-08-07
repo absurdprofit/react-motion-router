@@ -1,4 +1,4 @@
-import { matchRoute, AnimationConfigFactory, AnimationConfig, AnimationConfigSet, ReducedAnimationConfigSet } from '@react-motion-router/core';
+import { matchRoute, AnimationConfigFactory, AnimationConfigSet } from '@react-motion-router/core';
 import { iOS, isPWA } from '../../common/utils';
 
 export const OverlaysAnimation: AnimationConfigFactory = (currentPath: string, nextPath: string) => {
