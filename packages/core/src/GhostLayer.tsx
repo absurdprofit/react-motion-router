@@ -1,5 +1,5 @@
 import { SharedElement, SharedElementNode, SharedElementScene } from './SharedElement';
-import { clamp } from './common/utils';
+import { MAX_Z_INDEX, clamp } from './common/utils';
 import { EasingFunction, PlainObject } from './common/types';
 import { MotionProgressEvent } from './MotionEvents';
 import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
@@ -42,7 +42,7 @@ interface TransitionState {
 type AnimationMap = Map<string, PlainObject<Animation>>;
 
 export default class GhostLayer extends Component<GhostLayerProps, GhostLayerState> {
-    private ref: HTMLDivElement | null = null;
+    private ref: HTMLDialogElement | null = null;
     private _currentScene: SharedElementScene | null = null;
     private _nextScene: SharedElementScene | null = null;
     static contextType = AnimationLayerDataContext;
@@ -101,6 +101,8 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
         }
         
         const onFrame = queueMicrotask.bind(null, async () => {
+            // render ghost layer in top layer
+            this.ref?.showModal();
             for (const [id, start] of currentScene.nodes) {
                 //if id exists in next scene
                 if (nextScene.nodes.has(id)) {
@@ -588,14 +590,20 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
     render() {
         if (this.state.transitioning) {
             return (
-                <div id="ghost-layer" ref={c => this.ref = c} style={{
+                <dialog id="ghost-layer" ref={c => this.ref = c} style={{
                     position: 'absolute',
-                    zIndex: 1000,
+                    zIndex: MAX_Z_INDEX,
+                    maxWidth: 'unset',
+                    maxHeight: 'unset',
                     width: '100vw',
                     height: '100vh',
-                    contain: 'strict'
+                    contain: 'strict',
+                    padding: 0,
+                    border: 'none',
+                    backgroundColor: 'transparent'
                 }}>
-                </div>
+                    <style dangerouslySetInnerHTML={{__html: "#ghost-layer::backdrop {display: none}"}}></style>
+                </dialog>
             );
         } else {
             return <></>

@@ -248,3 +248,5 @@ export const DEFAULT_ANIMATION = {
         duration: 0
     }
 } as const;
+
+export const MAX_Z_INDEX = 2147483647;
