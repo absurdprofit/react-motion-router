@@ -373,7 +373,6 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
                     gridArea: '1 / 1',
                     width: '100%',
                     height: '100%',
-                    contain: 'strict',
                     transformOrigin: 'center center',
                     zIndex: this.state.zIndex
                 }}

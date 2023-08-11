@@ -38,8 +38,8 @@ export namespace Stack {
                 }
                 this.animationProviderRef.style.maxHeight = 'unset';
                 this.animationProviderRef.style.maxWidth = 'unset';
-                this.animationProviderRef.style.width = '100vw';
-                this.animationProviderRef.style.height = '100vh';
+                this.animationProviderRef.style.width = 'max-content';
+                this.animationProviderRef.style.height = 'max-content';
                 
                 // closed by navigation.goBack()
                 navigation?.addEventListener('go-back', (e) => {
@@ -71,8 +71,8 @@ export namespace Stack {
                         && e.clientX <= rect.left + rect.width
                     );
                     if (!isInDialog)
-                        this.close();
-                });
+                        navigation?.goBack();
+                }, {once: true});
             }
         };
     }

@@ -21,7 +21,7 @@ let volumeStart = 50;
 let timeStart = lerp(0, 139, seekStart/100);
 let isFirstLoad = true;
 export default function Player({navigation, route}: PlayerProps) {
-    const progress = useMotion();
+    const progress = useMotion() / 100;
     const [volume, setVolume] = useState(volumeStart - 15);
     const [seekProgress, setSeekProgress] = useState(seekStart - 10);
     const [currentTime, setCurrentTime] = useState(timeStart);
@@ -46,28 +46,11 @@ export default function Player({navigation, route}: PlayerProps) {
 
     const [disabled, setDisabled] = useState(false);
 
-    const onClose = async (ev: React.MouseEvent<HTMLDialogElement | HTMLButtonElement, MouseEvent>) => {
-        ev.stopPropagation();
-
-        if (disabled) return;
-        for (let target of ev.nativeEvent.composedPath()) {
-            const {classList} = target as HTMLElement;
-            if ('classList' in target)
-                if (classList.contains('modal')) return;
-                else if (classList.contains('close')) break;
-                else continue;
-        }
-
-        await navigation.goBack();
-
-        setDisabled(true);
-    }
-
     return (
         <div
             className={`modal ${isFirstLoad ? 'loaded' : 'suspense'}`}
         >
-            <div className="notch" style={{opacity: lerp(0, 1, progress / 100)}}></div>
+            <div className="notch" style={{opacity: lerp(0, 1, progress)}}></div>
             <div className="player">
                 <div className="cover-art">
                     <SharedElement id="cover-art" config={{

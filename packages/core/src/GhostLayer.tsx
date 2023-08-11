@@ -158,7 +158,8 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                                 delay: startInstance.props.config?.x?.delay ?? endInstance.props.config?.delay ?? 0,
                                 duration: startInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.context.duration,
                                 easingFunction: startInstance.props.config?.x?.easingFunction || startInstance.props.config?.easingFunction ||'ease',
-                                position: startRect.x - (this.state.playing ? 0 : currentScene.x),
+                                // position: startRect.x - (this.state.playing ? 0 : currentScene.x),
+                                position: startRect.x
                                 
                             },
                             y: {
@@ -166,7 +167,8 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                                 delay: startInstance.props.config?.y?.delay ?? endInstance.props.config?.delay ?? 0,
                                 duration: startInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.context.duration,
                                 easingFunction: startInstance.props.config?.y?.easingFunction || startInstance.props.config?.easingFunction || 'ease',
-                                position: startRect.y - (this.state.playing ? 0 : currentScene.y)
+                                // position: startRect.y - (this.state.playing ? 0 : currentScene.y),
+                                position: startRect.y
                             }
                         },
                         end: {
@@ -175,26 +177,28 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                                 delay: endInstance.props.config?.x?.delay ?? endInstance.props.config?.delay ?? 0,
                                 duration: endInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.context.duration,
                                 easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
-                                position: endRect.x - (this.state.playing ? nextScene.x : 0)
+                                // position: endRect.x - (this.state.playing ? nextScene.x : 0),
+                                position: endRect.x
                             },
                             y: {
                                 node: endChild,
                                 delay: endInstance.props.config?.y?.delay ?? endInstance.props.config?.delay ?? 0,
                                 duration: endInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.context.duration,
                                 easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
-                                position: endRect.y - (this.state.playing ? nextScene.y : 0)
+                                // position: endRect.y - (this.state.playing ? nextScene.y : 0),
+                                position: endRect.y
                             }
                         }
                     };
 
                     // account for zoom animation transform scale factor
-                    if (this.state.playing) {
-                        transitionState.end.x.position = transitionState.end.x.position / nextScene.xRatio;
-                        transitionState.end.y.position = transitionState.end.y.position / nextScene.yRatio;
-                    } else {
-                        transitionState.start.x.position = transitionState.start.x.position / currentScene.xRatio;
-                        transitionState.start.y.position = transitionState.start.y.position / currentScene.yRatio;
-                    }
+                    // if (this.state.playing) {
+                    //     transitionState.end.x.position = transitionState.end.x.position / nextScene.xRatio;
+                    //     transitionState.end.y.position = transitionState.end.y.position / nextScene.yRatio;
+                    // } else {
+                    //     transitionState.start.x.position = transitionState.start.x.position / currentScene.xRatio;
+                    //     transitionState.start.y.position = transitionState.start.y.position / currentScene.yRatio;
+                    // }
 
                     startNode.style.display = 'unset';
 

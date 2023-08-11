@@ -2,7 +2,6 @@ import React from 'react';
 import {Router, Stack } from '@react-motion-router/stack';
 import {
   matchRoute,
-  AnimationKeyframeEffectConfig,
   AnimationConfig,
   AnimationConfigFactory,
   lazy

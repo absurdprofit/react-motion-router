@@ -1,11 +1,12 @@
 .modal .player {
-    width: calc(100vw - 30px);
-    height: calc(100vh * 0.85);
+    width: calc(100% - 30px);
+    height: calc(100% - 30px);
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
     gap: 15px;
     padding-top: 30px;
+    padding-bottom: 0;
     background-color: transparent;
     top: 0;
 }

@@ -51,15 +51,15 @@ export const OverlaysAnimation: AnimationConfigFactory = (currentPath: string, n
 export const ModalAnimation: AnimationConfigSet = {
     in: {
         keyframes: [
-            {transform: 'translateY(100%)', borderRadius: '0px'},
-            {transform: 'translateY(10%)', borderRadius: '10px 10px 0px 0px'}
+            {transform: 'translateY(90vh)', borderRadius: '0px'},
+            {transform: 'translateY(15vh)', borderRadius: '15px 15px 0px 0px'}
         ],
         options: {duration: 350}
     },
     out: {
         keyframes: [
-            {transform: 'translateY(10%)', borderRadius: '10px 10px 0px 0px'},
-            {transform: 'translateY(100%)', borderRadius: '0px'}
+            {transform: 'translateY(15vh)', borderRadius: '15px 15px 0px 0px'},
+            {transform: 'translateY(90vh)', borderRadius: '0px'}
         ],
         options: {duration: 250}
     }
