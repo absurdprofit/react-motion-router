@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useNavigation } from './common/hooks';
 import { PlainObject, XOR } from './common/types';
 import { searchParamsFromObject } from './common/utils';
@@ -23,7 +23,7 @@ interface BackAnchorProps extends BaseAnchorProps {
 type AnchorProps = XOR<ForwardAnchorProps, BackAnchorProps>;
 
 export default function Anchor(props: AnchorProps) {
-    const routerData = React.useContext(RouterDataContext);
+    const routerData = useContext(RouterDataContext);
     const navigation = useNavigation();
     const [url, setURL] = useState('');
     const [external, setExternal] = useState(false);

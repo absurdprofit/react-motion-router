@@ -1,4 +1,4 @@
-import React from "react";
+import {Children, lazy as ReactLazy, isValidElement} from "react";
 import RouterData from "../RouterData";
 import { ScreenBaseProps } from "../ScreenBase";
 import { LazyExoticComponent, PlainObject, ScreenChild, SearchParamsDeserializer, SearchParamsSerializer } from "./types";
@@ -181,7 +181,7 @@ export function searchParamsFromObject(params: {[key: string]: any}, paramsSeria
 export function lazy<T extends React.ComponentType<any>>(
     factory: () => Promise<{ default: T }>
 ): LazyExoticComponent<T> {
-    const Component = React.lazy(factory) as LazyExoticComponent<T>;
+    const Component = ReactLazy(factory) as LazyExoticComponent<T>;
     Component.preload = () => {
         const result = factory();
         result
@@ -205,9 +205,9 @@ export function prefetchRoute(path: string, routerData: RouterData) {
         let found = false;
         while(currentRouterData) {
             const routes = currentRouterData.routes;
-            React.Children.forEach<ScreenChild<ScreenBaseProps>>(routes, (route) => {
+            Children.forEach<ScreenChild<ScreenBaseProps>>(routes, (route) => {
                 if (found) return; // stop after first
-                if (!React.isValidElement(route)) return;
+                if (!isValidElement(route)) return;
                 const matchInfo = matchRoute(route.props.path, path);
                 if (!matchInfo) return;
                 found = true;
@@ -248,3 +248,5 @@ export const DEFAULT_ANIMATION = {
         duration: 0
     }
 } as const;
+
+export const MAX_Z_INDEX = 2147483647;

@@ -1,11 +1,12 @@
+#player-animation-provider,
+#sheet-animation-provider {
+    transform: translateY(15vh);
+    overflow: visible;
+}
 .modal {
     width: 100vw;
-    height: 105vh;
-    position: absolute;
-    bottom: 0;
-    left: 0;
+    height: 85vh;
     background-color: rgba(34, 34, 34, 1);
-    border-radius: 10px 10px 0px 0px;
 }
 .modal .notch {
     color: transparent;
@@ -20,14 +21,6 @@
 }
 div[role="presentation"] {
     position: absolute;
-}
-.modal-presentation {
-    width: 100vw;
-    height: 100vh;
-    contain: strict;
-    border: none;
-    padding: 0;
-    background-color: transparent;
 }
 .modal .content {
     padding: 15px;

@@ -1,10 +1,10 @@
-import React from 'react';
 import { SharedElement, SharedElementNode, SharedElementScene } from './SharedElement';
-import { clamp } from './common/utils';
+import { MAX_Z_INDEX, clamp } from './common/utils';
 import { EasingFunction, PlainObject } from './common/types';
 import { MotionProgressEvent } from './MotionEvents';
 import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
 import NavigationBase from './NavigationBase';
+import { Component } from 'react';
 
 interface GhostLayerProps {
     instance?: (instance: GhostLayer | null) => any;
@@ -41,8 +41,8 @@ interface TransitionState {
 
 type AnimationMap = Map<string, PlainObject<Animation>>;
 
-export default class GhostLayer extends React.Component<GhostLayerProps, GhostLayerState> {
-    private ref: HTMLDivElement | null = null;
+export default class GhostLayer extends Component<GhostLayerProps, GhostLayerState> {
+    private ref: HTMLDialogElement | null = null;
     private _currentScene: SharedElementScene | null = null;
     private _nextScene: SharedElementScene | null = null;
     static contextType = AnimationLayerDataContext;
@@ -101,6 +101,8 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
         }
         
         const onFrame = queueMicrotask.bind(null, async () => {
+            // render ghost layer in top layer
+            this.ref?.showModal();
             for (const [id, start] of currentScene.nodes) {
                 //if id exists in next scene
                 if (nextScene.nodes.has(id)) {
@@ -156,7 +158,8 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 delay: startInstance.props.config?.x?.delay ?? endInstance.props.config?.delay ?? 0,
                                 duration: startInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.context.duration,
                                 easingFunction: startInstance.props.config?.x?.easingFunction || startInstance.props.config?.easingFunction ||'ease',
-                                position: startRect.x - (this.state.playing ? 0 : currentScene.x),
+                                // position: startRect.x - (this.state.playing ? 0 : currentScene.x),
+                                position: startRect.x
                                 
                             },
                             y: {
@@ -164,7 +167,8 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 delay: startInstance.props.config?.y?.delay ?? endInstance.props.config?.delay ?? 0,
                                 duration: startInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.context.duration,
                                 easingFunction: startInstance.props.config?.y?.easingFunction || startInstance.props.config?.easingFunction || 'ease',
-                                position: startRect.y - (this.state.playing ? 0 : currentScene.y)
+                                // position: startRect.y - (this.state.playing ? 0 : currentScene.y),
+                                position: startRect.y
                             }
                         },
                         end: {
@@ -173,26 +177,28 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
                                 delay: endInstance.props.config?.x?.delay ?? endInstance.props.config?.delay ?? 0,
                                 duration: endInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.context.duration,
                                 easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
-                                position: endRect.x - (this.state.playing ? nextScene.x : 0)
+                                // position: endRect.x - (this.state.playing ? nextScene.x : 0),
+                                position: endRect.x
                             },
                             y: {
                                 node: endChild,
                                 delay: endInstance.props.config?.y?.delay ?? endInstance.props.config?.delay ?? 0,
                                 duration: endInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.context.duration,
                                 easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
-                                position: endRect.y - (this.state.playing ? nextScene.y : 0)
+                                // position: endRect.y - (this.state.playing ? nextScene.y : 0),
+                                position: endRect.y
                             }
                         }
                     };
 
                     // account for zoom animation transform scale factor
-                    if (this.state.playing) {
-                        transitionState.end.x.position = transitionState.end.x.position / nextScene.xRatio;
-                        transitionState.end.y.position = transitionState.end.y.position / nextScene.yRatio;
-                    } else {
-                        transitionState.start.x.position = transitionState.start.x.position / currentScene.xRatio;
-                        transitionState.start.y.position = transitionState.start.y.position / currentScene.yRatio;
-                    }
+                    // if (this.state.playing) {
+                    //     transitionState.end.x.position = transitionState.end.x.position / nextScene.xRatio;
+                    //     transitionState.end.y.position = transitionState.end.y.position / nextScene.yRatio;
+                    // } else {
+                    //     transitionState.start.x.position = transitionState.start.x.position / currentScene.xRatio;
+                    //     transitionState.start.y.position = transitionState.start.y.position / currentScene.yRatio;
+                    // }
 
                     startNode.style.display = 'unset';
 
@@ -588,14 +594,20 @@ export default class GhostLayer extends React.Component<GhostLayerProps, GhostLa
     render() {
         if (this.state.transitioning) {
             return (
-                <div id="ghost-layer" ref={c => this.ref = c} style={{
+                <dialog id="ghost-layer" ref={c => this.ref = c} style={{
                     position: 'absolute',
-                    zIndex: 1000,
+                    zIndex: MAX_Z_INDEX,
+                    maxWidth: 'unset',
+                    maxHeight: 'unset',
                     width: '100vw',
                     height: '100vh',
-                    contain: 'strict'
+                    contain: 'strict',
+                    padding: 0,
+                    border: 'none',
+                    backgroundColor: 'transparent'
                 }}>
-                </div>
+                    <style dangerouslySetInnerHTML={{__html: "#ghost-layer::backdrop {display: none}"}}></style>
+                </dialog>
             );
         } else {
             return <></>

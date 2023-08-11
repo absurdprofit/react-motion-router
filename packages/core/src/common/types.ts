@@ -1,4 +1,3 @@
-import React from 'react';
 import HistoryBase from '../HistoryBase';
 import NavigationBase from '../NavigationBase';
 import ScreenBase, { ScreenBaseProps } from '../ScreenBase';
@@ -103,3 +102,4 @@ export type RouterEventMap = Pick<HTMLElementEventMap, "navigate" | "go-back" | 
 
 export type NodeAppendedEvent = CustomEvent<{node: Node;}>;
 export type NodeRemovedEvent = CustomEvent<{node: Node;}>;
+export type CustomElementType = string;

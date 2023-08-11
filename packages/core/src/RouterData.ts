@@ -1,4 +1,4 @@
-import React, {createContext} from 'react';
+import {createContext} from 'react';
 import { DEFAULT_ANIMATION, ScreenBase, prefetchRoute } from '.';
 import { AnimationConfigSet, PlainObject, RouterEventMap, SearchParamsDeserializer, SearchParamsSerializer } from './common/types';
 import GhostLayer from './GhostLayer';

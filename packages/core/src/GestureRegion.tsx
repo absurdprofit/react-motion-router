@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface GestureRegionProps extends React.HTMLAttributes<HTMLDivElement> {
     disabled?: boolean;
 }

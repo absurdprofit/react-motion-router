@@ -1,10 +1,11 @@
-import React from 'react';
-import { AnimationConfigSet, AnimationDirection, AnimationKeyframeEffectConfig, EasingFunction } from './common/types';
+import { AnimationConfigSet, AnimationDirection, AnimationKeyframeEffectConfig, CustomElementType, EasingFunction } from './common/types';
 import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
 import AnimationKeyframePresets from './Animations';
 import NavigationBase from './NavigationBase';
+import { Component, ElementType } from 'react';
 
 interface AnimationProviderProps {
+    onRef: (ref: HTMLElement | null) => void;
     onExit: Function;
     onEnter: Function;
     in: boolean;
@@ -20,11 +21,13 @@ interface AnimationProviderProps {
     keepAlive: boolean;
     children: React.ReactNode
     navigation: NavigationBase;
+    renderAs: ElementType | CustomElementType;
 }
 
 interface AnimationProviderState {
     mounted: boolean;
     zIndex: number;
+    tabIndex: number;
 }
 
 const OppositeDirection = {
@@ -36,7 +39,7 @@ const OppositeDirection = {
     "out": "in" as const
 }
 
-export default class AnimationProvider extends React.Component<AnimationProviderProps, AnimationProviderState> {
+export default class AnimationProvider extends Component<AnimationProviderProps, AnimationProviderState> {
     private _animationLayerData: AnimationLayerData | null = null;
     private ref: HTMLElement | null = null;
     private onAnimationEnd = this.animationEnd.bind(this);
@@ -45,11 +48,13 @@ export default class AnimationProvider extends React.Component<AnimationProvider
 
     state: AnimationProviderState = {
         mounted: false,
-        zIndex: 0
+        zIndex: 0,
+        tabIndex: 0
     }
     
     onRef(ref: HTMLElement | null) {
         this.ref = ref;
+        this.props.onRef(ref);
     }
 
     animationEnd() {
@@ -327,7 +332,7 @@ export default class AnimationProvider extends React.Component<AnimationProvider
     }
 
     set zIndex(_zIndex: number) {
-        this.setState({zIndex: _zIndex});
+        this.setState({zIndex: _zIndex, tabIndex: _zIndex - 1});
     }
 
     mounted(_mounted: boolean, willAnimate: boolean = true): Promise<void> {
@@ -357,16 +362,17 @@ export default class AnimationProvider extends React.Component<AnimationProvider
     }
 
     render() {
+        const Element = this.props.renderAs;
         return (
-            <div
+            <Element
                 id={`${this.props.name}-animation-provider`}
                 className="animation-provider"
                 ref={this.setRef}
+                tabIndex={this.state.tabIndex}
                 style={{
-                    position: 'absolute',
+                    gridArea: '1 / 1',
                     width: '100%',
                     height: '100%',
-                    contain: 'strict',
                     transformOrigin: 'center center',
                     zIndex: this.state.zIndex
                 }}
@@ -382,7 +388,7 @@ export default class AnimationProvider extends React.Component<AnimationProvider
                         }
                     }}
                 </AnimationLayerDataContext.Consumer>
-            </div>
+            </Element>
         ); 
     }
 }

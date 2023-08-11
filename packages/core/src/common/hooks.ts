@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Motion, NavigationBase, RouteProp } from "..";
 import { MotionProgressEvent } from "../MotionEvents";
 import { RouterDataContext } from "../RouterData";
@@ -18,7 +18,7 @@ export function useReducedMotion() {
 }
 
 export function useNavigation<T extends NavigationBase = NavigationBase>() {
-    const routerData = React.useContext(RouterDataContext);
+    const routerData = useContext(RouterDataContext);
     if (routerData) {
         return routerData.navigation as NavigationBase;
     } else {
@@ -27,7 +27,7 @@ export function useNavigation<T extends NavigationBase = NavigationBase>() {
 }
 
 export function useMotion() {
-    const [motion, setMotion] = useState(React.useContext(Motion));
+    const [motion, setMotion] = useState(useContext(Motion));
     const navigation = useNavigation();
     
     useEffect(() => {
@@ -43,7 +43,7 @@ export function useMotion() {
 }
 
 export function useRoute<T>(): RouteProp<T> {
-    const routeData = React.useContext(RouteDataContext);
+    const routeData = useContext(RouteDataContext);
     if (routeData) {
         return routeData as RouteProp<T>;
     } else {

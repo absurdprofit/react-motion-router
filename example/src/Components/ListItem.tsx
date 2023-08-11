@@ -12,7 +12,7 @@ export default function ListItem(props: ListItemProps) {
     return (
         <li role="menuitem">
             <Anchor href={props.href}>
-                <Button>
+                <Button tabIndex={-1}>
                     <div className="list-item">
                         <div className="title">
                             <h2>{props.title}</h2>

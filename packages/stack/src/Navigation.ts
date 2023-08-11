@@ -31,7 +31,7 @@ export default class Navigation extends NavigationBase {
             return;
         }
 
-        const pathname = window.location.pathname.replace(this.history.baseURL.pathname, '');
+        const pathname = window.location.pathname.replace(this.history.baseURL.pathname, '') || '/';
         if (pathname === this.history.previous) {
             this.implicitBack();
         } else {
@@ -170,7 +170,6 @@ export default class Navigation extends NavigationBase {
     private createFinishedPromise(controller: AbortController) {
         return new Promise<void>(async (resolve, reject) => {
             try {
-                await this._animationLayerData.started;
                 await this._animationLayerData.finished;
                 resolve();
             } catch (e) {

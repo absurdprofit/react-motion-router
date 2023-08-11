@@ -1,3 +1,5 @@
+import { AnimationConfig, AnimationKeyframeEffectConfig } from "@react-motion-router/core";
+
 export function getPWADisplayMode() {
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
   if (document.referrer.startsWith('android-app://')) {
@@ -29,3 +31,10 @@ export function lerp (v0: number, v1: number, p: number) {
 export const getInset = (top: number, right: number, bottom: number, left: number) => {
   return `inset(${top}px ${right}px ${bottom}px ${left}px)`;
 }
+
+export const STATIC_ANIMATION: AnimationKeyframeEffectConfig | AnimationConfig = {
+  keyframes: [],
+  options: {
+    duration: iOS() && !isPWA() ? 0 : 350
+  }
+};

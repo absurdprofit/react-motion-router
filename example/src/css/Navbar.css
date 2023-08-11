@@ -1,6 +1,6 @@
 .navbar {
   padding: calc(env(safe-area-inset-top) * 1.25) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-  height: calc(64px - env(safe-area-inset-top));
+  min-height: calc(64px - env(safe-area-inset-top));
   background-color: rgba(254, 226, 85);
   position: sticky;
   top: 0px;
