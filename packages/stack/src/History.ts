@@ -5,7 +5,7 @@ export default class History extends HistoryBase {
 
     constructor(_routerId: string, _defaultRoute: string | null, _baseURL: URL) {
         super(_routerId, _defaultRoute, _baseURL);
-        const pathname = window.location.pathname.replace(this.baseURL.pathname, '');
+        const pathname = window.location.pathname.replace(this.baseURL.pathname, '') || '/';
         const searchPart = window.location.search;
 
         if (_defaultRoute) {
