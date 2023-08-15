@@ -7,7 +7,9 @@ import { Component, ElementType } from 'react';
 interface AnimationProviderProps {
     onRef: (ref: HTMLElement | null) => void;
     onExit: Function;
+    onExited: Function;
     onEnter: Function;
+    onEntered: Function;
     in: boolean;
     out: boolean;
     name: string;
@@ -61,6 +63,9 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
         if (this.ref) {
             this.ref.style.willChange = 'auto';
             this.ref.style.pointerEvents = 'auto';
+        }
+        if (this.props.in) {
+            this.props.onEntered();
         }
     }
 
@@ -349,6 +354,8 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
                     if (this.props.onEnter) {
                         this.props.onEnter(shouldScroll);
                     }
+                } else {
+                    this.props.onExited();
                 }
 
                 resolve();

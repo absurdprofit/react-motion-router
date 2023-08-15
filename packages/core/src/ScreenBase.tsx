@@ -50,10 +50,10 @@ export interface ScreenBaseState {
 }
 
 export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState> extends Component<P, S> {
-    private name = this.props.path === undefined ? 'not-found' : this.props.path?.toString().slice(1).replace('/', '-') || 'index';
-    private sharedElementScene: SharedElementScene = new SharedElementScene(this.name);
-    private ref: HTMLElement | null = null;
-    private contextParams = this.context?.routesData.get(this.props.path)?.params;
+    protected name = this.props.path === undefined ? 'not-found' : this.props.path?.toString().slice(1).replace('/', '-') || 'index';
+    protected sharedElementScene: SharedElementScene = new SharedElementScene(this.name);
+    protected ref: HTMLElement | null = null;
+    protected contextParams = this.context?.routesData.get(this.props.path)?.params;
     private onRef = this.setRef.bind(this);
     private animation: AnimationConfigSet | (() => AnimationConfigSet) = DEFAULT_ANIMATION;
     private pseudoElementAnimation: AnimationConfigSet | (() => AnimationConfigSet) = DEFAULT_ANIMATION;
@@ -156,6 +156,8 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
 
         return this.context!.animation;
     }
+
+    onExited() {}
     
     onExit() {
         if (this.context!.backNavigating)
@@ -174,6 +176,8 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
             this.context!.ghostLayer.nextScene = this.sharedElementScene;
         }
     }
+
+    onEntered() {}
 
     private setRef(ref: HTMLElement | null) {
         if (this.ref !== ref) {
@@ -216,7 +220,9 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
                 onRef={ref => this.animationProviderRef = ref}
                 renderAs={this.elementType}
                 onExit={this.onExit.bind(this)}
+                onExited={this.onExited.bind(this)}
                 onEnter={this.onEnter.bind(this)}
+                onEntered={this.onEntered.bind(this)}
                 in={this.props.in || false}
                 out={this.props.out || false}
                 name={this.props.name?.toLowerCase().replace(' ', '-') ?? this.name}
