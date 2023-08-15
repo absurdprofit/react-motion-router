@@ -40,22 +40,14 @@ export namespace Stack {
                 this.animationProviderRef.style.maxWidth = 'unset';
                 this.animationProviderRef.style.width = 'max-content';
                 this.animationProviderRef.style.height = 'max-content';
-                
-                // closed by navigation.goBack()
-                navigation?.addEventListener('go-back', (e) => {
-                    if (this.animationProviderRef instanceof HTMLDialogElement) {
-                        e.detail.finished.then(
-                            this.animationProviderRef.close.bind(
-                                this.animationProviderRef,
-                                "go-back"
-                            )
-                        );
-                    }
-                }, {once: true});
+                if (this.ref) {
+                    this.ref.style.width = 'max-content';
+                    this.ref.style.height = 'max-content';
+                }
 
                 // closed by form submit or ESC key
                 this.animationProviderRef.addEventListener('close', function(e) {
-                    if (this.returnValue !== "go-back") {
+                    if (this.returnValue !== "screen-exit") {
                         this.style.display = "block";
                         navigation?.goBack();
                     }
@@ -75,5 +67,12 @@ export namespace Stack {
                 }, {once: true});
             }
         };
+
+        onExited = () => {
+            super.onExited();
+            if (this.animationProviderRef instanceof HTMLDialogElement) {
+                this.animationProviderRef.close("screen-exit");
+            }
+        }
     }
 }
