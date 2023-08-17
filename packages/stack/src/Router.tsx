@@ -36,7 +36,12 @@ export default class Router extends RouterBase {
         this._routerData.navigation = new Navigation(
             this.id,
             this._routerData,
-            new History(this.id, this.props.config.defaultRoute ?? null, this.baseURL),
+            new History(
+                this.id,
+                Boolean(this.props.config.disableBrowserRouting),
+                this.props.config.defaultRoute ?? null,
+                this.baseURL
+            ),
             this.animationLayerData,
             this.props.config.disableBrowserRouting,
             this.props.config.defaultRoute
