@@ -49,7 +49,7 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
     private setRef = this.onRef.bind(this);
 
     state: AnimationProviderState = {
-        mounted: false,
+        mounted: this.props.in || (this.props.out && this.props.keepAlive),
         zIndex: 0,
         tabIndex: 0
     }
