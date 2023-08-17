@@ -49,7 +49,7 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
     private setRef = this.onRef.bind(this);
 
     state: AnimationProviderState = {
-        mounted: this.props.in || (this.props.out && this.props.keepAlive),
+        mounted: this.props.out && this.props.keepAlive,
         zIndex: 0,
         tabIndex: 0
     }
@@ -81,11 +81,15 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
         this.props.navigation.addEventListener('motion-progress-start', this.onNavigate);
         this.props.navigation.addEventListener('page-animation-end', this.onAnimationEnd);
         this.props.navigation.addEventListener('motion-progress-end', this.onAnimationEnd);
+        if (this.state.mounted) {
+            this.props.onEnter();
+            this.props.onEntered();
+        }
         if (this._animationLayerData) {
             if (this.props.in) {
                 this._animationLayerData.nextScreen = this;
             }
-            if (this.props.out) {
+            if (this.props.out && !this.state.mounted) {
                 this._animationLayerData.onExit = this.props.onExit;
                 this._animationLayerData.currentScreen = this;
             }

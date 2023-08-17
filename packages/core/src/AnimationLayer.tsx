@@ -28,7 +28,7 @@ interface AnimationLayerProps {
 }
 
 interface AnimationLayerState {
-    currentPath: string;
+    currentPath: string | null;
     children: ScreenChild | ScreenChild[];
     progress: number;
     shouldPlay: boolean;
@@ -47,7 +47,7 @@ interface AnimationLayerState {
 function StateFromChildren(
     props: AnimationLayerProps,
     state: AnimationLayerState,
-    currentPath: string | undefined,
+    currentPath: string | null | undefined,
     nextPath: string | undefined
 ) {
     const {paths} = state;
@@ -64,7 +64,7 @@ function StateFromChildren(
         if (!includesRoute(nextPath, paths) && state.paths.includes(undefined)) {
             nextPath = undefined;
         }
-        if (currentPath !== '' && !includesRoute(currentPath, paths) && state.paths.includes(undefined)) {
+        if (currentPath !== null && !includesRoute(currentPath, paths) && state.paths.includes(undefined)) {
             currentPath = undefined;
         }
     }
@@ -75,6 +75,7 @@ function StateFromChildren(
     Children.forEach(
         state.children, // match current child from state
         (child) => {
+            if (currentPath === null) return;
             if (!isValidElement(child)) return;
             if (
                 matchRoute(child.props.resolvedPathname, nextPath)
@@ -92,7 +93,10 @@ function StateFromChildren(
             let matchInfo;
             if (props.children === state.children) {
                 // first load so resolve by path instead of resolvedPathname
-                matchInfo = matchRoute(child.props.path, currentPath)
+                if (child.props.config?.keepAlive) {
+                    // only match screens with keep alive.
+                    matchInfo = matchRoute(child.props.path, currentPath);
+                }
             } else {
                 matchInfo = matchRoute(child.props.resolvedPathname, currentPath);
             }
@@ -200,7 +204,7 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
     context!: React.ContextType<typeof AnimationLayerDataContext>;
 
     state: AnimationLayerState = {
-        currentPath: this.props.lastPath ?? '',
+        currentPath: this.props.lastPath,
         children: this.props.children,
         progress: 100,
         shouldPlay: true,

@@ -26,7 +26,7 @@ export default class History extends HistoryBase {
             }
         }
 
-        if (!this._stack.length || !this._stack.includes(pathname))
+        if (!this._stack.length)
             this._stack.push(pathname || '/');
     }
 
