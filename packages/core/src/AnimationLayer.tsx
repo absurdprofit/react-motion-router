@@ -1,6 +1,6 @@
 import { Children, Component, cloneElement, createContext, isValidElement } from 'react';
 import { SwipeEndEvent, SwipeEvent, SwipeStartEvent } from 'web-gesture-events';
-import { clamp, matchRoute, includesRoute } from './common/utils';
+import { clamp, matchRoute, includesRoute, MatchedRoute } from './common/utils';
 import Navigation from './NavigationBase';
 import { NavigationBase, ScreenChild } from './index';
 import { AnimationLayerDataContext } from './AnimationLayerData';
@@ -28,7 +28,7 @@ interface AnimationLayerProps {
 }
 
 interface AnimationLayerState {
-    currentPath: string;
+    currentPath: string | null;
     children: ScreenChild | ScreenChild[];
     progress: number;
     shouldPlay: boolean;
@@ -47,7 +47,7 @@ interface AnimationLayerState {
 function StateFromChildren(
     props: AnimationLayerProps,
     state: AnimationLayerState,
-    currentPath: string | undefined,
+    currentPath: string | null | undefined,
     nextPath: string | undefined
 ) {
     const {paths} = state;
@@ -64,7 +64,7 @@ function StateFromChildren(
         if (!includesRoute(nextPath, paths) && state.paths.includes(undefined)) {
             nextPath = undefined;
         }
-        if (currentPath !== '' && !includesRoute(currentPath, paths) && state.paths.includes(undefined)) {
+        if (currentPath !== null && !includesRoute(currentPath, paths) && state.paths.includes(undefined)) {
             currentPath = undefined;
         }
     }
@@ -75,6 +75,7 @@ function StateFromChildren(
     Children.forEach(
         state.children, // match current child from state
         (child) => {
+            if (currentPath === null) return;
             if (!isValidElement(child)) return;
             if (
                 matchRoute(child.props.resolvedPathname, nextPath)
@@ -89,7 +90,16 @@ function StateFromChildren(
             }
             // match resolved pathname instead to avoid matching the next component first
             // this can happen if the same component matches both current and next paths
-            const matchInfo = matchRoute(child.props.resolvedPathname, currentPath);
+            let matchInfo;
+            if (props.children === state.children) {
+                // first load so resolve by path instead of resolvedPathname
+                if (child.props.config?.keepAlive) {
+                    // only match screens with keep alive.
+                    matchInfo = matchRoute(child.props.path, currentPath);
+                }
+            } else {
+                matchInfo = matchRoute(child.props.resolvedPathname, currentPath);
+            }
             if (matchInfo) {
                 if (!currentMatched) {
                     let mountProps = {out: true, in: false};
@@ -98,7 +108,8 @@ function StateFromChildren(
                     children.push(
                         cloneElement(child, {
                             ...mountProps,
-                            resolvedPathname: matchInfo.matchedPathname
+                            resolvedPathname: matchInfo.matchedPathname,
+                            key: child.key ?? Math.random()
                         }) as ScreenChild
                     );
                 }
@@ -193,7 +204,7 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
     context!: React.ContextType<typeof AnimationLayerDataContext>;
 
     state: AnimationLayerState = {
-        currentPath: '',
+        currentPath: this.props.lastPath,
         children: this.props.children,
         progress: 100,
         shouldPlay: true,

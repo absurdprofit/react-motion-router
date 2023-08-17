@@ -68,7 +68,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
     };
 
     state: S = {
-        shouldKeepAlive: false,
+        shouldKeepAlive: this.props.out && this.props.config?.keepAlive,
     } as S;
 
     componentDidMount() {
