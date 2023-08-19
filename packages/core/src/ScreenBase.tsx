@@ -53,7 +53,6 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
     protected name = this.props.path === undefined ? 'not-found' : this.props.path?.toString().slice(1).replace('/', '-') || 'index';
     protected sharedElementScene: SharedElementScene = new SharedElementScene(this.name);
     protected ref: HTMLElement | null = null;
-    protected contextParams = this.context?.routesData.get(this.props.path)?.params;
     private onRef = this.setRef.bind(this);
     private animation: AnimationConfigSet | (() => AnimationConfigSet) = DEFAULT_ANIMATION;
     private pseudoElementAnimation: AnimationConfigSet | (() => AnimationConfigSet) = DEFAULT_ANIMATION;
@@ -61,11 +60,6 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
     protected animationProviderRef: HTMLElement | null = null;
     static contextType = RouterDataContext;
     context!: React.ContextType<typeof RouterDataContext>;
-    static defaultProps = {
-        route: {
-            params: {}
-        }
-    };
 
     state: S = {
         shouldKeepAlive: this.props.out && this.props.config?.keepAlive,
@@ -78,16 +72,11 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
         this.animation = this.setupAnimation(this.props.config?.animation) ?? this.context!.animation;
         this.pseudoElementAnimation = this.setupAnimation(this.props.config?.pseudoElement?.animation) ?? DEFAULT_ANIMATION;
 
-        this.contextParams = this.context!.routesData.get(this.props.path)?.params;
         this.context!.mountedScreen = this;
         this.forceUpdate();
     }
 
     shouldComponentUpdate(nextProps: P) {
-        if (this.context!.routesData.get(this.props.path)?.params !== this.contextParams) {
-            this.contextParams = this.context!.routesData.get(this.props.path)?.params;
-            return true;
-        }
         if (nextProps.out && !nextProps.in) {
             return true;
         }
@@ -213,7 +202,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
         }
         const params = {
             ...this.props.defaultParams,
-            ...this.contextParams
+            ...this.context!.routesData.get(this.props.path)?.params
         };
         return (
             <AnimationProvider
