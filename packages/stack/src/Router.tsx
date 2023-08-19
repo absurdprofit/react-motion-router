@@ -74,8 +74,6 @@ export default class Router extends RouterBase {
         }
     }
 
-    onPopStateListener = (e: Event) => {}
-
     onBackListener = (e: BackEvent) => {
         if (e.detail.routerId !== this.id) return;
         let pathname = this.navigation.location.pathname;

@@ -87,6 +87,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     componentDidMount() {
         this._routerData.paramsDeserializer = this.props.config.paramsDeserializer;
         this._routerData.paramsSerializer = this.props.config.paramsSerializer;
+        this.onPopStateListener = this.onPopStateListener.bind(this);
         window.addEventListener('popstate', this.onPopStateListener);
     }
 
@@ -145,7 +146,21 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     abstract onGestureNavigationStart: () => void;
     abstract onGestureNavigationEnd: () => void;
 
-    abstract onPopStateListener: (e: Event) => void;
+    protected onPopStateListener(e: Event) {
+        let currentPath = this.navigation.location.pathname;
+        const paramsDeserializer = this._routerData.paramsDeserializer || null;
+        const searchParams = searchParamsToObject(window.location.search, paramsDeserializer);
+        const routesData = this.state.routesData;
+        this._routerData.routesData = this.state.routesData;
+        
+        if (searchParams) {
+            routesData.set(currentPath, {
+                ...this.state.routesData.get(currentPath),
+                params: searchParams
+            });
+        }
+        this.setState({routesData});
+    };
 
     abstract onBackListener: (e: BackEvent) => void;
 
