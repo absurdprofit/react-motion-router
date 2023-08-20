@@ -150,7 +150,7 @@ function StateFromChildren(
     );
 
     // not found case
-    if (!Children.count(children)) {
+    if (!children.some((child) => child.props.in)) {
         const children = Children.map(props.children, (child: ScreenChild) => {
             if (!isValidElement(child)) return undefined;
             if (matchRoute(child.props.path, undefined)) {
