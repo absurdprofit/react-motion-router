@@ -50,7 +50,6 @@ function StateFromChildren(
     currentPath: string | null | undefined,
     nextPath: string | undefined
 ) {
-    console.log("Here");
     const {paths} = state;
     let nextMatched = false;
     let currentMatched = false;
@@ -151,7 +150,6 @@ function StateFromChildren(
     );
 
     // not found case
-    console.log({children}, children.some((child) => child.props.in));
     if (!children.some((child) => child.props.in)) {
         const children = Children.map(props.children, (child: ScreenChild) => {
             if (!isValidElement(child)) return undefined;
@@ -171,7 +169,6 @@ function StateFromChildren(
                 ) as ScreenChild;
             }
         });
-        console.log("Current Path", props.currentPath);
 
         return {
             children,
@@ -225,7 +222,6 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
     }
 
     static getDerivedStateFromProps(nextProps: AnimationLayerProps, state: AnimationLayerState): Partial<AnimationLayerState> | null {
-        console.log(nextProps.currentPath, state.currentPath);
         if (nextProps.currentPath !== state.currentPath) {
             if (!state.shouldAnimate) {
                 return {
