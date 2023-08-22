@@ -79,7 +79,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
         currentPath: "",
         backNavigating: false,
         gestureNavigating: false,
-        routesData: new Map<string, any>(),
+        routesData: new Map(),
         implicitBack: false,
         defaultDocumentTitle: document.title
     } as S;
@@ -110,8 +110,10 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
         this._routerData.routesData = this.state.routesData;
         
         if (searchParams) {
+            const routeData = this.state.routesData.get(currentPath);
             routesData.set(currentPath, {
-                ...this.state.routesData.get(currentPath),
+                preloaded: routeData?.preloaded ?? false,
+                setParams: routeData?.setParams ?? (() => {}),
                 params: searchParams
             });
         }
@@ -154,8 +156,10 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
         this._routerData.routesData = this.state.routesData;
         
         if (searchParams) {
+            const routeData = this.state.routesData.get(currentPath);
             routesData.set(currentPath, {
-                ...this.state.routesData.get(currentPath),
+                preloaded: routeData?.preloaded ?? false,
+                setParams: routeData?.setParams ?? (() => {}),
                 params: searchParams
             });
         }
