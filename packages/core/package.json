@@ -1,6 +1,6 @@
 {
   "name": "@react-motion-router/core",
-  "version": "1.4.7",
+  "version": "1.4.8",
   "main": "build/index.js",
   "publishConfig": {
     "access": "public"
