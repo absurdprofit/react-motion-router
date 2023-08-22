@@ -112,10 +112,12 @@ export default class Router extends RouterBase {
 
             //store per route data in object
             //with pathname as key and route data as value
+            const routeData = this.state.routesData.get(currentPath);
             routesData.set(currentPath, {
+                preloaded: routeData?.preloaded ?? false,
+                setParams: routeData?.setParams ?? (() => {}),
                 params: e.detail.routeParams
             });
-
 
             this._routerData.routesData = routesData;
             this.setState({routesData: routesData}, () => {
