@@ -95,6 +95,11 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
         }
     }
 
+    private setParams(params: PlainObject) {
+        this.context!.routesData.set(this.props.path, {params});
+        this.forceUpdate();
+    }
+
     setupAnimation(animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig | AnimationConfigFactory) {
         if (animation) {
             if (typeof animation === "function") {
@@ -204,6 +209,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
             ...this.props.defaultParams,
             ...this.context!.routesData.get(this.props.path)?.params
         };
+        const setParams = this.setParams.bind(this);
         return (
             <AnimationProvider
                 onRef={ref => this.animationProviderRef = ref}
@@ -238,7 +244,8 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
                         <RouteDataContext.Provider value={{
                             preloaded,
                             path: this.props.path,
-                            params
+                            params,
+                            setParams
                         }}>
                             <Suspense fallback={<ComponentWithRouteData component={this.props.config?.header?.fallback} />}>
                                 <ComponentWithRouteData component={HeaderComponent} />

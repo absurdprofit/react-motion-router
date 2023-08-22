@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { Motion, NavigationBase, RouteProp } from "..";
+import { Motion, NavigationBase, PlainObject, RouteProp } from "..";
 import { MotionProgressEvent } from "../MotionEvents";
 import { RouterDataContext } from "../RouterData";
 import { RouteDataContext } from "../RouteData";
@@ -42,7 +42,7 @@ export function useMotion() {
     return motion;
 }
 
-export function useRoute<T>(): RouteProp<T> {
+export function useRoute<T extends PlainObject>(): RouteProp<T> {
     const routeData = useContext(RouteDataContext);
     if (routeData) {
         return routeData as RouteProp<T>;
