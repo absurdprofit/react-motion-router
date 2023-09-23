@@ -60,8 +60,9 @@ export default abstract class NavigationBase {
         window.removeEventListener('popstate', this.popStateListener);
     }
 
-    addEventListener<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined): void {
+    addEventListener<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined) {
         this.routerData.addEventListener?.(type, listener, options);
+        return () => this.routerData.removeEventListener?.(type, listener);
     }
 
     removeEventListener<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | EventListenerOptions | undefined): void {
