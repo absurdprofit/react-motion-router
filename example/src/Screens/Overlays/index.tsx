@@ -44,7 +44,7 @@ export default function Overlays(props: OverlaysProps) {
                 <Router config={{
                     disableBrowserRouting: isPWA() && iOS(),
                 }}>
-                    <Stack.Screen component={Home} path="/" config={{keepAlive: true}} />
+                    <Stack.Screen component={Home} path="/" />
                     <Stack.Screen component={Player} path="/player" config={{
                         ...modalConfig,
                         animation: ModalAnimation

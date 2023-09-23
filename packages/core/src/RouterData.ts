@@ -1,12 +1,12 @@
 import {createContext} from 'react';
-import { DEFAULT_ANIMATION, ScreenBase, prefetchRoute } from '.';
+import { DEFAULT_ANIMATION, ScreenBase, ScreenBaseProps, prefetchRoute } from '.';
 import { AnimationConfigSet, PlainObject, RouteProp, RouterEventMap, SearchParamsDeserializer, SearchParamsSerializer } from './common/types';
 import GhostLayer from './GhostLayer';
 import NavigationBase from './NavigationBase';
 import RouterBase from './RouterBase';
 import { ScrollRestorationData } from './ScrollRestorationData';
 
-export type RoutesData = Map<string | undefined, RouteProp<PlainObject>>;
+export type RoutesData = Map<string | undefined, RouteProp<ScreenBaseProps, PlainObject>>;
 
 export default class RouterData<N extends NavigationBase = NavigationBase> {
     private routerInstance: RouterBase;

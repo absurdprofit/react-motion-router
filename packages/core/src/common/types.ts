@@ -79,14 +79,20 @@ export interface LazyExoticComponent<T extends React.ComponentType<any>> extends
     preloaded: T | undefined;
 }
 
-export interface RouteProp<T extends PlainObject> {
+export interface RouteProp<P extends ScreenBaseProps, T extends PlainObject> {
     path?: string;
+    config: NonNullable<P["config"]>;
     params: T;
     preloaded: boolean;
     setParams(params: Partial<T>): void;
+    setConfig(config: P["config"]): void;
 }
-export interface ScreenComponentBaseProps<T extends PlainObject = {}, N extends NavigationBase = NavigationBase> {
-    route: RouteProp<T>;
+export interface ScreenComponentBaseProps<
+    P extends ScreenBaseProps = ScreenBaseProps,
+    T extends PlainObject = {},
+    N extends NavigationBase = NavigationBase
+> {
+    route: RouteProp<P, T>;
     navigation: N;
     orientation: ScreenOrientation;
 }

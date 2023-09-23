@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { Motion, NavigationBase, PlainObject, RouteProp } from "..";
+import { Motion, NavigationBase, PlainObject, RouteProp, ScreenBaseProps } from "..";
 import { MotionProgressEvent } from "../MotionEvents";
 import { RouterDataContext } from "../RouterData";
 import { RouteDataContext } from "../RouteData";
@@ -42,10 +42,10 @@ export function useMotion() {
     return motion;
 }
 
-export function useRoute<T extends PlainObject>(): RouteProp<T> {
+export function useRoute<P extends ScreenBaseProps, T extends PlainObject>(): RouteProp<P, T> {
     const routeData = useContext(RouteDataContext);
     if (routeData) {
-        return routeData as RouteProp<T>;
+        return routeData as RouteProp<P, T>;
     } else {
         throw new Error("RouterData is null. You may be trying to call useRoute outside a Router.");
     }

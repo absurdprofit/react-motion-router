@@ -114,7 +114,9 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
             routesData.set(currentPath, {
                 preloaded: routeData?.preloaded ?? false,
                 setParams: routeData?.setParams ?? (() => {}),
-                params: searchParams
+                params: searchParams,
+                config: routeData?.config ?? {},
+                setConfig: routeData?.setConfig ?? (() => {})
             });
         }
         this.setState({currentPath, routesData});
@@ -160,7 +162,9 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
             routesData.set(currentPath, {
                 preloaded: routeData?.preloaded ?? false,
                 setParams: routeData?.setParams ?? (() => {}),
-                params: searchParams
+                params: searchParams,
+                config: routeData?.config ?? {},
+                setConfig: routeData?.setConfig ?? (() => {})
             });
         }
         this.setState({routesData});

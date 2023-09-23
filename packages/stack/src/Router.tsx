@@ -116,7 +116,9 @@ export default class Router extends RouterBase {
             routesData.set(currentPath, {
                 preloaded: routeData?.preloaded ?? false,
                 setParams: routeData?.setParams ?? (() => {}),
-                params: e.detail.routeParams
+                params: e.detail.routeParams,
+                config: routeData?.config ?? {},
+                setConfig: routeData?.setConfig ?? (() => {})
             });
 
             this._routerData.routesData = routesData;

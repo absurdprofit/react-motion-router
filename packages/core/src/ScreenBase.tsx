@@ -59,11 +59,13 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
     private pseudoElementAnimation: AnimationConfigSet | (() => AnimationConfigSet) = DEFAULT_ANIMATION;
     protected elementType: ElementType | string = "div";
     protected animationProviderRef: HTMLElement | null = null;
-    protected _routeData: RouteProp<PlainObject> = {
+    protected _routeData: RouteProp<P, PlainObject> = {
         params: {},
+        config: this.props.config ?? {},
         path: this.props.path,
         preloaded: false,
-        setParams: this.setParams.bind(this)
+        setParams: this.setParams.bind(this),
+        setConfig: this.setConfig.bind(this)
     };
     static contextType = RouterDataContext;
     context!: React.ContextType<typeof RouterDataContext>;
@@ -74,10 +76,9 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
 
     componentDidMount() {
         this.sharedElementScene.getScreenRect = () => this.ref?.getBoundingClientRect() || new DOMRect();
-        this.sharedElementScene.keepAlive = this.props.config?.keepAlive || false;
         
-        this.animation = this.setupAnimation(this.props.config?.animation) ?? this.context!.animation;
-        this.pseudoElementAnimation = this.setupAnimation(this.props.config?.pseudoElement?.animation) ?? DEFAULT_ANIMATION;
+        this.animation = this.setupAnimation(this.routeData.config.animation) ?? this.context!.animation;
+        this.pseudoElementAnimation = this.setupAnimation(this.routeData.config.pseudoElement?.animation) ?? DEFAULT_ANIMATION;
 
         this.context!.mountedScreen = this;
         this.forceUpdate();
@@ -96,13 +97,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
         return false;
     }
 
-    componentDidUpdate(prevProps: P) {
-        if (prevProps.config?.keepAlive !== this.props.config?.keepAlive) {
-            this.sharedElementScene.keepAlive = this.props.config?.keepAlive || false;
-        }
-    }
-
-    private setParams(params: PlainObject) {
+    protected setParams(params: PlainObject) {
         const routeData = this.routeData;
         routeData.params = {
             ...routeData.params,
@@ -112,11 +107,26 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
         this.forceUpdate();
     }
 
-    private get routeData() {
+    protected setConfig(config: P['config']) {
+        const routeData = this.routeData;
+        routeData.config = {
+            ...routeData.config,
+            ...config
+        };
+        this.context!.routesData.set(this.props.path, routeData);
+        this.forceUpdate();
+    }
+
+    protected get routeData() {
         this._routeData.params = {
             ...this.props.defaultParams, // passed as prop
             ...this.context!.routesData.get(this.props.path)?.params, // passed by other screens using navigate
             ...this._routeData.params // passed by setParams
+        };
+        this._routeData.config = {
+            ...this.props.config, // passed as prop
+            ...this.context!.routesData.get(this.props.path)?.config, // passed by other screens using navigate
+            ...this._routeData.config // passed by setConfig
         };
         return this._routeData;
     }
@@ -205,8 +215,9 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
     }
 
     render() {
+        const routeData = this.routeData;
         let Component = this.props.component as React.JSXElementConstructor<any>;
-        let HeaderComponent = this.props.config?.header?.component as React.JSXElementConstructor<any>;
+        let HeaderComponent = routeData.config.header?.component as React.JSXElementConstructor<any>;
         let preloaded = false;
         let headerPreloaded = false;
         if ('preloaded' in Component && Component.preloaded) {
@@ -220,13 +231,14 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
             }
         }
         let pseudoElement = undefined;
-        if (this.props.config?.pseudoElement) {
+        if (routeData.config.pseudoElement) {
             pseudoElement = {
-                selector: this.props.config?.pseudoElement.selector,
+                selector: routeData.config.pseudoElement.selector,
                 animation: this.pseudoElementAnimation
             };
         }
-        this.routeData.preloaded = preloaded;
+        routeData.preloaded = preloaded;
+        this.sharedElementScene.keepAlive = Boolean(routeData.config.keepAlive);
         return (
             <AnimationProvider
                 onRef={ref => this.animationProviderRef = ref}
@@ -242,7 +254,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
                 animation={this.animation}
                 pseudoElement={pseudoElement}
                 backNavigating={this.context!.backNavigating}
-                keepAlive={this.state.shouldKeepAlive ? this.props.config?.keepAlive || false : false}
+                keepAlive={this.state.shouldKeepAlive ? routeData.config.keepAlive || false : false}
                 navigation={this.context!.navigation}
             >
                 <div
@@ -259,7 +271,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
                 >
                     <SharedElementSceneContext.Provider value={this.sharedElementScene}>
                         <RouteDataContext.Provider value={this.routeData}>
-                            <Suspense fallback={<ComponentWithRouteData component={this.props.config?.header?.fallback} route={this.routeData} navigation={this.context!.navigation} />}>
+                            <Suspense fallback={<ComponentWithRouteData component={routeData.config.header?.fallback} route={this.routeData} navigation={this.context!.navigation} />}>
                                 <ComponentWithRouteData component={HeaderComponent} route={this.routeData} navigation={this.context!.navigation} />
                             </Suspense>
                             <Suspense fallback={<ComponentWithRouteData component={this.props.fallback} route={this.routeData} navigation={this.context!.navigation} />}>
@@ -273,12 +285,12 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
     }
 }
 
-interface ComponentWithRouteDataProps {
+interface ComponentWithRouteDataProps<P extends ScreenBaseProps> {
     component: React.JSXElementConstructor<any>  | LazyExoticComponent<any> | React.ReactNode;
-    route: RouteProp<PlainObject>;
+    route: RouteProp<P, PlainObject>;
     navigation: NavigationBase;
 }
-function ComponentWithRouteData({component, route, navigation}: ComponentWithRouteDataProps) {
+function ComponentWithRouteData<P extends ScreenBaseProps>({component, route, navigation}: ComponentWithRouteDataProps<P>) {
     const Component = component ?? null;
     if (isValidElement(Component)) {
         return cloneElement<any>(Component, {

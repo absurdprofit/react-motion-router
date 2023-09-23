@@ -1,9 +1,10 @@
-import { ScreenBase } from '@react-motion-router/core';
+import { ScreenBase, matchRoute } from '@react-motion-router/core';
 import type { ScreenBaseProps, ScreenBaseState, ScreenComponentBaseProps } from '@react-motion-router/core';
 import Navigation from './Navigation';
+import { Children, isValidElement } from 'react';
 
 export namespace Stack {
-    export interface ScreenComponentProps<T extends { [key: string]: any; } = {}> extends ScreenComponentBaseProps<T, Navigation> {}
+    export interface ScreenComponentProps<T extends { [key: string]: any; } = {}> extends ScreenComponentBaseProps<ScreenProps, T, Navigation> {}
 
     type Presentation = "default" | "dialog" | "modal";
     interface ScreenProps extends ScreenBaseProps {
@@ -67,6 +68,20 @@ export namespace Stack {
                 }, {once: true});
             }
         };
+
+        onExit(): void {
+            const current = this.context?.navigation.history.current;
+            const routes = Children.toArray(this.context?.routes);
+            const nextRoute = routes.find(route => {
+                return isValidElement(route) && matchRoute(route.props.path, current);
+            }) as ScreenBase<ScreenProps, ScreenState> | undefined;
+            if (nextRoute?.props.config?.presentation === "modal"
+                || nextRoute?.props.config?.presentation === "dialog") {
+                    // if next screen is modal or dialog, keep current screen alive
+                    this.setState({shouldKeepAlive: true});
+                    this.setConfig({keepAlive: true});
+            }
+        }
 
         onExited = () => {
             super.onExited();
