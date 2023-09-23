@@ -173,6 +173,7 @@ interface SharedElementConfig {
 interface SharedElementProps {
     id: string | number;
     children: React.ReactChild;
+    disabled?: boolean;
     config?: SharedElementConfig;
 }
 
@@ -316,13 +317,16 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
         this._isMounted = true;
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(prevProps: SharedElementProps) {
         if (this._id !== this.props.id.toString()) {
             if (this._ref) {
                 this.scene?.removeNode(this._id);
                 this._id = this.props.id.toString();
                 this.scene?.addNode(nodeFromRef(this._id, this._ref, this));
             }
+        }
+        if (this.props.disabled && this.scene?.nodes.has(this.id)) {
+            this.scene.removeNode(this.id);
         }
     }
 
