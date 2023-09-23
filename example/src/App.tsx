@@ -72,7 +72,6 @@ function Routes() {
           component={Overlays}
           fallback={<div className='screen-fallback overlays'></div>}
           config={{
-            keepAlive: true,
             animation: OverlaysAnimation
           }}
         />
