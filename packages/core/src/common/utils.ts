@@ -212,13 +212,19 @@ export function prefetchRoute(path: string, routerData: RouterData) {
                 if (!matchInfo) return;
                 found = true;
                 queueMicrotask(async () => {
+                    const preloadTasks = [];
                     if ('preload' in route.props.component) {
-                        try {
-                            await route.props.component.preload();
-                            resolve(found);
-                        } catch (e) {
-                            reject(e);
-                        }
+                        preloadTasks.push(route.props.component.preload());
+                    }
+                    if (route.props.config?.header?.component
+                            && 'preload' in route.props.config?.header?.component) {
+                        preloadTasks.push(route.props.config?.header?.component.preload());
+                    }
+                    try {
+                        await Promise.all(preloadTasks);
+                        resolve(found);
+                    } catch (e) {
+                        reject(e);
                     }
                 });
             });
