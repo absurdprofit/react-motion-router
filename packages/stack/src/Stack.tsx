@@ -70,6 +70,7 @@ export namespace Stack {
         };
 
         onExit(): void {
+            super.onExit();
             const current = this.context?.navigation.history.current;
             const routes = Children.toArray(this.context?.routes);
             const nextRoute = routes.find(route => {
