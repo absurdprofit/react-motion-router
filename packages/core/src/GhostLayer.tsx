@@ -128,10 +128,10 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                     if (transitionType === "morph") {
                         [startCSSText, startCSSObject] = startInstance.CSSData;
                         [endCSSText, endCSSObject] = endInstance.CSSData;
+                    } else {
+                        startCSSText = startInstance.CSSText;
+                        endCSSText = endInstance.CSSText;
                     }
-                    
-                    startCSSText = startInstance.CSSText;
-                    endCSSText = endInstance.CSSText;
                     
                     startChild.style.cssText = startCSSText;
                     if (transitionType !== "morph") {
@@ -158,8 +158,8 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                                 delay: startInstance.props.config?.x?.delay ?? endInstance.props.config?.delay ?? 0,
                                 duration: startInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.context.duration,
                                 easingFunction: startInstance.props.config?.x?.easingFunction || startInstance.props.config?.easingFunction ||'ease',
-                                // position: startRect.x - (this.state.playing ? 0 : currentScene.x),
-                                position: startRect.x
+                                position: startRect.x - (this.state.playing ? 0 : currentScene.x),
+                                // position: startRect.x
                                 
                             },
                             y: {
@@ -167,8 +167,8 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                                 delay: startInstance.props.config?.y?.delay ?? endInstance.props.config?.delay ?? 0,
                                 duration: startInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.context.duration,
                                 easingFunction: startInstance.props.config?.y?.easingFunction || startInstance.props.config?.easingFunction || 'ease',
-                                // position: startRect.y - (this.state.playing ? 0 : currentScene.y),
-                                position: startRect.y
+                                position: startRect.y - (this.state.playing ? 0 : currentScene.y),
+                                // position: startRect.y
                             }
                         },
                         end: {
@@ -177,16 +177,16 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                                 delay: endInstance.props.config?.x?.delay ?? endInstance.props.config?.delay ?? 0,
                                 duration: endInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.context.duration,
                                 easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
-                                // position: endRect.x - (this.state.playing ? nextScene.x : 0),
-                                position: endRect.x
+                                position: endRect.x - (this.state.playing ? nextScene.x : 0),
+                                // position: endRect.x
                             },
                             y: {
                                 node: endChild,
                                 delay: endInstance.props.config?.y?.delay ?? endInstance.props.config?.delay ?? 0,
                                 duration: endInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.context.duration,
                                 easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
-                                // position: endRect.y - (this.state.playing ? nextScene.y : 0),
-                                position: endRect.y
+                                position: endRect.y - (this.state.playing ? nextScene.y : 0),
+                                // position: endRect.y
                             }
                         }
                     };

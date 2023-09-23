@@ -285,7 +285,7 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
             }
             this._ref = _ref;
             
-            if (_ref) {
+            if (_ref && !this.props.disabled) {
                 this.scene?.addNode(nodeFromRef(this._id, _ref, this));
                 if (_ref.firstElementChild) {
                     this._computedStyle = window.getComputedStyle(_ref.firstElementChild);
