@@ -65,7 +65,8 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
         path: this.props.path,
         preloaded: false,
         setParams: this.setParams.bind(this),
-        setConfig: this.setConfig.bind(this)
+        setConfig: this.setConfig.bind(this),
+        focused: false
     };
     static contextType = RouterDataContext;
     context!: React.ContextType<typeof RouterDataContext>;
@@ -238,6 +239,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
             };
         }
         routeData.preloaded = preloaded;
+        routeData.focused = Boolean(this.props.in);
         this.sharedElementScene.keepAlive = Boolean(routeData.config.keepAlive);
         return (
             <AnimationProvider

@@ -112,6 +112,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
         if (searchParams) {
             const routeData = this.state.routesData.get(currentPath);
             routesData.set(currentPath, {
+                focused: routeData?.focused ?? false,
                 preloaded: routeData?.preloaded ?? false,
                 setParams: routeData?.setParams ?? (() => {}),
                 params: searchParams,
@@ -160,6 +161,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
         if (searchParams) {
             const routeData = this.state.routesData.get(currentPath);
             routesData.set(currentPath, {
+                focused: routeData?.focused ?? false,
                 preloaded: routeData?.preloaded ?? false,
                 setParams: routeData?.setParams ?? (() => {}),
                 params: searchParams,

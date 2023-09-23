@@ -82,6 +82,7 @@ export interface LazyExoticComponent<T extends React.ComponentType<any>> extends
 export interface RouteProp<P extends ScreenBaseProps, T extends PlainObject> {
     path?: string;
     config: NonNullable<P["config"]>;
+    focused: boolean;
     params: T;
     preloaded: boolean;
     setParams(params: Partial<T>): void;

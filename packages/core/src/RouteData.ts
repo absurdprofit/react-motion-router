@@ -3,6 +3,7 @@ import { PlainObject, RouteProp } from "./common/types";
 import { ScreenBaseProps } from "./ScreenBase";
 
 export const RouteDataContext = createContext<RouteProp<ScreenBaseProps, PlainObject>>({
+    focused: false,
     preloaded: false,
     config: {},
     params: {},
