@@ -220,6 +220,10 @@ export function prefetchRoute(path: string, routerData: RouterData) {
                             && 'preload' in route.props.config?.header?.component) {
                         preloadTasks.push(route.props.config?.header?.component.preload());
                     }
+                    if (route.props.config?.footer?.component
+                        && 'preload' in route.props.config?.footer?.component) {
+                        preloadTasks.push(route.props.config?.footer?.component.preload());
+                    }
                     try {
                         await Promise.all(preloadTasks);
                         resolve(found);
