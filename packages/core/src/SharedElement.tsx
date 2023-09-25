@@ -345,7 +345,7 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
                             id={`shared-element-${this._id}`}
                             style={{
                                 display: this.state.hidden && !this.keepAlive ? 'block' : 'contents',
-                                visibility: this.state.hidden ? 'hidden': 'visible'
+                                visibility: this.state.hidden ? 'hidden': 'inherit'
                             }}
                         >
                             {this.props.children}
