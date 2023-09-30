@@ -43,9 +43,6 @@ export default function Player({navigation, route}: PlayerProps) {
         seekStart = newValue as number;
         timeStart = time;
     };
-
-    const [disabled, setDisabled] = useState(false);
-
     return (
         <div
             className={`modal ${isFirstLoad ? 'loaded' : 'suspense'}`}
