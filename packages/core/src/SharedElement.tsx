@@ -203,7 +203,7 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
     private onRef = this.setRef.bind(this);
     
     state: SharedElementState = {
-        hidden: false,
+        hidden: this.scene?.previousScene?.nodes.has(this.id) ?? false,
         keepAlive: false
     }
 
@@ -324,6 +324,7 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
 
     componentDidMount() {
         this._isMounted = true;
+        // this.setState({hidden: this.scene?.previousScene?.nodes.has(this.id) ?? false});
     }
 
     componentDidUpdate(prevProps: SharedElementProps) {

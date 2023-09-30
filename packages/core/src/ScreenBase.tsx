@@ -81,6 +81,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
 
     componentDidMount() {
         this.sharedElementScene.getScreenRect = () => this.ref?.getBoundingClientRect() || new DOMRect();
+        this.sharedElementScene.previousScene = this.context!.ghostLayer?.currentScene ?? null;
         
         const routeData = this.routeData;
         this.animation = this.setupAnimation(routeData.config.animation) ?? this.context!.animation;
