@@ -193,13 +193,13 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                     };
 
                     // account for zoom animation transform scale factor
-                    // if (this.state.playing) {
-                    //     transitionState.end.x.position = transitionState.end.x.position / nextScene.xRatio;
-                    //     transitionState.end.y.position = transitionState.end.y.position / nextScene.yRatio;
-                    // } else {
-                    //     transitionState.start.x.position = transitionState.start.x.position / currentScene.xRatio;
-                    //     transitionState.start.y.position = transitionState.start.y.position / currentScene.yRatio;
-                    // }
+                    if (this.state.playing) {
+                        transitionState.end.x.position = transitionState.end.x.position / nextScene.xRatio;
+                        transitionState.end.y.position = transitionState.end.y.position / nextScene.yRatio;
+                    } else {
+                        transitionState.start.x.position = transitionState.start.x.position / currentScene.xRatio;
+                        transitionState.start.y.position = transitionState.start.y.position / currentScene.yRatio;
+                    }
 
                     startNode.style.display = 'unset';
 
