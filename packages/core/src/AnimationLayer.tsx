@@ -1,11 +1,12 @@
 import { Children, Component, cloneElement, createContext, isValidElement } from 'react';
 import { SwipeEndEvent, SwipeEvent, SwipeStartEvent } from 'web-gesture-events';
-import { clamp, matchRoute, includesRoute, MatchedRoute } from './common/utils';
+import { clamp, matchRoute, includesRoute, MatchedRoute, interpolate } from './common/utils';
 import Navigation from './NavigationBase';
 import { NavigationBase, ScreenChild } from './index';
 import { AnimationLayerDataContext } from './AnimationLayerData';
 import { MotionProgressDetail } from './MotionEvents';
 import { SwipeDirection } from './common/types';
+import { MAX_PROGRESS, MIN_PROGRESS } from './common/constants';
 
 export const Motion = createContext(0);
 
@@ -207,7 +208,7 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
     state: AnimationLayerState = {
         currentPath: this.props.lastPath,
         children: this.props.children,
-        progress: 100,
+        progress: MAX_PROGRESS,
         shouldPlay: true,
         gestureNavigating: false,
         shouldAnimate: true,
@@ -242,14 +243,13 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
 
     componentDidMount() {
         this.context.onProgress = (_progress: number) => {
-            const progress = this.props.backNavigating && !this.state.gestureNavigating ? 99 - _progress : _progress;
-            const clampedProgress = clamp(progress, 0, 100);
-            this.setState({progress: clampedProgress});
+            let progress = _progress;
+            if (this.props.backNavigating && !this.state.gestureNavigating)
+                progress = interpolate(_progress, [MIN_PROGRESS, MAX_PROGRESS], [MAX_PROGRESS, MIN_PROGRESS]); // progress is from 100-0 when going back
+            this.setState({progress});
             
             const progressEvent = new CustomEvent<MotionProgressDetail>('motion-progress', {
-                detail: {
-                    progress: clampedProgress
-                }
+                detail: {progress}
             });
     
             if (this.props.dispatchEvent) this.props.dispatchEvent(progressEvent);
@@ -341,24 +341,23 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
             case "left":
             case "right": {
                 // left or right
-                const width = window.innerWidth;
-                const x = clamp(ev.x - this.state.startX, 10);
-                progress = (-(x - width) / width) * 100;
-                if (this.state.swipeDirection === "left") progress = 100 - progress;
+                progress = interpolate(ev.x, [this.state.startX, this.state.startX + window.innerWidth], [MAX_PROGRESS, MIN_PROGRESS]);
+                if (this.state.swipeDirection === "left")
+                    progress = interpolate(progress, [MAX_PROGRESS, MIN_PROGRESS], [MIN_PROGRESS, MAX_PROGRESS]);
                 break;
             }
 
             case "up":
             case "down": {
-                const height = window.innerHeight;
-                const y = clamp(ev.y - this.state.startY, 10);
-                progress = (-(y - height) / height) * 100;
-                if (this.state.swipeDirection === "up") progress = 100 - progress;
+                // up or down
+                progress = interpolate(ev.y, [this.state.startY, this.state.startY + window.innerHeight], [MAX_PROGRESS, MIN_PROGRESS]);
+                if (this.state.swipeDirection === "up")
+                    progress = interpolate(progress, [MAX_PROGRESS, MIN_PROGRESS], [MIN_PROGRESS, MAX_PROGRESS]);
                 break;
             }
                 
         }
-        this.context.progress = clamp(progress, 0.1, 100);
+        this.context.progress = progress;
     }
 
     onSwipeEnd(ev: SwipeEndEvent) {

@@ -1,10 +1,11 @@
 import { SharedElement, SharedElementNode, SharedElementScene } from './SharedElement';
-import { MAX_Z_INDEX, clamp } from './common/utils';
+import { clamp, interpolate } from './common/utils';
 import { EasingFunction, PlainObject } from './common/types';
 import { MotionProgressEvent } from './MotionEvents';
 import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
 import NavigationBase from './NavigationBase';
 import { Component } from 'react';
+import { MAX_PROGRESS, MAX_Z_INDEX, MIN_PROGRESS } from './common/constants';
 
 interface GhostLayerProps {
     instance?: (instance: GhostLayer | null) => any;
@@ -580,7 +581,7 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                 duration = duration || defaultDuration;
                 
 
-                const currentTime = (progress / 100) * Number(duration);
+                const currentTime = interpolate(progress, [MIN_PROGRESS, MAX_PROGRESS], [0, Number(duration)]);
                 animation.currentTime = currentTime;
             }
         }

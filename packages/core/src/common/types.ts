@@ -111,3 +111,12 @@ export type RouterEventMap = Pick<HTMLElementEventMap, "navigate" | "go-back" | 
 export type NodeAppendedEvent = CustomEvent<{node: Node;}>;
 export type NodeRemovedEvent = CustomEvent<{node: Node;}>;
 export type CustomElementType = string;
+
+export type Input = Record<string, number>;
+export type Output = Record<string, number>;
+export type Weights = Record<string, number>;
+export type LerpRange = {min: Input, max: Input};
+
+export function is1DRange(range: number[] | LerpRange): range is number[] {
+    return Array.isArray(range);
+}

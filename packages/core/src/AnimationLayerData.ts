@@ -1,7 +1,8 @@
 import { createContext } from 'react';
 import AnimationProvider from './AnimationProvider';
-import { getAnimationDuration } from './common/utils';
+import { getAnimationDuration, interpolate } from './common/utils';
 import { RouterEventMap } from './common/types';
+import { MAX_NORM_PROGRESS, MAX_PROGRESS, MIN_NORM_PROGRESS, MIN_PROGRESS } from './common/constants';
 
 export default class AnimationLayerData {
     private _play: boolean = true;
@@ -41,10 +42,10 @@ export default class AnimationLayerData {
         this._progressUpdateID = window.requestAnimationFrame(this.updateProgress.bind(this));
         const onEnd = () => {
             window.cancelAnimationFrame(this._progressUpdateID);
-            const endTime = this._gestureNavigating ? 0 : 100;
-            if (this.progress !== endTime) {
+            const endProgress = this._gestureNavigating ? MIN_PROGRESS : MAX_PROGRESS;
+            if (this.progress !== endProgress) {
                 if (this._onProgress)
-                    this._onProgress(endTime);
+                    this._onProgress(endProgress);
             }
         };
         Promise.all([
@@ -273,10 +274,10 @@ export default class AnimationLayerData {
         }
         {
             let inDuration = getAnimationDuration(this._inAnimation, this.duration);
-            const inCurrentTime = (_progress / 100) * Number(inDuration);
+            const inCurrentTime = interpolate(_progress, [MIN_PROGRESS, MAX_PROGRESS], [0, Number(inDuration)]);
 
             let outDuration = getAnimationDuration(this._outAnimation, this.duration);
-            const outCurrentTime = (_progress / 100) * Number(outDuration);
+            const outCurrentTime = interpolate(_progress, [MIN_PROGRESS, MAX_PROGRESS], [0, Number(outDuration)]);
             if (this._inAnimation && this._outAnimation) {
                 this._inAnimation.currentTime = inCurrentTime;
                 this._outAnimation.currentTime = outCurrentTime;
@@ -284,10 +285,10 @@ export default class AnimationLayerData {
         }
         {
             let inDuration = getAnimationDuration(this._pseudoElementInAnimation, this.duration);
-            const inCurrentTime = (_progress / 100) * Number(inDuration);
+            const inCurrentTime = interpolate(_progress, [MIN_PROGRESS, MAX_PROGRESS], [0, Number(inDuration)]);
 
             let outDuration = getAnimationDuration(this._pseudoElementOutAnimation, this.duration);
-            const outCurrentTime = (_progress / 100) * Number(outDuration);
+            const outCurrentTime = interpolate(_progress, [MIN_PROGRESS, MAX_PROGRESS], [0, Number(outDuration)]);
             if (this._pseudoElementInAnimation)
                 this._pseudoElementInAnimation.currentTime = inCurrentTime;
             if (this._pseudoElementOutAnimation) {
@@ -363,7 +364,8 @@ export default class AnimationLayerData {
         } else if (maxDuration === Number(pseudoElementOutDuration)) {
             progress = this._pseudoElementOutAnimation?.effect?.getComputedTiming().progress;
         }
-        return (Number(progress) || 0) * 100;
+        progress = Number(progress) || MAX_PROGRESS;
+        return interpolate(progress, [MIN_NORM_PROGRESS, MAX_NORM_PROGRESS], [MIN_PROGRESS, MAX_PROGRESS]);
     }
 
     get gestureNavigating() {
