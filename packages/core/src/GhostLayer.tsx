@@ -57,21 +57,19 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
         playing: true
     }
 
-    set currentScene(scene: SharedElementScene) {
+    set currentScene(scene: SharedElementScene | null) {
         this._currentScene = scene;
     }
 
-    set nextScene(scene: SharedElementScene) {
+    set nextScene(scene: SharedElementScene | null) {
         this._nextScene = scene;
 
-        if (this._currentScene) {
+        if (this._currentScene && this._nextScene) {
             if (!this._currentScene.isEmpty() && !this._nextScene.isEmpty()) {
                 this.sharedElementTransition(this._currentScene, this._nextScene);
                 return;
             }
         }
-        this._currentScene = null;
-        this._nextScene = null;
     }
 
     finish() {

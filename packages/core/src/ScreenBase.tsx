@@ -208,7 +208,12 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
         }
     }
 
-    onEntered() {}
+    onEntered() {
+        if (this.context!.ghostLayer) {
+            this.context!.ghostLayer.currentScene = this.sharedElementScene;
+            this.context!.ghostLayer.nextScene = null;
+        }
+    }
 
     private setRef(ref: HTMLElement | null) {
         if (this.ref !== ref) {

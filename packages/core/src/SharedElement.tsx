@@ -61,6 +61,7 @@ export class SharedElementScene {
     private _scrollPos: Vec2 | null = null;
     private _getScreenRect: () => DOMRect = () => new DOMRect();
     private _keepAlive: boolean = false;
+    private _previousScene: SharedElementScene | null = null;
 
     constructor(name: string) {
         this._name = name;
@@ -112,6 +113,14 @@ export class SharedElementScene {
 
     get keepAlive() {
         return this._keepAlive;
+    }
+
+    get previousScene() {
+        return this._previousScene;
+    }
+
+    set previousScene(_previousScene: SharedElementScene | null) {
+        this._previousScene = _previousScene;
     }
 
     set scrollPos(_scrollPos: Vec2) {
