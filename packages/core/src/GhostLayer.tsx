@@ -99,7 +99,7 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
             onEnd();
         }
         
-        const onFrame = queueMicrotask.bind(null, async () => {
+        const onFrame = requestAnimationFrame.bind(null, async () => {
             // render ghost layer in top layer
             this.ref?.showModal();
             for (const [id, start] of currentScene.nodes) {
