@@ -3,18 +3,21 @@ import { SwipeEndEvent, SwipeEvent, SwipeStartEvent } from 'web-gesture-events';
 import { clamp, matchRoute, includesRoute, MatchedRoute, interpolate } from './common/utils';
 import Navigation from './NavigationBase';
 import { NavigationBase, ScreenChild } from './index';
-import { AnimationLayerDataContext } from './AnimationLayerData';
+import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
 import { MotionProgressDetail } from './MotionEvents';
 import { SwipeDirection } from './common/types';
 import { MAX_PROGRESS, MIN_PROGRESS } from './common/constants';
+import GhostLayer from './GhostLayer';
 
 export const Motion = createContext(0);
 
 interface AnimationLayerProps {
+    animationLayerData: AnimationLayerData;
     children: ScreenChild | ScreenChild[];
     currentPath: string;
     lastPath: string | null;
     navigation: Navigation;
+    ghostLayer: GhostLayer;
     backNavigating: boolean;
     onGestureNavigationEnd: Function;
     onGestureNavigationStart: Function;
@@ -108,6 +111,7 @@ function StateFromChildren(
                     children.push(
                         cloneElement(child, {
                             ...mountProps,
+                            animationLayerData: props.animationLayerData,
                             resolvedPathname: matchInfo.matchedPathname,
                             key: child.key ?? Math.random()
                         }) as ScreenChild
@@ -140,6 +144,7 @@ function StateFromChildren(
                     children.push(
                         cloneElement(child, {
                             ...mountProps,
+                            animationLayerData: props.animationLayerData,
                             resolvedPathname: matchInfo.matchedPathname,
                             key
                         }) as ScreenChild
@@ -165,6 +170,7 @@ function StateFromChildren(
                     child, {
                         in: true,
                         out: false,
+                        animationLayerData: props.animationLayerData,
                     }
                 ) as ScreenChild;
             }
@@ -202,8 +208,6 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
     private onSwipeEndListener = this.onSwipeEnd.bind(this);
     private progress = MAX_PROGRESS;
     private ref: HTMLDivElement | null = null;
-    static contextType = AnimationLayerDataContext;
-    context!: React.ContextType<typeof AnimationLayerDataContext>;
 
     state: AnimationLayerState = {
         currentPath: this.props.lastPath,
@@ -241,15 +245,18 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
     }
 
     componentDidMount() {
-        this.context.onProgress = this.onProgress.bind(this);
+        this.props.animationLayerData.onProgress = this.onProgress.bind(this);
     }
 
     componentDidUpdate(prevProps: AnimationLayerProps, prevState: AnimationLayerState) {
+        console.log(prevProps.currentPath, this.state.currentPath);
         if (prevProps.currentPath !== this.state.currentPath) {
-            this.context.backNavigating = this.props.backNavigating;
+            this.props.animationLayerData.backNavigating = this.props.backNavigating;
             if (!this.state.gestureNavigating && prevState.shouldAnimate) {
-                this.context.play = true;
-                this.context.animate(); // children changes committed now animate
+                this.props.animationLayerData.play = true;
+                console.log("Animate");
+                this.props.animationLayerData.pageTransition(); // children changes committed now animate
+                this.props.ghostLayer.sharedElementTransition();
             }
         }
     }
@@ -280,8 +287,8 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
     onSwipeStart(ev: SwipeStartEvent) {
         if (ev.touches.length > 1) return; // disable if more than one finger engaged
         if (this.state.disableDiscovery) return;
-        if (this.context.isPlaying) return;
-        if (this.context.duration === 0) return;
+        if (this.props.animationLayerData.isPlaying) return;
+        if (this.props.animationLayerData.duration === 0) return;
         let swipePos: number; // 1D
         switch(this.state.swipeDirection) {
             case "left":
@@ -324,11 +331,13 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
             }, () => {
                 const motionStartEvent = new CustomEvent('motion-progress-start');
 
-                this.context.gestureNavigating = true;
-                this.context.playbackRate = -1;
-                this.context.play = false;
-                this.context.backNavigating = this.props.backNavigating;
-                this.context.animate();
+                this.props.animationLayerData.gestureNavigating = true;
+                this.props.animationLayerData.playbackRate = -1;
+                this.props.animationLayerData.play = false;
+                this.props.animationLayerData.backNavigating = this.props.backNavigating;
+                console.log("Animate");
+                this.props.animationLayerData.pageTransition();
+                this.props.ghostLayer.sharedElementTransition();
                 
                 if (this.props.dispatchEvent) this.props.dispatchEvent(motionStartEvent);
                 this.ref?.addEventListener('swipe', this.onSwipeListener);
@@ -362,7 +371,7 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
             }
                 
         }
-        this.context.progress = progress;
+        this.props.animationLayerData.progress = progress;
     }
 
     onSwipeEnd(ev: SwipeEndEvent) {
@@ -372,12 +381,12 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
         const motionEndEvent = new CustomEvent('motion-progress-end');
         if ((100 - this.progress) > this.state.hysteresis || ev.velocity > this.state.minFlingVelocity) {
             if (ev.velocity >= this.state.minFlingVelocity) {
-                this.context.playbackRate = -5;
+                this.props.animationLayerData.playbackRate = -5;
             } else {
-                this.context.playbackRate = -1;
+                this.props.animationLayerData.playbackRate = -1;
             }
             onEnd = () => {
-                this.context.reset();
+                this.props.animationLayerData.reset();
                 this.props.onGestureNavigationEnd();
                 
                 this.setState({gestureNavigating: false});
@@ -386,10 +395,10 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
             }
             this.setState({shouldPlay: true, shouldAnimate: false});
         } else {
-            this.context.playbackRate = 0.5;
+            this.props.animationLayerData.playbackRate = 0.5;
             onEnd = () => {
                 this.props.navigation.removeEventListener('go-back', this.onGestureSuccess as unknown as EventListener);
-                this.context.reset();
+                this.props.animationLayerData.reset();
                 
                 if (this.props.dispatchEvent) this.props.dispatchEvent(motionEndEvent);
             }
@@ -397,8 +406,8 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
         }
 
         this.setState({startX: 0, startY: 0});
-        this.context.onEnd = onEnd;
-        this.context.play = true;
+        this.props.animationLayerData.onEnd = onEnd;
+        this.props.animationLayerData.play = true;
         this.ref?.removeEventListener('swipe', this.onSwipeListener);
         this.ref?.removeEventListener('swipeend', this.onSwipeEndListener);
         

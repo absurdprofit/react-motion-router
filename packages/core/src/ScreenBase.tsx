@@ -16,11 +16,12 @@ import { RouterDataContext } from "./RouterData";
 import { SharedElement, SharedElementScene, SharedElementSceneContext } from "./SharedElement";
 import { DEFAULT_ANIMATION } from "./common/utils";
 import { RouteDataContext } from "./RouteData";
-import { NavigationBase } from ".";
+import { AnimationLayerData, NavigationBase } from ".";
 
 export interface ScreenBaseProps {
     out?: boolean;
     in?: boolean;
+    animationLayerData?: AnimationLayerData;
     component: React.JSXElementConstructor<any> | LazyExoticComponent<any>;
     fallback?: React.ReactNode;
     path?: string;
@@ -82,7 +83,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
 
     componentDidMount() {
         this.sharedElementScene.getScreenRect = () => this.ref?.getBoundingClientRect() || new DOMRect();
-        this.sharedElementScene.previousScene = this.context!.ghostLayer?.currentScene ?? null;
+        this.sharedElementScene.previousScene = this.props.animationLayerData?.ghostLayer.currentScene ?? null;
         
         const routeData = this.routeData;
         this.animation = this.setupAnimation(routeData.config.animation) ?? this.context!.animation;
@@ -199,21 +200,21 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
             this.setState({shouldKeepAlive: true});
         }
 
-        if (this.context!.ghostLayer) {
-            this.context!.ghostLayer.currentScene = this.sharedElementScene;
+        if (this.props.animationLayerData?.ghostLayer) {
+            this.props.animationLayerData.ghostLayer.currentScene = this.sharedElementScene;
         }
     }
 
     onEnter() {
-        if (this.context!.ghostLayer) {
-            this.context!.ghostLayer.nextScene = this.sharedElementScene;
+        if (this.props.animationLayerData?.ghostLayer) {
+            this.props.animationLayerData.ghostLayer.nextScene = this.sharedElementScene;
         }
     }
 
     onEntered() {
-        if (this.context!.ghostLayer) {
-            this.context!.ghostLayer.currentScene = this.sharedElementScene;
-            this.context!.ghostLayer.nextScene = null;
+        if (this.props.animationLayerData?.ghostLayer) {
+            this.props.animationLayerData.ghostLayer.currentScene = this.sharedElementScene;
+            this.props.animationLayerData.ghostLayer.nextScene = null;
         }
     }
 

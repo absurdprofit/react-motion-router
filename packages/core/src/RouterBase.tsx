@@ -229,42 +229,36 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
                 <RouterDataContext.Consumer>
                     {(routerData) => {
                         this._routerData.parentRouterData = routerData;
+                        if (!this._routerData.navigation) return;
                         return (
                             <RouterDataContext.Provider value={this._routerData}>
                                 <AnimationLayerDataContext.Provider value={this.animationLayerData}>
-                                    {Boolean(this.navigation)
-                                    && (
-                                        <GhostLayer
-                                            instance={(instance: GhostLayer | null) => {
-                                                this._routerData.ghostLayer = instance;
-                                            }}
-                                            backNavigating={this.state.backNavigating}
-                                            gestureNavigating={this.state.gestureNavigating}
-                                            navigation={this._routerData.navigation}
-                                            animationLayerData={this.animationLayerData}
-                                        />
-                                    )}
-                                    {Boolean(this.navigation)
-                                    && (
-                                        <AnimationLayer
-                                            disableBrowserRouting={this.props.config.disableBrowserRouting || false}
-                                            disableDiscovery={this.props.config.disableDiscovery || false}
-                                            hysteresis={this.props.config.hysteresis || 50}
-                                            minFlingVelocity={this.props.config.minFlingVelocity || 400}
-                                            swipeAreaWidth={this.props.config.swipeAreaWidth || 100}
-                                            swipeDirection={this.props.config.swipeDirection || 'right'}
-                                            navigation={this._routerData.navigation}
-                                            backNavigating={this.state.backNavigating}
-                                            currentPath={this.navigation.history.current}
-                                            lastPath={this.navigation.history.previous}
-                                            onGestureNavigationStart={this.onGestureNavigationStart}
-                                            onGestureNavigationEnd={this.onGestureNavigationEnd}
-                                            onDocumentTitleChange={this.onDocumentTitleChange}
-                                            dispatchEvent={this.dispatchEvent}
-                                        >
-                                            {this.props.children}
-                                        </AnimationLayer>
-                                    )}
+                                    <GhostLayer
+                                        backNavigating={this.state.backNavigating}
+                                        gestureNavigating={this.state.gestureNavigating}
+                                        navigation={this.navigation}
+                                        animationLayerData={this.animationLayerData}
+                                    />
+                                    <AnimationLayer
+                                        animationLayerData={this.animationLayerData}
+                                        disableBrowserRouting={this.props.config.disableBrowserRouting || false}
+                                        disableDiscovery={this.props.config.disableDiscovery || false}
+                                        hysteresis={this.props.config.hysteresis || 50}
+                                        minFlingVelocity={this.props.config.minFlingVelocity || 400}
+                                        swipeAreaWidth={this.props.config.swipeAreaWidth || 100}
+                                        swipeDirection={this.props.config.swipeDirection || 'right'}
+                                        navigation={this.navigation}
+                                        ghostLayer={this.animationLayerData.ghostLayer}
+                                        backNavigating={this.state.backNavigating}
+                                        currentPath={this.navigation.history.current}
+                                        lastPath={this.navigation.history.previous}
+                                        onGestureNavigationStart={this.onGestureNavigationStart}
+                                        onGestureNavigationEnd={this.onGestureNavigationEnd}
+                                        onDocumentTitleChange={this.onDocumentTitleChange}
+                                        dispatchEvent={this.dispatchEvent}
+                                    >
+                                        {this.props.children}
+                                    </AnimationLayer>
                                 </AnimationLayerDataContext.Provider>
                             </RouterDataContext.Provider>
                         );

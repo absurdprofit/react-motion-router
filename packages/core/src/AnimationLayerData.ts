@@ -3,6 +3,7 @@ import AnimationProvider from './AnimationProvider';
 import { getAnimationDuration, interpolate } from './common/utils';
 import { RouterEventMap } from './common/types';
 import { MAX_NORM_PROGRESS, MAX_PROGRESS, MIN_NORM_PROGRESS, MIN_PROGRESS } from './common/constants';
+import GhostLayer from './GhostLayer';
 
 export default class AnimationLayerData {
     private _play: boolean = true;
@@ -18,6 +19,7 @@ export default class AnimationLayerData {
     private _outAnimation: Animation | null = null;
     private _playbackRate: number = 1;
     private _gestureNavigating: boolean = false;
+    private _ghostLayer: GhostLayer | null = null;
     private _backNavigating: boolean = false;
     private _onEnd: Function | null = null;
     private _onProgress: ((progress: number) => void) | null = null;
@@ -75,7 +77,7 @@ export default class AnimationLayerData {
         animation.cancel();
     }
 
-    async animate() {
+    async pageTransition() {
         if (this._isPlaying) {
             // cancel playing animation
             this.cancel();
@@ -296,6 +298,14 @@ export default class AnimationLayerData {
 
     set dispatchEvent(_dispatchEvent: ((event: Event) => Promise<boolean>) | null) {
         this._dispatchEvent = _dispatchEvent;
+    }
+
+    set ghostLayer(_ghostLayer: GhostLayer) {
+        this._ghostLayer = _ghostLayer;
+    }
+
+    get ghostLayer() {
+        return this._ghostLayer!;
     }
 
     get isStarted() {

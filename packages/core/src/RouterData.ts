@@ -1,7 +1,6 @@
 import {createContext} from 'react';
 import { DEFAULT_ANIMATION, ScreenBase, ScreenBaseProps, prefetchRoute } from '.';
 import { AnimationConfigSet, PlainObject, RouteProp, RouterEventMap, SearchParamsDeserializer, SearchParamsSerializer } from './common/types';
-import GhostLayer from './GhostLayer';
 import NavigationBase from './NavigationBase';
 import RouterBase from './RouterBase';
 import { ScrollRestorationData } from './ScrollRestorationData';
@@ -25,7 +24,6 @@ export default class RouterData<N extends NavigationBase = NavigationBase> {
     private _paramsDeserializer?: SearchParamsDeserializer;
     private _mountedScreen: ScreenBase | null = null;
     private _animation: AnimationConfigSet = DEFAULT_ANIMATION;
-    private _ghostLayer: GhostLayer | null = null;
 
     constructor(routerInstance: RouterBase, navigation?: N) {
         this.routerInstance = routerInstance;
@@ -88,9 +86,6 @@ export default class RouterData<N extends NavigationBase = NavigationBase> {
     set animation(_animation: AnimationConfigSet) {
         this._animation = _animation;
     }
-    set ghostLayer(_ghostLayer: GhostLayer | null) {
-        this._ghostLayer = _ghostLayer;
-    }
     set backNavigating(_backNavigating: boolean) {
         this._backNavigating = _backNavigating;
     }
@@ -145,9 +140,6 @@ export default class RouterData<N extends NavigationBase = NavigationBase> {
     }
     get animation() {
         return this._animation;
-    }
-    get ghostLayer() {
-        return this._ghostLayer;
     }
     get backNavigating() {
         return this._backNavigating;

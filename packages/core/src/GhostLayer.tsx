@@ -8,7 +8,6 @@ import { Component } from 'react';
 import { MAX_PROGRESS, MAX_Z_INDEX, MIN_PROGRESS } from './common/constants';
 
 interface GhostLayerProps {
-    instance?: (instance: GhostLayer | null) => any;
     backNavigating: boolean;
     gestureNavigating: boolean;
     navigation: NavigationBase;
@@ -17,7 +16,6 @@ interface GhostLayerProps {
 
 interface GhostLayerState {
     transitioning: boolean;
-    playing: boolean;
 }
 
 interface TransitionXYState {
@@ -45,15 +43,17 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
     private _currentScene: SharedElementScene | null = null;
     private _nextScene: SharedElementScene | null = null;
     private animationSet = new Set<Animation>();
-    static contextType = AnimationLayerDataContext;
-    context!: React.ContextType<typeof AnimationLayerDataContext>;
     private onProgressStartListener = this.onProgressStart.bind(this) as EventListener;
     private onProgressListener = this.onProgress.bind(this) as EventListener;
     private onProgressEndListener = this.onProgressEnd.bind(this) as EventListener;
+
+    constructor(props: GhostLayerProps) {
+        super(props);
+        props.animationLayerData.ghostLayer = this;
+    }
     
     state: GhostLayerState = {
-        transitioning: false,
-        playing: true
+        transitioning: false
     }
 
     get currentScene() {
@@ -70,16 +70,6 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
 
     set nextScene(scene: SharedElementScene | null) {
         this._nextScene = scene;
-
-        if (this._currentScene && this._nextScene) {
-            // lets sure async components after this point know transition is impossible
-            this._currentScene.canTransition = !this.context!.isStarted;
-            this._nextScene.canTransition = !this.context!.isStarted;
-            if (!this._currentScene.isEmpty() && !this._nextScene.isEmpty()) {
-                this.sharedElementTransition(this._currentScene, this._nextScene);
-                return;
-            }
-        }
     }
 
     finish() {
@@ -88,12 +78,17 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
         }
     }
 
-    sharedElementTransition(currentScene: SharedElementScene, nextScene: SharedElementScene) {
-        if (this.context.duration === 0) return;
+    sharedElementTransition() {
+        if (!this._currentScene || !this._nextScene) return;
+        if (this._currentScene.isEmpty() || this._nextScene.isEmpty()) return;
+        if (this.props.animationLayerData.duration === 0) return;
         if (this.state.transitioning) {
             this.finish(); // cancel playing animation
             return;
         }
+
+        this._currentScene.canTransition = !this.props.animationLayerData.isStarted;
+        this._nextScene.canTransition = !this.props.animationLayerData.isStarted;
         
         const onEnd = () => {
             this.setState({transitioning: false});
@@ -107,6 +102,10 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
             onEnd();
         }
         
+        // lets sure async components after this point know transition is impossible
+        const currentScene = this._currentScene;
+        const nextScene = this._nextScene;
+        console.log("Transition");
         const onFrame = requestAnimationFrame.bind(null, async () => {
             // render ghost layer in top layer
             this.ref?.showModal();
@@ -163,7 +162,7 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                             x: {
                                 node: startNode,
                                 delay: startInstance.props.config?.x?.delay ?? endInstance.props.config?.delay ?? 0,
-                                duration: startInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.context.duration,
+                                duration: startInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.props.animationLayerData.duration,
                                 easingFunction: startInstance.props.config?.x?.easingFunction || startInstance.props.config?.easingFunction ||'ease',
                                 position: startRect.x - currentScene.x,
                                 // position: startRect.x
@@ -172,7 +171,7 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                             y: {
                                 node: startChild,
                                 delay: startInstance.props.config?.y?.delay ?? endInstance.props.config?.delay ?? 0,
-                                duration: startInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.context.duration,
+                                duration: startInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.props.animationLayerData.duration,
                                 easingFunction: startInstance.props.config?.y?.easingFunction || startInstance.props.config?.easingFunction || 'ease',
                                 position: startRect.y - currentScene.y,
                                 // position: startRect.y
@@ -182,7 +181,7 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                             x: {
                                 node: endNode,
                                 delay: endInstance.props.config?.x?.delay ?? endInstance.props.config?.delay ?? 0,
-                                duration: endInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.context.duration,
+                                duration: endInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.props.animationLayerData.duration,
                                 easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
                                 position: endRect.x - nextScene.x,
                                 // position: endRect.x
@@ -190,7 +189,7 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                             y: {
                                 node: endChild,
                                 delay: endInstance.props.config?.y?.delay ?? endInstance.props.config?.delay ?? 0,
-                                duration: endInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.context.duration,
+                                duration: endInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.props.animationLayerData.duration,
                                 easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
                                 position: endRect.y - nextScene.y,
                                 // position: endRect.y
@@ -488,8 +487,8 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                     animations.forEach((animation: Animation | undefined) => {
                         if (!animation) return;
                         this.animationSet.add(animation);
-                        if (!this.state.playing) {
-                            const defaultDuration = this.context.duration;
+                        if (!this.props.animationLayerData.play) {
+                            const defaultDuration = this.props.animationLayerData.duration;
                             let duration = animation.effect?.getComputedTiming().duration;
                             duration = Number(duration || defaultDuration);
                             
@@ -505,14 +504,14 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                         if (transitionType !== "morph")
                             endNode.style.willChange = 'auto';
                         await endInstance.hidden(false);
-                        if (!currentScene.keepAlive || !this.state.playing) {
+                        if (!currentScene.keepAlive || !this.props.animationLayerData.play) {
                             startInstance.keepAlive(false);
                             await startInstance.hidden(false); // if current scene is kept alive do not show start element
                         } else {
                             startInstance.keepAlive(true);
                         }
                         
-                        if (!this.state.playing) return;
+                        if (!this.props.animationLayerData.play) return;
                         startInstance.onCloneRemove(startNode);
                         if (transitionType !== "morph") {
                             endInstance.onCloneRemove(endNode);
@@ -547,12 +546,7 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
     }
     
     componentDidMount() {
-        if (this.props.instance) {
-            this.props.instance(this);
-        }
-
         this.props.navigation.addEventListener('motion-progress-start', this.onProgressStartListener, {capture: true});
-
     }
 
     componentWillUnmount() {
@@ -560,16 +554,15 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
     }
 
     onProgressStart() {
-        this.setState({playing: false});
         this.props.navigation.addEventListener('motion-progress', this.onProgressListener, {capture: true});
         this.props.navigation.addEventListener('motion-progress-end', this.onProgressEndListener, {capture: true});
     }
 
     onProgress(e: MotionProgressEvent) {
-        if (!this.state.playing) {
+        if (!this.props.animationLayerData.play) {
             for (const animation of this.animationSet.values()) {
                 const progress = e.detail.progress;
-                const defaultDuration = this.context.duration;
+                const defaultDuration = this.props.animationLayerData.duration;
                 let duration = animation.effect?.getComputedTiming().duration;
                 duration = Number(duration || defaultDuration);
 
@@ -580,8 +573,8 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
     }
 
     onProgressEnd() {
-        if (!this.state.playing) this.finish();
-        this.setState({playing: true, transitioning: false});
+        if (!this.props.animationLayerData.play) this.finish();
+        this.setState({transitioning: false});
         this.animationSet.clear();
         this.props.navigation.removeEventListener('motion-progress', this.onProgressListener, {capture: true});
         this.props.navigation.removeEventListener('motion-progress-end', this.onProgressEndListener, {capture: true});
