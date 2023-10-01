@@ -560,19 +560,17 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
         }
 
         this.props.navigation.addEventListener('motion-progress-start', this.onProgressStartListener, {capture: true});
-        this.props.navigation.addEventListener('motion-progress', this.onProgressListener, {capture: true});
-        this.props.navigation.addEventListener('motion-progress-end', this.onProgressEndListener, {capture: true});
 
     }
 
     componentWillUnmount() {
         this.props.navigation.removeEventListener('motion-progress-start', this.onProgressStartListener, {capture: true});
-        this.props.navigation.removeEventListener('motion-progress', this.onProgressListener, {capture: true});
-        this.props.navigation.removeEventListener('motion-progress-end', this.onProgressEndListener, {capture: true});
     }
 
     onProgressStart() {
         this.setState({playing: false});
+        this.props.navigation.addEventListener('motion-progress', this.onProgressListener, {capture: true});
+        this.props.navigation.addEventListener('motion-progress-end', this.onProgressEndListener, {capture: true});
     }
 
     onProgress(e: MotionProgressEvent) {
@@ -593,6 +591,8 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
         if (!this.state.playing) this.finish();
         this.setState({playing: true, transitioning: false});
         this.animationSet.clear();
+        this.props.navigation.removeEventListener('motion-progress', this.onProgressListener, {capture: true});
+        this.props.navigation.removeEventListener('motion-progress-end', this.onProgressEndListener, {capture: true});
     }
 
     render() {
