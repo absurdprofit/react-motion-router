@@ -196,10 +196,7 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
     private _id : string = this.props.id.toString();
     private _ref: HTMLDivElement | null = null;
     private _scene: SharedElementScene | null = null;
-    private _mutationObserver = new MutationObserver(this.updateScene.bind(this));
-    private _callbackID: number = 0;
     private _computedStyle: CSSStyleDeclaration | null = null;
-    private _isMounted = false;
     private onRef = this.setRef.bind(this);
     
     state: SharedElementState = {
@@ -275,13 +272,9 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
 
     hidden(_hidden: boolean): Promise<void> {
         return new Promise((resolve, _) => {
-            if (this._isMounted) {
-                this.setState({hidden: _hidden}, () => {
-                    resolve();
-                });
-            } else {
+            this.setState({hidden: _hidden}, () => {
                 resolve();
-            }
+            });
         });
     }
 
@@ -289,7 +282,6 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
         if (this._ref !== _ref) {
             if (this._ref) {
                 this.scene?.removeNode(this._id);
-                this._mutationObserver.disconnect();
                 this._computedStyle = null;
             }
             this._ref = _ref;
@@ -298,32 +290,13 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
                 this.scene?.addNode(nodeFromRef(this._id, _ref, this));
                 if (_ref.firstElementChild) {
                     this._computedStyle = window.getComputedStyle(_ref.firstElementChild);
-                    this._mutationObserver.observe(_ref.firstElementChild, {
-                        attributes: true,
-                        childList: true,
-                        subtree: true
-                    });
                 }
             }
         }
 
     }
 
-    updateScene() {
-        const cancelCallback = window.cancelIdleCallback ? window.cancelIdleCallback : window.clearTimeout;
-        const requestCallback = window.requestIdleCallback ? window.requestIdleCallback : window.setTimeout;
-        cancelCallback(this._callbackID);
-        this._callbackID = requestCallback(() => {
-            if (this._ref) {
-                this.scene?.removeNode(this._id);
-                this.scene?.addNode(nodeFromRef(this._id, this._ref, this));
-            }
-            this._callbackID = 0;
-        });
-    }
-
     componentDidMount() {
-        this._isMounted = true;
         // this.setState({hidden: this.scene?.previousScene?.nodes.has(this.id) ?? false});
     }
 
@@ -338,10 +311,6 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
         if (this.props.disabled && this.scene?.nodes.has(this.id)) {
             this.scene.removeNode(this.id);
         }
-    }
-
-    componentWillUnmount() {
-        this._isMounted = false;
     }
     
     render() {
