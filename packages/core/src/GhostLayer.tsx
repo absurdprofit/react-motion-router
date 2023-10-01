@@ -79,15 +79,6 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
     }
 
     setupTransition() {
-        if (!this._currentScene || !this._nextScene) return;
-        this._currentScene.canTransition = !this._currentScene.isEmpty();
-        this._nextScene.canTransition = !this._nextScene.isEmpty();
-        if (this._currentScene.isEmpty() || this._nextScene.isEmpty()) return;
-        if (this.props.animationLayerData.duration === 0) return;
-        if (this.state.transitioning) {
-            this.finish(); // cancel playing animation
-            return;
-        }
         return new Promise<void>((resolve) => {
             this.setState({transitioning: true}, resolve);
         });
@@ -96,6 +87,13 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
     sharedElementTransition() {
         if (!this.state.transitioning) return;
         if (!this._currentScene || !this._nextScene) return;
+        this._currentScene.canTransition = !this._currentScene.isEmpty();
+        this._nextScene.canTransition = !this._nextScene.isEmpty();
+        if (this._currentScene.isEmpty() || this._nextScene.isEmpty()) return;
+        if (this.props.animationLayerData.duration === 0) return;
+        if (this.animations.length) {
+            this.finish(); // finish playing animation
+        }
 
         const onEnd = () => {
             this.setState({transitioning: false});
