@@ -211,7 +211,7 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
     context!: React.ContextType<typeof SharedElementSceneContext>;
 
     state: SharedElementState = {
-        hidden:  false,
+        hidden:  this.canTransition,
         keepAlive: false
     }
 
