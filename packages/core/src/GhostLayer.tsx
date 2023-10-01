@@ -97,7 +97,6 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
         
         const onEnd = () => {
             this.setState({transitioning: false});
-            this.animationSet.clear();
             this._nextScene = null;
             this._currentScene = null;
         };
@@ -485,25 +484,19 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                         );
                     }
                     const animations = [startXAnimation, startYAnimation, endXAnimation, endYAnimation];
-                    this.animationSet.add(startXAnimation);
-                    this.animationSet.add(startYAnimation);
-                    endXAnimation && this.animationSet.add(endXAnimation);
-                    endYAnimation && this.animationSet.add(endYAnimation);
                     
-                    if (!this.state.playing) {
-                        animations.forEach((animation: Animation | undefined) => {
-                            if (!animation) return;
+                    animations.forEach((animation: Animation | undefined) => {
+                        if (!animation) return;
+                        this.animationSet.add(animation);
+                        if (!this.state.playing) {
                             const defaultDuration = this.context.duration;
                             let duration = animation.effect?.getComputedTiming().duration;
-                            if (typeof duration === "string") {
-                                duration = parseFloat(duration);
-                            }
-                            duration = duration || defaultDuration;
+                            duration = Number(duration || defaultDuration);
                             
                             animation.currentTime = duration;
                             animation.pause();
-                        });
-                    }
+                        }
+                    });
 
                     const onEnd = async () => {
                         console.assert(id === endInstance.id, "Not sure what happened here.");
@@ -539,7 +532,6 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                     Promise.all(
                         animations.map(anim => anim?.finished)
                     ).then(onEnd).catch(onCancel);
-                    // this.props.navigation.addEventListener('page-animation-end', onEnd, {once:true});
                 }
             }
             
