@@ -195,9 +195,10 @@ const transformKeys = ["transform", "top", "left", "right", "bottom"];
 export class SharedElement extends Component<SharedElementProps, SharedElementState> {
     private _id : string = this.props.id.toString();
     private _ref: HTMLDivElement | null = null;
-    private _scene: SharedElementScene | null = null;
     private _computedStyle: CSSStyleDeclaration | null = null;
     private onRef = this.setRef.bind(this);
+    static contextType = SharedElementSceneContext;
+    context!: React.ContextType<typeof SharedElementSceneContext>;
     
     state: SharedElementState = {
         hidden: this.scene?.previousScene?.nodes.has(this.id) ?? false,
@@ -205,7 +206,7 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
     }
 
     get scene() {
-        return this._scene;
+        return this.context!;
     }
 
     get node() {
@@ -296,10 +297,6 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
 
     }
 
-    componentDidMount() {
-        // this.setState({hidden: this.scene?.previousScene?.nodes.has(this.id) ?? false});
-    }
-
     componentDidUpdate(prevProps: SharedElementProps) {
         if (this._id !== this.props.id.toString()) {
             if (this._ref) {
@@ -312,26 +309,19 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
             this.scene.removeNode(this.id);
         }
     }
-    
+
     render() {
         return (
-            <SharedElementSceneContext.Consumer>
-                {(scene) => {
-                    this._scene = scene;
-                    return (
-                        <div
-                            ref={this.onRef}
-                            id={`shared-element-${this._id}`}
-                            style={{
-                                display: this.state.hidden && !this.keepAlive ? 'block' : 'contents',
-                                visibility: this.state.hidden ? 'hidden': 'inherit'
-                            }}
-                        >
-                            {this.props.children}
-                        </div>
-                    );
+            <div
+                ref={this.onRef}
+                id={`shared-element-${this._id}`}
+                style={{
+                    display: this.state.hidden && !this.keepAlive ? 'block' : 'contents',
+                    visibility: this.state.hidden ? 'hidden': 'inherit'
                 }}
-            </SharedElementSceneContext.Consumer>
+            >
+                {this.props.children}
+            </div>
         );
     }
 }
