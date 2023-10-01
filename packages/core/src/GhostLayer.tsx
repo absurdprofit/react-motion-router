@@ -40,12 +40,11 @@ interface TransitionState {
     }
 }
 
-type AnimationMap = Map<string, PlainObject<Animation>>;
-
 export default class GhostLayer extends Component<GhostLayerProps, GhostLayerState> {
     private ref: HTMLDialogElement | null = null;
     private _currentScene: SharedElementScene | null = null;
     private _nextScene: SharedElementScene | null = null;
+    private animationSet = new Set<Animation>();
     static contextType = AnimationLayerDataContext;
     context!: React.ContextType<typeof AnimationLayerDataContext>;
     private onProgressStartListener = this.onProgressStart.bind(this) as EventListener;
@@ -84,8 +83,7 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
     }
 
     finish() {
-        const animations = this.ref?.getAnimations({subtree: true}) || [];
-        for (const animation of animations) {
+        for (const animation of this.animationSet.values()) {
             animation.finish();
         }
     }
@@ -99,13 +97,13 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
         
         const onEnd = () => {
             this.setState({transitioning: false});
+            this.animationSet.clear();
             this._nextScene = null;
             this._currentScene = null;
         };
 
         const onCancel = () => {
-            const animations = this.ref?.getAnimations({subtree: true}) || [];
-            for (const animation of animations)
+            for (const animation of this.animationSet.values())
                 animation.cancel();
             onEnd();
         }
@@ -487,6 +485,10 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                         );
                     }
                     const animations = [startXAnimation, startYAnimation, endXAnimation, endYAnimation];
+                    this.animationSet.add(startXAnimation);
+                    this.animationSet.add(startYAnimation);
+                    endXAnimation && this.animationSet.add(endXAnimation);
+                    endYAnimation && this.animationSet.add(endYAnimation);
                     
                     if (!this.state.playing) {
                         animations.forEach((animation: Animation | undefined) => {
@@ -543,7 +545,7 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
             
             if (this.ref) {
                 Promise.all(
-                    this.ref.getAnimations({subtree: true}).map(anim => anim.finished)
+                    [...this.animationSet].map(anim => anim.finished)
                 ).then(onEnd).catch(onCancel);
             }
         });
@@ -575,16 +577,11 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
 
     onProgress(e: MotionProgressEvent) {
         if (!this.state.playing) {
-            const animations = this.ref?.getAnimations({subtree: true}) || [];
-            for (const animation of animations) {
+            for (const animation of this.animationSet.values()) {
                 const progress = e.detail.progress;
                 const defaultDuration = this.context.duration;
                 let duration = animation.effect?.getComputedTiming().duration;
-                if (typeof duration === "string") {
-                    duration = parseFloat(duration);
-                }
-                duration = duration || defaultDuration;
-                
+                duration = Number(duration || defaultDuration);
 
                 const currentTime = interpolate(progress, [MIN_PROGRESS, MAX_PROGRESS], [0, Number(duration)]);
                 animation.currentTime = currentTime;
@@ -595,6 +592,7 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
     onProgressEnd() {
         if (!this.state.playing) this.finish();
         this.setState({playing: true, transitioning: false});
+        this.animationSet.clear();
     }
 
     render() {
