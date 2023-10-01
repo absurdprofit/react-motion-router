@@ -168,7 +168,7 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                                 delay: startInstance.props.config?.x?.delay ?? endInstance.props.config?.delay ?? 0,
                                 duration: startInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.context.duration,
                                 easingFunction: startInstance.props.config?.x?.easingFunction || startInstance.props.config?.easingFunction ||'ease',
-                                position: startRect.x - (this.state.playing ? 0 : currentScene.x),
+                                position: startRect.x - currentScene.x,
                                 // position: startRect.x
                                 
                             },
@@ -177,7 +177,7 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                                 delay: startInstance.props.config?.y?.delay ?? endInstance.props.config?.delay ?? 0,
                                 duration: startInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.context.duration,
                                 easingFunction: startInstance.props.config?.y?.easingFunction || startInstance.props.config?.easingFunction || 'ease',
-                                position: startRect.y - (this.state.playing ? 0 : currentScene.y),
+                                position: startRect.y - currentScene.y,
                                 // position: startRect.y
                             }
                         },
@@ -187,7 +187,7 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                                 delay: endInstance.props.config?.x?.delay ?? endInstance.props.config?.delay ?? 0,
                                 duration: endInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.context.duration,
                                 easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
-                                position: endRect.x - (this.state.playing ? nextScene.x : 0),
+                                position: endRect.x - nextScene.x,
                                 // position: endRect.x
                             },
                             y: {
@@ -195,7 +195,7 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                                 delay: endInstance.props.config?.y?.delay ?? endInstance.props.config?.delay ?? 0,
                                 duration: endInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.context.duration,
                                 easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
-                                position: endRect.y - (this.state.playing ? nextScene.y : 0),
+                                position: endRect.y - nextScene.y,
                                 // position: endRect.y
                             }
                         }
@@ -209,6 +209,11 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                         transitionState.start.x.position = transitionState.start.x.position / currentScene.xRatio;
                         transitionState.start.y.position = transitionState.start.y.position / currentScene.yRatio;
                     }
+
+                    startNode.style.transform = `translate(${transitionState.start.x.position}px, 0px)`;
+                    startChild.style.transform = `translate(0px, ${transitionState.start.y.position}px)`;
+                    endNode.style.transform = `translate(${transitionState.end.x.position}px, 0px)`;
+                    endChild.style.transform = `translate(0px, ${transitionState.end.y.position}px)`;
 
                     startNode.style.display = 'unset';
 
