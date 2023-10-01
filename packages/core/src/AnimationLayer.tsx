@@ -249,14 +249,17 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
     }
 
     componentDidUpdate(prevProps: AnimationLayerProps, prevState: AnimationLayerState) {
-        console.log(prevProps.currentPath, this.state.currentPath);
         if (prevProps.currentPath !== this.state.currentPath) {
             this.props.animationLayerData.backNavigating = this.props.backNavigating;
             if (!this.state.gestureNavigating && prevState.shouldAnimate) {
                 this.props.animationLayerData.play = true;
-                console.log("Animate");
-                this.props.animationLayerData.pageTransition(); // children changes committed now animate
-                this.props.ghostLayer.sharedElementTransition();
+                this.props.animationLayerData.setupTransition()
+                .then(() => {
+                    Promise.all([
+                        this.props.animationLayerData.pageTransition(), // children changes committed now animate
+                        this.props.ghostLayer.sharedElementTransition()
+                    ]);
+                });
             }
         }
     }
@@ -335,9 +338,13 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
                 this.props.animationLayerData.playbackRate = -1;
                 this.props.animationLayerData.play = false;
                 this.props.animationLayerData.backNavigating = this.props.backNavigating;
-                console.log("Animate");
-                this.props.animationLayerData.pageTransition();
-                this.props.ghostLayer.sharedElementTransition();
+                this.props.animationLayerData.setupTransition()
+                .then(() => {
+                    Promise.all([
+                        this.props.animationLayerData.pageTransition(), // children changes committed now animate
+                        this.props.ghostLayer.sharedElementTransition()
+                    ]);
+                });
                 
                 if (this.props.dispatchEvent) this.props.dispatchEvent(motionStartEvent);
                 this.ref?.addEventListener('swipe', this.onSwipeListener);

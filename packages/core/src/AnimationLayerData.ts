@@ -77,13 +77,7 @@ export default class AnimationLayerData {
         animation.cancel();
     }
 
-    async pageTransition() {
-        if (this._isPlaying) {
-            // cancel playing animation
-            this.cancel();
-            if (this._onEnd) this._onEnd();
-            this.reset();
-        }
+    async setupTransition() {
         if (this._currentScreen && this._nextScreen && this._shouldAnimate) {
             if (this._gestureNavigating) {
                 await this._currentScreen.mounted(true);
@@ -107,17 +101,8 @@ export default class AnimationLayerData {
             this._pseudoElementOutAnimation = this._currentScreen.pseudoElementAnimation;
             this._inAnimation = this._nextScreen.animation;
             this._pseudoElementInAnimation = this._nextScreen.pseudoElementAnimation;
-
-            this._isPlaying = true;
             
             if (this._inAnimation && this._outAnimation) {
-                if (!this._shouldAnimate) {
-                    this.finish();
-                    this._isPlaying = false;
-                    this._shouldAnimate = true;
-                    return;
-                }
-
                 this._inAnimation.playbackRate = this._playbackRate;
                 this._outAnimation.playbackRate = this._playbackRate;
                 if (this._pseudoElementInAnimation)
@@ -141,7 +126,27 @@ export default class AnimationLayerData {
                     }
                 }
 
-                await this.ready;
+                return await this.ready;
+            }
+        }
+    }
+
+    async pageTransition() {
+        if (this._isPlaying) {
+            // cancel playing animation
+            this.cancel();
+            if (this._onEnd) this._onEnd();
+            this.reset();
+        }
+        if (this._currentScreen && this._nextScreen && this._shouldAnimate) {
+            if (this._inAnimation && this._outAnimation) {
+                if (!this._shouldAnimate) {
+                    this.finish();
+                    this._isPlaying = false;
+                    this._shouldAnimate = true;
+                    return;
+                }
+                this._isPlaying = true;
                 if (!this._play) {
                     this._inAnimation.pause();
                     this._outAnimation.pause();
@@ -302,6 +307,10 @@ export default class AnimationLayerData {
 
     set ghostLayer(_ghostLayer: GhostLayer) {
         this._ghostLayer = _ghostLayer;
+    }
+
+    get play() {
+        return this._play;
     }
 
     get ghostLayer() {

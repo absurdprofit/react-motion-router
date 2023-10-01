@@ -42,7 +42,7 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
     private ref: HTMLDialogElement | null = null;
     private _currentScene: SharedElementScene | null = null;
     private _nextScene: SharedElementScene | null = null;
-    private animationSet = new Set<Animation>();
+    private animations: Animation[] = [];
     private onProgressStartListener = this.onProgressStart.bind(this) as EventListener;
     private onProgressListener = this.onProgress.bind(this) as EventListener;
     private onProgressEndListener = this.onProgressEnd.bind(this) as EventListener;
@@ -73,9 +73,13 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
     }
 
     finish() {
-        for (const animation of this.animationSet.values()) {
+        for (const animation of this.animations) {
             animation.finish();
         }
+    }
+
+    setupTransition() {
+
     }
 
     sharedElementTransition() {
@@ -97,7 +101,7 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
         };
 
         const onCancel = () => {
-            for (const animation of this.animationSet.values())
+            for (const animation of this.animations)
                 animation.cancel();
             onEnd();
         }
@@ -105,7 +109,6 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
         // lets sure async components after this point know transition is impossible
         const currentScene = this._currentScene;
         const nextScene = this._nextScene;
-        console.log("Transition");
         const onFrame = requestAnimationFrame.bind(null, async () => {
             // render ghost layer in top layer
             this.ref?.showModal();
@@ -486,7 +489,7 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                     
                     animations.forEach((animation: Animation | undefined) => {
                         if (!animation) return;
-                        this.animationSet.add(animation);
+                        this.animations.push(animation);
                         if (!this.props.animationLayerData.play) {
                             const defaultDuration = this.props.animationLayerData.duration;
                             let duration = animation.effect?.getComputedTiming().duration;
@@ -534,11 +537,9 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                 }
             }
             
-            if (this.ref) {
-                Promise.all(
-                    [...this.animationSet].map(anim => anim.finished)
-                ).then(onEnd).catch(onCancel);
-            }
+            Promise.all(
+                this.animations.map(anim => anim.finished)
+            ).then(onEnd).catch(onCancel);
         });
         this.setState({transitioning: true}, onFrame);
 
@@ -560,7 +561,7 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
 
     onProgress(e: MotionProgressEvent) {
         if (!this.props.animationLayerData.play) {
-            for (const animation of this.animationSet.values()) {
+            for (const animation of this.animations) {
                 const progress = e.detail.progress;
                 const defaultDuration = this.props.animationLayerData.duration;
                 let duration = animation.effect?.getComputedTiming().duration;
@@ -575,31 +576,28 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
     onProgressEnd() {
         if (!this.props.animationLayerData.play) this.finish();
         this.setState({transitioning: false});
-        this.animationSet.clear();
+        this.animations = [];
         this.props.navigation.removeEventListener('motion-progress', this.onProgressListener, {capture: true});
         this.props.navigation.removeEventListener('motion-progress-end', this.onProgressEndListener, {capture: true});
     }
 
     render() {
-        if (this.state.transitioning) {
-            return (
-                <dialog id="ghost-layer" ref={c => this.ref = c} style={{
-                    position: 'absolute',
-                    zIndex: MAX_Z_INDEX,
-                    maxWidth: 'unset',
-                    maxHeight: 'unset',
-                    width: '100vw',
-                    height: '100vh',
-                    contain: 'strict',
-                    padding: 0,
-                    border: 'none',
-                    backgroundColor: 'transparent'
-                }}>
-                    <style dangerouslySetInnerHTML={{__html: "#ghost-layer::backdrop {display: none}"}}></style>
-                </dialog>
-            );
-        } else {
-            return <></>
-        }
+        if (!this.state.transitioning) return <></>
+        return (
+            <dialog className="ghost-layer" ref={c => this.ref = c} style={{
+                position: 'absolute',
+                zIndex: MAX_Z_INDEX,
+                maxWidth: 'unset',
+                maxHeight: 'unset',
+                width: '100vw',
+                height: '100vh',
+                contain: 'strict',
+                padding: 0,
+                border: 'none',
+                backgroundColor: 'transparent'
+            }}>
+                <style dangerouslySetInnerHTML={{__html: ".ghost-layer::backdrop {display: none}"}}></style>
+            </dialog>
+        );
     }
 }
