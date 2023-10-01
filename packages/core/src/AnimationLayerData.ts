@@ -298,6 +298,10 @@ export default class AnimationLayerData {
         this._dispatchEvent = _dispatchEvent;
     }
 
+    get isStarted() {
+        return this._isStarted;
+    }
+
     get addEventListener() {
         return this._addEventListener;
     }

@@ -73,6 +73,9 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
         this._nextScene = scene;
 
         if (this._currentScene && this._nextScene) {
+            // lets sure async components after this point know transition is impossible
+            this._currentScene.canTransition = !this.context!.isStarted;
+            this._nextScene.canTransition = !this.context!.isStarted;
             if (!this._currentScene.isEmpty() && !this._nextScene.isEmpty()) {
                 this.sharedElementTransition(this._currentScene, this._nextScene);
                 return;

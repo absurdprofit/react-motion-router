@@ -62,10 +62,12 @@ export class SharedElementScene {
     private _getScreenRect: () => DOMRect = () => new DOMRect();
     private _keepAlive: boolean = false;
     private _previousScene: SharedElementScene | null = null;
+    private _canTransition: boolean = true; // should be false if page animation already started
 
     constructor(name: string) {
         this._name = name;
     }
+
     addNode(node: SharedElementNode | null) {
         if (!node) return;
         console.assert(!this.nodes.has(node.id), `Duplicate Shared Element ID: ${node.id} in ${this._name}`);
@@ -117,6 +119,14 @@ export class SharedElementScene {
 
     get previousScene() {
         return this._previousScene;
+    }
+
+    get canTransition() {
+        return this._canTransition;
+    }
+
+    set canTransition(_canTransition: boolean) {
+        this._canTransition = _canTransition;
     }
 
     set previousScene(_previousScene: SharedElementScene | null) {
@@ -199,10 +209,14 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
     private onRef = this.setRef.bind(this);
     static contextType = SharedElementSceneContext;
     context!: React.ContextType<typeof SharedElementSceneContext>;
-    
+
     state: SharedElementState = {
-        hidden: this.scene?.previousScene?.nodes.has(this.id) ?? false,
+        hidden:  this.canTransition,
         keepAlive: false
+    }
+
+    get canTransition() {
+        return Boolean(this.scene?.previousScene?.nodes.has(this.id)) && this.scene.canTransition;
     }
 
     get scene() {
