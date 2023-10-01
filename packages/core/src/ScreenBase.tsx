@@ -60,10 +60,6 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
     protected ref: HTMLElement | null = null;
     private onRef = this.setRef.bind(this);
     private onAnimationProviderRef = this.setAnimationProviderRef.bind(this);
-    private onEnterCallback = this.onEnter.bind(this);
-    private onEnteredCallback = this.onEntered.bind(this);
-    private onExitCallback = this.onExit.bind(this);
-    private onExitedCallback = this.onExited.bind(this);
     private animation: AnimationConfigSet | (() => AnimationConfigSet) = DEFAULT_ANIMATION;
     private pseudoElementAnimation: AnimationConfigSet | (() => AnimationConfigSet) = DEFAULT_ANIMATION;
     protected elementType: ElementType | string = "div";
@@ -275,10 +271,10 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
             <AnimationProvider
                 onRef={this.onAnimationProviderRef}
                 renderAs={this.elementType}
-                onExit={this.onExitCallback}
-                onExited={this.onExitedCallback}
-                onEnter={this.onEnterCallback}
-                onEntered={this.onEnteredCallback}
+                onExit={this.onExit.bind(this)}
+                onExited={this.onExited.bind(this)}
+                onEnter={this.onEnter.bind(this)}
+                onEntered={this.onEntered.bind(this)}
                 in={this.props.in || false}
                 out={this.props.out || false}
                 name={this.props.name?.toLowerCase().replace(' ', '-') ?? this.name}
