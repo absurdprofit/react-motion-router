@@ -254,6 +254,7 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
             if (!this.state.gestureNavigating && prevState.shouldAnimate) {
                 this.props.animationLayerData.play = true;
                 this.props.animationLayerData.setupTransition()
+                .then(() => this.props.ghostLayer.setupTransition())
                 .then(() => {
                     Promise.all([
                         this.props.animationLayerData.pageTransition(), // children changes committed now animate
@@ -339,6 +340,7 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
                 this.props.animationLayerData.play = false;
                 this.props.animationLayerData.backNavigating = this.props.backNavigating;
                 this.props.animationLayerData.setupTransition()
+                .then(() => this.props.ghostLayer.setupTransition())
                 .then(() => {
                     Promise.all([
                         this.props.animationLayerData.pageTransition(), // children changes committed now animate

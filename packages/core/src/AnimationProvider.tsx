@@ -53,7 +53,6 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
         requestAnimationFrame(() => {
             if (this.state.mounted) {
                 this.props.onEnter();
-                this.props.onEntered();
             }
         });
     }
@@ -90,6 +89,9 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
         this.props.navigation.addEventListener('motion-progress-start', this.onNavigate);
         this.props.navigation.addEventListener('page-animation-end', this.onAnimationEnd);
         this.props.navigation.addEventListener('motion-progress-end', this.onAnimationEnd);
+        if (this.state.mounted) {
+            this.props.onEntered();
+        }
         if (this._animationLayerData) {
             if (this.props.in) {
                 this._animationLayerData.nextScreen = this;
