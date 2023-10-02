@@ -253,14 +253,7 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
             this.props.animationLayerData.backNavigating = this.props.backNavigating;
             if (!this.state.gestureNavigating && prevState.shouldAnimate) {
                 this.props.animationLayerData.play = true;
-                this.props.ghostLayer.setupTransition()
-                .then(() => this.props.animationLayerData.setupTransition())
-                .then(() => {
-                    Promise.all([
-                        this.props.animationLayerData.pageTransition(), // children changes committed now animate
-                        this.props.ghostLayer.sharedElementTransition()
-                    ]);
-                });
+                this.animate();
             }
         }
     }
@@ -278,6 +271,20 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
         });
         if (this.props.dispatchEvent) this.props.dispatchEvent(progressEvent);
         this.forceUpdate();
+    }
+
+    private animate() {
+        requestAnimationFrame(async () => {
+            const start = performance.now();
+            await Promise.all([
+                this.props.ghostLayer.setupTransition(),
+                this.props.animationLayerData.setupTransition()
+            ]);
+            this.props.ghostLayer.sharedElementTransition();
+            this.props.animationLayerData.pageTransition(); // children changes committed now animate
+            const end = performance.now();
+            console.log(`animation took ${end - start}ms`);
+        });
     }
 
     onGestureSuccess(
@@ -339,14 +346,7 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
                 this.props.animationLayerData.playbackRate = -1;
                 this.props.animationLayerData.play = false;
                 this.props.animationLayerData.backNavigating = this.props.backNavigating;
-                this.props.ghostLayer.setupTransition()
-                .then(() => this.props.animationLayerData.setupTransition())
-                .then(() => {
-                    Promise.all([
-                        this.props.animationLayerData.pageTransition(), // children changes committed now animate
-                        this.props.ghostLayer.sharedElementTransition()
-                    ]);
-                });
+                this.animate();
                 
                 if (this.props.dispatchEvent) this.props.dispatchEvent(motionStartEvent);
                 this.ref?.addEventListener('swipe', this.onSwipeListener);

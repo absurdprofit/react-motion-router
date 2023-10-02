@@ -56,6 +56,10 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
         transitioning: false
     }
 
+    get finished() {
+        return Promise.all(this.animations.map(animation => animation.finished));
+    }
+
     get currentScene() {
         return this._currentScene;
     }
@@ -537,9 +541,7 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
             }
         }
         
-        Promise.all(
-            this.animations.map(anim => anim.finished)
-        ).then(onEnd).catch(onCancel);
+        this.finished.then(onEnd).catch(onCancel);
 
         this.props.navigation.addEventListener('page-animation-cancel' , onCancel, {once: true});
     }
@@ -573,7 +575,9 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
 
     onProgressEnd() {
         if (!this.props.animationLayerData.play) this.finish();
-        this.setState({transitioning: false});
+        this.finished.then(() => {
+            this.setState({transitioning: false});
+        });
         this.animations = [];
         this.props.navigation.removeEventListener('motion-progress', this.onProgressListener, {capture: true});
         this.props.navigation.removeEventListener('motion-progress-end', this.onProgressEndListener, {capture: true});
