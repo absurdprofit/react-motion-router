@@ -59,6 +59,10 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
     protected name = this.props.path === undefined ? 'not-found' : this.props.path?.toString().slice(1).replace('/', '-') || 'index';
     protected sharedElementScene: SharedElementScene = new SharedElementScene(this.name);
     protected ref: HTMLElement | null = null;
+    private onEnterCallback;
+    private onEnteredCallback;
+    private onExitCallback;
+    private onExitedCallback;
     private onRef = this.setRef.bind(this);
     private onAnimationProviderRef = this.setAnimationProviderRef.bind(this);
     private animation: AnimationConfigSet | (() => AnimationConfigSet) = DEFAULT_ANIMATION;
@@ -76,6 +80,14 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
     };
     static contextType = RouterDataContext;
     context!: React.ContextType<typeof RouterDataContext>;
+
+    constructor(props: P) {
+        super(props);
+        this.onEnterCallback = this.onEnter.bind(this);
+        this.onEnteredCallback = this.onEntered.bind(this);
+        this.onExitCallback = this.onExit.bind(this);
+        this.onExitedCallback = this.onExited.bind(this);
+    }
 
     state: S = {
         shouldKeepAlive: this.props.out && this.props.config?.keepAlive,
@@ -272,10 +284,10 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
             <AnimationProvider
                 onRef={this.onAnimationProviderRef}
                 renderAs={this.elementType}
-                onExit={this.onExit.bind(this)}
-                onExited={this.onExited.bind(this)}
-                onEnter={this.onEnter.bind(this)}
-                onEntered={this.onEntered.bind(this)}
+                onExit={this.onExitCallback}
+                onExited={this.onExitedCallback}
+                onEnter={this.onEnterCallback}
+                onEntered={this.onEnteredCallback}
                 in={this.props.in || false}
                 out={this.props.out || false}
                 name={this.props.name?.toLowerCase().replace(' ', '-') ?? this.name}

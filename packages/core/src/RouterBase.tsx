@@ -54,6 +54,10 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     protected dispatchEvent: ((event: Event) => Promise<boolean>) | null = null;
     protected addEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined) => void) | null = null;
     protected removeEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | EventListenerOptions | undefined) => void) | null = null;
+    private onDocumentTitleChangeCallback;
+    private dispatchEventCallback;
+    private onGestureNavigationStartCallback;
+    private onGestureNavigationEndCallback;
 
     static defaultProps = {
         config: {
@@ -65,6 +69,10 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
         super(props as P);
 
         this._id = props.id ?? Math.random().toString().replace('.', '-');
+        this.onDocumentTitleChangeCallback = this.onDocumentTitleChange.bind(this);
+        this.dispatchEventCallback = this.dispatchEvent?.bind(this) ?? null;
+        this.onGestureNavigationStartCallback = this.onGestureNavigationStart.bind(this);
+        this.onGestureNavigationEndCallback = this.onGestureNavigationEnd.bind(this);
         
         if (props.config) {
             this.config = props.config;
@@ -148,8 +156,8 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
 
     abstract onAnimationEnd: (e: PageAnimationEndEvent) => void;
 
-    abstract onGestureNavigationStart: () => void;
-    abstract onGestureNavigationEnd: () => void;
+    protected onGestureNavigationStart() {}
+    protected onGestureNavigationEnd() {}
 
     protected onPopStateListener(e: Event) {
         let currentPath = this.navigation.location.pathname;
@@ -252,10 +260,10 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
                                         backNavigating={this.state.backNavigating}
                                         currentPath={this.navigation.history.current}
                                         lastPath={this.navigation.history.previous}
-                                        onGestureNavigationStart={this.onGestureNavigationStart}
-                                        onGestureNavigationEnd={this.onGestureNavigationEnd}
-                                        onDocumentTitleChange={this.onDocumentTitleChange}
-                                        dispatchEvent={this.dispatchEvent}
+                                        onGestureNavigationStart={this.onGestureNavigationStartCallback}
+                                        onGestureNavigationEnd={this.onGestureNavigationEndCallback}
+                                        onDocumentTitleChange={this.onDocumentTitleChangeCallback}
+                                        dispatchEvent={this.dispatchEventCallback}
                                     >
                                         {this.props.children}
                                     </AnimationLayer>
