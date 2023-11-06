@@ -512,10 +512,13 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
 
     sharedElementTransition() {
         if (!this.state.transitioning) return;
-        if (!this._currentScene || !this._nextScene) return;
-        this._currentScene.canTransition = !this._currentScene.isEmpty() && !this.props.animationLayerData.duration;
-        this._nextScene.canTransition = !this._nextScene.isEmpty() && !this.props.animationLayerData.duration;
-        if (!this._currentScene.canTransition || !this._nextScene.canTransition) return;
+        const currentScene = this._currentScene;
+        const nextScene = this._nextScene;
+        if (!currentScene || !nextScene) return;
+        const duration = this.props.animationLayerData.duration;
+        currentScene.canTransition = !currentScene.isEmpty() && Boolean(duration);
+        nextScene.canTransition = !nextScene.isEmpty() && Boolean(duration);
+        if (!currentScene.canTransition || !nextScene.canTransition) return;
         if (this.animations.length) {
             this.finish(); // finish playing animation
         }
@@ -532,11 +535,7 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
             onEnd();
         }
         
-        // lets sure async components after this point know transition is impossible
-        const currentScene = this._currentScene;
-        const nextScene = this._nextScene;
-        // render ghost layer in top layer
-        this.ref?.showModal();
+        this.ref?.showModal(); // render ghost layer in top layer
         const startNodes = [...currentScene.nodes.values()]; 
         startNodes.forEach(startNode => {
             const endNode = nextScene.nodes.get(startNode.id);
