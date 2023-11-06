@@ -513,11 +513,9 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
     sharedElementTransition() {
         if (!this.state.transitioning) return;
         if (!this._currentScene || !this._nextScene) return;
-        this._currentScene.canTransition = !this._currentScene.isEmpty();
-        this._nextScene.canTransition = !this._nextScene.isEmpty();
-        if (this._currentScene.isEmpty() || this._nextScene.isEmpty()) return;
-        if (this.props.animationLayerData.duration === 0) return;
-        console.log(this.props.animationLayerData.duration);
+        this._currentScene.canTransition = !this._currentScene.isEmpty() && !this.props.animationLayerData.duration;
+        this._nextScene.canTransition = !this._nextScene.isEmpty() && !this.props.animationLayerData.duration;
+        if (!this._currentScene.canTransition || !this._nextScene.canTransition) return;
         if (this.animations.length) {
             this.finish(); // finish playing animation
         }
