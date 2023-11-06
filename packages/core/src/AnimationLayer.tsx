@@ -273,14 +273,14 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
         this.forceUpdate();
     }
 
-    private animate() {
-        requestAnimationFrame(async () => {
-            await Promise.all([
-                this.props.ghostLayer.setupTransition(),
-                this.props.animationLayerData.setupTransition()
-            ]);
+    private async animate() {
+        await Promise.all([
+            this.props.ghostLayer.setupTransition(),
+            this.props.animationLayerData.setupTransition()
+        ]);
+        requestAnimationFrame(() => {
             this.props.ghostLayer.sharedElementTransition();
-            this.props.animationLayerData.pageTransition(); // children changes committed now animate
+            this.props.animationLayerData.pageTransition();
         });
     }
 

@@ -75,6 +75,7 @@ export default class AnimationLayerData {
         if (!animation) return;
         animation.commitStyles();
         animation.cancel();
+        animation = null;
     }
 
     async setupTransition() {
@@ -169,10 +170,8 @@ export default class AnimationLayerData {
 
                 this.cleanUpAnimation(this._inAnimation);
                 this.cleanUpAnimation(this._outAnimation);
-                this._inAnimation = null;
-                this._outAnimation = null;
-                // this.cleanUpAnimation(this._pseudoElementInAnimation);
-                // this.cleanUpAnimation(this._pseudoElementOutAnimation);
+                this.cleanUpAnimation(this._pseudoElementInAnimation);
+                this.cleanUpAnimation(this._pseudoElementOutAnimation);
 
                 this._isPlaying = false;
                 const endAnimationEvent = new CustomEvent('page-animation-end', {bubbles: true});
