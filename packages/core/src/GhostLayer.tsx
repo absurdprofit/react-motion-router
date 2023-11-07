@@ -74,9 +74,10 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
     }
 
     finish() {
-        for (const animation of this.animations) {
+        return this.animations.map(animation => {
             animation.finish();
-        }
+            return animation.finished;
+        });
     }
 
     setupTransition() {
@@ -572,11 +573,9 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
         }
     }
 
-    onProgressEnd = () => {
-        if (!this.props.animationLayerData.play) this.finish();
-        this.finished.then(() => {
-            this.setState({transitioning: false});
-        });
+    onProgressEnd = async () => {
+        if (!this.props.animationLayerData.play) await this.finish();
+        this.setState({transitioning: false});
         this.animations = [];
         this.props.navigation.removeEventListener('motion-progress', this.onProgress);
         this.props.navigation.removeEventListener('motion-progress-end', this.onProgressEnd);
