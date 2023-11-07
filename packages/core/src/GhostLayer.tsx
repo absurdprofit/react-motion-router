@@ -546,20 +546,19 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
     }
     
     componentDidMount() {
-        this.props.navigation.addEventListener('motion-progress-start', this.onProgressStart, {capture: true});
+        this.props.navigation.addEventListener('motion-progress-start', this.onProgressStart);
     }
 
     componentWillUnmount() {
-        this.props.navigation.removeEventListener('motion-progress-start', this.onProgressStart, {capture: true});
+        this.props.navigation.removeEventListener('motion-progress-start', this.onProgressStart);
     }
 
-    onProgressStart() {
-        console.log("Start");
-        this.props.navigation.addEventListener('motion-progress', this.onProgress, {capture: true});
-        this.props.navigation.addEventListener('motion-progress-end', this.onProgressEnd, {capture: true});
+    onProgressStart = () => {
+        this.props.navigation.addEventListener('motion-progress', this.onProgress);
+        this.props.navigation.addEventListener('motion-progress-end', this.onProgressEnd);
     }
 
-    onProgress(e: MotionProgressEvent) {
+    onProgress = (e: MotionProgressEvent) => {
         if (!this.props.animationLayerData.play) {
             for (const animation of this.animations) {
                 const progress = e.detail.progress;
@@ -569,19 +568,18 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
 
                 const currentTime = interpolate(progress, [MIN_PROGRESS, MAX_PROGRESS], [0, Number(duration)]);
                 animation.currentTime = currentTime;
-                console.log("Here");
             }
         }
     }
 
-    onProgressEnd() {
+    onProgressEnd = () => {
         if (!this.props.animationLayerData.play) this.finish();
         this.finished.then(() => {
             this.setState({transitioning: false});
         });
         this.animations = [];
-        this.props.navigation.removeEventListener('motion-progress', this.onProgress, {capture: true});
-        this.props.navigation.removeEventListener('motion-progress-end', this.onProgressEnd, {capture: true});
+        this.props.navigation.removeEventListener('motion-progress', this.onProgress);
+        this.props.navigation.removeEventListener('motion-progress-end', this.onProgressEnd);
     }
 
     render() {
