@@ -51,11 +51,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     protected ref: HTMLElement | null = null;
     protected abstract _routerData: RouterData;
     protected config: Config;
-    protected dispatchEvent: ((event: Event) => Promise<boolean>) | null = null;
-    protected addEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined) => void) | null = null;
-    protected removeEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | EventListenerOptions | undefined) => void) | null = null;
     private onDocumentTitleChangeCallback;
-    private dispatchEventCallback;
     private onGestureNavigationStartCallback;
     private onGestureNavigationEndCallback;
 
@@ -70,7 +66,6 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
 
         this._id = props.id ?? Math.random().toString().replace('.', '-');
         this.onDocumentTitleChangeCallback = this.onDocumentTitleChange.bind(this);
-        this.dispatchEventCallback = this.dispatchEvent?.bind(this) ?? null;
         this.onGestureNavigationStartCallback = this.onGestureNavigationStart.bind(this);
         this.onGestureNavigationEndCallback = this.onGestureNavigationEnd.bind(this);
         
@@ -115,10 +110,10 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
         const paramsDeserializer = this._routerData.paramsDeserializer || null;
         const searchParams = searchParamsToObject(window.location.search, paramsDeserializer);
         const routesData = this.state.routesData;
-        this._routerData.routesData = this.state.routesData;
+        this._routerData.routesData = routesData;
         
         if (searchParams) {
-            const routeData = this.state.routesData.get(currentPath);
+            const routeData = routesData.get(currentPath);
             routesData.set(currentPath, {
                 focused: routeData?.focused ?? false,
                 preloaded: routeData?.preloaded ?? false,
@@ -130,6 +125,25 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
         }
         this.setState({currentPath, routesData});
         this._routerData.currentPath = currentPath;
+
+        this.animationLayerData.dispatchEvent = this.dispatchEvent;
+        this.animationLayerData.addEventListener = this.addEventListener;
+        this._routerData.dispatchEvent = this.dispatchEvent;
+        this._routerData.addEventListener = this.addEventListener;
+        this._routerData.removeEventListener = this.removeEventListener;
+    }
+
+    protected dispatchEvent = (event: Event) => {
+        const ref = this.ref ?? undefined;
+        return dispatchEvent(event, ref);
+    }
+
+    protected addEventListener = <K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined) => {
+        return this.ref?.addEventListener(type, listener, options);
+    }
+
+    protected removeEventListener = <K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | EventListenerOptions | undefined) => {
+        return this.ref?.removeEventListener(type, listener, options);
     }
 
     get id() {
@@ -200,35 +214,13 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     }
 
     private setRef = (ref: HTMLElement | null) => {
-        if (this.ref) {
-            this.dispatchEvent = null;
-            this.addEventListener = null;
-            this.removeEventListener = null;
-            this.animationLayerData.dispatchEvent = this.dispatchEvent;
-            this._routerData.dispatchEvent = this.dispatchEvent;
-            this._routerData.addEventListener = this.addEventListener;
-            this._routerData.removeEventListener = this.removeEventListener;
-            this.removeNavigationEventListeners(this.ref);  
-        }
+        if (this.ref)
+            this.removeNavigationEventListeners(this.ref); 
+        
+        this.ref = ref;
 
-        if (ref) {
-            this.dispatchEvent = (event) => {
-                // return async version
-                return dispatchEvent(event, ref);
-            }
-            this.addEventListener = (type, listener, options) => {
-                return ref.addEventListener(type, listener, options);
-            };
-            this.removeEventListener = (type, listener, options) => {
-                return ref.removeEventListener(type, listener, options);
-            };
-            this.animationLayerData.dispatchEvent = this.dispatchEvent;
-            this.animationLayerData.addEventListener = this.addEventListener;
-            this._routerData.dispatchEvent = this.dispatchEvent;
-            this._routerData.addEventListener = this.addEventListener;
-            this._routerData.removeEventListener = this.removeEventListener;
+        if (ref)
             this.addNavigationEventListeners(ref);
-        }
     }
     
     render() {
@@ -263,7 +255,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
                                         onGestureNavigationStart={this.onGestureNavigationStartCallback}
                                         onGestureNavigationEnd={this.onGestureNavigationEndCallback}
                                         onDocumentTitleChange={this.onDocumentTitleChangeCallback}
-                                        dispatchEvent={this.dispatchEventCallback}
+                                        dispatchEvent={this.dispatchEvent}
                                     >
                                         {this.props.children}
                                     </AnimationLayer>

@@ -203,9 +203,6 @@ function StateFromChildren(
 
 // type of children coerces type in Children.map such that 'path' is available on props
 export default class AnimationLayer extends Component<AnimationLayerProps, AnimationLayerState> {
-    private onSwipeStartListener = this.onSwipeStart.bind(this);
-    private onSwipeListener = this.onSwipe.bind(this);
-    private onSwipeEndListener = this.onSwipeEnd.bind(this);
     private progress = MAX_PROGRESS;
     private ref: HTMLDivElement | null = null;
 
@@ -292,7 +289,7 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
         this.setState(state);
     }
 
-    onSwipeStart(ev: SwipeStartEvent) {
+    onSwipeStart = (ev: SwipeStartEvent) => {
         if (ev.touches.length > 1) return; // disable if more than one finger engaged
         if (this.state.disableDiscovery) return;
         if (this.props.animationLayerData.isPlaying) return;
@@ -346,13 +343,13 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
                 this.animate();
                 
                 if (this.props.dispatchEvent) this.props.dispatchEvent(motionStartEvent);
-                this.ref?.addEventListener('swipe', this.onSwipeListener);
-                this.ref?.addEventListener('swipeend', this.onSwipeEndListener);
+                this.ref?.addEventListener('swipe', this.onSwipe);
+                this.ref?.addEventListener('swipeend', this.onSwipeEnd);
             });
         }
     }
 
-    onSwipe(ev: SwipeEvent) {
+    onSwipe = (ev: SwipeEvent) => {
         if (this.state.shouldPlay) return;
         let progress: number;
         switch(this.state.swipeDirection) {
@@ -380,7 +377,7 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
         this.props.animationLayerData.progress = progress;
     }
 
-    onSwipeEnd(ev: SwipeEndEvent) {
+    onSwipeEnd = (ev: SwipeEndEvent) => {
         if (this.state.shouldPlay) return;
         
         let onEnd = null;
@@ -414,20 +411,20 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
         this.setState({startX: 0, startY: 0});
         this.props.animationLayerData.onEnd = onEnd;
         this.props.animationLayerData.play = true;
-        this.ref?.removeEventListener('swipe', this.onSwipeListener);
-        this.ref?.removeEventListener('swipeend', this.onSwipeEndListener);
+        this.ref?.removeEventListener('swipe', this.onSwipe);
+        this.ref?.removeEventListener('swipeend', this.onSwipeEnd);
         
     }
 
     setRef = (ref: HTMLDivElement | null) => {
         if (this.ref) {
-            this.ref.removeEventListener('swipestart', this.onSwipeStartListener);
+            this.ref.removeEventListener('swipestart', this.onSwipeStart);
         }
 
         this.ref = ref;
         
         if (ref) {
-            ref.addEventListener('swipestart', this.onSwipeStartListener);
+            ref.addEventListener('swipestart', this.onSwipeStart);
         }
     }
 

@@ -43,9 +43,6 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
     private _currentScene: SharedElementScene | null = null;
     private _nextScene: SharedElementScene | null = null;
     private animations: Animation[] = [];
-    private onProgressStartListener = this.onProgressStart.bind(this) as EventListener;
-    private onProgressListener = this.onProgress.bind(this) as EventListener;
-    private onProgressEndListener = this.onProgressEnd.bind(this) as EventListener;
 
     constructor(props: GhostLayerProps) {
         super(props);
@@ -549,16 +546,17 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
     }
     
     componentDidMount() {
-        this.props.navigation.addEventListener('motion-progress-start', this.onProgressStartListener, {capture: true});
+        this.props.navigation.addEventListener('motion-progress-start', this.onProgressStart, {capture: true});
     }
 
     componentWillUnmount() {
-        this.props.navigation.removeEventListener('motion-progress-start', this.onProgressStartListener, {capture: true});
+        this.props.navigation.removeEventListener('motion-progress-start', this.onProgressStart, {capture: true});
     }
 
     onProgressStart() {
-        this.props.navigation.addEventListener('motion-progress', this.onProgressListener, {capture: true});
-        this.props.navigation.addEventListener('motion-progress-end', this.onProgressEndListener, {capture: true});
+        console.log("Start");
+        this.props.navigation.addEventListener('motion-progress', this.onProgress, {capture: true});
+        this.props.navigation.addEventListener('motion-progress-end', this.onProgressEnd, {capture: true});
     }
 
     onProgress(e: MotionProgressEvent) {
@@ -571,6 +569,7 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
 
                 const currentTime = interpolate(progress, [MIN_PROGRESS, MAX_PROGRESS], [0, Number(duration)]);
                 animation.currentTime = currentTime;
+                console.log("Here");
             }
         }
     }
@@ -581,8 +580,8 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
             this.setState({transitioning: false});
         });
         this.animations = [];
-        this.props.navigation.removeEventListener('motion-progress', this.onProgressListener, {capture: true});
-        this.props.navigation.removeEventListener('motion-progress-end', this.onProgressEndListener, {capture: true});
+        this.props.navigation.removeEventListener('motion-progress', this.onProgress, {capture: true});
+        this.props.navigation.removeEventListener('motion-progress-end', this.onProgressEnd, {capture: true});
     }
 
     render() {
