@@ -74,10 +74,14 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
     }
 
     finish() {
-        return this.animations.map(animation => {
-            animation.finish();
-            return animation.finished;
-        });
+        const playbackRate = this.props.animationLayerData.playbackRate;
+        return Promise.all(
+            this.animations.map(animation => {
+                animation.playbackRate = playbackRate;
+                animation.finish();
+                return animation.finished;
+            })
+        );
     }
 
     setupTransition() {
@@ -475,33 +479,26 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
         const onEnd = async () => {
             console.assert(id === endInstance.id, "Not sure what happened here.");
             console.assert(id === startInstance.id, "Not sure what happened here.");
-            startNode.style.willChange = 'auto';
-            if (transitionType !== "morph")
-                endNode.style.willChange = 'auto';
-            await endInstance.hidden(false);
-            if (!this.currentScene!.keepAlive || !this.props.animationLayerData.play) {
+            endInstance.hidden(false);
+            if (!this.currentScene!.keepAlive) {
                 startInstance.keepAlive(false);
-                await startInstance.hidden(false); // if current scene is kept alive do not show start element
+                startInstance.hidden(false); // if current scene is kept alive do not show start element
             } else {
                 startInstance.keepAlive(true);
             }
             
-            if (!this.props.animationLayerData.play) return;
             startInstance.onCloneRemove(startNode);
             if (transitionType !== "morph") {
                 endInstance.onCloneRemove(endNode);
-                endNode.remove();
             } else {
                 endInstance.onCloneRemove(startNode);
             }
-            startNode.remove();
         };
         const onCancel = async () => {
-            startNode.style.willChange = 'auto';
-            if (transitionType !== "morph")
-                endNode.style.willChange = 'auto';
-            await startInstance.hidden(false);
-            await endInstance.hidden(false);
+            Promise.all([
+                startInstance.hidden(false),
+                endInstance.hidden(false)
+            ]);
         };
         Promise.all(
             animations.map(anim => anim?.finished)
@@ -525,6 +522,7 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
             this.setState({transitioning: false});
             this._nextScene = null;
             this._currentScene = null;
+            this.animations = [];
         };
 
         const onCancel = () => {
@@ -574,7 +572,7 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
     }
 
     onProgressEnd = async () => {
-        if (!this.props.animationLayerData.play) await this.finish();
+        await this.finish();
         this.setState({transitioning: false});
         this.animations = [];
         this.props.navigation.removeEventListener('motion-progress', this.onProgress);

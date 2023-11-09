@@ -308,6 +308,10 @@ export default class AnimationLayerData {
         this._ghostLayer = _ghostLayer;
     }
 
+    get playbackRate() {
+        return this._playbackRate;
+    }
+
     get play() {
         return this._play;
     }

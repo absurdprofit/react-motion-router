@@ -389,12 +389,12 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
                 this.props.animationLayerData.playbackRate = -1;
             }
             onEnd = () => {
-                this.props.animationLayerData.reset();
                 this.props.onGestureNavigationEnd();
                 
                 this.setState({gestureNavigating: false});
 
                 if (this.props.dispatchEvent) this.props.dispatchEvent(motionEndEvent);
+                requestAnimationFrame(() => this.props.animationLayerData.reset());
             }
             this.setState({shouldPlay: true, shouldAnimate: false});
         } else {

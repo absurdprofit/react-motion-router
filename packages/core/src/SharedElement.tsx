@@ -279,17 +279,15 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
         }
     }
 
-    keepAlive(_keepAlive: boolean): Promise<void> {
+    keepAlive(keepAlive: boolean): Promise<void> {
         return new Promise((resolve) => {
-            this.setState({keepAlive: _keepAlive}, () => resolve());
+            this.setState({keepAlive}, resolve);
         });
     }
 
-    hidden(_hidden: boolean): Promise<void> {
-        return new Promise((resolve, _) => {
-            this.setState({hidden: _hidden}, () => {
-                resolve();
-            });
+    hidden(hidden: boolean): Promise<void> {
+        return new Promise((resolve) => {
+            this.setState({hidden}, resolve);
         });
     }
 
