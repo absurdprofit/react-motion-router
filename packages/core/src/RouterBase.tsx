@@ -204,8 +204,8 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     }
 
     addNavigationEventListeners(ref: HTMLElement) {
-        ref.addEventListener('go-back', this.onBackListener);
-        ref.addEventListener('navigate', this.onNavigateListener);
+        ref.addEventListener('go-back', this.onBackListener, {capture: true});
+        ref.addEventListener('navigate', this.onNavigateListener, {capture: true});
     }
 
     removeNavigationEventListeners(ref: HTMLElement) {
