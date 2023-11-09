@@ -51,9 +51,6 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     protected ref: HTMLElement | null = null;
     protected abstract _routerData: RouterData;
     protected config: Config;
-    private onDocumentTitleChangeCallback;
-    private onGestureNavigationStartCallback;
-    private onGestureNavigationEndCallback;
 
     static defaultProps = {
         config: {
@@ -65,9 +62,6 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
         super(props as P);
 
         this._id = props.id ?? Math.random().toString().replace('.', '-');
-        this.onDocumentTitleChangeCallback = this.onDocumentTitleChange.bind(this);
-        this.onGestureNavigationStartCallback = this.onGestureNavigationStart.bind(this);
-        this.onGestureNavigationEndCallback = this.onGestureNavigationEnd.bind(this);
         
         if (props.config) {
             this.config = props.config;
@@ -170,8 +164,8 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
 
     abstract onAnimationEnd: (e: PageAnimationEndEvent) => void;
 
-    protected onGestureNavigationStart() {}
-    protected onGestureNavigationEnd() {}
+    abstract onGestureNavigationStart: () => void;
+    abstract onGestureNavigationEnd:() => void;
 
     protected onPopStateListener(e: Event) {
         let currentPath = this.navigation.location.pathname;
@@ -198,7 +192,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
 
     abstract onNavigateListener: (e: NavigateEvent) => void;
 
-    onDocumentTitleChange = (title: string | null) => {
+    protected onDocumentTitleChange = (title: string | null) => {
         if (title) document.title = title;
         else document.title = this.state.defaultDocumentTitle;
     }
@@ -252,9 +246,9 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
                                         backNavigating={this.state.backNavigating}
                                         currentPath={this.navigation.history.current}
                                         lastPath={this.navigation.history.previous}
-                                        onGestureNavigationStart={this.onGestureNavigationStartCallback}
-                                        onGestureNavigationEnd={this.onGestureNavigationEndCallback}
-                                        onDocumentTitleChange={this.onDocumentTitleChangeCallback}
+                                        onGestureNavigationStart={this.onGestureNavigationStart}
+                                        onGestureNavigationEnd={this.onGestureNavigationEnd}
+                                        onDocumentTitleChange={this.onDocumentTitleChange}
                                         dispatchEvent={this.dispatchEvent}
                                     >
                                         {this.props.children}
