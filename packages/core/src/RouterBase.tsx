@@ -165,7 +165,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     abstract onAnimationEnd: (e: PageAnimationEndEvent) => void;
 
     abstract onGestureNavigationStart: () => void;
-    abstract onGestureNavigationEnd:() => void;
+    abstract onGestureNavigationEnd: () => void;
 
     protected onPopStateListener(e: Event) {
         let currentPath = this.navigation.location.pathname;

@@ -71,9 +71,9 @@ export default class AnimationLayerData {
         this.dispatchEvent?.(cancelAnimationEvent);
     }
 
-    private cleanUpAnimation(animation: Animation | null) {
+    private cleanUpAnimation(animation: Animation | null, shouldCommitStyles = true) {
         if (!animation) return;
-        animation.commitStyles();
+        if (shouldCommitStyles) animation.commitStyles();
         animation.cancel();
         animation = null;
     }
@@ -170,8 +170,8 @@ export default class AnimationLayerData {
 
                 this.cleanUpAnimation(this._inAnimation);
                 this.cleanUpAnimation(this._outAnimation);
-                this.cleanUpAnimation(this._pseudoElementInAnimation);
-                this.cleanUpAnimation(this._pseudoElementOutAnimation);
+                this.cleanUpAnimation(this._pseudoElementInAnimation, false);
+                this.cleanUpAnimation(this._pseudoElementOutAnimation, false);
 
                 this._isPlaying = false;
                 const endAnimationEvent = new CustomEvent('page-animation-end', {bubbles: true});
@@ -400,7 +400,7 @@ export default class AnimationLayerData {
     }
 
     get finished() {
-        return new Promise<void>(async (resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             try {
                 await this.started;
                 await Promise.all([
@@ -409,7 +409,7 @@ export default class AnimationLayerData {
                     this._pseudoElementInAnimation?.finished,
                     this._pseudoElementOutAnimation?.finished
                 ]);
-                resolve();
+                resolve(true);
             } catch (e) {
                 reject(e);
             }
@@ -418,10 +418,8 @@ export default class AnimationLayerData {
 
     get started() {
         if (this._isStarted) return Promise.resolve();
-        return new Promise<void>(async (resolve) => {
-            this.addEventListener?.('page-animation-start', () => {
-                resolve();
-            }, {once: true});
+        return new Promise<void>((resolve) => {
+            this.addEventListener?.('page-animation-start', () => resolve(), {once: true});
         });
     }
 }
