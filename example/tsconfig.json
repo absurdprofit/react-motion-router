@@ -1,7 +1,8 @@
 {
   "extends": "../tsconfig",
   "compilerOptions": {
-    "noEmit": true
+    "target": "ESNext",    
+    "types": ["vite/client"],
   },
   "include": [
     "src",
