@@ -90,7 +90,6 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
     } as S;
 
     componentDidMount() {
-        this.sharedElementScene.getScreenRect = () => this.ref?.getBoundingClientRect() || new DOMRect();
         this.sharedElementScene.previousScene = this.props.animationLayerData?.ghostLayer.currentScene ?? null;
         
         const routeData = this.routeData;
@@ -230,6 +229,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
         if (this.ref !== ref) {
             this.ref = ref;
         }
+        this.sharedElementScene.getScreenRect = () => this.ref?.getBoundingClientRect() || new DOMRect();
     }
 
     private setAnimationProviderRef(ref: HTMLElement | null) {
