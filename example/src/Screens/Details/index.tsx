@@ -4,14 +4,14 @@ import { Stack } from '@react-motion-router/stack';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import ClearIcon from '@mui/icons-material/Clear';
-import { Hero } from '../assets/Heroes';
-import '../css/Details.css';
+import { Hero } from '../../assets/Heroes';
+import './Details.css';
 
 type DetailsParams = Hero & {
     noBg?: boolean;
 };
 
-interface DetailsProps extends Stack.ScreenComponentProps<DetailsParams> {}
+interface DetailsProps extends Stack.ScreenComponentProps<DetailsParams> { }
 
 let isFirstLoad = false;
 let originalDesc: string | undefined;
@@ -19,9 +19,9 @@ let lastHero = '';
 export default function Details(props: DetailsProps) {
     const scrollAreaRef = React.useRef<ScrollRestoration>(null);
     const [gestureDisabled, setGestureDisabled] = React.useState(false);
-    const {noBg, ...hero} = props.route.params;
+    const { noBg, ...hero } = props.route.params;
     isFirstLoad = props.route.preloaded;
-    
+
     useEffect(() => {
         setGestureDisabled(scrollAreaRef.current?.scrollTop !== 0);
         if (!hero.name) {
@@ -32,7 +32,7 @@ export default function Details(props: DetailsProps) {
         if (hero.description) {
             if (!originalDesc)
                 originalDesc = props.navigation.metaData.get('description') as string | undefined;
-            
+
             const description = hero.description;
             props.navigation.metaData.set('description', `${description.slice(0, 102)}...`);
         }
@@ -41,7 +41,7 @@ export default function Details(props: DetailsProps) {
         props.navigation.addEventListener('go-back', () => {
             props.navigation.metaData.set('description', originalDesc);
             originalDesc = undefined;
-        }, {once: true, capture: true});
+        }, { once: true, capture: true });
 
         props.navigation.finished.then(() => {
             isFirstLoad = true;
@@ -75,7 +75,7 @@ export default function Details(props: DetailsProps) {
             >
                 <article
                     aria-label={`Character profile: ${hero.name}`}
-                    className={`details ${isFirstLoad ? 'loaded' : 'suspense'}`} 
+                    className={`details ${isFirstLoad ? 'loaded' : 'suspense'}`}
                     style={{
                         width: "100%",
                         height: "100%",
@@ -83,10 +83,10 @@ export default function Details(props: DetailsProps) {
                     }}
                 >
                     {!Boolean(noBg)
-                    &&
-                    <SharedElement id={`${hero.id}-card-bg`}>
-                        <div className="card-bg" aria-hidden="true"></div>
-                    </SharedElement>}
+                        &&
+                        <SharedElement id={`${hero.id}-card-bg`}>
+                            <div className="card-bg" aria-hidden="true"></div>
+                        </SharedElement>}
                     <Anchor aria-label='Go Back' goBack tabIndex={-1}>
                         <IconButton style={{
                             position: "absolute",
@@ -120,7 +120,7 @@ export default function Details(props: DetailsProps) {
                             <SharedElement id={`title-${hero.id}`}>
                                 <Typography
                                     id="title"
-                                    style={{fontWeight: 'bold', fontSize: '28px', zIndex: 10}}
+                                    style={{ fontWeight: 'bold', fontSize: '28px', zIndex: 10 }}
                                     gutterBottom
                                     variant="h4"
                                     component="h4"
@@ -130,7 +130,7 @@ export default function Details(props: DetailsProps) {
                             </SharedElement>
                             <div className="description">
                                 <SharedElement id={`description-${hero.id}`}>
-                                    <p style={{zIndex: 10}}>{hero.description}</p>
+                                    <p style={{ zIndex: 10 }}>{hero.description}</p>
                                 </SharedElement>
                             </div>
                         </div>

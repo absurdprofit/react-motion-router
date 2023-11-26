@@ -1,0 +1,20 @@
+.cards.cards-2 .card-list p {
+  height: 1.5rem;
+}
+.cards.cards-2 .card-list img {
+  border-radius: 15px;
+}
+.cards.cards-2 .card-list .gradient-overlay {
+  content: "A";
+  color: transparent;
+  height: 100%;
+  width: 100%;
+  z-index: 5;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  position: absolute;
+  border-radius: 15px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.5) 30%,rgba(0, 0, 0, 0) 100%); 
+}

@@ -1,15 +1,15 @@
-import React, {useEffect, useState} from 'react';
-import { Hero, Heroes } from '../assets/Heroes';
+import React, { useEffect, useState } from 'react';
+import { Hero, Heroes } from '../../assets/Heroes';
 import ClearIcon from '@mui/icons-material/Clear';
 import { Stack } from '@react-motion-router/stack';
 import { SharedElement, Anchor } from '@react-motion-router/core';
 import IconButton from '@mui/material/IconButton';
-import '../css/Slides.css';
+import './index.css';
 import { SwipeStartEvent, SwipeEvent, SwipeEndEvent } from 'web-gesture-events';
 import { bindKeyboard } from 'react-swipeable-views-utils';
 import SwipeableViews from 'react-swipeable-views';
 
-interface SlidesProps extends Stack.ScreenComponentProps<{hero: number;}> {}
+interface SlidesProps extends Stack.ScreenComponentProps<{ hero: number; }> { }
 
 const KeyboardSwipeableViews = bindKeyboard(SwipeableViews);
 
@@ -21,8 +21,8 @@ export default function Slides(props: SlidesProps) {
     const onSwipeStart = (e: SwipeStartEvent) => {
         y = e.y;
         window.addEventListener('swipe', onSwipe);
-        
-        window.addEventListener('swipeend', onSwipeEnd, {once: true});
+
+        window.addEventListener('swipeend', onSwipeEnd, { once: true });
     };
 
     const onSwipe = (e: SwipeEvent) => {
@@ -41,7 +41,7 @@ export default function Slides(props: SlidesProps) {
                 props.navigation.goBack();
 
                 return;
-            } 
+            }
             e.target.style.transform = `translateY(${0}px)`;
         }
     }
@@ -51,13 +51,13 @@ export default function Slides(props: SlidesProps) {
 
         props.navigation.addEventListener('go-back', () => {
             props.navigation.metaData.set('theme-color', '#fee2551');
-        }, {once: true, capture: true});
+        }, { once: true, capture: true });
 
         props.navigation.finished.then(() => {
             isFirstLoad = true;
         });
         window.addEventListener('swipestart', onSwipeStart);
-    
+
 
         return () => {
             window.removeEventListener('swipestart', onSwipeStart);
@@ -68,7 +68,7 @@ export default function Slides(props: SlidesProps) {
         <div className={`slides ${isFirstLoad ? 'loaded' : 'suspense'}`}>
             <div className="back">
                 <Anchor goBack>
-                    <IconButton style={{color: 'white'}} disableRipple>
+                    <IconButton style={{ color: 'white' }} disableRipple>
                         <SharedElement id="back" config={{
                             type: 'fade-through'
                         }}>
@@ -78,29 +78,29 @@ export default function Slides(props: SlidesProps) {
                 </Anchor>
             </div>
             <div className="title">
-                <SharedElement id="tiles-demo-title" config={{type: 'fade-through', transformOrigin: 'center center'}}>
+                <SharedElement id="tiles-demo-title" config={{ type: 'fade-through', transformOrigin: 'center center' }}>
                     <h2>{Heroes[index].name}</h2>
                 </SharedElement>
             </div>
             <KeyboardSwipeableViews onChangeIndex={(index: number) => setIndex(index)} index={index}>
-            {
-                Heroes.map((hero: Hero, _index: number) => {
-                    return (
-                        <div className="slide" key={_index}>
-                            {
-                                <SharedElement id={`${_index !== index ? 'no-transition-' : ''}${hero.id}`}>
-                                    <img
-                                        src={hero.photoUrl}
-                                        alt={hero.name}
-                                        style={{transition: '0.2s transform ease'}}
-                                        {...{"data-gesturetarget": true}}
-                                    />
-                                </SharedElement>
-                            }
-                        </div>
-                    );
-                })
-            }
+                {
+                    Heroes.map((hero: Hero, _index: number) => {
+                        return (
+                            <div className="slide" key={_index}>
+                                {
+                                    <SharedElement id={`${_index !== index ? 'no-transition-' : ''}${hero.id}`}>
+                                        <img
+                                            src={hero.photoUrl}
+                                            alt={hero.name}
+                                            style={{ transition: '0.2s transform ease' }}
+                                            {...{ "data-gesturetarget": true }}
+                                        />
+                                    </SharedElement>
+                                }
+                            </div>
+                        );
+                    })
+                }
             </KeyboardSwipeableViews>
         </div>
     );

@@ -1,17 +1,16 @@
-import { Button } from '@mui/material';
+import { Button, IconButton } from '@mui/material';
 import React, { useRef } from 'react';
 import { Anchor, SharedElement } from '@react-motion-router/core';
 import { Stack } from '@react-motion-router/stack';
 import King from "../../assets/king.webp";
 import SkipNextIcon from '@mui/icons-material/SkipNext';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import { IconButton } from "@mui/material";
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
-import '../../css/Overlays.css';
+import '.././index.css';
 
-interface OverlaysProps extends Stack.ScreenComponentProps {}
+interface OverlaysProps extends Stack.ScreenComponentProps { }
 
-export default function Overlays({navigation}: OverlaysProps) {
+export default function Overlays({ navigation }: OverlaysProps) {
     const playerRef = useRef<HTMLDivElement | null>(null);
 
     const openPlayer = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
@@ -23,11 +22,11 @@ export default function Overlays({navigation}: OverlaysProps) {
             <div className="go-back">
                 <Anchor goBack>
                     <IconButton disableRipple>
-                        <ArrowBackIosIcon style={{zIndex: 100}} />
+                        <ArrowBackIosIcon style={{ zIndex: 100 }} />
                     </IconButton>
                 </Anchor>
             </div>
-            <div className="modal-example" style={{marginBlockStart: "100px"}}>
+            <div className="modal-example" style={{ marginBlockStart: "100px" }}>
                 <Anchor href="/sheet">
                     <Button>Open Modal</Button>
                 </Anchor>

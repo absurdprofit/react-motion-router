@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 import autoprefixer from 'autoprefixer'
 import postcssNesting from 'postcss-nesting';
 import svgr from 'vite-plugin-svgr';
-// import license from 'rollup-plugin-license';
+import license from 'rollup-plugin-license';
 import viteTsconfigPaths from 'vite-tsconfig-paths';
 import path from 'path';
 
@@ -67,18 +67,18 @@ export default defineConfig({
   build: {
     rollupOptions: {
       plugins: [
-        // license({
-        //   thirdParty: {
-        //     output: {
-        //       file: path.resolve(__dirname, 'dist', 'assets', 'LICENSE.txt'),
-        //       template(dependencies) {
-        //         return dependencies.map((dependency) => {
-        //           return `${bold(dependency.name?.toUpperCase() ?? "")}\n\n${dependency.licenseText ?? ""}`;
-        //         }).join('\n\n\n');
-        //       }
-        //     }
-        //   }
-        // })
+        license({
+          thirdParty: {
+            output: {
+              file: path.resolve(__dirname, 'dist', 'assets', 'LICENSE.txt'),
+              template(dependencies) {
+                return dependencies.map((dependency) => {
+                  return `${bold(dependency.name?.toUpperCase() ?? "")}\n\n${dependency.licenseText ?? ""}`;
+                }).join('\n\n\n');
+              }
+            }
+          }
+        })
       ]
     }
   },

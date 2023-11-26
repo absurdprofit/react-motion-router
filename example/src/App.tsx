@@ -11,7 +11,7 @@ import { OverlaysAnimation } from './Screens/Overlays/Animations';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './Theme';
 import Navbar from './Components/Navbar';
-import "./css/App.css";
+import "./App.css";
 
 const NotFound = lazy(() => import('./Screens/NotFound'));
 const Home = lazy(() => import('./Screens/Home'));

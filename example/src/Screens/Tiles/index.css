@@ -22,18 +22,6 @@
     }
 }
 
-.tile {
-    width: 49vw;
-    height: calc(30vw - 2px);
-    transition: width 1s ease;
-}
-
-.tile img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
 .tiles .nav-bar {
     background-color: yellow;
     display: flex;
@@ -67,14 +55,7 @@
 .tiles .nav-bar .back-button button:active {
     box-shadow: -1px -1px 1px black;
 }
-.tiles .content a:last-child .tile {
-    width: 100vw;
-}
-.tiles .tile img:empty {
-    background-color: #efefef;
-    width: 49vw;
-    height: calc(30vw - 2px);
-}
+.tiles .content a:last-child .tile,
 .tiles a:last-child .tile img:empty {
     width: 100vw;
 }

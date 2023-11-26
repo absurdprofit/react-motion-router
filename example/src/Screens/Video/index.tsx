@@ -2,8 +2,8 @@ import React from 'react';
 import VideoSrc from '../assets/video.mp4';
 import Thumbnail from "../assets/thumbnail.png";
 import { Anchor, SharedElement, useNavigation } from '@react-motion-router/core';
-import BackButton from '../Components/BackButton';
-import '../css/Video.css';
+import BackButton from '../../Components/BackButton';
+import './index.css';
 
 export default function Home() {
     const navigation = useNavigation();

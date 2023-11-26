@@ -1,7 +1,7 @@
-import React, {memo} from 'react';
+import React, { memo } from 'react';
 import { SharedElement, useNavigation, useRoute } from '@react-motion-router/core';
-import '../css/Navbar.css';
-import BackButton from './BackButton';
+import './index.css';
+import BackButton from '../BackButton';
 
 interface NavbarProps {
     title: string;
@@ -22,13 +22,13 @@ function Navbar(props: NavbarProps) {
                 <div className="back">
                     {
                         canGoBack ?
-                        <BackButton />
-                        :
-                        undefined
+                            <BackButton />
+                            :
+                            undefined
                     }
                 </div>
                 <div className="title">
-                    <SharedElement id={props.title.toLowerCase().split(' ').join('-') + "-title"} config={{transformOrigin: 'center center'}}>
+                    <SharedElement id={props.title.toLowerCase().split(' ').join('-') + "-title"} config={{ transformOrigin: 'center center' }}>
                         <h2>{props.title}</h2>
                     </SharedElement>
                 </div>

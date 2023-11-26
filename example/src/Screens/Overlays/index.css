@@ -1,3 +1,5 @@
+@import "./modal.css";
+
 .overlays.suspense > * {
   animation: overlays-fade-in .5s ease forwards;
 }

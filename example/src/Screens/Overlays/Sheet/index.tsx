@@ -1,12 +1,12 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import { Anchor, useMotion } from '@react-motion-router/core';
 import { Button } from '@mui/material';
 import { Stack } from '@react-motion-router/stack';
 import { motion } from 'framer-motion';
 import { lerp } from '../../../common/utils';
-import '../../../css/Sheet.css';
+import '../.././index.css';
 
-interface SheetProps extends Stack.ScreenComponentProps {}
+interface SheetProps extends Stack.ScreenComponentProps { }
 
 let isFirstLoad = true;
 const transition = {
@@ -14,14 +14,14 @@ const transition = {
     mass: 0.25,
     damping: 5
 }
-export default function Sheet({navigation, route}: SheetProps) {
+export default function Sheet({ navigation, route }: SheetProps) {
     const progress = useMotion() / 100;
     const [stiffness] = useState(50);
 
     const goHome = () => {
         navigation.parent?.goBack();
     }
-    
+
     return (
         <motion.div
             className={`sheet modal ${isFirstLoad ? 'loaded' : 'suspense'}`}
@@ -30,7 +30,7 @@ export default function Sheet({navigation, route}: SheetProps) {
             }}
             style={{
                 // opacity: true ? this.state.opacity : 1,
-                
+
             }}
             animate={{
                 transform: `translateY(${lerp(false ? 92 : 100, 0, progress)}vh)`,
@@ -38,14 +38,14 @@ export default function Sheet({navigation, route}: SheetProps) {
             }}
             transition={{
                 ...transition,
-                ...{stiffness: stiffness}
+                ...{ stiffness: stiffness }
             }}
         >
-            <div className="notch" style={{opacity: lerp(0, 1, progress)}}></div>
+            <div className="notch" style={{ opacity: lerp(0, 1, progress) }}></div>
             <div className='content'>
                 <h2 className='title'>Modal Example</h2>
                 <p className='body'>
-                    This example uses <Anchor href="https://www.framer.com/motion/" target="_blank" rel="noopener">Framer Motion</Anchor> for 
+                    This example uses <Anchor href="https://www.framer.com/motion/" target="_blank" rel="noopener">Framer Motion</Anchor> for
                     spring animations driven by the <b>Motion</b> component provided by <Anchor href="https://github.com/nxtexe/react-motion-router" target="_blank" rel="noopener"> React Motion Router</Anchor>.
                     This example is built on top of the now standard <Anchor href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog" target="_blank" rel="noopener">&lt;dialog&gt; element</Anchor>.
                 </p>

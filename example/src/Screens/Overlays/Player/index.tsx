@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import King from "../../../assets/king.webp";
-import { Motion, SharedElement, useMotion } from '@react-motion-router/core';
+import { SharedElement, useMotion } from '@react-motion-router/core';
 import { Stack } from '@react-motion-router/stack';
 import SkipPreviousIcon from '@mui/icons-material/SkipPrevious';
 import SkipNextIcon from '@mui/icons-material/SkipNext';
@@ -12,15 +12,15 @@ import Slider from '@mui/material/Slider';
 import StackComponent from '@mui/material/Stack';
 import { motion } from 'framer-motion';
 import { lerp } from '../../../common/utils';
-import '../../../css/Player.css';
+import '../.././index.css';
 
-interface PlayerProps extends Stack.ScreenComponentProps {}
+interface PlayerProps extends Stack.ScreenComponentProps { }
 
 let seekStart = 30;
 let volumeStart = 50;
-let timeStart = lerp(0, 139, seekStart/100);
+let timeStart = lerp(0, 139, seekStart / 100);
 let isFirstLoad = true;
-export default function Player({navigation, route}: PlayerProps) {
+export default function Player({ navigation, route }: PlayerProps) {
     const progress = useMotion() / 100;
     const [volume, setVolume] = useState(volumeStart - 15);
     const [seekProgress, setSeekProgress] = useState(seekStart - 10);
@@ -31,7 +31,7 @@ export default function Player({navigation, route}: PlayerProps) {
         setSeekProgress(lerp(seekStart - 10, seekStart, progress));
     }, [progress]);
 
-    const handleVolumeChange  = (event: Event, newValue: number | number[]) => {
+    const handleVolumeChange = (event: Event, newValue: number | number[]) => {
         setVolume(newValue as number);
         volumeStart = newValue as number;
     };
@@ -47,7 +47,7 @@ export default function Player({navigation, route}: PlayerProps) {
         <div
             className={`modal ${isFirstLoad ? 'loaded' : 'suspense'}`}
         >
-            <div className="notch" style={{opacity: lerp(0, 1, progress)}}></div>
+            <div className="notch" style={{ opacity: lerp(0, 1, progress) }}></div>
             <div className="player">
                 <div className="cover-art">
                     <SharedElement id="cover-art" config={{
@@ -62,16 +62,16 @@ export default function Player({navigation, route}: PlayerProps) {
                     }}>
                         <h3 className="title">Modal Sheet Example</h3>
                     </SharedElement>
-                    <motion.h6 className="artiste" style={{opacity: progress}} animate={{
+                    <motion.h6 className="artiste" style={{ opacity: progress }} animate={{
                         x: lerp(-50, 0, progress)
                     }}>nxte</motion.h6>
                 </div>
-                <motion.div className="share" style={{opacity: progress}} animate={{
+                <motion.div className="share" style={{ opacity: progress }} animate={{
                     y: lerp(50, 0, progress)
                 }}>
                     <ShareIcon />
                 </motion.div>
-                <div className="seeker" style={{opacity: progress}}>
+                <div className="seeker" style={{ opacity: progress }}>
                     <p className="current-time">{new Date(currentTime * 1000).toISOString().substring(15, 19)}</p>
                     <Slider value={seekProgress} onChange={handleSeekChange} style={{
                         width: '70%',
@@ -80,7 +80,7 @@ export default function Player({navigation, route}: PlayerProps) {
                     <p className="current-time">2:19</p>
                 </div>
                 <div className="play-controls">
-                    <motion.div className="previous" style={{opacity: progress}} animate={{
+                    <motion.div className="previous" style={{ opacity: progress }} animate={{
                         x: lerp(-90, 0, progress),
                     }}>
                         <SkipPreviousIcon />
@@ -96,14 +96,14 @@ export default function Player({navigation, route}: PlayerProps) {
                         </SharedElement>
                     </div>
                 </div>
-                <div className="volume" style={{opacity: progress}}>
-                <StackComponent spacing={2} direction="row" sx={{ mb: 1 }} alignItems="center">
-                    <VolumeDownIcon />
-                    <Slider aria-label="Volume" value={volume} onChange={handleVolumeChange} style={{
-                        transition: 'left 300ms ease-in'
-                    }} />
-                    <VolumeUpIcon />
-                </StackComponent>
+                <div className="volume" style={{ opacity: progress }}>
+                    <StackComponent spacing={2} direction="row" sx={{ mb: 1 }} alignItems="center">
+                        <VolumeDownIcon />
+                        <Slider aria-label="Volume" value={volume} onChange={handleVolumeChange} style={{
+                            transition: 'left 300ms ease-in'
+                        }} />
+                        <VolumeUpIcon />
+                    </StackComponent>
                 </div>
             </div>
         </div>

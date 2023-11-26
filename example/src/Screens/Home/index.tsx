@@ -1,11 +1,9 @@
 import React, { useEffect } from 'react';
-import { SharedElement } from '@react-motion-router/core';
 import { Stack } from '@react-motion-router/stack';
-import ListItemComponent from '../Components/ListItem';
-import Navbar from '../Components/Navbar';
-import '../css/Home.css';
+import ListItemComponent from '../../Components/ListItem';
+import './index.css';
 
-interface HomeProps extends Stack.ScreenComponentProps {}
+interface HomeProps extends Stack.ScreenComponentProps { }
 
 interface ListItem {
     title: string;
@@ -52,7 +50,7 @@ export default function Home(props: HomeProps) {
             if (props.orientation.type !== "portrait-primary") {
                 try {
                     await props.orientation.lock?.('portrait');
-                } catch (e) {}
+                } catch (e) { }
             }
         }
     }, []);
@@ -63,11 +61,11 @@ export default function Home(props: HomeProps) {
                 {
                     list.map((item: ListItem, index: number) => {
                         return <ListItemComponent
-                                    key={index}
-                                    href={item.href}
-                                    title={item.title}
-                                    description={item.description}
-                                />
+                            key={index}
+                            href={item.href}
+                            title={item.title}
+                            description={item.description}
+                        />
                     })
                 }
             </ul>

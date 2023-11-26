@@ -1,12 +1,11 @@
 import React from 'react';
-import { Heroes, Hero } from '../assets/Heroes';
-import {Anchor, SharedElement} from '@react-motion-router/core';
-import { Navigation, Stack } from '@react-motion-router/stack';
-import Navbar from '../Components/Navbar';
-import Tile from '../Components/Tile';
-import '../css/Tiles.css';
+import { Heroes, Hero } from '../../assets/Heroes';
+import { Anchor } from '@react-motion-router/core';
+import { Stack } from '@react-motion-router/stack';
+import Tile from '../../Components/Tile';
+import './index.css';
 
-interface TilesProps extends Stack.ScreenComponentProps {}
+interface TilesProps extends Stack.ScreenComponentProps { }
 
 interface TilesState {
     heroes: Hero[];
@@ -29,7 +28,7 @@ export default class Tiles extends React.Component<TilesProps, TilesState> {
     }
 
     render(): React.ReactNode {
-        return(
+        return (
             <div className={`tiles ${Tiles.isFirstLoad ? 'loaded' : 'suspense'}`}>
                 <div className="content">
                     {this.state.heroes.map((hero: Hero, index: number) => {

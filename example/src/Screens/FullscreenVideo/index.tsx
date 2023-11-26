@@ -2,8 +2,8 @@ import React, { useEffect } from "react";
 import { SharedElement } from "@react-motion-router/core";
 import VideoSrc from '../assets/video.mp4';
 import Thumbnail from "../assets/thumbnail.png";
-import BackButton from "../Components/BackButton";
-import '../css/Video.css';
+import BackButton from "../../Components/BackButton";
+import './index.css';
 
 export default function Video() {
     const ref = React.useRef<HTMLVideoElement>(null);
