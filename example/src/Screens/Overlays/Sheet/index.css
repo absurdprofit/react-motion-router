@@ -1,3 +1,8 @@
-.sheet.modal {
+.sheet {
     height: 100vh;
+    a {
+        color: #61dafb;
+        font-weight: 500;
+        text-decoration: none;
+    }
 }
