@@ -9,16 +9,16 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
-}
-.navbar .back {
-  position: absolute;
-  left: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.navbar .back svg {
-  color: black;
+  .back {
+    position: absolute;
+    left: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    svg {
+      color: black;
+    }
+  }
 }
 .suspense .navbar .back {
   animation: back-fade-in .5s ease forwards;

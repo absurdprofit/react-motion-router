@@ -1,59 +1,64 @@
-.modal .player {
-    width: calc(100% - 30px);
-    height: calc(100% - 30px);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
-    gap: 15px;
-    padding-top: 30px;
-    padding-bottom: 0;
-    background-color: transparent;
-    top: 0;
-}
-.modal .player .cover-art {
-    width: 100%;
-    height: 40vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-.modal .player .cover-art img {
-    width: auto;
-    height: 100%;
-    aspect-ratio: 1 / 1;
-    border-radius: 15px;
-}
-.modal .song-info {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-}
-.modal .share {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    color: rgb(97 218 251);
-}
-.modal .play-controls {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 36px;
-}
-.modal .play-controls .play svg {
-    width: 44px;
-    height: 44px;
-}
-.modal .player .seeker {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.modal .player .seeker p {
-    font-size: 0.8rem;
-    font-weight: 400;
-}
+
 #player-animation-provider {
     contain: paint;
+}
+.modal {
+    .play-controls {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 36px;
+        .play svg {
+            width: 44px;
+            height: 44px;
+        }
+    }
+    .share {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        color: rgb(97 218 251);
+    }
+    .player {
+        width: calc(100% - 30px);
+        height: calc(100% - 30px);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-evenly;
+        gap: 15px;
+        padding-top: 30px;
+        padding-bottom: 0;
+        background-color: transparent;
+        top: 0;
+
+        .seeker p {
+            font-size: 0.8rem;
+            font-weight: 400;
+        }
+        .seeker {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .cover-art {
+            width: 100%;
+            height: 40vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .cover-art img {
+            width: auto;
+            height: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 15px;
+        }
+    }
+    
+    .song-info {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }

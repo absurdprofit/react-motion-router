@@ -12,7 +12,7 @@ import Slider from '@mui/material/Slider';
 import StackComponent from '@mui/material/Stack';
 import { motion } from 'framer-motion';
 import { lerp } from '../../../common/utils';
-import '../.././index.css';
+import './index.css';
 
 interface PlayerProps extends Stack.ScreenComponentProps { }
 

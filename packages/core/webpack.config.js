@@ -43,6 +43,6 @@ module.exports = {
     },
     externals: {
         react: 'module react',
-        'react-dom': 'commonjs react-dom'
+        'react-dom': 'module react-dom'
     }
 };

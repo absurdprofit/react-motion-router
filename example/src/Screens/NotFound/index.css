@@ -12,11 +12,10 @@
     justify-content: center;
     align-items: center;
     gap: 15px;
+    h1 {
+        animation: blink 2s ease alternate infinite;
+    }
 }
-.page-content h1 {
-    animation: blink 2s ease alternate infinite;
-}
-
 @keyframes blink {
     from {
         opacity: 0;

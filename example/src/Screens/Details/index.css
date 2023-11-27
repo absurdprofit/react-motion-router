@@ -1,26 +1,85 @@
 .details {
-  /* padding-top: env(safe-area-inset-top); */
+  .profile-info 
+  .gradient-overlay {
+    color: transparent;
+    height: 100px;
+    width: 100%;
+    z-index: 5;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    position: absolute;
+    background: black; /* css can't animate background linear-gradient */
+    opacity: 0;
+    clip-path: inset(0px -100vw -100vh 0px);
+  }
+  .text-content {
+    padding: 15px;
+  }
+  &.suspense .text-content,
+  &.suspense button {
+    animation: details-fade-in .5s ease forwards;
+  }
+  &.suspense .text-content p,
+  &.suspense .text-content #title {
+    animation: details-content-slide .5s ease-out forwards;
+    transform: translateY(15px);
+  }
+  &.suspense .text-content p {
+    animation-duration: .6s;
+  }
+  .text-content p {
+    text-align: justify;
+    line-height: 1.5rem;
+    height: auto;
+    overflow: hidden;
+    text-overflow: clip;
+    width: 313px;
+    max-width: calc(100vw - 52px);
+    clip-path: inset(0px -100vw -100vh 0px);
+  }
+  .card-bg {
+    width: 100vw;
+    height: 100vh;
+    clip-path: inset(0px -100vw -100vh 0px);
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: white;
+    z-index: 0;
+    box-shadow: 0px 2px 1px -1px rgb(0 0 0 / 0%);
+  }
+  .profile-info {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    max-width: 100vw;
+    overflow-x: hidden;
+    img {
+      width: 100%;
+      max-width: 1000px;
+      height: auto;
+      border-radius: 0;
+      object-fit: cover;
+      clip-path: inset(0px -100vw -100vh 0px);
+      &:empty {
+        background-color: #efefef;
+        color: transparent;
+      }
+    }
+    .text-content,
+    img {
+      position: static;
+      z-index: 1;
+    }
+  }
 }
 .details button,
 .post button {
   left: 0;
   top: env(safe-area-inset-top);
   z-index: 1;
-}
-.details .text-content {
-  padding: 15px;
-}
-.details.suspense .text-content,
-.details.suspense button {
-  animation: details-fade-in .5s ease forwards;
-}
-.details.suspense .text-content p,
-.details.suspense .text-content #title {
-  animation: details-content-slide .5s ease-out forwards;
-  transform: translateY(15px);
-}
-.details.suspense .text-content p {
-  animation-duration: .6s;
 }
 @keyframes details-fade-in {
   from {
@@ -38,69 +97,9 @@
     transform: translateY(0);
   }
 }
-.details .text-content p {
-  text-align: justify;
-  line-height: 1.5rem;
-  height: auto;
-  overflow: hidden;
-  text-overflow: clip;
-  width: 313px;
-  max-width: calc(100vw - 52px);
-  clip-path: inset(0px -100vw -100vh 0px);
-}
-.details .card-bg {
-  width: 100vw;
-  height: 100vh;
-  clip-path: inset(0px -100vw -100vh 0px);
-  position: absolute;
-  top: 0;
-  left: 0;
-  background-color: white;
-  z-index: 0;
-  box-shadow: 0px 2px 1px -1px rgb(0 0 0 / 0%);
-}
-.details .profile-info .text-content,
-.details .profile-info img {
-  position: static;
-  z-index: 1;
-}
+.details .profile-info 
 .details .description {
   width: calc(100vw - 30px);
   display: flex;
   justify-content: center;
-}
-.details .profile-info {
-  align-items: center;
-}
-.profile-info {
-  display: flex;
-  flex-direction: column;
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-.profile-info img {
-  width: 100%;
-  max-width: 1000px;
-  height: auto;
-  border-radius: 0;
-  object-fit: cover;
-  clip-path: inset(0px -100vw -100vh 0px);
-}
-.profile-info img:empty {
-  background-color: #efefef;
-  color: transparent;
-}
-.details .gradient-overlay {
-  color: transparent;
-  height: 100px;
-  width: 100%;
-  z-index: 5;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  position: absolute;
-  background: black; /* css can't animate background linear-gradient */
-  opacity: 0;
-  clip-path: inset(0px -100vw -100vh 0px);
 }

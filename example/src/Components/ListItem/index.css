@@ -13,8 +13,8 @@
     text-transform: none;
     width: 100%;
     height: 80px;
-}
-.list-item .description {
-    color: grey;
-    line-height: 15px;
+    .description {
+        color: grey;
+        line-height: 15px;
+    }
 }

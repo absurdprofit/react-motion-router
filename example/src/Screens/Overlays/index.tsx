@@ -5,8 +5,9 @@ import Player from "./Player";
 import Sheet from "./Sheet";
 import { useEffect } from "react";
 import { BackdropAnimation, ModalAnimation } from "./Animations";
-import '.././index.css';
-import { STATIC_ANIMATION, iOS, isPWA } from "../../common/utils";
+import './index.css';
+import { iOS, isPWA } from "../../common/utils";
+import { STATIC_ANIMATION } from "example/src/common/constants";
 
 interface OverlaysProps extends Stack.ScreenComponentProps { }
 let isFirstLoad = false;

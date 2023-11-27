@@ -4,7 +4,7 @@ import { Button } from '@mui/material';
 import { Stack } from '@react-motion-router/stack';
 import { motion } from 'framer-motion';
 import { lerp } from '../../../common/utils';
-import '../.././index.css';
+import './index.css';
 
 interface SheetProps extends Stack.ScreenComponentProps { }
 

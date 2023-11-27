@@ -40,8 +40,8 @@ module.exports = {
         minimizer: [new TerserPlugin()]
     },
     externals: {
-        react: 'commonjs react',
-        'react-dom': 'commonjs react-dom',
+        react: 'module react',
+        'react-dom': 'module react-dom',
         '@react-motion-router/core': 'module @react-motion-router/core'
     }
 };

@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import ClearIcon from '@mui/icons-material/Clear';
 import { Hero } from '../../assets/Heroes';
-import './Details.css';
+import './index.css';
 
 type DetailsParams = Hero & {
     noBg?: boolean;

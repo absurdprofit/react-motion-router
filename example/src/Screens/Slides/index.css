@@ -2,34 +2,54 @@
     flex: 1;
     background-color: rgb(34, 34, 34);
     color: white;
-}
-.slides .back {
-    position: absolute;
-    top: calc(env(safe-area-inset-top) + 15px);
-    left: 15px;
-    color: white!important;
-    z-index: 1;
-}
-.slides.suspense .back {
-    animation: back-fade-in .5s ease forwards;
-}
-.slides .title {
-    position: absolute;
-    top: calc(env(safe-area-inset-top) + 20px);
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1;
-    text-align: center;
-}
-.slides .slide {
-    width: 100%;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-.slides.suspense .slide {
-    animation: slide-fade-in .5s ease forwards;
+    .back {
+        position: absolute;
+        top: calc(env(safe-area-inset-top) + 15px);
+        left: 15px;
+        color: white!important;
+        z-index: 1;
+    }
+    .title {
+        position: absolute;
+        top: calc(env(safe-area-inset-top) + 20px);
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1;
+        text-align: center;
+    }
+    .slide {
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            clip-path: inset(0px -100vw -100vh 0px);
+        }
+        @media only screen and (min-width: 500px) {
+            img {
+                max-width: 500px;
+                max-height: 100vh;
+                width: 100%;
+                height: auto;
+            }
+        }
+        .shared-element {
+            width: 100%;
+            height: 100%;
+        }
+    }
+    &.suspense {
+        .back {
+            animation: back-fade-in .5s ease forwards;
+        }
+        .slide {
+            animation: slide-fade-in .5s ease forwards;
+        }
+    }
 }
 @keyframes slide-fade-in {
     from {
@@ -38,22 +58,4 @@
     to {
         opacity: 1;
     }
-}
-@media only screen and (min-width: 500px) {
-    .slides .slide img {
-        max-width: 500px;
-        max-height: 100vh;
-        width: 100%;
-        height: auto;
-    }
-}
-.slides .slide img {
-    width: 100%;
-    height: auto;
-    object-fit: cover;
-    clip-path: inset(0px -100vw -100vh 0px);
-}
-.slides .slide .shared-element {
-    width: 100%;
-    height: 100%;
 }

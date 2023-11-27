@@ -1,8 +1,9 @@
 import React from 'react';
-import {Hero} from '../assets/Heroes';
+import {Hero} from '../../assets/Heroes';
 import {SharedElement} from '@react-motion-router/core';
 import {Navigation} from '@react-motion-router/stack';
-import { getInset } from '../common/utils';
+import { getInset } from '../../common/utils';
+import './index.css';
 
 interface TileProps {
     hero: Hero;

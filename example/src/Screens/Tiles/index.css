@@ -2,17 +2,54 @@
     width: 100vw;
     height: 100vh;
     background-color: white;
+    .content a:last-child .tile,
+    a:last-child .tile img:empty {
+        width: 100vw;
+    }
+    .content {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        row-gap: 1vw;
+    }
+    &.suspense .content {
+        animation: tiles-fade-in .5s ease forwards;
+    }
+    .nav-bar {
+        background-color: yellow;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 64px;
+        position: sticky;
+        top: 0px;
+        .back-button {
+            position: absolute;
+            left: 0;
+            display: flex;
+            align-items: center;
+            button {
+                background-color: transparent;
+                border: none;
+                font-weight: 900;
+                font-size: 1.5rem;
+                padding: 10px;
+                height: 2.5rem;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                &:hover {
+                    box-shadow: 1px 1px 1px black;
+                }
+                &:active {
+                    box-shadow: -1px -1px 1px black;
+                }
+            }
+        }
+    }
 }
-.tiles .content {
-    width: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-around;
-    row-gap: 1vw;
-}
-.tiles.suspense .content {
-    animation: tiles-fade-in .5s ease forwards;
-}
+
 @keyframes tiles-fade-in {
     from {
         opacity: 0;
@@ -20,42 +57,4 @@
     to {
         opacity: 1;
     }
-}
-
-.tiles .nav-bar {
-    background-color: yellow;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 64px;
-    position: sticky;
-    top: 0px;
-}
-
-.tiles .nav-bar .back-button {
-    position: absolute;
-    left: 0;
-    display: flex;
-    align-items: center;
-}
-.tiles .nav-bar .back-button button {
-    background-color: transparent;
-    border: none;
-    font-weight: 900;
-    font-size: 1.5rem;
-    padding: 10px;
-    height: 2.5rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-.tiles .nav-bar .back-button button:hover {
-    box-shadow: 1px 1px 1px black;
-}
-.tiles .nav-bar .back-button button:active {
-    box-shadow: -1px -1px 1px black;
-}
-.tiles .content a:last-child .tile,
-.tiles a:last-child .tile img:empty {
-    width: 100vw;
 }

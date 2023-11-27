@@ -2,43 +2,42 @@
 #sheet-animation-provider {
     transform: translateY(15vh);
     overflow: visible;
-}
-#player-animation-provider::backdrop,
-#sheet-animation-provider::backdrop {
-    background-color: rgba(0, 0, 0, 0.8);
+    &::backdrop {
+        background-color: rgba(0, 0, 0, 0.8);
+    }
 }
 .modal {
     width: 100vw;
     height: 85vh;
     background-color: rgba(34, 34, 34, 1);
-}
-.modal .notch {
-    color: transparent;
-    background-color: rgba(137, 137, 137, 1);
-    width: 35px;
-    height: 7px;
-    border-radius: 5px;
-    position: absolute;
-    left: 50%;
-    top: 15px;
-    transform: translate(-50%, -50%);
+    .content {
+        padding: 15px;
+        padding-top: 30px;
+        color: white;
+        gap: 15px;
+        display: flex;
+        flex-direction: column;
+    }
+    .title {
+        text-align: center;
+    }
+    .modal a {
+        color: #61dafb;
+        font-weight: 500;
+        text-decoration: none;
+    }
+    .notch {
+        color: transparent;
+        background-color: rgba(137, 137, 137, 1);
+        width: 35px;
+        height: 7px;
+        border-radius: 5px;
+        position: absolute;
+        left: 50%;
+        top: 15px;
+        transform: translate(-50%, -50%);
+    }
 }
 div[role="presentation"] {
     position: absolute;
-}
-.modal .content {
-    padding: 15px;
-    padding-top: 30px;
-    color: white;
-    gap: 15px;
-    display: flex;
-    flex-direction: column;
-}
-.modal .title {
-    text-align: center;
-}
-.modal a {
-    color: #61dafb;
-    font-weight: 500;
-    text-decoration: none;
 }
