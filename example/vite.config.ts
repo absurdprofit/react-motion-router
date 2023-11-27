@@ -52,7 +52,7 @@ export default defineConfig({
         license({
           thirdParty: {
             output: {
-              file: path.resolve(__dirname, 'dist', 'assets', 'LICENSE.txt'),
+              file: path.resolve(__dirname, 'build', 'assets', 'LICENSE.txt'),
               template(dependencies) {
                 return dependencies.map((dependency) => {
                   return `${bold(dependency.name?.toUpperCase() ?? "")}\n\n${dependency.licenseText ?? ""}`;
