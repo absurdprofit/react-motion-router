@@ -23,27 +23,8 @@ const bolderize = (char: string) => {
 
 const bold = (word: string) => [...Array.from(word)].map(bolderize).join("");
 
-// https://vitejs.dev/config/
-const workbox = {
-  runtimeCaching: [
-    {
-      urlPattern: /^https:\/\/cdn\.shopify\.com\/.*/i,
-      handler: 'CacheFirst' as const,
-      options: {
-        cacheName: 'shopify-assets',
-        expiration: {
-          maxEntries: 10,
-          maxAgeSeconds: 60 * 60 * 24 * 7 // <== 7 days
-        },
-        cacheableResponse: {
-          statuses: [0, 200]
-        }
-      }
-    }
-  ]
-}
 export default defineConfig({
-  cacheDir: '../../node_modules/.vite/shop',
+  cacheDir: '../../node_modules/.vite/example',
   assetsInclude: ['**/*.svg', '**/*.png', '**/*.JPG'],
   plugins: [react(), viteTsconfigPaths(), svgr()],
   define: {
