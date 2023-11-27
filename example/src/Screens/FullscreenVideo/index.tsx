@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { SharedElement } from "@react-motion-router/core";
-import VideoSrc from '../assets/video.mp4';
-import Thumbnail from "../assets/thumbnail.png";
+import VideoSrc from '../../assets/video.mp4';
+import Thumbnail from "../../assets/thumbnail.png";
 import BackButton from "../../Components/BackButton";
 import './index.css';
 
