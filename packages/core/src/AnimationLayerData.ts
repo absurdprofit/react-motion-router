@@ -74,8 +74,8 @@ export default class AnimationLayerData {
     private cleanUpAnimation(animation: Animation | null, shouldCommitStyles = true) {
         if (!animation) return;
         if (shouldCommitStyles) animation.commitStyles();
-        animation.cancel();
     }
+
     private removeAnimations() {
         this.cleanUpAnimation(this._inAnimation);
         this.cleanUpAnimation(this._outAnimation);
