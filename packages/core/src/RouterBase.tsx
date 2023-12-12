@@ -228,8 +228,6 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
                             <RouterDataContext.Provider value={this._routerData}>
                                 <AnimationLayerDataContext.Provider value={this.animationLayerData}>
                                     <GhostLayer
-                                        backNavigating={this.state.backNavigating}
-                                        gestureNavigating={this.state.gestureNavigating}
                                         navigation={this.navigation}
                                         animationLayerData={this.animationLayerData}
                                     />

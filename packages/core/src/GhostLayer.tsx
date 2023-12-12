@@ -1,15 +1,13 @@
-import { SharedElement, SharedElementNode, SharedElementScene } from './SharedElement';
+import { SharedElementNode, SharedElementScene } from './SharedElement';
 import { clamp, interpolate } from './common/utils';
 import { EasingFunction, PlainObject } from './common/types';
 import { MotionProgressEvent } from './MotionEvents';
-import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
+import AnimationLayerData from './AnimationLayerData';
 import NavigationBase from './NavigationBase';
 import { Component } from 'react';
 import { MAX_PROGRESS, MAX_Z_INDEX, MIN_PROGRESS } from './common/constants';
 
 interface GhostLayerProps {
-    backNavigating: boolean;
-    gestureNavigating: boolean;
     navigation: NavigationBase;
     animationLayerData: AnimationLayerData;
 }
@@ -477,14 +475,16 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
         });
 
         const onEnd = async () => {
-            console.assert(id === endInstance.id, "Not sure what happened here.");
-            console.assert(id === startInstance.id, "Not sure what happened here.");
+            let startInstance = start.instance;
+            let endInstance = end.instance;
+            if (this.props.animationLayerData.playbackRate < 0)
+                [startInstance, endInstance] = [endInstance, startInstance];
             endInstance.hidden(false);
             if (!this.currentScene!.keepAlive) {
                 startInstance.keepAlive(false);
-                startInstance.hidden(false); // if current scene is kept alive do not show start element
             } else {
                 startInstance.keepAlive(true);
+                startInstance.hidden(false); // if current scene is kept alive do not show start element
             }
             
             startInstance.onCloneRemove(startNode);

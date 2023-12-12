@@ -75,7 +75,16 @@ export default class AnimationLayerData {
         if (!animation) return;
         if (shouldCommitStyles) animation.commitStyles();
         animation.cancel();
-        animation = null;
+    }
+    private removeAnimations() {
+        this.cleanUpAnimation(this._inAnimation);
+        this.cleanUpAnimation(this._outAnimation);
+        this.cleanUpAnimation(this._pseudoElementInAnimation, false);
+        this.cleanUpAnimation(this._pseudoElementOutAnimation, false);
+        this._inAnimation = null;
+        this._outAnimation = null;
+        this._pseudoElementInAnimation = null;
+        this._pseudoElementOutAnimation = null;
     }
 
     async setupTransition() {
@@ -168,10 +177,7 @@ export default class AnimationLayerData {
 
                 await this.finished.finally(this.finishProgress.bind(this));
 
-                this.cleanUpAnimation(this._inAnimation);
-                this.cleanUpAnimation(this._outAnimation);
-                this.cleanUpAnimation(this._pseudoElementInAnimation, false);
-                this.cleanUpAnimation(this._pseudoElementOutAnimation, false);
+                this.removeAnimations();
 
                 this._isPlaying = false;
                 const endAnimationEvent = new CustomEvent('page-animation-end', {bubbles: true});
