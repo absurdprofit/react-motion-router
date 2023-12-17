@@ -71,6 +71,14 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
         this._nextScene = scene;
     }
 
+    set play(_play: boolean) {
+        this.animations.forEach(animation => {
+            animation.playbackRate = this.props.animationLayerData.playbackRate;
+            if (_play) return animation.play();
+            return animation.pause();
+        });
+    }
+
     finish() {
         const playbackRate = this.props.animationLayerData.playbackRate;
         return Promise.all(
@@ -99,8 +107,8 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
         const startChild = startNode.firstElementChild as HTMLElement | undefined;
         const endChild = endNode.firstElementChild as HTMLElement | undefined;
         if (!startChild || !endChild) return;
-        const startRect = startInstance.clientRect;
-        const endRect = endInstance.clientRect;
+        const startRect = startInstance.rect;
+        const endRect = endInstance.rect;
 
         let startCSSText: string;
         let startCSSObject: PlainObject<string> = {};
@@ -141,8 +149,7 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                     delay: startInstance.props.config?.x?.delay ?? endInstance.props.config?.delay ?? 0,
                     duration: startInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.props.animationLayerData.duration,
                     easingFunction: startInstance.props.config?.x?.easingFunction || startInstance.props.config?.easingFunction ||'ease',
-                    position: startRect.x - this.currentScene!.x,
-                    // position: startRect.x
+                    position: startRect.x
                     
                 },
                 y: {
@@ -150,8 +157,7 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                     delay: startInstance.props.config?.y?.delay ?? endInstance.props.config?.delay ?? 0,
                     duration: startInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.props.animationLayerData.duration,
                     easingFunction: startInstance.props.config?.y?.easingFunction || startInstance.props.config?.easingFunction || 'ease',
-                    position: startRect.y - this.currentScene!.y,
-                    // position: startRect.y
+                    position: startRect.y
                 }
             },
             end: {
@@ -160,16 +166,14 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
                     delay: endInstance.props.config?.x?.delay ?? endInstance.props.config?.delay ?? 0,
                     duration: endInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.props.animationLayerData.duration,
                     easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
-                    position: endRect.x - this.nextScene!.x,
-                    // position: endRect.x
+                    position: endRect.x
                 },
                 y: {
                     node: endChild,
                     delay: endInstance.props.config?.y?.delay ?? endInstance.props.config?.delay ?? 0,
                     duration: endInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.props.animationLayerData.duration,
                     easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
-                    position: endRect.y - this.nextScene!.y,
-                    // position: endRect.y
+                    position: endRect.y
                 }
             }
         };

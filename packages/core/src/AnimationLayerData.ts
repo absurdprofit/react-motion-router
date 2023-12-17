@@ -71,16 +71,9 @@ export default class AnimationLayerData {
         this.dispatchEvent?.(cancelAnimationEvent);
     }
 
-    private cleanUpAnimation(animation: Animation | null, shouldCommitStyles = true) {
-        if (!animation) return;
-        if (shouldCommitStyles) animation.commitStyles();
-    }
-
     private removeAnimations() {
-        this.cleanUpAnimation(this._inAnimation);
-        this.cleanUpAnimation(this._outAnimation);
-        this.cleanUpAnimation(this._pseudoElementInAnimation, false);
-        this.cleanUpAnimation(this._pseudoElementOutAnimation, false);
+        this._inAnimation?.commitStyles();
+        this._outAnimation?.commitStyles();
         this._inAnimation = null;
         this._outAnimation = null;
         this._pseudoElementInAnimation = null;
@@ -106,13 +99,29 @@ export default class AnimationLayerData {
             // failing to call _onExit to disable SETs
             if (this._onExit && this._shouldAnimate) this._onExit();
             await this._nextScreen.mounted(true);
+        }
+    }
 
+    async pageTransition() {
+        if (this._isPlaying) {
+            // cancel playing animation
+            this.cancel();
+            if (this._onEnd) this._onEnd();
+            this.reset();
+        }
+        if (this._currentScreen && this._nextScreen && this._shouldAnimate) {
             this._outAnimation = this._currentScreen.animation;
             this._pseudoElementOutAnimation = this._currentScreen.pseudoElementAnimation;
             this._inAnimation = this._nextScreen.animation;
             this._pseudoElementInAnimation = this._nextScreen.pseudoElementAnimation;
-            
             if (this._inAnimation && this._outAnimation) {
+                if (!this._shouldAnimate) {
+                    this.finish();
+                    this._isPlaying = false;
+                    this._shouldAnimate = true;
+                    return;
+                }
+            
                 this._inAnimation.playbackRate = this._playbackRate;
                 this._outAnimation.playbackRate = this._playbackRate;
                 if (this._pseudoElementInAnimation)
@@ -136,26 +145,8 @@ export default class AnimationLayerData {
                     }
                 }
 
-                return await this.ready;
-            }
-        }
-    }
+                await this.ready;
 
-    async pageTransition() {
-        if (this._isPlaying) {
-            // cancel playing animation
-            this.cancel();
-            if (this._onEnd) this._onEnd();
-            this.reset();
-        }
-        if (this._currentScreen && this._nextScreen && this._shouldAnimate) {
-            if (this._inAnimation && this._outAnimation) {
-                if (!this._shouldAnimate) {
-                    this.finish();
-                    this._isPlaying = false;
-                    this._shouldAnimate = true;
-                    return;
-                }
                 this._isPlaying = true;
                 if (!this._play) {
                     this._inAnimation.pause();

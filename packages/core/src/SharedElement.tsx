@@ -236,7 +236,7 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
         else return null;
     }
     
-    get clientRect() {
+    get rect() {
         if (this._ref && this._ref.firstElementChild) {
             const clientRect = this._ref.firstElementChild.getBoundingClientRect();
             return clientRect;

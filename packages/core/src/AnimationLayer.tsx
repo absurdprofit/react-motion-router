@@ -339,6 +339,7 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
                 this.props.animationLayerData.gestureNavigating = true;
                 this.props.animationLayerData.playbackRate = -1;
                 this.props.animationLayerData.play = false;
+                this.props.ghostLayer.play = false;
                 this.props.animationLayerData.backNavigating = this.props.backNavigating;
                 this.animate();
                 
@@ -411,6 +412,7 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
         this.setState({startX: 0, startY: 0});
         this.props.animationLayerData.onEnd = onEnd;
         this.props.animationLayerData.play = true;
+        this.props.ghostLayer.play = true;
         this.ref?.removeEventListener('swipe', this.onSwipe);
         this.ref?.removeEventListener('swipeend', this.onSwipeEnd);
         
