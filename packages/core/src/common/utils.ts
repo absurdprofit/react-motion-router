@@ -248,17 +248,6 @@ export function getAnimationDuration(animation: Animation | null, defaultDuratio
     return Number(duration) || defaultDuration;
 }
 
-export const DEFAULT_ANIMATION = {
-    in: {
-        type: 'none',
-        duration: 0
-    },
-    out: {
-        type: 'none',
-        duration: 0
-    }
-} as const;
-
 function mapRange(input: number, outputRange: number[]): number {
     const segments = outputRange.length - 1;
     const segmentIndex = Math.floor(input * segments);

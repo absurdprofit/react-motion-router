@@ -13,8 +13,9 @@ import {
 import RouterData, { RoutesData, RouterDataContext } from './RouterData';
 import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
 import { PageAnimationEndEvent } from './MotionEvents';
-import { DEFAULT_ANIMATION, concatenateURL, dispatchEvent, searchParamsToObject } from './common/utils';
+import { concatenateURL, dispatchEvent, searchParamsToObject } from './common/utils';
 import { Component } from 'react';
+import { DEFAULT_ANIMATION } from './common/constants';
 
 interface Config {
     animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig;

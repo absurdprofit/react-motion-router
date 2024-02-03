@@ -14,7 +14,7 @@ import {
 } from "./common/types";
 import { RouterDataContext } from "./RouterData";
 import { SharedElementScene, SharedElementSceneContext } from "./SharedElement";
-import { DEFAULT_ANIMATION } from "./common/utils";
+import { DEFAULT_ANIMATION } from "./common/constants";
 import { RouteDataContext } from "./RouteData";
 import { AnimationLayerData, NavigationBase } from ".";
 
