@@ -7,7 +7,7 @@ import { useEffect } from "react";
 import { BackdropAnimation, ModalAnimation } from "./Animations";
 import './index.css';
 import { iOS, isPWA } from "../../common/utils";
-import { STATIC_ANIMATION } from "example/src/common/constants";
+import { STATIC_ANIMATION } from "../../common/constants";
 
 interface OverlaysProps extends Stack.ScreenComponentProps { }
 let isFirstLoad = false;

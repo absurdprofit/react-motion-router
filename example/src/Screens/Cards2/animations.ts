@@ -1,5 +1,5 @@
 import { matchRoute } from "@react-motion-router/core";
-import { STATIC_ANIMATION } from "example/src/common/constants";
+import { STATIC_ANIMATION } from "../../common/constants";
 
 export default function Animation(currentPath: string, nextPath: string) {
   if (
