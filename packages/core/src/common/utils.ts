@@ -1,7 +1,7 @@
 import {Children, lazy as ReactLazy, isValidElement} from "react";
 import RouterData from "../RouterData";
 import { ScreenBaseProps } from "../ScreenBase";
-import { LazyExoticComponent, PlainObject, ScreenChild, SearchParamsDeserializer, SearchParamsSerializer } from "./types";
+import { Input, LazyExoticComponent, LerpRange, Output, PlainObject, ScreenChild, SearchParamsDeserializer, SearchParamsSerializer, Weights, is1DRange } from "./types";
 
 export function getCSSData(styles: CSSStyleDeclaration, exclude: string[] = [], object: boolean = true): [string, PlainObject<string>] {
     let text = '';
@@ -248,15 +248,53 @@ export function getAnimationDuration(animation: Animation | null, defaultDuratio
     return Number(duration) || defaultDuration;
 }
 
-export const DEFAULT_ANIMATION = {
-    in: {
-        type: 'none',
-        duration: 0
-    },
-    out: {
-        type: 'none',
-        duration: 0
-    }
-} as const;
+function mapRange(input: number, outputRange: number[]): number {
+    const segments = outputRange.length - 1;
+    const segmentIndex = Math.floor(input * segments);
+    const segmentMin = outputRange[segmentIndex];
+    const segmentMax = outputRange[Math.min(segmentIndex + 1, segments)];
+    const segmentInput = (input * segments) - segmentIndex;
+    return segmentMin + segmentInput * (segmentMax - segmentMin);
+}
 
-export const MAX_Z_INDEX = 2147483647;
+function calculateWeightedMean(input: Input, range: LerpRange, weights: Weights) {
+    let weightedSum = 0;
+    let weightSum = 0;
+    for (const [dimension, inputValue] of Object.entries(input)) {
+        const {min, max} = range;
+        const weight = weights[dimension] ?? 1;
+        const normalised = (inputValue - min[dimension]) / (max[dimension] - min[dimension]);
+        const weighted = normalised * weight;
+        weightedSum += weighted;
+        weightSum += weight;
+    }
+    return weightedSum / weightSum;
+}
+
+export function interpolate<O extends LerpRange | number[]>(input: number, inputRange: [number, number], outputRange: O): O extends number[] ? number : Output;
+export function interpolate<O extends LerpRange | number[]>(input: Input, inputRange: LerpRange, outputRange: O, weights: Weights): O extends number[] ? number : Output;
+export function interpolate(input: Input | number, inputRange: LerpRange | number[], outputRange: number[] | LerpRange, weights: Weights = {}) {
+    let inputInterpolatedValue;
+    if (typeof input === "number" && is1DRange(inputRange)) {
+        const min = {x: inputRange[0]};
+        const max = {x: inputRange[1]};
+        inputRange = {min, max};
+        input = {x: input};
+    }else {
+        throw new TypeError("Input and input range must have the same dimensions.");
+    }
+    inputInterpolatedValue = calculateWeightedMean(input, inputRange, weights);
+    
+    if (is1DRange(outputRange)) {
+        return mapRange(inputInterpolatedValue, outputRange);
+    }
+    // create output ranges (min/max) for each dimension and mapRange for each
+    const output: Output = {};
+    for (const dimension of Object.keys(outputRange.min)) {
+        const min = outputRange.min[dimension];
+        const max = outputRange.max[dimension];
+        const range = [min, max];
+        output[dimension] = mapRange(inputInterpolatedValue, range);
+    }
+    return output;
+}

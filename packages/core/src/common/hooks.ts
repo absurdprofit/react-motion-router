@@ -27,19 +27,7 @@ export function useNavigation<T extends NavigationBase = NavigationBase>() {
 }
 
 export function useMotion() {
-    const [motion, setMotion] = useState(useContext(Motion));
-    const navigation = useNavigation();
-    
-    useEffect(() => {
-        const onProgress = ({detail}: MotionProgressEvent) => {
-            setMotion(detail.progress);
-        }
-        navigation.addEventListener('motion-progress', onProgress);
-
-        return () => navigation.removeEventListener('motion-progress', onProgress);
-    }, []);
-    
-    return motion;
+    return useContext(Motion);
 }
 
 export function useRoute<P extends ScreenBaseProps, T extends PlainObject>(): RouteProp<P, T> {

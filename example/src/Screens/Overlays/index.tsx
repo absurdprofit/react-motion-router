@@ -1,14 +1,15 @@
 
 import { Router, Stack } from "@react-motion-router/stack";
 import Home from "./Home";
-import Player from "./Modals/Player";
-import Sheet from "./Modals/Sheet";
+import Player from "./Player";
+import Sheet from "./Sheet";
 import { useEffect } from "react";
 import { BackdropAnimation, ModalAnimation } from "./Animations";
-import '../../css/Modal.css';
-import { STATIC_ANIMATION, iOS, isPWA } from "../../common/utils";
+import './index.css';
+import { iOS, isPWA } from "../../common/utils";
+import { STATIC_ANIMATION } from "../../common/constants";
 
-interface OverlaysProps extends Stack.ScreenComponentProps {}
+interface OverlaysProps extends Stack.ScreenComponentProps { }
 let isFirstLoad = false;
 export default function Overlays(props: OverlaysProps) {
     useEffect(() => {
@@ -16,8 +17,8 @@ export default function Overlays(props: OverlaysProps) {
             e.detail.signal.addEventListener('abort', () => {
                 console.log("Aborted");
             });
-        }, {once: true, capture: true});
-        
+        }, { once: true, capture: true });
+
         props.navigation.finished.then(() => isFirstLoad = true);
         document.body.style.backgroundColor = 'rgba(254, 226, 85)';
 
@@ -40,7 +41,7 @@ export default function Overlays(props: OverlaysProps) {
     } as const;
     return (
         <div className={`overlays ${isFirstLoad ? 'loaded' : 'suspense'}`}>
-            <div style={{position: "absolute", width: "100vw", height: "100vh"}}>
+            <div style={{ position: "absolute", width: "100vw", height: "100vh" }}>
                 <Router config={{
                     disableBrowserRouting: isPWA() && iOS(),
                 }}>

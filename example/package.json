@@ -2,6 +2,7 @@
   "name": "@react-motion-router/example",
   "description": "Example React Motion Router app",
   "private": true,
+  "type": "module",
   "dependencies": {
     "@emotion/react": "^11.7.1",
     "@emotion/styled": "^11.6.0",
@@ -16,25 +17,28 @@
     "@types/node": "^12.20.37",
     "@types/react": "^18.0.4",
     "@types/react-dom": "^18.0.0",
+    "@vitejs/plugin-react": "^4.2.0",
     "framer-motion": "^6.3.3",
     "o9n": "^2.1.1",
     "react": "^18.2.0",
     "react-dom": "^18.0.0",
-    "react-scripts": "^5.0.0",
     "react-swipeable-views": "^0.14.0",
     "react-swipeable-views-utils": "^0.14.0",
     "source-map-explorer": "^2.5.2",
     "styled-components": "^5.3.3",
     "typescript": "^4.4.4",
+    "vite": "^5.0.2",
+    "vite-plugin-svgr": "^4.2.0",
+    "vite-tsconfig-paths": "^4.2.1",
     "web-gesture-events": "0.0.10",
     "web-vitals": "^1.1.2"
   },
   "scripts": {
     "analyse": "source-map-explorer 'build/static/js/*.js'",
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "start": "vite --host",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vite test"
   },
   "eslintConfig": {
     "extends": [
@@ -60,6 +64,10 @@
     "@types/react-swipeable-views": "^0.13.1",
     "@types/react-swipeable-views-utils": "^0.13.3",
     "@types/react-transition-group": "^4.4.4",
-    "@types/styled-components": "^5.1.15"
+    "@types/styled-components": "^5.1.15",
+    "autoprefixer": "^10.4.16",
+    "postcss-nesting": "^12.0.1",
+    "rollup-plugin-license": "^3.2.0",
+    "vitest": "^0.34.6"
   }
 }

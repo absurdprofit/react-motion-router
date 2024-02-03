@@ -13,8 +13,9 @@ import {
 import RouterData, { RoutesData, RouterDataContext } from './RouterData';
 import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
 import { PageAnimationEndEvent } from './MotionEvents';
-import { DEFAULT_ANIMATION, concatenateURL, dispatchEvent, searchParamsToObject } from './common/utils';
+import { concatenateURL, dispatchEvent, searchParamsToObject } from './common/utils';
 import { Component } from 'react';
+import { DEFAULT_ANIMATION } from './common/constants';
 
 interface Config {
     animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig;
@@ -51,9 +52,6 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     protected ref: HTMLElement | null = null;
     protected abstract _routerData: RouterData;
     protected config: Config;
-    protected dispatchEvent: ((event: Event) => Promise<boolean>) | null = null;
-    protected addEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined) => void) | null = null;
-    protected removeEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | EventListenerOptions | undefined) => void) | null = null;
 
     static defaultProps = {
         config: {
@@ -107,10 +105,10 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
         const paramsDeserializer = this._routerData.paramsDeserializer || null;
         const searchParams = searchParamsToObject(window.location.search, paramsDeserializer);
         const routesData = this.state.routesData;
-        this._routerData.routesData = this.state.routesData;
+        this._routerData.routesData = routesData;
         
         if (searchParams) {
-            const routeData = this.state.routesData.get(currentPath);
+            const routeData = routesData.get(currentPath);
             routesData.set(currentPath, {
                 focused: routeData?.focused ?? false,
                 preloaded: routeData?.preloaded ?? false,
@@ -122,6 +120,25 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
         }
         this.setState({currentPath, routesData});
         this._routerData.currentPath = currentPath;
+
+        this.animationLayerData.dispatchEvent = this.dispatchEvent;
+        this.animationLayerData.addEventListener = this.addEventListener;
+        this._routerData.dispatchEvent = this.dispatchEvent;
+        this._routerData.addEventListener = this.addEventListener;
+        this._routerData.removeEventListener = this.removeEventListener;
+    }
+
+    protected dispatchEvent = (event: Event) => {
+        const ref = this.ref ?? undefined;
+        return dispatchEvent(event, ref);
+    }
+
+    protected addEventListener = <K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined) => {
+        return this.ref?.addEventListener(type, listener, options);
+    }
+
+    protected removeEventListener = <K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | EventListenerOptions | undefined) => {
+        return this.ref?.removeEventListener(type, listener, options);
     }
 
     get id() {
@@ -176,14 +193,14 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
 
     abstract onNavigateListener: (e: NavigateEvent) => void;
 
-    onDocumentTitleChange = (title: string | null) => {
+    protected onDocumentTitleChange = (title: string | null) => {
         if (title) document.title = title;
         else document.title = this.state.defaultDocumentTitle;
     }
 
     addNavigationEventListeners(ref: HTMLElement) {
-        ref.addEventListener('go-back', this.onBackListener);
-        ref.addEventListener('navigate', this.onNavigateListener);
+        ref.addEventListener('go-back', this.onBackListener, {capture: true});
+        ref.addEventListener('navigate', this.onNavigateListener, {capture: true});
     }
 
     removeNavigationEventListeners(ref: HTMLElement) {
@@ -192,35 +209,13 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     }
 
     private setRef = (ref: HTMLElement | null) => {
-        if (this.ref) {
-            this.dispatchEvent = null;
-            this.addEventListener = null;
-            this.removeEventListener = null;
-            this.animationLayerData.dispatchEvent = this.dispatchEvent;
-            this._routerData.dispatchEvent = this.dispatchEvent;
-            this._routerData.addEventListener = this.addEventListener;
-            this._routerData.removeEventListener = this.removeEventListener;
-            this.removeNavigationEventListeners(this.ref);  
-        }
+        if (this.ref)
+            this.removeNavigationEventListeners(this.ref); 
+        
+        this.ref = ref;
 
-        if (ref) {
-            this.dispatchEvent = (event) => {
-                // return async version
-                return dispatchEvent(event, ref);
-            }
-            this.addEventListener = (type, listener, options) => {
-                return ref.addEventListener(type, listener, options);
-            };
-            this.removeEventListener = (type, listener, options) => {
-                return ref.removeEventListener(type, listener, options);
-            };
-            this.animationLayerData.dispatchEvent = this.dispatchEvent;
-            this.animationLayerData.addEventListener = this.addEventListener;
-            this._routerData.dispatchEvent = this.dispatchEvent;
-            this._routerData.addEventListener = this.addEventListener;
-            this._routerData.removeEventListener = this.removeEventListener;
+        if (ref)
             this.addNavigationEventListeners(ref);
-        }
     }
     
     render() {
@@ -229,42 +224,34 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
                 <RouterDataContext.Consumer>
                     {(routerData) => {
                         this._routerData.parentRouterData = routerData;
+                        if (!this._routerData.navigation) return;
                         return (
                             <RouterDataContext.Provider value={this._routerData}>
                                 <AnimationLayerDataContext.Provider value={this.animationLayerData}>
-                                    {Boolean(this.navigation)
-                                    && (
-                                        <GhostLayer
-                                            instance={(instance: GhostLayer | null) => {
-                                                this._routerData.ghostLayer = instance;
-                                            }}
-                                            backNavigating={this.state.backNavigating}
-                                            gestureNavigating={this.state.gestureNavigating}
-                                            navigation={this._routerData.navigation}
-                                            animationLayerData={this.animationLayerData}
-                                        />
-                                    )}
-                                    {Boolean(this.navigation)
-                                    && (
-                                        <AnimationLayer
-                                            disableBrowserRouting={this.props.config.disableBrowserRouting || false}
-                                            disableDiscovery={this.props.config.disableDiscovery || false}
-                                            hysteresis={this.props.config.hysteresis || 50}
-                                            minFlingVelocity={this.props.config.minFlingVelocity || 400}
-                                            swipeAreaWidth={this.props.config.swipeAreaWidth || 100}
-                                            swipeDirection={this.props.config.swipeDirection || 'right'}
-                                            navigation={this._routerData.navigation}
-                                            backNavigating={this.state.backNavigating}
-                                            currentPath={this.navigation.history.current}
-                                            lastPath={this.navigation.history.previous}
-                                            onGestureNavigationStart={this.onGestureNavigationStart}
-                                            onGestureNavigationEnd={this.onGestureNavigationEnd}
-                                            onDocumentTitleChange={this.onDocumentTitleChange}
-                                            dispatchEvent={this.dispatchEvent}
-                                        >
-                                            {this.props.children}
-                                        </AnimationLayer>
-                                    )}
+                                    <GhostLayer
+                                        navigation={this.navigation}
+                                        animationLayerData={this.animationLayerData}
+                                    />
+                                    <AnimationLayer
+                                        animationLayerData={this.animationLayerData}
+                                        disableBrowserRouting={this.props.config.disableBrowserRouting || false}
+                                        disableDiscovery={this.props.config.disableDiscovery || false}
+                                        hysteresis={this.props.config.hysteresis || 50}
+                                        minFlingVelocity={this.props.config.minFlingVelocity || 400}
+                                        swipeAreaWidth={this.props.config.swipeAreaWidth || 100}
+                                        swipeDirection={this.props.config.swipeDirection || 'right'}
+                                        navigation={this.navigation}
+                                        ghostLayer={this.animationLayerData.ghostLayer}
+                                        backNavigating={this.state.backNavigating}
+                                        currentPath={this.navigation.history.current}
+                                        lastPath={this.navigation.history.previous}
+                                        onGestureNavigationStart={this.onGestureNavigationStart}
+                                        onGestureNavigationEnd={this.onGestureNavigationEnd}
+                                        onDocumentTitleChange={this.onDocumentTitleChange}
+                                        dispatchEvent={this.dispatchEvent}
+                                    >
+                                        {this.props.children}
+                                    </AnimationLayer>
                                 </AnimationLayerDataContext.Provider>
                             </RouterDataContext.Provider>
                         );

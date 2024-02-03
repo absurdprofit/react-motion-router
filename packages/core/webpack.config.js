@@ -4,6 +4,7 @@ const TerserPlugin = require("terser-webpack-plugin");
 
 module.exports = {
     mode: "production",
+    devtool: "source-map",
     experiments: {
         outputModule: true
     },
@@ -42,6 +43,6 @@ module.exports = {
     },
     externals: {
         react: 'module react',
-        'react-dom': 'commonjs react-dom'
+        'react-dom': 'module react-dom'
     }
 };

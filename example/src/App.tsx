@@ -1,17 +1,18 @@
 import React from 'react';
 import {Router, Stack } from '@react-motion-router/stack';
-import {
-  matchRoute,
-  AnimationConfig,
-  AnimationConfigFactory,
-  lazy
-} from '@react-motion-router/core';
-import { STATIC_ANIMATION, iOS, isPWA } from './common/utils';
+import { lazy } from '@react-motion-router/core';
+import { iOS, isPWA } from './common/utils';
 import { OverlaysAnimation } from './Screens/Overlays/Animations';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './Theme';
 import Navbar from './Components/Navbar';
-import "./css/App.css";
+import CardsAnimation from './Screens/Cards/animations';
+import Cards2Animation from './Screens/Cards2/animations';
+import SlidesAnimation from './Screens/Slides/animations';
+import TilesAnimation from './Screens/Tiles/animations';
+import AppAnimation from './animations';
+import "./App.css";
+import { STATIC_ANIMATION } from './common/constants';
 
 const NotFound = lazy(() => import('./Screens/NotFound'));
 const Home = lazy(() => import('./Screens/Home'));
@@ -24,38 +25,6 @@ const Overlays = lazy(() => import('./Screens/Overlays'));
 const Video = lazy(() => import('./Screens/Video'));
 const FullscreenVideo = lazy(() => import('./Screens/FullscreenVideo'));
 
-let animation: AnimationConfig = {
-  type: "slide",
-  direction: "right",
-  duration: 350,
-};
-
-let fadeAnimation: AnimationConfig = {
-  type: "fade",
-  duration: 350
-}
-
-if (iOS() && !isPWA()) {
-  animation = {
-    type: 'none',
-    duration: 0
-  }
-  fadeAnimation = {
-    type: "none",
-    duration: 0
-  }
-}
-
-const cardsToDetails: AnimationConfigFactory = (currentPath, nextPath) => {
-  if (
-    matchRoute(nextPath, '/details')
-    || matchRoute(currentPath, '/details')
-  ) {
-    return STATIC_ANIMATION;
-  }
-  return animation;
-}
-
 function Routes() {
   return (
       <Router config={{
@@ -63,7 +32,7 @@ function Routes() {
         defaultRoute: '/',
         disableDiscovery: false,
         disableBrowserRouting: isPWA() && iOS(),
-        animation: animation,
+        animation: !(iOS() && !isPWA) ? AppAnimation : STATIC_ANIMATION,
         minFlingVelocity: 1000
       }}>
         <Stack.Screen
@@ -72,7 +41,7 @@ function Routes() {
           component={Overlays}
           fallback={<div className='screen-fallback overlays'></div>}
           config={{
-            animation: OverlaysAnimation
+            animation: !(iOS() && !isPWA) ? OverlaysAnimation : STATIC_ANIMATION,
           }}
         />
         <Stack.Screen
@@ -83,12 +52,7 @@ function Routes() {
           fallback={<div className='screen-fallback slides'></div>}
           config={{
             disableDiscovery: true,
-            animation: (currentPath, nextPath) => {
-              if (matchRoute(currentPath, "/slides") && matchRoute(nextPath, "/")) {
-                return animation;
-              }
-              return fadeAnimation;
-            }
+            animation: !(iOS() && !isPWA) ?  SlidesAnimation : STATIC_ANIMATION,
           }} 
         />
         <Stack.Screen
@@ -97,7 +61,7 @@ function Routes() {
           component={Cards}
           config={{
             header: {component: () => <Navbar title="Cards Demo" />},
-            animation: cardsToDetails
+            animation: !(iOS() && !isPWA) ? CardsAnimation : STATIC_ANIMATION,
           }}
           fallback={<div className='screen-fallback cards'></div>}
         />
@@ -107,7 +71,7 @@ function Routes() {
           component={Cards2}
           config={{
             header: {component: () => <Navbar title="Cards Demo 2" />},
-            animation: cardsToDetails
+            animation: !(iOS() && !isPWA) ? Cards2Animation : STATIC_ANIMATION,
           }}
           fallback={<div className='screen-fallback cards-2'></div>}
         />
@@ -140,13 +104,7 @@ function Routes() {
           fallback={<div className='screen-fallback tiles'></div>}
           config={{
             header: {component: () => <Navbar title="Tiles" />},
-            animation: (currentPath, nextPath) => {
-              if ((matchRoute(currentPath, "/tiles") && matchRoute(nextPath, "/slides"))
-              || (matchRoute(currentPath, "/slides") && matchRoute(nextPath, "/tiles"))) {
-                return fadeAnimation;
-              }
-              return animation;
-            }
+            animation: !(iOS() && !isPWA) ? TilesAnimation : STATIC_ANIMATION,
           }}
         />
         <Stack.Screen path="/video" component={Video} />

@@ -61,10 +61,13 @@ export class SharedElementScene {
     private _scrollPos: Vec2 | null = null;
     private _getScreenRect: () => DOMRect = () => new DOMRect();
     private _keepAlive: boolean = false;
+    private _previousScene: SharedElementScene | null = null;
+    private _canTransition: boolean = true; // should be false if page animation already started
 
     constructor(name: string) {
         this._name = name;
     }
+
     addNode(node: SharedElementNode | null) {
         if (!node) return;
         console.assert(!this.nodes.has(node.id), `Duplicate Shared Element ID: ${node.id} in ${this._name}`);
@@ -112,6 +115,22 @@ export class SharedElementScene {
 
     get keepAlive() {
         return this._keepAlive;
+    }
+
+    get previousScene() {
+        return this._previousScene;
+    }
+
+    get canTransition() {
+        return this._canTransition;
+    }
+
+    set canTransition(_canTransition: boolean) {
+        this._canTransition = _canTransition;
+    }
+
+    set previousScene(_previousScene: SharedElementScene | null) {
+        this._previousScene = _previousScene;
     }
 
     set scrollPos(_scrollPos: Vec2) {
@@ -186,20 +205,22 @@ const transformKeys = ["transform", "top", "left", "right", "bottom"];
 export class SharedElement extends Component<SharedElementProps, SharedElementState> {
     private _id : string = this.props.id.toString();
     private _ref: HTMLDivElement | null = null;
-    private _scene: SharedElementScene | null = null;
-    private _mutationObserver = new MutationObserver(this.updateScene.bind(this));
-    private _callbackID: number = 0;
     private _computedStyle: CSSStyleDeclaration | null = null;
-    private _isMounted = false;
     private onRef = this.setRef.bind(this);
-    
+    static contextType = SharedElementSceneContext;
+    context!: React.ContextType<typeof SharedElementSceneContext>;
+
     state: SharedElementState = {
-        hidden: false,
+        hidden:  this.canTransition,
         keepAlive: false
     }
 
+    get canTransition() {
+        return Boolean(this.scene?.previousScene?.nodes.has(this.id)) && this.scene.canTransition;
+    }
+
     get scene() {
-        return this._scene;
+        return this.context!;
     }
 
     get node() {
@@ -215,7 +236,7 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
         else return null;
     }
     
-    get clientRect() {
+    get rect() {
         if (this._ref && this._ref.firstElementChild) {
             const clientRect = this._ref.firstElementChild.getBoundingClientRect();
             return clientRect;
@@ -258,21 +279,15 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
         }
     }
 
-    keepAlive(_keepAlive: boolean): Promise<void> {
+    keepAlive(keepAlive: boolean): Promise<void> {
         return new Promise((resolve) => {
-            this.setState({keepAlive: _keepAlive}, () => resolve());
+            this.setState({keepAlive}, resolve);
         });
     }
 
-    hidden(_hidden: boolean): Promise<void> {
-        return new Promise((resolve, _) => {
-            if (this._isMounted) {
-                this.setState({hidden: _hidden}, () => {
-                    resolve();
-                });
-            } else {
-                resolve();
-            }
+    hidden(hidden: boolean): Promise<void> {
+        return new Promise((resolve) => {
+            this.setState({hidden}, resolve);
         });
     }
 
@@ -280,7 +295,6 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
         if (this._ref !== _ref) {
             if (this._ref) {
                 this.scene?.removeNode(this._id);
-                this._mutationObserver.disconnect();
                 this._computedStyle = null;
             }
             this._ref = _ref;
@@ -289,32 +303,10 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
                 this.scene?.addNode(nodeFromRef(this._id, _ref, this));
                 if (_ref.firstElementChild) {
                     this._computedStyle = window.getComputedStyle(_ref.firstElementChild);
-                    this._mutationObserver.observe(_ref.firstElementChild, {
-                        attributes: true,
-                        childList: true,
-                        subtree: true
-                    });
                 }
             }
         }
 
-    }
-
-    updateScene() {
-        const cancelCallback = window.cancelIdleCallback ? window.cancelIdleCallback : window.clearTimeout;
-        const requestCallback = window.requestIdleCallback ? window.requestIdleCallback : window.setTimeout;
-        cancelCallback(this._callbackID);
-        this._callbackID = requestCallback(() => {
-            if (this._ref) {
-                this.scene?.removeNode(this._id);
-                this.scene?.addNode(nodeFromRef(this._id, this._ref, this));
-            }
-            this._callbackID = 0;
-        });
-    }
-
-    componentDidMount() {
-        this._isMounted = true;
     }
 
     componentDidUpdate(prevProps: SharedElementProps) {
@@ -330,29 +322,18 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
         }
     }
 
-    componentWillUnmount() {
-        this._isMounted = false;
-    }
-    
     render() {
         return (
-            <SharedElementSceneContext.Consumer>
-                {(scene) => {
-                    this._scene = scene;
-                    return (
-                        <div
-                            ref={this.onRef}
-                            id={`shared-element-${this._id}`}
-                            style={{
-                                display: this.state.hidden && !this.keepAlive ? 'block' : 'contents',
-                                visibility: this.state.hidden ? 'hidden': 'inherit'
-                            }}
-                        >
-                            {this.props.children}
-                        </div>
-                    );
+            <div
+                ref={this.onRef}
+                id={`shared-element-${this._id}`}
+                style={{
+                    display: this.state.hidden && !this.keepAlive ? 'block' : 'contents',
+                    visibility: this.state.hidden ? 'hidden': 'inherit'
                 }}
-            </SharedElementSceneContext.Consumer>
+            >
+                {this.props.children}
+            </div>
         );
     }
 }

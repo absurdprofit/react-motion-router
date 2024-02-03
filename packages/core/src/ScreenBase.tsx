@@ -1,4 +1,4 @@
-import { Component, ElementType, Suspense, cloneElement, isValidElement, useMemo } from "react";
+import { Component, ElementType, Suspense, cloneElement, isValidElement } from "react";
 import AnimationProvider from "./AnimationProvider";
 import {
     AnimationConfig,
@@ -13,14 +13,15 @@ import {
     isValidComponentConstructor
 } from "./common/types";
 import { RouterDataContext } from "./RouterData";
-import { SharedElement, SharedElementScene, SharedElementSceneContext } from "./SharedElement";
-import { DEFAULT_ANIMATION } from "./common/utils";
+import { SharedElementScene, SharedElementSceneContext } from "./SharedElement";
+import { DEFAULT_ANIMATION } from "./common/constants";
 import { RouteDataContext } from "./RouteData";
-import { NavigationBase } from ".";
+import { AnimationLayerData, NavigationBase } from ".";
 
 export interface ScreenBaseProps {
     out?: boolean;
     in?: boolean;
+    animationLayerData?: AnimationLayerData;
     component: React.JSXElementConstructor<any> | LazyExoticComponent<any>;
     fallback?: React.ReactNode;
     path?: string;
@@ -59,6 +60,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
     protected sharedElementScene: SharedElementScene = new SharedElementScene(this.name);
     protected ref: HTMLElement | null = null;
     private onRef = this.setRef.bind(this);
+    private onAnimationProviderRef = this.setAnimationProviderRef.bind(this);
     private animation: AnimationConfigSet | (() => AnimationConfigSet) = DEFAULT_ANIMATION;
     private pseudoElementAnimation: AnimationConfigSet | (() => AnimationConfigSet) = DEFAULT_ANIMATION;
     protected elementType: ElementType | string = "div";
@@ -75,12 +77,20 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
     static contextType = RouterDataContext;
     context!: React.ContextType<typeof RouterDataContext>;
 
+    constructor(props: P) {
+        super(props);
+        this.onEnter = this.onEnter.bind(this);
+        this.onEntered = this.onEntered.bind(this);
+        this.onExit = this.onExit.bind(this);
+        this.onExited = this.onExited.bind(this);
+    }
+
     state: S = {
         shouldKeepAlive: this.props.out && this.props.config?.keepAlive,
     } as S;
 
     componentDidMount() {
-        this.sharedElementScene.getScreenRect = () => this.ref?.getBoundingClientRect() || new DOMRect();
+        this.sharedElementScene.previousScene = this.props.animationLayerData?.ghostLayer.currentScene ?? null;
         
         const routeData = this.routeData;
         this.animation = this.setupAnimation(routeData.config.animation) ?? this.context!.animation;
@@ -197,22 +207,34 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
             this.setState({shouldKeepAlive: true});
         }
 
-        if (this.context!.ghostLayer) {
-            this.context!.ghostLayer.currentScene = this.sharedElementScene;
+        if (this.props.animationLayerData?.ghostLayer) {
+            this.props.animationLayerData.ghostLayer.currentScene = this.sharedElementScene;
         }
     }
 
     onEnter() {
-        if (this.context!.ghostLayer) {
-            this.context!.ghostLayer.nextScene = this.sharedElementScene;
+        if (this.props.animationLayerData?.ghostLayer) {
+            this.props.animationLayerData.ghostLayer.nextScene = this.sharedElementScene;
         }
     }
 
-    onEntered() {}
+    onEntered() {
+        if (this.props.animationLayerData?.ghostLayer) {
+            this.props.animationLayerData.ghostLayer.currentScene = this.sharedElementScene;
+            this.props.animationLayerData.ghostLayer.nextScene = null;
+        }
+    }
 
     private setRef(ref: HTMLElement | null) {
         if (this.ref !== ref) {
             this.ref = ref;
+        }
+        this.sharedElementScene.getScreenRect = () => this.ref?.getBoundingClientRect() || new DOMRect();
+    }
+
+    private setAnimationProviderRef(ref: HTMLElement | null) {
+        if (this.animationProviderRef !== ref) {
+            this.animationProviderRef = ref;
         }
     }
 
@@ -256,12 +278,12 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
         this.sharedElementScene.keepAlive = Boolean(routeData.config.keepAlive);
         return (
             <AnimationProvider
-                onRef={ref => this.animationProviderRef = ref}
+                onRef={this.onAnimationProviderRef}
                 renderAs={this.elementType}
-                onExit={this.onExit.bind(this)}
-                onExited={this.onExited.bind(this)}
-                onEnter={this.onEnter.bind(this)}
-                onEntered={this.onEntered.bind(this)}
+                onExit={this.onExit}
+                onExited={this.onExited}
+                onEnter={this.onEnter}
+                onEntered={this.onEntered}
                 in={this.props.in || false}
                 out={this.props.out || false}
                 name={this.props.name?.toLowerCase().replace(' ', '-') ?? this.name}

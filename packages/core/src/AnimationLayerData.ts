@@ -1,7 +1,9 @@
 import { createContext } from 'react';
 import AnimationProvider from './AnimationProvider';
-import { getAnimationDuration } from './common/utils';
+import { getAnimationDuration, interpolate } from './common/utils';
 import { RouterEventMap } from './common/types';
+import { MAX_NORM_PROGRESS, MAX_PROGRESS, MIN_NORM_PROGRESS, MIN_PROGRESS } from './common/constants';
+import GhostLayer from './GhostLayer';
 
 export default class AnimationLayerData {
     private _play: boolean = true;
@@ -17,6 +19,7 @@ export default class AnimationLayerData {
     private _outAnimation: Animation | null = null;
     private _playbackRate: number = 1;
     private _gestureNavigating: boolean = false;
+    private _ghostLayer: GhostLayer | null = null;
     private _backNavigating: boolean = false;
     private _onEnd: Function | null = null;
     private _onProgress: ((progress: number) => void) | null = null;
@@ -30,31 +33,17 @@ export default class AnimationLayerData {
             window.cancelAnimationFrame(this._progressUpdateID);
             return;
         }
-        const update = () => {
-            if (this._onProgress) {
-                this._onProgress(this.progress);
-            }
-        }
 
-        update();
+        if (this._onProgress)
+            this._onProgress(this.progress);
 
         this._progressUpdateID = window.requestAnimationFrame(this.updateProgress.bind(this));
-        const onEnd = () => {
-            window.cancelAnimationFrame(this._progressUpdateID);
-            const endTime = this._gestureNavigating ? 0 : 100;
-            if (this.progress !== endTime) {
-                if (this._onProgress)
-                    this._onProgress(endTime);
-            }
-        };
-        Promise.all([
-            this._inAnimation?.finished,
-            this._outAnimation?.finished,
-            this._pseudoElementInAnimation?.finished,
-            this._pseudoElementOutAnimation?.finished
-        ])
-        .then(onEnd)
-        .catch(onEnd);
+    }
+
+    private finishProgress() {
+        if (this._onProgress)
+            this._onProgress(this.progress);
+        window.cancelAnimationFrame(this._progressUpdateID);
     }
 
     reset() {
@@ -82,19 +71,16 @@ export default class AnimationLayerData {
         this.dispatchEvent?.(cancelAnimationEvent);
     }
 
-    private cleanUpAnimation(animation: Animation | null) {
-        if (!animation) return;
-        animation.commitStyles();
-        animation.cancel();
+    private removeAnimations() {
+        this._inAnimation?.commitStyles();
+        this._outAnimation?.commitStyles();
+        this._inAnimation = null;
+        this._outAnimation = null;
+        this._pseudoElementInAnimation = null;
+        this._pseudoElementOutAnimation = null;
     }
 
-    async animate() {
-        if (this._isPlaying) {
-            // cancel playing animation
-            this.cancel();
-            if (this._onEnd) this._onEnd();
-            this.reset();
-        }
+    async setupTransition() {
         if (this._currentScreen && this._nextScreen && this._shouldAnimate) {
             if (this._gestureNavigating) {
                 await this._currentScreen.mounted(true);
@@ -113,14 +99,21 @@ export default class AnimationLayerData {
             // failing to call _onExit to disable SETs
             if (this._onExit && this._shouldAnimate) this._onExit();
             await this._nextScreen.mounted(true);
+        }
+    }
 
+    async pageTransition() {
+        if (this._isPlaying) {
+            // cancel playing animation
+            this.cancel();
+            if (this._onEnd) this._onEnd();
+            this.reset();
+        }
+        if (this._currentScreen && this._nextScreen && this._shouldAnimate) {
             this._outAnimation = this._currentScreen.animation;
             this._pseudoElementOutAnimation = this._currentScreen.pseudoElementAnimation;
             this._inAnimation = this._nextScreen.animation;
             this._pseudoElementInAnimation = this._nextScreen.pseudoElementAnimation;
-
-            this._isPlaying = true;
-            
             if (this._inAnimation && this._outAnimation) {
                 if (!this._shouldAnimate) {
                     this.finish();
@@ -128,7 +121,7 @@ export default class AnimationLayerData {
                     this._shouldAnimate = true;
                     return;
                 }
-
+            
                 this._inAnimation.playbackRate = this._playbackRate;
                 this._outAnimation.playbackRate = this._playbackRate;
                 if (this._pseudoElementInAnimation)
@@ -152,12 +145,9 @@ export default class AnimationLayerData {
                     }
                 }
 
-                await Promise.all([
-                    this._inAnimation.ready,
-                    this._outAnimation.ready,
-                    this._pseudoElementInAnimation?.ready,
-                    this._pseudoElementOutAnimation?.ready
-                ]);
+                await this.ready;
+
+                this._isPlaying = true;
                 if (!this._play) {
                     this._inAnimation.pause();
                     this._outAnimation.pause();
@@ -176,18 +166,9 @@ export default class AnimationLayerData {
 
                 this.updateProgress();
 
-                await Promise.all([
-                    this._outAnimation.finished,
-                    this._inAnimation.finished,
-                    this._pseudoElementInAnimation?.finished,
-                    this._pseudoElementOutAnimation?.finished
-                ]);
-                this.cleanUpAnimation(this._inAnimation);
-                this.cleanUpAnimation(this._outAnimation);
-                this._inAnimation = null;
-                this._outAnimation = null;
-                // this.cleanUpAnimation(this._pseudoElementInAnimation);
-                // this.cleanUpAnimation(this._pseudoElementOutAnimation);
+                await this.finished.finally(this.finishProgress.bind(this));
+
+                this.removeAnimations();
 
                 this._isPlaying = false;
                 const endAnimationEvent = new CustomEvent('page-animation-end', {bubbles: true});
@@ -273,10 +254,10 @@ export default class AnimationLayerData {
         }
         {
             let inDuration = getAnimationDuration(this._inAnimation, this.duration);
-            const inCurrentTime = (_progress / 100) * Number(inDuration);
+            const inCurrentTime = interpolate(_progress, [MIN_PROGRESS, MAX_PROGRESS], [0, Number(inDuration)]);
 
             let outDuration = getAnimationDuration(this._outAnimation, this.duration);
-            const outCurrentTime = (_progress / 100) * Number(outDuration);
+            const outCurrentTime = interpolate(_progress, [MIN_PROGRESS, MAX_PROGRESS], [0, Number(outDuration)]);
             if (this._inAnimation && this._outAnimation) {
                 this._inAnimation.currentTime = inCurrentTime;
                 this._outAnimation.currentTime = outCurrentTime;
@@ -284,10 +265,10 @@ export default class AnimationLayerData {
         }
         {
             let inDuration = getAnimationDuration(this._pseudoElementInAnimation, this.duration);
-            const inCurrentTime = (_progress / 100) * Number(inDuration);
+            const inCurrentTime = interpolate(_progress, [MIN_PROGRESS, MAX_PROGRESS], [0, Number(inDuration)]);
 
             let outDuration = getAnimationDuration(this._pseudoElementOutAnimation, this.duration);
-            const outCurrentTime = (_progress / 100) * Number(outDuration);
+            const outCurrentTime = interpolate(_progress, [MIN_PROGRESS, MAX_PROGRESS], [0, Number(outDuration)]);
             if (this._pseudoElementInAnimation)
                 this._pseudoElementInAnimation.currentTime = inCurrentTime;
             if (this._pseudoElementOutAnimation) {
@@ -320,6 +301,26 @@ export default class AnimationLayerData {
         this._dispatchEvent = _dispatchEvent;
     }
 
+    set ghostLayer(_ghostLayer: GhostLayer) {
+        this._ghostLayer = _ghostLayer;
+    }
+
+    get playbackRate() {
+        return this._playbackRate;
+    }
+
+    get play() {
+        return this._play;
+    }
+
+    get ghostLayer() {
+        return this._ghostLayer!;
+    }
+
+    get isStarted() {
+        return this._isStarted;
+    }
+
     get addEventListener() {
         return this._addEventListener;
     }
@@ -329,10 +330,10 @@ export default class AnimationLayerData {
     }
 
     get duration() {
-        const outDuration = this._currentScreen?.duration;
-        const inDuration = this._nextScreen?.duration;
-        const pseudoElementOutDuration = this._currentScreen?.pseudoElementDuration;
-        const pseudoElementInDuration = this._nextScreen?.pseudoElementDuration;
+        const outDuration = this._outAnimation?.effect?.getComputedTiming().duration ?? this._currentScreen?.duration;
+        const inDuration = this._inAnimation?.effect?.getComputedTiming().duration ?? this._nextScreen?.duration;
+        const pseudoElementOutDuration = this._pseudoElementOutAnimation?.effect?.getComputedTiming().duration ?? this._currentScreen?.pseudoElementDuration;
+        const pseudoElementInDuration = this._pseudoElementInAnimation?.effect?.getComputedTiming().duration ?? this._nextScreen?.pseudoElementDuration;
         return Math.max(
             Number(outDuration),
             Number(inDuration),
@@ -347,13 +348,13 @@ export default class AnimationLayerData {
         const pseudoElementOutDuration = this._pseudoElementOutAnimation?.effect?.getComputedTiming().duration;
         const pseudoElementInDuration = this._pseudoElementInAnimation?.effect?.getComputedTiming().duration;
         const durations = [
-            Number(outDuration),
-            Number(inDuration),
-            Number(pseudoElementInDuration),
-            Number(pseudoElementOutDuration)
+            outDuration,
+            inDuration,
+            pseudoElementInDuration,
+            pseudoElementOutDuration
         ];
-        const maxDuration = Math.max(...durations.filter(duration => !isNaN(duration)));
-        let progress;
+        const maxDuration = Math.max(...durations.map(Number).filter(duration => !isNaN(duration)));
+        let progress: number | null | undefined = MAX_NORM_PROGRESS;
         if (maxDuration === Number(outDuration)) {
             progress = this._outAnimation?.effect?.getComputedTiming().progress;
         } else if (maxDuration === Number(inDuration)) {
@@ -363,7 +364,8 @@ export default class AnimationLayerData {
         } else if (maxDuration === Number(pseudoElementOutDuration)) {
             progress = this._pseudoElementOutAnimation?.effect?.getComputedTiming().progress;
         }
-        return (Number(progress) || 0) * 100;
+        progress = Number(progress);
+        return interpolate(progress, [MIN_NORM_PROGRESS, MAX_NORM_PROGRESS], [MIN_PROGRESS, MAX_PROGRESS]);
     }
 
     get gestureNavigating() {
@@ -395,7 +397,7 @@ export default class AnimationLayerData {
     }
 
     get finished() {
-        return new Promise<void>(async (resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             try {
                 await this.started;
                 await Promise.all([
@@ -404,7 +406,7 @@ export default class AnimationLayerData {
                     this._pseudoElementInAnimation?.finished,
                     this._pseudoElementOutAnimation?.finished
                 ]);
-                resolve();
+                resolve(true);
             } catch (e) {
                 reject(e);
             }
@@ -413,10 +415,8 @@ export default class AnimationLayerData {
 
     get started() {
         if (this._isStarted) return Promise.resolve();
-        return new Promise<void>(async (resolve) => {
-            this.addEventListener?.('page-animation-start', () => {
-                resolve();
-            }, {once: true});
+        return new Promise<void>((resolve) => {
+            this.addEventListener?.('page-animation-start', () => resolve(), {once: true});
         });
     }
 }
