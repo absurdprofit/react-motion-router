@@ -536,12 +536,11 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
         }
         
         this.ref?.showModal(); // render ghost layer in top layer
-        const startNodes = [...currentScene.nodes.values()]; 
-        startNodes.forEach(startNode => {
+        for (const startNode of currentScene.nodes.values()) {
             const endNode = nextScene.nodes.get(startNode.id);
-            if (!endNode) return;
+            if (!endNode) continue;
             this.setupNode(startNode, endNode);
-        });
+        }
         
         this.finished.then(onEnd).catch(onCancel);
 
