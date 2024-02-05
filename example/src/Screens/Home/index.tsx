@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Stack } from '@react-motion-router/stack';
+import * as Stack from '@react-motion-router/stack';
 import ListItemComponent from '../../Components/ListItem';
 import './index.css';
 

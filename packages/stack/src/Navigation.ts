@@ -9,9 +9,9 @@ import {
     searchParamsFromObject
 } from '@react-motion-router/core';
 import type { AnimationLayerData, PlainObject } from '@react-motion-router/core';
-import History from './History';
+import { History } from './History';
 
-export default class Navigation extends NavigationBase {
+export class Navigation extends NavigationBase {
     protected _history: History;
     private _animationLayerData: AnimationLayerData;
     private isInternalBack = false;

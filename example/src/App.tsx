@@ -1,5 +1,5 @@
 import React from 'react';
-import {Router, Stack } from '@react-motion-router/stack';
+import * as Stack from '@react-motion-router/stack';
 import { lazy } from '@react-motion-router/core';
 import { iOS, isPWA } from './common/utils';
 import { OverlaysAnimation } from './Screens/Overlays/Animations';
@@ -27,7 +27,7 @@ const FullscreenVideo = lazy(() => import('./Screens/FullscreenVideo'));
 
 function Routes() {
   return (
-      <Router config={{
+      <Stack.Router config={{
         basePathname: '/index.html',
         defaultRoute: '/',
         disableDiscovery: false,
@@ -117,7 +117,7 @@ function Routes() {
             header: {component: () => <Navbar title="Not Found" />}
           }}
         />
-      </Router>
+      </Stack.Router>
   );
 }
 

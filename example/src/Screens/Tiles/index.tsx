@@ -1,7 +1,7 @@
 import React from 'react';
 import { Heroes, Hero } from '../../assets/Heroes';
 import { Anchor } from '@react-motion-router/core';
-import { Stack } from '@react-motion-router/stack';
+import * as Stack from '@react-motion-router/stack';
 import Tile from '../../Components/Tile';
 import './index.css';
 

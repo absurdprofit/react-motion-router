@@ -1,6 +1,6 @@
 import React from 'react';
 import { Anchor, SharedElement } from '@react-motion-router/core';
-import { Stack } from '@react-motion-router/stack';
+import * as Stack from '@react-motion-router/stack';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';

@@ -1,6 +1,6 @@
 import { HistoryBase } from "@react-motion-router/core";
 
-export default class History extends HistoryBase {
+export class History extends HistoryBase {
     private _next: string | null = null;
 
     constructor(

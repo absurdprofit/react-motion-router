@@ -1,13 +1,13 @@
 import { BackEvent, DEFAULT_ANIMATION, NavigateEvent, RouterBase, RouterData } from '@react-motion-router/core';
 import type { RouterBaseProps, RouterBaseState } from '@react-motion-router/core';
-import Navigation from './Navigation';
-import History from './History';
+import { Navigation } from './Navigation';
+import { History } from './History';
 
 export interface RouterProps extends RouterBaseProps {}
 
 export interface RouterState extends RouterBaseState {}
 
-export default class Router extends RouterBase {
+export class Router extends RouterBase {
     protected _routerData: RouterData<Navigation>;
 
     constructor(props: RouterProps) {

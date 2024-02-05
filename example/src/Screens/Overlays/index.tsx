@@ -1,5 +1,5 @@
 
-import { Router, Stack } from "@react-motion-router/stack";
+import * as Stack from "@react-motion-router/stack";
 import Home from "./Home";
 import Player from "./Player";
 import Sheet from "./Sheet";
@@ -42,7 +42,7 @@ export default function Overlays(props: OverlaysProps) {
     return (
         <div className={`overlays ${isFirstLoad ? 'loaded' : 'suspense'}`}>
             <div style={{ position: "absolute", width: "100vw", height: "100vh" }}>
-                <Router config={{
+                <Stack.Router config={{
                     disableBrowserRouting: isPWA() && iOS(),
                 }}>
                     <Stack.Screen component={Home} path="/" />
@@ -55,7 +55,7 @@ export default function Overlays(props: OverlaysProps) {
                         path="/sheet"
                         config={modalConfig}
                     />
-                </Router>
+                </Stack.Router>
             </div>
         </div>
     );

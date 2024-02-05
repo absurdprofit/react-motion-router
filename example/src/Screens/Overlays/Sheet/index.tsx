@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Anchor, useMotion } from '@react-motion-router/core';
 import { Button } from '@mui/material';
-import { Stack } from '@react-motion-router/stack';
+import * as Stack from '@react-motion-router/stack';
 import { motion } from 'framer-motion';
 import { lerp } from '../../../common/utils';
 import './index.css';

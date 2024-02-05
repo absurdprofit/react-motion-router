@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { SharedElement, ScrollRestoration, Anchor, GestureRegion } from '@react-motion-router/core';
-import { Stack } from '@react-motion-router/stack';
+import * as Stack from '@react-motion-router/stack';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import ClearIcon from '@mui/icons-material/Clear';
