@@ -6,12 +6,12 @@ import { RouterDataContext } from './RouterData';
 import type NavigationBase from './NavigationBase';
 
 interface BaseAnchorProps extends React.DetailedHTMLProps<React.AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
-    params?: PlainObject;
     hash?: string;
     onClick?: React.MouseEventHandler<HTMLAnchorElement>;
 }
 
 interface ForwardAnchorProps extends BaseAnchorProps {
+    params?: PlainObject;
     href: string;
     replace?: boolean;
 }
