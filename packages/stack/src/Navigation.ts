@@ -49,7 +49,7 @@ export class Navigation extends NavigationBase {
 
     navigate<T extends PlainObject = PlainObject>(
         route: string,
-        props?: NavigationProps<T, ScreenProps["config"]>,
+        props: NavigationProps<T, ScreenProps["config"]> = {},
         options: NavigateOptions = {}
     ) {
         const {replace, hash} = options;
@@ -65,7 +65,7 @@ export class Navigation extends NavigationBase {
         controller.signal.addEventListener('abort', this.onNavigateAbort.bind(this), {once: true});
         options.signal?.addEventListener('abort', this.onNavigateAbort.bind(this), {once: true});
         this._finished = this.createFinishedPromise(controller);
-        const event = this.createNavigateEvent(route, props?.params, Boolean(replace), controller);
+        const event = this.createNavigateEvent(route, props, Boolean(replace), controller);
 
         if (this.dispatchEvent) this.dispatchEvent(event);
         this._currentParams = props?.params || {};
@@ -73,12 +73,12 @@ export class Navigation extends NavigationBase {
         return this._finished;
     }
 
-    private implicitNavigate(route: string, props?: NavigationProps) {
+    private implicitNavigate(route: string, props: NavigationProps = {}) {
         this._history.implicitPush(route);
         
         const controller = new AbortController();
         this._finished = this.createFinishedPromise(controller);
-        const event = this.createNavigateEvent(route, props?.params, false, controller);
+        const event = this.createNavigateEvent(route, props, false, controller);
 
         if (this.dispatchEvent) this.dispatchEvent(event);
         this._currentParams = props?.params || {};
@@ -158,7 +158,7 @@ export class Navigation extends NavigationBase {
 
     private createNavigateEvent(
         route: string,
-        routeParams: PlainObject | undefined,
+        props: NavigationProps<PlainObject, ScreenProps["config"]>,
         replace: boolean,
         controller: AbortController
     ) {
@@ -166,9 +166,13 @@ export class Navigation extends NavigationBase {
             bubbles: true,
             detail: {
                 routerId: this.routerId,
-                route: route,
-                routeParams: routeParams,
-                replace: replace,
+                route,
+                props: {
+                    params: props.params,
+                    config: props.config
+                
+                },
+                replace,
                 signal: controller.signal,
                 finished: this._finished
             }

@@ -107,27 +107,23 @@ export class Router extends RouterBase {
         if (e.detail.routerId !== this.id) return;
         const currentPath = e.detail.route;
         this._routerData.currentPath = currentPath;
-        if (e.detail.routeParams) {
-            const routesData = this.state.routesData;
+        const routesData = this.state.routesData;
 
-            //store per route data in object
-            //with pathname as key and route data as value
-            const routeData = this.state.routesData.get(currentPath);
-            routesData.set(currentPath, {
-                focused: routeData?.focused ?? false,
-                preloaded: routeData?.preloaded ?? false,
-                setParams: routeData?.setParams ?? (() => {}),
-                params: e.detail.routeParams,
-                config: routeData?.config ?? {},
-                setConfig: routeData?.setConfig ?? (() => {})
-            });
+        //store per route data in object
+        //with pathname as key and route data as value
+        const routeData = this.state.routesData.get(currentPath);
+        routesData.set(currentPath, {
+            focused: routeData?.focused ?? false,
+            preloaded: routeData?.preloaded ?? false,
+            setParams: routeData?.setParams ?? (() => {}),
+            params: e.detail.props.params ?? {},
+            config: { ...routeData?.config, ...e.detail.props.config },
+            setConfig: routeData?.setConfig ?? (() => {})
+        });
 
-            this._routerData.routesData = routesData;
-            this.setState({routesData: routesData}, () => {
-                this.setState({currentPath: currentPath});
-            });
-        } else {
+        this._routerData.routesData = routesData;
+        this.setState({routesData: routesData}, () => {
             this.setState({currentPath: currentPath});
-        }
+        });
     }
 }

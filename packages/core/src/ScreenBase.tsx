@@ -136,13 +136,13 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
     protected get routeData() {
         this._routeData.params = {
             ...this.props.defaultParams, // passed as prop
-            ...this.context!.routesData.get(this.props.path)?.params, // passed by other screens using navigate
-            ...this._routeData.params // passed by setParams
+            ...this._routeData.params, // passed by setParams
+            ...this.context!.routesData.get(this.props.path)?.params // passed by other screens using navigate
         };
         this._routeData.config = {
             ...this.props.config, // passed as prop
-            ...this.context!.routesData.get(this.props.path)?.config, // passed by other screens using navigate
-            ...this._routeData.config // passed by setConfig
+            ...this._routeData.config, // passed by setConfig
+            ...this.context!.routesData.get(this.props.path)?.config // passed by other screens using navigate
         };
         return this._routeData;
     }

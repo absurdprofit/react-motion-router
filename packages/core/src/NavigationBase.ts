@@ -10,10 +10,15 @@ export interface BackEventDetail {
     finished: Promise<void>;
 }
 
-export interface NavigateEventDetail {
+export interface NavigationProps<Params extends PlainObject = {}, Config extends ScreenBaseProps["config"] = {}> {
+    params?: Params;
+    config?: Config;
+}
+
+export interface NavigateEventDetail<Params extends PlainObject = {}, Config extends ScreenBaseProps["config"] = {}> {
     routerId: string;
     route: string;
-    routeParams?: any;
+    props: NavigationProps<Params, Config>;
     replace: boolean;
     signal: AbortSignal;
     finished: Promise<void>;
@@ -29,11 +34,6 @@ export interface NavigationOptions {
 export interface NavigateOptions extends NavigationOptions {
     replace?: boolean;
     hash?: string;
-}
-
-export interface NavigationProps<Params extends PlainObject = {}, Config extends ScreenBaseProps["config"] = {}> {
-    params?: Params;
-    config?: Config;
 }
 
 export interface GoBackOptions extends NavigationOptions {}
