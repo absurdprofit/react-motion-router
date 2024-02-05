@@ -8,8 +8,9 @@ import {
     RouterData,
     searchParamsFromObject
 } from '@react-motion-router/core';
-import type { AnimationLayerData, PlainObject } from '@react-motion-router/core';
+import type { AnimationLayerData, NavigationProps, PlainObject } from '@react-motion-router/core';
 import { History } from './History';
+import { ScreenProps } from './Screen';
 
 export class Navigation extends NavigationBase {
     protected _history: History;
@@ -48,11 +49,11 @@ export class Navigation extends NavigationBase {
 
     navigate<T extends PlainObject = PlainObject>(
         route: string,
-        routeParams?: T,
+        props?: NavigationProps<T, ScreenProps["config"]>,
         options: NavigateOptions = {}
     ) {
         const {replace, hash} = options;
-        const search = searchParamsFromObject(routeParams || {}, this.paramsSerializer || null);
+        const search = searchParamsFromObject(props?.params || {}, this.paramsSerializer || null);
 
         if (this._disableBrowserRouting) {
             this._history.implicitPush(route, Boolean(replace));
@@ -64,23 +65,23 @@ export class Navigation extends NavigationBase {
         controller.signal.addEventListener('abort', this.onNavigateAbort.bind(this), {once: true});
         options.signal?.addEventListener('abort', this.onNavigateAbort.bind(this), {once: true});
         this._finished = this.createFinishedPromise(controller);
-        const event = this.createNavigateEvent(route, routeParams, Boolean(replace), controller);
+        const event = this.createNavigateEvent(route, props?.params, Boolean(replace), controller);
 
         if (this.dispatchEvent) this.dispatchEvent(event);
-        this._currentParams = routeParams || {};
+        this._currentParams = props?.params || {};
 
         return this._finished;
     }
 
-    private implicitNavigate(route: string, routeParams?: PlainObject) {
+    private implicitNavigate(route: string, props?: NavigationProps) {
         this._history.implicitPush(route);
         
         const controller = new AbortController();
         this._finished = this.createFinishedPromise(controller);
-        const event = this.createNavigateEvent(route, routeParams, false, controller);
+        const event = this.createNavigateEvent(route, props?.params, false, controller);
 
         if (this.dispatchEvent) this.dispatchEvent(event);
-        this._currentParams = routeParams || {};
+        this._currentParams = props?.params || {};
         return this._finished;
     }
 

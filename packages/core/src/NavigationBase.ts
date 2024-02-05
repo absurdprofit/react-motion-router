@@ -2,6 +2,7 @@ import { ParamsDeserializer, ParamsSerializer, PlainObject, RouterEventMap } fro
 import HistoryBase from "./HistoryBase";
 import MetaData from "./MetaData";
 import RouterData from "./RouterData";
+import { ScreenBaseProps } from "./ScreenBase";
 
 export interface BackEventDetail {
     routerId: string;
@@ -28,6 +29,11 @@ export interface NavigationOptions {
 export interface NavigateOptions extends NavigationOptions {
     replace?: boolean;
     hash?: string;
+}
+
+export interface NavigationProps<Params extends PlainObject = {}, Config extends ScreenBaseProps["config"] = {}> {
+    params?: Params;
+    config?: Config;
 }
 
 export interface GoBackOptions extends NavigationOptions {}
@@ -114,7 +120,7 @@ export default abstract class NavigationBase {
 
     abstract onPopState(e: Event): void;
 
-    abstract navigate<T extends PlainObject = PlainObject>(route: string, routeParams?: T, options?: NavigateOptions): void;
+    abstract navigate<T extends PlainObject = PlainObject>(route: string, props?: NavigationProps<T>, options?: NavigateOptions): void;
 
     abstract goBack(options?: GoBackOptions): void;
 

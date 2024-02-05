@@ -6,7 +6,7 @@ import {
     NodeRemovedEvent
 } from './common/types';
 import RouterData from './RouterData';
-import NavigationBase from './NavigationBase';
+import NavigationBase, { NavigationProps } from './NavigationBase';
 import type {
     BackEvent,
     BackEventDetail,
@@ -79,7 +79,8 @@ export type {
     RouterBaseProps,
     RouterBaseState,
     ScreenBaseProps,
-    ScreenBaseState
+    ScreenBaseState,
+    NavigationProps
 };
 export {SharedElement, Anchor, Motion, GestureRegion, ScrollRestoration};
 export {NavigationBase, HistoryBase, RouterBase, RouterData, ScreenBase};

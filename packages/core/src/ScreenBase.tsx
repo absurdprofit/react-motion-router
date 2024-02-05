@@ -309,13 +309,13 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
                     <SharedElementSceneContext.Provider value={this.sharedElementScene}>
                         <RouteDataContext.Provider value={routeData}>
                             <Suspense fallback={<ComponentWithRouteData component={routeData.config.header?.fallback} route={{...routeData, preloaded: headerPreloaded}} navigation={this.context!.navigation} />}>
-                                <ComponentWithRouteData component={HeaderComponent} route={routeData} navigation={this.context!.navigation} />
+                                <ComponentWithRouteData component={HeaderComponent} route={{...routeData, preloaded: headerPreloaded}} navigation={this.context!.navigation} />
                             </Suspense>
                             <Suspense fallback={<ComponentWithRouteData component={this.props.fallback} route={routeData} navigation={this.context!.navigation} />}>
                                 <ComponentWithRouteData component={Component} route={routeData} navigation={this.context!.navigation} />
                             </Suspense>
                             <Suspense fallback={<ComponentWithRouteData component={routeData.config.footer?.fallback} route={{...routeData, preloaded: footerPreloaded}} navigation={this.context!.navigation} />}>
-                                <ComponentWithRouteData component={FooterComponent} route={routeData} navigation={this.context!.navigation} />
+                                <ComponentWithRouteData component={FooterComponent} route={{...routeData, preloaded: footerPreloaded}} navigation={this.context!.navigation} />
                             </Suspense>
                         </RouteDataContext.Provider>
                     </SharedElementSceneContext.Provider>
