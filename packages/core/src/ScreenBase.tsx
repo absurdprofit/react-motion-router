@@ -65,7 +65,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
     private pseudoElementAnimation: AnimationConfigSet | (() => AnimationConfigSet) = DEFAULT_ANIMATION;
     protected elementType: ElementType | string = "div";
     protected animationProviderRef: HTMLElement | null = null;
-    protected _routeData: RouteProp<P, PlainObject> = {
+    protected _routeData: RouteProp<P["config"], PlainObject> = {
         params: {},
         config: this.props.config ?? {},
         path: this.props.path,
@@ -332,7 +332,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
 
 interface ComponentWithRouteDataProps<P extends ScreenBaseProps> {
     component: React.JSXElementConstructor<any>  | LazyExoticComponent<any> | React.ReactNode;
-    route: RouteProp<P, PlainObject>;
+    route: RouteProp<P["config"], PlainObject>;
     navigation: NavigationBase;
 }
 function ComponentWithRouteData<P extends ScreenBaseProps>({component, route, navigation}: ComponentWithRouteDataProps<P>) {

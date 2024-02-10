@@ -5,7 +5,7 @@ import NavigationBase from './NavigationBase';
 import RouterBase from './RouterBase';
 import { ScrollRestorationData } from './ScrollRestorationData';
 
-export type RoutesData = Map<string | undefined, RouteProp<ScreenBaseProps, PlainObject>>;
+export type RoutesData = Map<string | undefined, RouteProp<ScreenBaseProps["config"], PlainObject>>;
 
 export default class RouterData<N extends NavigationBase = NavigationBase> {
     private routerInstance: RouterBase;
