@@ -1,9 +1,9 @@
 import { matchRoute, AnimationConfigFactory, AnimationConfigSet } from '@react-motion-router/core';
 import { iOS, isPWA } from '../../common/utils';
 
-export const OverlaysAnimation: AnimationConfigFactory = (currentPath: string, nextPath: string) => {
-    if ((matchRoute(currentPath, '/overlays') && matchRoute(nextPath, '/modal'))
-        || (matchRoute(currentPath, '/modal') && matchRoute(nextPath, '/overlays'))) {
+export const OverlaysAnimation: AnimationConfigFactory = ({current, next}) => {
+    if ((matchRoute(current.path, '/overlays') && matchRoute(next.path, '/modal'))
+        || (matchRoute(current.path, '/modal') && matchRoute(next.path, '/overlays'))) {
         return {
             in: {
                 keyframes: [

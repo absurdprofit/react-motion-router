@@ -4,7 +4,7 @@ import Home from "./Home";
 import Player from "./Player";
 import Sheet from "./Sheet";
 import { useEffect } from "react";
-import { BackdropAnimation, ModalAnimation } from "./Animations";
+import { BackdropAnimation, ModalAnimation } from "./animations";
 import './index.css';
 import { iOS, isPWA } from "../../common/utils";
 import { STATIC_ANIMATION } from "../../common/constants";

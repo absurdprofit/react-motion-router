@@ -175,12 +175,17 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
                 currentPath = this.context!.navigation!.history.previous;
             }
             let nextPath = this.context!.navigation!.history.current;
+            const gestureNavigating = this.context!.gestureNavigating;
 
-            const animationConfig = animation(
-                currentPath || '',
-                nextPath,
-                this.context!.gestureNavigating
-            );
+            const animationConfig = animation({
+                current: {
+                    path: currentPath
+                },
+                next: {
+                    path: nextPath
+                },
+                gestureNavigating
+            });
 
             if ('in' in animationConfig) {
                 return {

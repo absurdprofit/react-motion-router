@@ -1,8 +1,8 @@
-import { matchRoute } from "@react-motion-router/core";
+import { ConfigFactoryProps, matchRoute } from "@react-motion-router/core";
 
-export default function Animation(currentPath: string, nextPath: string) {
-    if ((matchRoute(currentPath, "/tiles") && matchRoute(nextPath, "/slides"))
-    || (matchRoute(currentPath, "/slides") && matchRoute(nextPath, "/tiles"))) {
+export default function Animation({current, next}: ConfigFactoryProps) {
+    if ((matchRoute(current.path, "/tiles") && matchRoute(next.path, "/slides"))
+    || (matchRoute(current.path, "/slides") && matchRoute(next.path, "/tiles"))) {
         return {
             type: "fade",
             duration: 350

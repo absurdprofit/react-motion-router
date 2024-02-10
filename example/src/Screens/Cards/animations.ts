@@ -1,10 +1,10 @@
-import { matchRoute } from "@react-motion-router/core";
+import { ConfigFactoryProps, matchRoute } from "@react-motion-router/core";
 import { STATIC_ANIMATION } from "../../common/constants";
 
-export default function Animation(currentPath: string, nextPath: string) {
+export default function Animation({current, next}: ConfigFactoryProps) {
   if (
-    matchRoute(nextPath, '/details')
-    || matchRoute(currentPath, '/details')
+    matchRoute(next.path, '/details')
+    || matchRoute(current.path, '/details')
   ) {
     return STATIC_ANIMATION;
   }

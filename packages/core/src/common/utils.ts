@@ -79,10 +79,12 @@ export interface MatchedRoute {
 }
 
 export function matchRoute(
-    routeTest: string | undefined,
-    route: string | undefined,
+    routeTest: string | undefined | null,
+    route: string | undefined | null,
     baseURL: string = window.location.origin
 ): MatchedRoute | null {
+    routeTest ??= undefined;
+    route ??= undefined;
     if (typeof routeTest === "undefined" || typeof route === "undefined") {
         if (routeTest === route) {
             return {
