@@ -1,7 +1,7 @@
 import {Children, lazy as ReactLazy, isValidElement} from "react";
 import RouterData from "../RouterData";
 import { ScreenBaseProps } from "../ScreenBase";
-import { Input, LazyExoticComponent, LerpRange, Output, PlainObject, ScreenChild, SearchParamsDeserializer, SearchParamsSerializer, Weights, is1DRange } from "./types";
+import { Input, LazyExoticComponent, LerpRange, MatchedRoute, Output, PlainObject, ScreenChild, SearchParamsDeserializer, SearchParamsSerializer, Weights, is1DRange } from "./types";
 
 export function getCSSData(styles: CSSStyleDeclaration, exclude: string[] = [], object: boolean = true): [string, PlainObject<string>] {
     let text = '';
@@ -72,12 +72,6 @@ export function clamp(num: number, min: number, max?: number) {
     return num;
 }
 
-export interface MatchedRoute {
-    matchedPathname?: string;
-    rest?: string;
-    exact: boolean;
-}
-
 export function matchRoute(
     routeTest: string | undefined | null,
     route: string | undefined | null,
@@ -94,8 +88,9 @@ export function matchRoute(
         }
         return null;
     }
-    const pattern = new URLPattern(routeTest, baseURL);
-    const routeURL = new URL(route!, baseURL);
+
+    const pattern = new URLPattern({baseURL, pathname: routeTest});
+    const routeURL = new URL(route, baseURL);
     const match = pattern.exec(routeURL);
     let matchedPathname = '';
     let rest = '';

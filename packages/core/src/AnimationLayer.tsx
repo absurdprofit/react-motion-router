@@ -1,6 +1,6 @@
 import { Children, Component, cloneElement, createContext, isValidElement } from 'react';
 import { SwipeEndEvent, SwipeEvent, SwipeStartEvent } from 'web-gesture-events';
-import { clamp, matchRoute, includesRoute, MatchedRoute, interpolate } from './common/utils';
+import { clamp, matchRoute, includesRoute, interpolate } from './common/utils';
 import Navigation from './NavigationBase';
 import { NavigationBase, ScreenChild } from './index';
 import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';

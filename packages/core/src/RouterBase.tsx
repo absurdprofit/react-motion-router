@@ -47,7 +47,6 @@ export interface RouterBaseState {
 }
 
 export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState> extends Component<P, S> {
-    private readonly _id: string;
     protected readonly animationLayerData = new AnimationLayerData();
     protected ref: HTMLElement | null = null;
     protected abstract _routerData: RouterData;
@@ -61,9 +60,6 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
 
     constructor(props: RouterBaseProps) {
         super(props as P);
-
-        this._id = props.id ?? Math.random().toString().replace('.', '-');
-        
         if (props.config) {
             this.config = props.config;
         } else {
@@ -142,7 +138,9 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     }
 
     get id() {
-        return this._id;
+        return Array.from(this.baseURL.pathname).map(char => 
+            char.charCodeAt(0).toString(16).padStart(2, '0')
+        ).join('');
     }
 
     protected get parentRouterData() {
@@ -220,7 +218,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     
     render() {
         return (
-            <div id={this._id.toString()} className="react-motion-router" style={{width: '100%', height: '100%'}} ref={this.setRef}>
+            <div id={this.id} className="react-motion-router" style={{width: '100%', height: '100%'}} ref={this.setRef}>
                 <RouterDataContext.Consumer>
                     {(routerData) => {
                         this._routerData.parentRouterData = routerData;

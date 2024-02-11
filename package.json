@@ -42,5 +42,8 @@
   "publishConfig": {
     "directory": "build",
     "access": "public"
+  },
+  "dependencies": {
+    "@types/dom-navigation": "^1.0.3"
   }
 }

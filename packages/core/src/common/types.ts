@@ -130,3 +130,9 @@ export type LerpRange = {min: Input, max: Input};
 export function is1DRange(range: number[] | LerpRange): range is number[] {
     return Array.isArray(range);
 }
+
+export interface MatchedRoute {
+    matchedPathname?: string;
+    rest?: string;
+    exact: boolean;
+}
