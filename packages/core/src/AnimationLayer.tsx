@@ -439,7 +439,7 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
                     width: '100%',
                     height: '100%',
                     display: 'grid',
-                    [`--${this.props.navigation.routerId}-motion-progress`]: this.progress
+                    '--motion-progress': this.progress
                 }  as React.CSSProperties}
             >
                 <Motion.Provider value={this.progress}>
