@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "lerna run build",
+    "dev": "lerna run dev",
     "publish": "lerna run build && lerna publish"
   },
   "repository": {
