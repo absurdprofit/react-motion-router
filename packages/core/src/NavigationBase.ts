@@ -1,5 +1,6 @@
 import { ParamsDeserializer, ParamsSerializer, PlainObject, RouterEventMap } from "./common/types";
 import HistoryBase from "./HistoryBase";
+import { HistoryEntry } from "./HistoryEntry";
 import MetaData from "./MetaData";
 import RouterData from "./RouterData";
 import { ScreenBaseProps } from "./ScreenBase";
@@ -46,29 +47,30 @@ export default abstract class NavigationBase {
     protected abstract _history: HistoryBase;
     protected readonly _disableBrowserRouting: boolean;
     protected _currentParams: PlainObject = {};
+    protected _entries: HistoryEntry[] = new Array<HistoryEntry>();
+    private _baseURL: URL;
 
-    constructor(_routerId: string, _routerData: RouterData, _disableBrowserRouting: boolean = false, _defaultRoute: string | null = null) {
+    constructor(
+        _routerId: string,
+        _routerData: RouterData,
+        _disableBrowserRouting: boolean = false,
+        _baseURL: URL | null = null,
+
+    ) {
+        _baseURL = _baseURL || new URL(window.location.toString());
+        _baseURL = new URL(_baseURL.href.replace(/\/$/, '')); // negate trailing slash
+        this._baseURL = _baseURL;
         this.routerData = _routerData;
         this._disableBrowserRouting = _disableBrowserRouting;
         this._routerId = _routerId;
         const rootNavigator = NavigationBase.rootNavigatorRef?.deref();
         if (!rootNavigator || !rootNavigator.isInDocument)
             NavigationBase.rootNavigatorRef = new WeakRef(this);
-
-        window.addEventListener('popstate', this.popStateListener);
-    }
-
-    destructor() {
-        const rootNavigator = NavigationBase.rootNavigatorRef?.deref();
-        const isRoot = rootNavigator?.routerId === this.routerId;
-        if (isRoot)
-            NavigationBase.rootNavigatorRef = null;
-        window.removeEventListener('popstate', this.popStateListener);
     }
 
     addEventListener<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined) {
         this.routerData.addEventListener?.(type, listener, options);
-        return () => this.routerData.removeEventListener?.(type, listener);
+        return () => this.routerData.removeEventListener?.(type, listener, options);
     }
 
     removeEventListener<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | EventListenerOptions | undefined): void {
@@ -85,21 +87,27 @@ export default abstract class NavigationBase {
         return this._routerId;
     }
 
-    canGoBack() {
-        return this.history.canGoBack();
+    get baseURL() {
+        return this._baseURL;
     }
 
-    private popStateListener = (e: Event) => {
-        const routerId = this._routerId;
-        const historyRouterId = this.history.state.get<string>('routerId');
-        const rootNavigator = NavigationBase.rootNavigatorRef?.deref();
-        const isRoot = rootNavigator?.routerId === this.routerId;
-        if ((this.history.state.get<string>('routerId') === null && isRoot)
-            || this.history.state.get<string>('routerId') === this._routerId
-        ) {
-            this.onPopState(e);
-        }
+    get entries() {
+        return this._entries;
     }
+
+    get length() {
+        return this.entries.length;
+    }
+
+    get isEmpty() {
+        return !this._entries.length ? true : false;
+    }
+
+    abstract get current(): string;
+    abstract canGoBack(): boolean;
+    abstract canGoForward(): boolean;
+    abstract get next(): string | null;
+    abstract get previous(): string | null;
 
     public getNavigatorById(routerId: string, target?: NavigationBase) {
         const navigator = target ?? NavigationBase.rootNavigatorRef?.deref();
@@ -117,8 +125,7 @@ export default abstract class NavigationBase {
     }
 
     abstract get finished(): Promise<void>;
-
-    abstract onPopState(e: Event): void;
+    abstract get committed(): Promise<void>;
 
     abstract navigate<T extends PlainObject = PlainObject>(route: string, props?: NavigationProps<T>, options?: NavigateOptions): void;
 
@@ -143,8 +150,6 @@ export default abstract class NavigationBase {
     get metaData() {
         return this._metaData;
     }
-    
-    abstract get location(): Location;
 
     private get isInDocument() {
         return Boolean(document.getElementById(`${this.routerId}`));
