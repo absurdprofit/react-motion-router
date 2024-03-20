@@ -18,7 +18,6 @@ import type {
 } from './NavigationBase';
 import RouterBase, { RouterBaseProps, RouterBaseState } from './RouterBase';
 import ScreenBase, { ScreenBaseProps, ScreenBaseState } from './ScreenBase';
-import HistoryBase from './HistoryBase';
 import Anchor from './Anchor';
 import { Motion } from './AnimationLayer';
 import type AnimationLayerData from './AnimationLayerData';
@@ -83,7 +82,7 @@ export type {
     NavigationProps
 };
 export {SharedElement, Anchor, Motion, GestureRegion, ScrollRestoration};
-export {NavigationBase, HistoryBase, RouterBase, RouterData, ScreenBase};
+export {NavigationBase, RouterBase, RouterData, ScreenBase};
 export type {
     MotionProgressEndEvent,
     MotionProgressEvent,

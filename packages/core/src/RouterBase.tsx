@@ -86,8 +86,6 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     }
 
     componentWillUnmount() {
-        this.navigation.destructor();
-        this._routerData.destructor();
         if (this.ref) this.removeNavigationEventListeners(this.ref);
         window.removeEventListener('popstate', this.onPopStateListener);
     }
@@ -97,7 +95,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
      */
     protected initialise(navigation: NavigationBase) {
         // get url search params and append to existing route params
-        let currentPath = navigation.location.pathname;
+        let currentPath = navigation.baseURL.pathname;
         const paramsDeserializer = this._routerData.paramsDeserializer || null;
         const searchParams = searchParamsToObject(window.location.search, paramsDeserializer);
         const routesData = this.state.routesData;
@@ -151,7 +149,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
         const origin = window.location.origin;
         const basePathname = this.props.config.basePathname || "";
         if (this.parentRouterData) {
-            const parentBaseURL = this.parentRouterData.navigation.history.baseURL;
+            const parentBaseURL = this.parentRouterData.navigation.baseURL;
             const parentCurrentPath = this.parentRouterData.mountedScreen?.resolvedPathname || "";
             return concatenateURL(basePathname, concatenateURL(parentCurrentPath, parentBaseURL));
         } else {
@@ -167,7 +165,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     abstract onGestureNavigationEnd: () => void;
 
     protected onPopStateListener(e: Event) {
-        let currentPath = this.navigation.location.pathname;
+        let currentPath = this.navigation.baseURL.pathname;
         const paramsDeserializer = this._routerData.paramsDeserializer || null;
         const searchParams = searchParamsToObject(window.location.search, paramsDeserializer);
         const routesData = this.state.routesData;

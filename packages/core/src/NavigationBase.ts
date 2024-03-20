@@ -1,5 +1,4 @@
 import { ParamsDeserializer, ParamsSerializer, PlainObject, RouterEventMap } from "./common/types";
-import HistoryBase from "./HistoryBase";
 import { HistoryEntry } from "./HistoryEntry";
 import MetaData from "./MetaData";
 import RouterData from "./RouterData";
@@ -44,7 +43,6 @@ export default abstract class NavigationBase {
     private static rootNavigatorRef: WeakRef<NavigationBase> | null = null;
     protected readonly _routerId: string;
     private _metaData = new MetaData();
-    protected abstract _history: HistoryBase;
     protected readonly _disableBrowserRouting: boolean;
     protected _currentParams: PlainObject = {};
     protected _entries: HistoryEntry[] = new Array<HistoryEntry>();
@@ -141,10 +139,6 @@ export default abstract class NavigationBase {
 
     get paramsSerializer(): ParamsSerializer | undefined {
         return this.routerData.paramsSerializer;
-    }
-
-    get history() {
-        return this._history;
     }
 
     get metaData() {

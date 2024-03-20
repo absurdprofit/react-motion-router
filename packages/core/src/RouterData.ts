@@ -32,11 +32,6 @@ export default class RouterData<N extends NavigationBase = NavigationBase> {
         }
     }
 
-    destructor() {
-        if (this.parentRouterData)
-            this.parentRouterData.childRouterData = null;
-    }
-
     public prefetchRoute(path: string): Promise<boolean> {
         return prefetchRoute(path, this);
     }

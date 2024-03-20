@@ -170,11 +170,11 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
 
     animationFactory(animation?: AnimationKeyframeEffectConfig | AnimationConfig | ReducedAnimationConfigSet | AnimationConfigFactory): AnimationConfigSet {
         if (typeof animation === "function") {
-            let currentPath = this.context!.navigation!.history.next;
+            let currentPath = this.context!.navigation!.next;
             if (!this.context!.backNavigating) {
-                currentPath = this.context!.navigation!.history.previous;
+                currentPath = this.context!.navigation!.previous;
             }
-            let nextPath = this.context!.navigation!.history.current;
+            let nextPath = this.context!.navigation!.current;
             const gestureNavigating = this.context!.gestureNavigating;
 
             const animationConfig = animation({
