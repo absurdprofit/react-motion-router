@@ -33,7 +33,7 @@ export interface NavigationOptions {
 }
 
 export interface NavigateOptions extends NavigationOptions {
-    replace?: boolean;
+    type?: "push" | "replace";
     hash?: string;
 }
 
@@ -103,11 +103,11 @@ export default abstract class NavigationBase {
         return !this._entries.length ? true : false;
     }
 
-    abstract get current(): string;
     abstract canGoBack(): boolean;
     abstract canGoForward(): boolean;
-    abstract get next(): string | null;
-    abstract get previous(): string | null;
+    abstract get next(): HistoryEntry | null;
+    abstract get current(): HistoryEntry;
+    abstract get previous(): HistoryEntry | null;
 
     public getNavigatorById(routerId: string, target?: NavigationBase) {
         const navigator = target ?? NavigationBase.rootNavigatorRef?.deref();
