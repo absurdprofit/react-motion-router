@@ -10,6 +10,8 @@ import { MAX_PROGRESS, MAX_Z_INDEX, MIN_PROGRESS } from './common/constants';
 interface GhostLayerProps {
     navigation: NavigationBase;
     animationLayerData: AnimationLayerData;
+    currentScene?: SharedElementScene;
+    nextScene?: SharedElementScene;
 }
 
 interface GhostLayerState {
@@ -38,8 +40,6 @@ interface TransitionState {
 
 export default class GhostLayer extends Component<GhostLayerProps, GhostLayerState> {
     private ref: HTMLDialogElement | null = null;
-    private _currentScene: SharedElementScene | null = null;
-    private _nextScene: SharedElementScene | null = null;
     private animations: Animation[] = [];
 
     constructor(props: GhostLayerProps) {
@@ -53,22 +53,6 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
 
     get finished() {
         return Promise.all(this.animations.map(animation => animation.finished));
-    }
-
-    get currentScene() {
-        return this._currentScene;
-    }
-
-    get nextScene() {
-        return this._nextScene;
-    }
-
-    set currentScene(scene: SharedElementScene | null) {
-        this._currentScene = scene;
-    }
-
-    set nextScene(scene: SharedElementScene | null) {
-        this._nextScene = scene;
     }
 
     set play(_play: boolean) {
@@ -484,7 +468,7 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
             if (this.props.animationLayerData.playbackRate < 0)
                 [startInstance, endInstance] = [endInstance, startInstance];
             endInstance.hidden(false);
-            if (!this.currentScene!.keepAlive) {
+            if (!this.props.currentScene!.keepAlive) {
                 startInstance.keepAlive(false);
             } else {
                 startInstance.keepAlive(true);
@@ -511,8 +495,8 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
 
     sharedElementTransition() {
         if (!this.state.transitioning) return;
-        const currentScene = this._currentScene;
-        const nextScene = this._nextScene;
+        const currentScene = this.props.currentScene;
+        const nextScene = this.props.nextScene;
         if (!currentScene || !nextScene) return;
         const duration = this.props.animationLayerData.duration;
         currentScene.canTransition = !currentScene.isEmpty() && Boolean(duration);
@@ -524,8 +508,6 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
 
         const onEnd = () => {
             this.setState({transitioning: false});
-            this._nextScene = null;
-            this._currentScene = null;
             this.animations = [];
         };
 

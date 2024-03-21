@@ -13,9 +13,10 @@ import {
 import RouterData, { RoutesData, RouterDataContext } from './RouterData';
 import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
 import { PageAnimationEndEvent } from './MotionEvents';
-import { concatenateURL, dispatchEvent, searchParamsToObject } from './common/utils';
+import { concatenateURL, dispatchEvent, includesRoute, matchRoute, searchParamsToObject } from './common/utils';
 import { Component } from 'react';
-import { DEFAULT_ANIMATION } from './common/constants';
+import { DEFAULT_ANIMATION, DEFAULT_GESTURE_CONFIG } from './common/constants';
+import { isValidElement, Children, cloneElement } from 'react';
 
 interface Config {
     animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig;
@@ -38,12 +39,159 @@ export interface RouterBaseProps {
 }
 
 export interface RouterBaseState {
-    currentPath: string;
+    currentPath: string | undefined;
+    nextPath: string | undefined;
     backNavigating: boolean;
     gestureNavigating: boolean;
     routesData: RoutesData;
     implicitBack: boolean;
+    children: ScreenChild | ScreenChild[];
+    paths: (string | undefined)[];
     defaultDocumentTitle: string;
+    documentTitle: string;
+}
+
+function StateFromChildren(
+    props: RouterBaseProps,
+    state: RouterBaseState,
+) {
+    let {paths, currentPath, nextPath} = state;
+    let nextMatched = false;
+    let currentMatched = false;
+    let swipeDirection: SwipeDirection | undefined;
+    let swipeAreaWidth: number | undefined;
+    let minFlingVelocity: number | undefined;
+    let hysteresis: number | undefined;
+    let disableDiscovery: boolean | undefined;
+    let documentTitle: string | null = null;
+
+    if (state.paths.length) {
+        if (!includesRoute(nextPath, paths) && state.paths.includes(undefined)) {
+            nextPath = undefined;
+        }
+        if (currentPath !== null && !includesRoute(currentPath, paths) && state.paths.includes(undefined)) {
+            currentPath = undefined;
+        }
+    }
+
+    const children: ScreenChild[] = [];
+    let keptAliveKey: React.Key | undefined = undefined;
+    // get current child
+    Children.forEach(
+        state.children, // match current child from state
+        (child) => {
+            if (currentPath === null) return;
+            if (!isValidElement(child)) return;
+            if (matchRoute(child.props.resolvedPathname, nextPath)) {
+                // fetch kept alive key
+                // needed since elements kept alive are apart of the DOM
+                // to avoid confusing react we need to preserve this key
+                if (child.props.config?.keepAlive) {
+                    keptAliveKey = child.key || undefined;
+                }
+            }
+
+            if (currentMatched) return;
+            // match resolved pathname instead to avoid matching the next component first
+            // this can happen if the same component matches both current and next paths
+            let matchInfo;
+            if (props.children === state.children) {
+                // first load so resolve by path instead of resolvedPathname
+                if (child.props.config?.keepAlive) {
+                    // only match screens with keep alive.
+                    matchInfo = matchRoute(child.props.path, currentPath);
+                }
+            } else {
+                matchInfo = matchRoute(child.props.resolvedPathname, currentPath);
+            }
+            if (matchInfo) {
+                let mountProps = {out: true, in: false};
+                if (state.gestureNavigating) mountProps = {in: true, out: false};
+                currentMatched = true;
+                children.push(
+                    cloneElement(child, {
+                        ...mountProps,
+                        resolvedPathname: matchInfo.matchedPathname,
+                        key: child.key ?? Math.random()
+                    }) as ScreenChild
+                );
+            }
+        }
+    )
+
+    // get next child
+    Children.forEach(
+        props.children,
+        (child) => {
+            if (!isValidElement(child)) return;
+            if (!state.paths.includes(child.props.path)) paths.push(child.props.path);
+            if (nextMatched) return;
+            const matchInfo = matchRoute(child.props.path, nextPath);
+            if (matchInfo) {
+                nextMatched = true;
+                const {config} = child.props;
+                swipeDirection = config?.swipeDirection;
+                swipeAreaWidth = config?.swipeAreaWidth;
+                hysteresis = config?.hysteresis;
+                disableDiscovery = config?.disableDiscovery;
+                minFlingVelocity = config?.minFlingVelocity;
+                documentTitle = child.props.name || null;
+                let mountProps = {in: true, out: false};
+                if (state.gestureNavigating) mountProps = {out: true, in: false};
+                const key = keptAliveKey || Math.random();
+                children.push(
+                    cloneElement(child, {
+                        ...mountProps,
+                        resolvedPathname: matchInfo.matchedPathname,
+                        key
+                    }) as ScreenChild
+                );
+            }
+        }
+    );
+
+    // not found case
+    if (!children.some((child) => child.props.in)) {
+        const children = Children.map(props.children, (child: ScreenChild) => {
+            if (!isValidElement(child)) return undefined;
+            if (matchRoute(child.props.path, undefined)) {
+                const {config} = child.props;
+                swipeDirection = config?.swipeDirection;
+                swipeAreaWidth = config?.swipeAreaWidth;
+                hysteresis = config?.hysteresis;
+                disableDiscovery = config?.disableDiscovery;
+                minFlingVelocity = config?.minFlingVelocity;
+                documentTitle = child.props.name ?? null;
+                return cloneElement(
+                    child, {
+                        in: true,
+                        out: false,
+                    }
+                ) as ScreenChild;
+            }
+        });
+
+        return {
+            children,
+            documentTitle,
+            swipeDirection: swipeDirection || props.config.swipeDirection,
+            swipeAreaWidth: swipeAreaWidth || props.config.swipeAreaWidth,
+            hysteresis: hysteresis || props.config.hysteresis,
+            disableDiscovery: disableDiscovery === undefined ? props.config.disableDiscovery : disableDiscovery,
+            minFlingVelocity: minFlingVelocity || props.config.minFlingVelocity
+        };
+    }
+
+    return {
+        paths,
+        children,
+        documentTitle,
+        swipeDirection: swipeDirection || props.config.swipeDirection,
+        swipeAreaWidth: swipeAreaWidth || props.config.swipeAreaWidth,
+        hysteresis: hysteresis || props.config.hysteresis,
+        disableDiscovery: disableDiscovery === undefined ? props.config.disableDiscovery : disableDiscovery,
+        minFlingVelocity: minFlingVelocity || props.config.minFlingVelocity
+    }
 }
 
 export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState> extends Component<P, S> {
@@ -75,14 +223,25 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
         gestureNavigating: false,
         routesData: new Map(),
         implicitBack: false,
-        defaultDocumentTitle: document.title
+        defaultDocumentTitle: document.title,
+        documentTitle: document.title,
     } as S;
+
+    static getDerivedStateFromProps(props: RouterBaseProps, state: RouterBaseState) {
+        return StateFromChildren(props, state);
+    }
 
     componentDidMount() {
         this._routerData.paramsDeserializer = this.props.config.paramsDeserializer;
         this._routerData.paramsSerializer = this.props.config.paramsSerializer;
         this.onPopStateListener = this.onPopStateListener.bind(this);
         window.addEventListener('popstate', this.onPopStateListener);
+    }
+
+    componentDidUpdate(_: Readonly<P>, prevState: Readonly<S>): void {
+        if (prevState.documentTitle !== this.state.documentTitle) {
+            this.onDocumentTitleChange(this.state.documentTitle);
+        }
     }
 
     componentWillUnmount() {
@@ -150,7 +309,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
         const basePathname = this.props.config.basePathname || "";
         if (this.parentRouterData) {
             const parentBaseURL = this.parentRouterData.navigation.baseURL;
-            const parentCurrentPath = this.parentRouterData.mountedScreen?.resolvedPathname || "";
+            const parentCurrentPath = this.parentRouterData.currentScreen?.resolvedPathname || "";
             return concatenateURL(basePathname, concatenateURL(parentCurrentPath, parentBaseURL));
         } else {
             return new URL(basePathname, origin);
@@ -221,32 +380,37 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
                     {(routerData) => {
                         this._routerData.parentRouterData = routerData;
                         if (!this._routerData.navigation) return;
+                        const {
+                            hysteresis = DEFAULT_GESTURE_CONFIG.hysteresis,
+                            minFlingVelocity = DEFAULT_GESTURE_CONFIG.minFlingVelocity,
+                            swipeAreaWidth = DEFAULT_GESTURE_CONFIG.swipeAreaWidth,
+                            swipeDirection = DEFAULT_GESTURE_CONFIG.swipeDirection
+                        } = this.props.config;
                         return (
                             <RouterDataContext.Provider value={this._routerData}>
                                 <AnimationLayerDataContext.Provider value={this.animationLayerData}>
                                     <GhostLayer
                                         navigation={this.navigation}
                                         animationLayerData={this.animationLayerData}
+                                        currentScene={this._routerData.currentScreen?.sharedElementScene}
+                                        nextScene={this._routerData.nextScreen?.sharedElementScene}
                                     />
                                     <AnimationLayer
                                         animationLayerData={this.animationLayerData}
-                                        disableBrowserRouting={this.props.config.disableBrowserRouting || false}
-                                        disableDiscovery={this.props.config.disableDiscovery || false}
-                                        hysteresis={this.props.config.hysteresis || 50}
-                                        minFlingVelocity={this.props.config.minFlingVelocity || 400}
-                                        swipeAreaWidth={this.props.config.swipeAreaWidth || 100}
-                                        swipeDirection={this.props.config.swipeDirection || 'right'}
+                                        disableBrowserRouting={Boolean(this.props.config.disableBrowserRouting)}
+                                        disableDiscovery={Boolean(this.props.config.disableDiscovery)}
+                                        hysteresis={hysteresis}
+                                        minFlingVelocity={minFlingVelocity}
+                                        swipeAreaWidth={swipeAreaWidth}
+                                        swipeDirection={swipeDirection}
                                         navigation={this.navigation}
                                         ghostLayer={this.animationLayerData.ghostLayer}
-                                        backNavigating={this.state.backNavigating}
-                                        currentPath={this.navigation.history.current}
-                                        lastPath={this.navigation.history.previous}
                                         onGestureNavigationStart={this.onGestureNavigationStart}
                                         onGestureNavigationEnd={this.onGestureNavigationEnd}
                                         onDocumentTitleChange={this.onDocumentTitleChange}
                                         dispatchEvent={this.dispatchEvent}
                                     >
-                                        {this.props.children}
+                                        {this.state.children}
                                     </AnimationLayer>
                                 </AnimationLayerDataContext.Provider>
                             </RouterDataContext.Provider>

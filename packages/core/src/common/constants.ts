@@ -13,3 +13,9 @@ export const DEFAULT_ANIMATION = {
         duration: 0
     }
 } as const;
+export const DEFAULT_GESTURE_CONFIG = {
+    hysteresis: 50,
+    minFlingVelocity: 400,
+    swipeAreaWidth: 100,
+    swipeDirection: 'right'
+} as const;

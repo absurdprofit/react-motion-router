@@ -14,11 +14,8 @@ export const Motion = createContext(0);
 interface AnimationLayerProps {
     animationLayerData: AnimationLayerData;
     children: ScreenChild | ScreenChild[];
-    currentPath: string;
-    lastPath: string | null;
     navigation: Navigation;
     ghostLayer: GhostLayer;
-    backNavigating: boolean;
     onGestureNavigationEnd: Function;
     onGestureNavigationStart: Function;
     onDocumentTitleChange(title: string | null): void;
@@ -32,7 +29,6 @@ interface AnimationLayerProps {
 }
 
 interface AnimationLayerState {
-    currentPath: string | null;
     children: ScreenChild | ScreenChild[];
     shouldPlay: boolean;
     gestureNavigating: boolean;
@@ -47,159 +43,6 @@ interface AnimationLayerState {
     disableDiscovery: boolean;
 }
 
-function StateFromChildren(
-    props: AnimationLayerProps,
-    state: AnimationLayerState,
-    currentPath: string | null | undefined,
-    nextPath: string | undefined
-) {
-    const {paths} = state;
-    let nextMatched = false;
-    let currentMatched = false;
-    let swipeDirection: SwipeDirection | undefined;
-    let swipeAreaWidth: number | undefined;
-    let minFlingVelocity: number | undefined;
-    let hysteresis: number | undefined;
-    let disableDiscovery: boolean | undefined;
-    let name: string | null = null;
-
-    if (state.paths.length) {
-        if (!includesRoute(nextPath, paths) && state.paths.includes(undefined)) {
-            nextPath = undefined;
-        }
-        if (currentPath !== null && !includesRoute(currentPath, paths) && state.paths.includes(undefined)) {
-            currentPath = undefined;
-        }
-    }
-
-    const children: ScreenChild[] = [];
-    let keptAliveKey: React.Key | undefined = undefined;
-    // get current child
-    Children.forEach(
-        state.children, // match current child from state
-        (child) => {
-            if (currentPath === null) return;
-            if (!isValidElement(child)) return;
-            if (
-                matchRoute(child.props.resolvedPathname, nextPath)
-                && (props.backNavigating || state.gestureNavigating)
-            ) {
-                // fetch kept alive key
-                // needed since elements kept alive are apart of the DOM
-                // to avoid confusing react we need to preserve this key
-                if (child.props.config?.keepAlive) {
-                    keptAliveKey = child.key || undefined;
-                }
-            }
-            // match resolved pathname instead to avoid matching the next component first
-            // this can happen if the same component matches both current and next paths
-            let matchInfo;
-            if (props.children === state.children) {
-                // first load so resolve by path instead of resolvedPathname
-                if (child.props.config?.keepAlive) {
-                    // only match screens with keep alive.
-                    matchInfo = matchRoute(child.props.path, currentPath);
-                }
-            } else {
-                matchInfo = matchRoute(child.props.resolvedPathname, currentPath);
-            }
-            if (matchInfo) {
-                if (!currentMatched) {
-                    let mountProps = {out: true, in: false};
-                    if (state.gestureNavigating) mountProps = {in: true, out: false};
-                    currentMatched = true;
-                    children.push(
-                        cloneElement(child, {
-                            ...mountProps,
-                            animationLayerData: props.animationLayerData,
-                            resolvedPathname: matchInfo.matchedPathname,
-                            key: child.key ?? Math.random()
-                        }) as ScreenChild
-                    );
-                }
-            }
-        }
-    )
-
-    // get next child
-    Children.forEach(
-        props.children,
-        (child) => {
-            if (!isValidElement(child)) return;
-            if (!state.paths.length) paths.push(child.props.path);
-            const matchInfo = matchRoute(child.props.path, nextPath);
-            if (matchInfo) {
-                if (!nextMatched) {
-                    nextMatched = true;
-                    const {config} = child.props;
-                    swipeDirection = config?.swipeDirection;
-                    swipeAreaWidth = config?.swipeAreaWidth;
-                    hysteresis = config?.hysteresis;
-                    disableDiscovery = config?.disableDiscovery;
-                    minFlingVelocity = config?.minFlingVelocity;
-                    name = child.props.name || null;
-                    let mountProps = {in: true, out: false};
-                    if (state.gestureNavigating) mountProps = {out: true, in: false};
-                    const key = keptAliveKey || Math.random();
-                    children.push(
-                        cloneElement(child, {
-                            ...mountProps,
-                            animationLayerData: props.animationLayerData,
-                            resolvedPathname: matchInfo.matchedPathname,
-                            key
-                        }) as ScreenChild
-                    );
-                }
-            }
-        }
-    );
-
-    // not found case
-    if (!children.some((child) => child.props.in)) {
-        const children = Children.map(props.children, (child: ScreenChild) => {
-            if (!isValidElement(child)) return undefined;
-            if (matchRoute(child.props.path, undefined)) {
-                const {config} = child.props;
-                swipeDirection = config?.swipeDirection;
-                swipeAreaWidth = config?.swipeAreaWidth;
-                hysteresis = config?.hysteresis;
-                disableDiscovery = config?.disableDiscovery;
-                minFlingVelocity = config?.minFlingVelocity;
-                name = child.props.name ?? null;
-                return cloneElement(
-                    child, {
-                        in: true,
-                        out: false,
-                        animationLayerData: props.animationLayerData,
-                    }
-                ) as ScreenChild;
-            }
-        });
-
-        return {
-            children,
-            name,
-            currentPath: props.currentPath,
-            swipeDirection: swipeDirection || props.swipeDirection,
-            swipeAreaWidth: swipeAreaWidth || props.swipeAreaWidth,
-            hysteresis: hysteresis || props.hysteresis,
-            disableDiscovery: disableDiscovery === undefined ? props.disableDiscovery : disableDiscovery,
-            minFlingVelocity: minFlingVelocity || props.minFlingVelocity
-        };
-    }
-
-    return {
-        paths,
-        children,
-        name,
-        currentPath: props.currentPath,
-        swipeDirection: swipeDirection || props.swipeDirection,
-        swipeAreaWidth: swipeAreaWidth || props.swipeAreaWidth,
-        hysteresis: hysteresis || props.hysteresis,
-        disableDiscovery: disableDiscovery === undefined ? props.disableDiscovery : disableDiscovery,
-        minFlingVelocity: minFlingVelocity || props.minFlingVelocity
-    }
-}
 
 // type of children coerces type in Children.map such that 'path' is available on props
 export default class AnimationLayer extends Component<AnimationLayerProps, AnimationLayerState> {
@@ -207,7 +50,6 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
     private ref: HTMLDivElement | null = null;
 
     state: AnimationLayerState = {
-        currentPath: this.props.lastPath,
         children: this.props.children,
         shouldPlay: true,
         gestureNavigating: false,
@@ -246,8 +88,7 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
     }
 
     componentDidUpdate(prevProps: AnimationLayerProps, prevState: AnimationLayerState) {
-        if (prevProps.currentPath !== this.state.currentPath) {
-            this.props.animationLayerData.backNavigating = this.props.backNavigating;
+        if (prevProps.children !== this.props.children) {
             if (!this.state.gestureNavigating && prevState.shouldAnimate) {
                 this.props.animationLayerData.play = true;
                 this.animate();
@@ -340,7 +181,6 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
                 this.props.animationLayerData.playbackRate = -1;
                 this.props.animationLayerData.play = false;
                 this.props.ghostLayer.play = false;
-                this.props.animationLayerData.backNavigating = this.props.backNavigating;
                 this.animate();
                 
                 if (this.props.dispatchEvent) this.props.dispatchEvent(motionStartEvent);

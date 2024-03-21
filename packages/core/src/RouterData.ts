@@ -22,8 +22,9 @@ export default class RouterData<N extends NavigationBase = NavigationBase> {
     private _gestureNavigating: boolean = false;
     private _paramsSerializer?: SearchParamsSerializer;
     private _paramsDeserializer?: SearchParamsDeserializer;
-    private _mountedScreen: ScreenBase | null = null;
     private _animation: AnimationConfigSet = DEFAULT_ANIMATION;
+    private _currentScreen: ScreenBase | null = null;
+    private _nextScreen: ScreenBase | null = null;
 
     constructor(routerInstance: RouterBase, navigation?: N) {
         this.routerInstance = routerInstance;
@@ -93,12 +94,18 @@ export default class RouterData<N extends NavigationBase = NavigationBase> {
     set paramsDeserializer(_paramsDeserializer: ((queryString: string) => PlainObject) | undefined) {
         this._paramsDeserializer = _paramsDeserializer;
     }
-    set mountedScreen(_mountedScreen: ScreenBase | null) {
-        this._mountedScreen = _mountedScreen;
+    set currentScreen(_currentScreen: ScreenBase | null) {
+        this._currentScreen = _currentScreen;
+    }
+    set nextScreen(_nextScreen: ScreenBase | null) {
+        this._nextScreen = _nextScreen;
     }
     
-    get mountedScreen() {
-        return this._mountedScreen;
+    get currentScreen() {
+        return this._currentScreen;
+    }
+    get nextScreen() {
+        return this._nextScreen;
     }
     get routerId() {
         return this.routerInstance.id;

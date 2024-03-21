@@ -165,6 +165,10 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
         }
     }
 
+    get zIndex() {
+        return this.props.in ? 1 : 0;
+    }
+
     get pseudoElementInAnimation() {
         if (this.props.pseudoElement)
             return this.getAnimationConfig("in", this.props.pseudoElement.animation);
@@ -347,12 +351,6 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
         }
     }
 
-    set zIndex(_zIndex: number) {
-        if (_zIndex === 0) this.ref?.toggleAttribute("inert", true);
-        else this.ref?.toggleAttribute("inert", false);
-        this.setState({zIndex: _zIndex});
-    }
-
     mounted(_mounted: boolean, willAnimate: boolean = true): Promise<void> {
         return new Promise((resolve) => {
             const onMountChange = () => {
@@ -389,6 +387,7 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
                 className="animation-provider"
                 ref={this.setRef}
                 tabIndex={this.state.zIndex - 1}
+                inert={this.state.zIndex === 0}
                 style={{
                     gridArea: '1 / 1',
                     width: '100%',

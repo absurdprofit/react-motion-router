@@ -20,7 +20,6 @@ export default class AnimationLayerData {
     private _playbackRate: number = 1;
     private _gestureNavigating: boolean = false;
     private _ghostLayer: GhostLayer | null = null;
-    private _backNavigating: boolean = false;
     private _onEnd: Function | null = null;
     private _onProgress: ((progress: number) => void) | null = null;
     private _shouldAnimate: boolean = true;
@@ -85,14 +84,6 @@ export default class AnimationLayerData {
             if (this._gestureNavigating) {
                 await this._currentScreen.mounted(true);
             } 
-
-            if (this._backNavigating) {
-                this._currentScreen.zIndex = 1;
-                this._nextScreen.zIndex = 0;
-            } else {
-                this._currentScreen.zIndex = 0;
-                this._nextScreen.zIndex = 1;
-            }
 
             if (this._onProgress) this._onProgress(this.progress);
 
@@ -176,12 +167,8 @@ export default class AnimationLayerData {
 
                 // if playback rate is 2 then gesture navigation was aborted
                 if (!this._gestureNavigating || this._playbackRate === 0.5) {
-                    this._currentScreen.zIndex = 0;
-                    this._nextScreen.zIndex = 1;
                     this._currentScreen.mounted(false); // awaiting causes flicker bug on iOS
                 } else {
-                    this._nextScreen.zIndex = 0;
-                    this._currentScreen.zIndex = 1;
                     await this._nextScreen.mounted(false);
                 }
                 if (this._onEnd) {
@@ -220,10 +207,6 @@ export default class AnimationLayerData {
 
     set gestureNavigating(_gestureNavigating: boolean) {
         this._gestureNavigating = _gestureNavigating;
-    }
-
-    set backNavigating(_backNavigating: boolean) {
-        this._backNavigating = _backNavigating;
     }
 
     set play(_play: boolean) {
@@ -370,10 +353,6 @@ export default class AnimationLayerData {
 
     get gestureNavigating() {
         return this._gestureNavigating;
-    }
-
-    get backNavigating() {
-        return this._backNavigating;
     }
 
     get isPlaying() {
