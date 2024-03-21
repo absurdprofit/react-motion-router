@@ -61,6 +61,18 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
         disableDiscovery: false
     }
 
+    static getDerivedStateFromProps(props: AnimationLayerProps) {
+        const currentChild = Children.map(props.children, (child) => child.props.in ? child : null).filter(Boolean).at(0);
+        const config = currentChild?.props.config;
+        return {
+            swipeDirection: config?.swipeDirection ?? props.swipeDirection,
+            swipeAreaWidth: config?.swipeAreaWidth ?? props.swipeAreaWidth,
+            minFlingVelocity: config?.minFlingVelocity ?? props.minFlingVelocity,
+            hysteresis: config?.hysteresis ?? props.hysteresis,
+            disableDiscovery: config?.disableDiscovery ?? props.disableDiscovery
+        }
+    }
+
     componentDidMount() {
         this.props.animationLayerData.onProgress = this.onProgress.bind(this);
     }
@@ -98,14 +110,6 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
         });
     }
 
-    onGestureSuccess(
-        state: Pick<AnimationLayerState, 'swipeAreaWidth' | 'swipeDirection' | 'hysteresis' | 'disableDiscovery' | 'minFlingVelocity'>,
-        name: string | null
-    ) {
-        this.props.onDocumentTitleChange(name);
-        this.setState(state);
-    }
-
     onSwipeStart = (ev: SwipeStartEvent) => {
         if (ev.touches.length > 1) return; // disable if more than one finger engaged
         if (this.state.disableDiscovery) return;
@@ -125,7 +129,7 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
         }
         if (ev.direction === this.state.swipeDirection && swipePos < this.state.swipeAreaWidth) {
             // if only one child return
-            if (!this.props.lastPath) return;
+            if (!Children.count(this.state.children)) return;
             ev.stopPropagation();
             // if gesture region in touch path return
             for (let target of ev.composedPath().reverse()) {
@@ -138,16 +142,10 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
                 }
             }
 
-            const {children, currentPath, paths, name, ...nextState} = StateFromChildren(this.props, {...this.state, gestureNavigating: true}, this.props.currentPath, this.props.lastPath);
-            
-            this.onGestureSuccess = this.onGestureSuccess.bind(this, nextState, name);
-            this.props.navigation.addEventListener('go-back', this.onGestureSuccess as unknown as EventListener, {once: true});
-
             this.props.onGestureNavigationStart();
             this.setState({
                 shouldPlay: false,
                 gestureNavigating: true,
-                children: children.sort((firstChild) => matchRoute(firstChild.props.path, currentPath) ? -1 : 1),
                 startX: ev.x,
                 startY: ev.y
             }, () => {
@@ -217,7 +215,6 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
         } else {
             this.props.animationLayerData.playbackRate = 0.5;
             onEnd = () => {
-                this.props.navigation.removeEventListener('go-back', this.onGestureSuccess as unknown as EventListener);
                 this.props.animationLayerData.reset();
                 
                 if (this.props.dispatchEvent) this.props.dispatchEvent(motionEndEvent);
