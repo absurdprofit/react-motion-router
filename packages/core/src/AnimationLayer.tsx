@@ -64,25 +64,6 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
         disableDiscovery: false
     }
 
-    static getDerivedStateFromProps(nextProps: AnimationLayerProps, state: AnimationLayerState): Partial<AnimationLayerState> | null {
-        if (nextProps.currentPath !== state.currentPath) {
-            if (!state.shouldAnimate) {
-                return {
-                    currentPath: nextProps.currentPath,
-                    shouldAnimate: true
-                };
-            }
-
-            let nextPath: string | undefined = nextProps.currentPath;
-            
-            const {name, ...nextState} = StateFromChildren(nextProps, state, state.currentPath, nextProps.currentPath);
-            nextState.children.sort((child, _) => matchRoute(child.props.path, nextPath) ? 1 : -1); // current screen mounts first
-            nextProps.onDocumentTitleChange(name);
-            return nextState;
-        }
-        return null;
-    }
-
     componentDidMount() {
         this.props.animationLayerData.onProgress = this.onProgress.bind(this);
     }
@@ -98,8 +79,6 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
 
     private onProgress(_progress: number) {
         let progress = _progress;
-        if (this.props.backNavigating && !this.state.gestureNavigating)
-            progress = interpolate(_progress, [MIN_PROGRESS, MAX_PROGRESS], [MAX_PROGRESS, MIN_PROGRESS]); // progress is from 100-0 when going back
 
         if (progress === this.progress) return;
 

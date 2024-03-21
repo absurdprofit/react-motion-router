@@ -138,8 +138,7 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
         if ('type' in animationConfig) {
             let direction: AnimationDirection | undefined = animationConfig.direction;
             let directionPrefix: '' | 'back-' = '' as const;
-            const backNavigating = this.props.backNavigating;
-            if (backNavigating && direction) {
+            if (this.props.out && direction) {
                 if (animationConfig.type === "zoom" || animationConfig.type === "slide") {
                     direction = OppositeDirection[direction];
                     directionPrefix = 'back-' as const;
