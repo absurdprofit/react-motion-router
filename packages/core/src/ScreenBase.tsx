@@ -110,22 +110,18 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
     }
 
     protected setParams(params: PlainObject) {
-        const routeData = this.routeData;
-        routeData.params = {
-            ...routeData.params,
+        this.routeData.params = {
+            ...this.routeData.params,
             ...params
         };
-        this.context!.routesData.set(this.props.path, routeData);
         this.forceUpdate();
     }
 
     protected setConfig(config: P['config']) {
-        const routeData = this.routeData;
-        routeData.config = {
-            ...routeData.config,
+        this.routeData.config = {
+            ...this.routeData.config,
             ...config
         };
-        this.context!.routesData.set(this.props.path, routeData);
         this.forceUpdate();
     }
 
