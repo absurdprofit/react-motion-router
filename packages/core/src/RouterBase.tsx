@@ -218,7 +218,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     }
     
     state: S = {
-        currentPath: "",
+        currentPath: undefined,
         backNavigating: false,
         gestureNavigating: false,
         routesData: new Map(),
@@ -396,6 +396,8 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
                                         nextScene={this._routerData.nextScreen?.sharedElementScene}
                                     />
                                     <AnimationLayer
+                                        currentScreen={this._routerData.currentScreen}
+                                        nextScreen={this._routerData.nextScreen}
                                         animationLayerData={this.animationLayerData}
                                         disableBrowserRouting={Boolean(this.props.config.disableBrowserRouting)}
                                         disableDiscovery={Boolean(this.props.config.disableDiscovery)}

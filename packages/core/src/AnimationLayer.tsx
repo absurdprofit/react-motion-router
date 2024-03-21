@@ -2,7 +2,7 @@ import { Children, Component, cloneElement, createContext, isValidElement } from
 import { SwipeEndEvent, SwipeEvent, SwipeStartEvent } from 'web-gesture-events';
 import { clamp, matchRoute, includesRoute, interpolate } from './common/utils';
 import Navigation from './NavigationBase';
-import { NavigationBase, ScreenChild } from './index';
+import { NavigationBase, ScreenBase, ScreenChild } from './index';
 import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
 import { MotionProgressDetail } from './MotionEvents';
 import { SwipeDirection } from './common/types';
@@ -14,6 +14,8 @@ export const Motion = createContext(0);
 interface AnimationLayerProps {
     animationLayerData: AnimationLayerData;
     children: ScreenChild | ScreenChild[];
+    currentScreen: ScreenBase | null;
+    nextScreen: ScreenBase | null;
     navigation: Navigation;
     ghostLayer: GhostLayer;
     onGestureNavigationEnd: Function;
@@ -29,6 +31,7 @@ interface AnimationLayerProps {
 }
 
 interface AnimationLayerState {
+    progress: number;
     children: ScreenChild | ScreenChild[];
     shouldPlay: boolean;
     gestureNavigating: boolean;
@@ -44,10 +47,10 @@ interface AnimationLayerState {
 
 
 export default class AnimationLayer extends Component<AnimationLayerProps, AnimationLayerState> {
-    private progress = MAX_PROGRESS;
     private ref: HTMLDivElement | null = null;
 
     state: AnimationLayerState = {
+        progress: MAX_PROGRESS,
         children: this.props.children,
         shouldPlay: true,
         gestureNavigating: false,
@@ -61,9 +64,8 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
         disableDiscovery: false
     }
 
-    static getDerivedStateFromProps(props: AnimationLayerProps) {
-        const currentChild = Children.map(props.children, (child) => child.props.in ? child : null).filter(Boolean).at(0);
-        const config = currentChild?.props.config;
+    static getDerivedStateFromProps({ currentScreen, ...props }: AnimationLayerProps) {
+        const config = currentScreen?.props.config;
         return {
             swipeDirection: config?.swipeDirection ?? props.swipeDirection,
             swipeAreaWidth: config?.swipeAreaWidth ?? props.swipeAreaWidth,
@@ -89,14 +91,13 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
     private onProgress(_progress: number) {
         let progress = _progress;
 
-        if (progress === this.progress) return;
+        if (progress === this.state.progress) return;
 
-        this.progress = progress;
         const progressEvent = new CustomEvent<MotionProgressDetail>('motion-progress', {
             detail: {progress}
         });
         if (this.props.dispatchEvent) this.props.dispatchEvent(progressEvent);
-        this.forceUpdate();
+        this.setState({progress});
     }
 
     private async animate() {
@@ -197,7 +198,7 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
         
         let onEnd = null;
         const motionEndEvent = new CustomEvent('motion-progress-end');
-        if ((100 - this.progress) > this.state.hysteresis || ev.velocity > this.state.minFlingVelocity) {
+        if ((100 - this.state.progress) > this.state.hysteresis || ev.velocity > this.state.minFlingVelocity) {
             if (ev.velocity >= this.state.minFlingVelocity) {
                 this.props.animationLayerData.playbackRate = -5;
             } else {
@@ -252,10 +253,10 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
                     width: '100%',
                     height: '100%',
                     display: 'grid',
-                    '--motion-progress': this.progress
+                    '--motion-progress': this.state.progress
                 }  as React.CSSProperties}
             >
-                <Motion.Provider value={this.progress}>
+                <Motion.Provider value={this.state.progress}>
                     {this.state.children}
                 </Motion.Provider>
             </div>

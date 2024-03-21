@@ -27,7 +27,7 @@ export default function Anchor(props: AnchorProps) {
     const routerData = useContext(RouterDataContext);
     const navigation = props.navigation ?? useNavigation();
     const [href, setHref] = useState<string | undefined>(undefined);
-    const {goBack, params = {}, type = "push", href: hrefProp, ...aProps} = props;
+    const {goBack, params = {}, type = "push", href: hrefProp, onClick: onClickProp, ...aProps} = props;
     
     useEffect(() => {
         if (goBack) {
@@ -49,7 +49,7 @@ export default function Anchor(props: AnchorProps) {
             e.preventDefault();
             navigation.navigate(hrefProp, { params }, { type });
         }
-        aProps.onClick?.(e);
+        onClickProp?.(e);
     };
     
     <a
