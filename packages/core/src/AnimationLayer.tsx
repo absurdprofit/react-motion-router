@@ -136,7 +136,7 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
                 if ('classList' in target && (target as HTMLElement).classList.length) {
                     if (
                         (target as HTMLElement).classList.contains('gesture-region')
-                        && (target as HTMLElement).dataset.disabled === "true"
+                        && (target as HTMLElement).dataset.disabled !== "true"
                     ) return;
                     if (target === ev.gestureTarget) break;
                 }
