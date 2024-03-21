@@ -35,7 +35,6 @@ interface AnimationLayerState {
     shouldAnimate: boolean;
     startX: number;
     startY: number;
-    paths: (string | undefined)[],
     swipeDirection: SwipeDirection;
     swipeAreaWidth: number;
     minFlingVelocity: number;
@@ -44,7 +43,6 @@ interface AnimationLayerState {
 }
 
 
-// type of children coerces type in Children.map such that 'path' is available on props
 export default class AnimationLayer extends Component<AnimationLayerProps, AnimationLayerState> {
     private progress = MAX_PROGRESS;
     private ref: HTMLDivElement | null = null;
@@ -56,7 +54,6 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
         shouldAnimate: true,
         startX: 0,
         startY: 0,
-        paths: [],
         swipeDirection: this.props.swipeDirection,
         swipeAreaWidth: this.props.swipeAreaWidth,
         minFlingVelocity: this.props.minFlingVelocity,
