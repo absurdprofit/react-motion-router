@@ -195,7 +195,6 @@ function StateFromChildren(
 }
 
 export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState> extends Component<P, S> {
-    protected readonly animationLayerData = new AnimationLayerData();
     protected ref: HTMLElement | null = null;
     protected abstract _routerData: RouterData;
     protected config: Config;
@@ -274,8 +273,6 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
         this.setState({currentPath, routesData});
         this._routerData.currentPath = currentPath;
 
-        this.animationLayerData.dispatchEvent = this.dispatchEvent;
-        this.animationLayerData.addEventListener = this.addEventListener;
         this._routerData.dispatchEvent = this.dispatchEvent;
         this._routerData.addEventListener = this.addEventListener;
         this._routerData.removeEventListener = this.removeEventListener;
@@ -388,33 +385,23 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
                         } = this.props.config;
                         return (
                             <RouterDataContext.Provider value={this._routerData}>
-                                <AnimationLayerDataContext.Provider value={this.animationLayerData}>
-                                    <GhostLayer
-                                        navigation={this.navigation}
-                                        animationLayerData={this.animationLayerData}
-                                        currentScene={this._routerData.currentScreen?.sharedElementScene}
-                                        nextScene={this._routerData.nextScreen?.sharedElementScene}
-                                    />
-                                    <AnimationLayer
-                                        currentScreen={this._routerData.currentScreen}
-                                        nextScreen={this._routerData.nextScreen}
-                                        animationLayerData={this.animationLayerData}
-                                        disableBrowserRouting={Boolean(this.props.config.disableBrowserRouting)}
-                                        disableDiscovery={Boolean(this.props.config.disableDiscovery)}
-                                        hysteresis={hysteresis}
-                                        minFlingVelocity={minFlingVelocity}
-                                        swipeAreaWidth={swipeAreaWidth}
-                                        swipeDirection={swipeDirection}
-                                        navigation={this.navigation}
-                                        ghostLayer={this.animationLayerData.ghostLayer}
-                                        onGestureNavigationStart={this.onGestureNavigationStart}
-                                        onGestureNavigationEnd={this.onGestureNavigationEnd}
-                                        onDocumentTitleChange={this.onDocumentTitleChange}
-                                        dispatchEvent={this.dispatchEvent}
-                                    >
-                                        {this.state.children}
-                                    </AnimationLayer>
-                                </AnimationLayerDataContext.Provider>
+                                <AnimationLayer
+                                    currentScreen={this._routerData.currentScreen}
+                                    nextScreen={this._routerData.nextScreen}
+                                    disableBrowserRouting={Boolean(this.props.config.disableBrowserRouting)}
+                                    disableDiscovery={Boolean(this.props.config.disableDiscovery)}
+                                    hysteresis={hysteresis}
+                                    minFlingVelocity={minFlingVelocity}
+                                    swipeAreaWidth={swipeAreaWidth}
+                                    swipeDirection={swipeDirection}
+                                    navigation={this.navigation}
+                                    onGestureNavigationStart={this.onGestureNavigationStart}
+                                    onGestureNavigationEnd={this.onGestureNavigationEnd}
+                                    onDocumentTitleChange={this.onDocumentTitleChange}
+                                    dispatchEvent={this.dispatchEvent}
+                                >
+                                    {this.state.children}
+                                </AnimationLayer>
                             </RouterDataContext.Provider>
                         );
                     }}

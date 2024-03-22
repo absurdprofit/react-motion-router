@@ -1,12 +1,11 @@
 import { createContext } from 'react';
 import AnimationProvider from './AnimationProvider';
 import { getAnimationDuration, interpolate } from './common/utils';
-import { RouterEventMap } from './common/types';
 import { MAX_NORM_PROGRESS, MAX_PROGRESS, MIN_NORM_PROGRESS, MIN_PROGRESS } from './common/constants';
 import GhostLayer from './GhostLayer';
 
-export default class AnimationLayerData {
-    private _play: boolean = true;
+export default class AnimationLayerData extends EventTarget {
+    private _paused: boolean = false;
     private _isPlaying: boolean = false;
     private _isStarted = false;
     private _currentScreen: AnimationProvider | null = null;
@@ -20,14 +19,14 @@ export default class AnimationLayerData {
     private _playbackRate: number = 1;
     private _gestureNavigating: boolean = false;
     private _ghostLayer: GhostLayer | null = null;
-    private _onEnd: Function | null = null;
     private _onProgress: ((progress: number) => void) | null = null;
     private _shouldAnimate: boolean = true;
-    private _dispatchEvent: ((event: Event) => Promise<boolean>) | null = null;
-    private _addEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined) => void) | null = null;
+    private _onAnimationStart: (() => void) | null = null;
+    private _onAnimationEnd: (() => void) | null = null;
+    private _onAnimationCancel: (() => void) | null = null;
 
     private updateProgress() {
-        if (this._gestureNavigating && !this._play) {
+        if (this._gestureNavigating && this._paused) {
             // update in set progress() instead
             window.cancelAnimationFrame(this._progressUpdateID);
             return;
@@ -46,9 +45,8 @@ export default class AnimationLayerData {
     }
 
     reset() {
-        this._onEnd = null;
         this._playbackRate = 1;
-        this._play = true;
+        this._paused = false;
         this._gestureNavigating = false;
     }
 
@@ -64,10 +62,8 @@ export default class AnimationLayerData {
         this._outAnimation?.cancel();
         this._pseudoElementInAnimation?.cancel();
         this._pseudoElementOutAnimation?.cancel();
-        this.reset();
 
-        const cancelAnimationEvent = new CustomEvent('page-animation-cancel', {bubbles: true});
-        this.dispatchEvent?.(cancelAnimationEvent);
+        this._onAnimationCancel?.();
     }
 
     private removeAnimations() {
@@ -94,10 +90,9 @@ export default class AnimationLayerData {
     }
 
     async pageTransition() {
-        if (this._isPlaying) {
+        if (this._inAnimation || this._outAnimation) {
             // cancel playing animation
             this.cancel();
-            if (this._onEnd) this._onEnd();
             this.reset();
         }
         if (this._currentScreen && this._nextScreen && this._shouldAnimate) {
@@ -139,7 +134,7 @@ export default class AnimationLayerData {
                 await this.ready;
 
                 this._isPlaying = true;
-                if (!this._play) {
+                if (this._paused) {
                     this._inAnimation.pause();
                     this._outAnimation.pause();
                     this._pseudoElementInAnimation?.pause();
@@ -152,8 +147,8 @@ export default class AnimationLayerData {
                     this._pseudoElementOutAnimation?.play();
                 }
                 this._isStarted = true;
-                const startAnimationEvent = new CustomEvent('page-animation-start', {bubbles: true});
-                this.dispatchEvent?.(startAnimationEvent);
+                this._onAnimationStart?.();
+                this.dispatchEvent?.(new CustomEvent('animation-start'));
 
                 this.updateProgress();
 
@@ -162,17 +157,13 @@ export default class AnimationLayerData {
                 this.removeAnimations();
 
                 this._isPlaying = false;
-                const endAnimationEvent = new CustomEvent('page-animation-end', {bubbles: true});
-                this.dispatchEvent?.(endAnimationEvent);
+                this._onAnimationEnd?.();
 
                 // if playback rate is 2 then gesture navigation was aborted
                 if (!this._gestureNavigating || this._playbackRate === 0.5) {
                     this._currentScreen.mounted(false); // awaiting causes flicker bug on iOS
                 } else {
                     await this._nextScreen.mounted(false);
-                }
-                if (this._onEnd) {
-                    this._onEnd();
                 }
                 this._isStarted = false;
             }
@@ -183,10 +174,6 @@ export default class AnimationLayerData {
 
     set onProgress(_onProgress: ((progress: number) => void) | null) {
         this._onProgress = _onProgress;
-    }
-
-    set onEnd(_onEnd: Function | null) {
-        this._onEnd = _onEnd;
     }
 
     set shouldAnimate(_shouldAnimate: boolean)  {
@@ -209,26 +196,25 @@ export default class AnimationLayerData {
         this._gestureNavigating = _gestureNavigating;
     }
 
-    set play(_play: boolean) {
-        if (this._play !== _play) {
-            this._play = _play;
+    pause() {
+        this._paused = true;
+        this._inAnimation?.pause();
+        this._outAnimation?.pause();
+        this._pseudoElementInAnimation?.pause();
+        this._pseudoElementOutAnimation?.pause();    
+    }
 
-            if (this._play && this._gestureNavigating) {
-                this.updateProgress();
-            }
+    play() {
+        this._paused = false;
+        this._inAnimation?.play();
+        this._outAnimation?.play();
+        this._pseudoElementInAnimation?.play();
+        this._pseudoElementOutAnimation?.play();
+        if (this._gestureNavigating) this.updateProgress();
+    }
 
-            if (_play) {
-                this._inAnimation?.play();
-                this._outAnimation?.play();
-                this._pseudoElementInAnimation?.play();
-                this._pseudoElementOutAnimation?.play();
-            } else {
-                this._inAnimation?.pause();
-                this._outAnimation?.pause();
-                this._pseudoElementInAnimation?.pause();
-                this._pseudoElementOutAnimation?.pause();
-            }
-        }
+    get paused() {
+        return this._paused;
     }
 
     set progress(_progress: number) {
@@ -276,12 +262,16 @@ export default class AnimationLayerData {
         this._onExit = _onExit;
     }
 
-    set addEventListener(_addEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined)=> void) | null) {
-        this._addEventListener = _addEventListener;
+    set onAnimationStart(_onAnimationStart: (() => void) | null) {
+        this._onAnimationStart = _onAnimationStart;
     }
 
-    set dispatchEvent(_dispatchEvent: ((event: Event) => Promise<boolean>) | null) {
-        this._dispatchEvent = _dispatchEvent;
+    set onAnimationEnd(_onAnimationEnd: (() => void) | null) {
+        this._onAnimationEnd = _onAnimationEnd;
+    }
+
+    set onAnimationCancel(_onAnimationCancel: (() => void) | null) {
+        this._onAnimationCancel = _onAnimationCancel;
     }
 
     set ghostLayer(_ghostLayer: GhostLayer) {
@@ -292,24 +282,12 @@ export default class AnimationLayerData {
         return this._playbackRate;
     }
 
-    get play() {
-        return this._play;
-    }
-
     get ghostLayer() {
         return this._ghostLayer!;
     }
 
     get isStarted() {
         return this._isStarted;
-    }
-
-    get addEventListener() {
-        return this._addEventListener;
-    }
-
-    get dispatchEvent() {
-        return this._dispatchEvent;
     }
 
     get duration() {
@@ -395,7 +373,7 @@ export default class AnimationLayerData {
     get started() {
         if (this._isStarted) return Promise.resolve();
         return new Promise<void>((resolve) => {
-            this.addEventListener?.('page-animation-start', () => resolve(), {once: true});
+            this.addEventListener?.('animation-start', () => resolve(), {once: true});
         });
     }
 }

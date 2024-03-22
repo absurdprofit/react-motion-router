@@ -1,8 +1,8 @@
-import { Children, Component, cloneElement, createContext, isValidElement } from 'react';
+import { Children, Component, createContext } from 'react';
 import { SwipeEndEvent, SwipeEvent, SwipeStartEvent } from 'web-gesture-events';
-import { clamp, matchRoute, includesRoute, interpolate } from './common/utils';
+import { clamp, interpolate } from './common/utils';
 import Navigation from './NavigationBase';
-import { NavigationBase, ScreenBase, ScreenChild } from './index';
+import { ScreenBase, ScreenChild } from './index';
 import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
 import { MotionProgressDetail } from './MotionEvents';
 import { SwipeDirection } from './common/types';
@@ -12,12 +12,10 @@ import GhostLayer from './GhostLayer';
 export const Motion = createContext(0);
 
 interface AnimationLayerProps {
-    animationLayerData: AnimationLayerData;
     children: ScreenChild | ScreenChild[];
     currentScreen: ScreenBase | null;
     nextScreen: ScreenBase | null;
     navigation: Navigation;
-    ghostLayer: GhostLayer;
     onGestureNavigationEnd: Function;
     onGestureNavigationStart: Function;
     onDocumentTitleChange(title: string | null): void;
@@ -47,7 +45,15 @@ interface AnimationLayerState {
 
 
 export default class AnimationLayer extends Component<AnimationLayerProps, AnimationLayerState> {
+    protected readonly animationLayerData = new AnimationLayerData();
     private ref: HTMLDivElement | null = null;
+
+    constructor(props: AnimationLayerProps) {
+        super(props);
+        this.animationLayerData.onAnimationStart = this.onStart.bind(this);
+        this.animationLayerData.onAnimationEnd = this.onEnd.bind(this);
+        this.animationLayerData.onAnimationCancel = this.onCancel.bind(this);
+    }
 
     state: AnimationLayerState = {
         progress: MAX_PROGRESS,
@@ -76,16 +82,31 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
     }
 
     componentDidMount() {
-        this.props.animationLayerData.onProgress = this.onProgress.bind(this);
+        this.animationLayerData.onProgress = this.onProgress.bind(this);
     }
 
     componentDidUpdate(prevProps: AnimationLayerProps, prevState: AnimationLayerState) {
         if (prevProps.children !== this.props.children) {
             if (!this.state.gestureNavigating && prevState.shouldAnimate) {
-                this.props.animationLayerData.play = true;
+                this.animationLayerData.play();
                 this.animate();
             }
         }
+    }
+
+    private onCancel() {
+        const cancelAnimationEvent = new CustomEvent('page-animation-cancel', {bubbles: true});
+        this.props.dispatchEvent?.(cancelAnimationEvent);
+    }
+
+    private onStart() {
+        const startAnimationEvent = new CustomEvent('page-animation-start', {bubbles: true});
+        this.props.dispatchEvent?.(startAnimationEvent);
+    }
+
+    private onEnd() {
+        const endAnimationEvent = new CustomEvent('page-animation-end', {bubbles: true});
+        this.props.dispatchEvent?.(endAnimationEvent);
     }
 
     private onProgress(_progress: number) {
@@ -102,20 +123,20 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
 
     private async animate() {
         await Promise.all([
-            this.props.ghostLayer.setupTransition(),
-            this.props.animationLayerData.setupTransition()
+            this.animationLayerData.ghostLayer.setupTransition(),
+            this.animationLayerData.setupTransition()
         ]);
         requestAnimationFrame(() => {
-            this.props.ghostLayer.sharedElementTransition();
-            this.props.animationLayerData.pageTransition();
+            this.animationLayerData.ghostLayer.sharedElementTransition();
+            this.animationLayerData.pageTransition();
         });
     }
 
     onSwipeStart = (ev: SwipeStartEvent) => {
         if (ev.touches.length > 1) return; // disable if more than one finger engaged
         if (this.state.disableDiscovery) return;
-        if (this.props.animationLayerData.isPlaying) return;
-        if (this.props.animationLayerData.duration === 0) return;
+        if (this.animationLayerData.isPlaying) return;
+        if (this.animationLayerData.duration === 0) return;
         let swipePos: number; // 1D
         switch(this.state.swipeDirection) {
             case "left":
@@ -152,10 +173,10 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
             }, () => {
                 const motionStartEvent = new CustomEvent('motion-progress-start');
 
-                this.props.animationLayerData.gestureNavigating = true;
-                this.props.animationLayerData.playbackRate = -1;
-                this.props.animationLayerData.play = false;
-                this.props.ghostLayer.play = false;
+                this.animationLayerData.gestureNavigating = true;
+                this.animationLayerData.playbackRate = -1;
+                this.animationLayerData.pause();
+                this.animationLayerData.ghostLayer.pause();
                 this.animate();
                 
                 if (this.props.dispatchEvent) this.props.dispatchEvent(motionStartEvent);
@@ -190,19 +211,19 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
             }
                 
         }
-        this.props.animationLayerData.progress = progress;
+        this.animationLayerData.progress = progress;
     }
 
     onSwipeEnd = (ev: SwipeEndEvent) => {
         if (this.state.shouldPlay) return;
         
-        let onEnd = null;
+        let onEnd: Function | null = null;
         const motionEndEvent = new CustomEvent('motion-progress-end');
         if ((100 - this.state.progress) > this.state.hysteresis || ev.velocity > this.state.minFlingVelocity) {
             if (ev.velocity >= this.state.minFlingVelocity) {
-                this.props.animationLayerData.playbackRate = -5;
+                this.animationLayerData.playbackRate = -5;
             } else {
-                this.props.animationLayerData.playbackRate = -1;
+                this.animationLayerData.playbackRate = -1;
             }
             onEnd = () => {
                 this.props.onGestureNavigationEnd();
@@ -210,13 +231,13 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
                 this.setState({gestureNavigating: false});
 
                 if (this.props.dispatchEvent) this.props.dispatchEvent(motionEndEvent);
-                requestAnimationFrame(() => this.props.animationLayerData.reset());
+                requestAnimationFrame(() => this.animationLayerData.reset());
             }
             this.setState({shouldPlay: true, shouldAnimate: false});
         } else {
-            this.props.animationLayerData.playbackRate = 0.5;
+            this.animationLayerData.playbackRate = 0.5;
             onEnd = () => {
-                this.props.animationLayerData.reset();
+                this.animationLayerData.reset();
                 
                 if (this.props.dispatchEvent) this.props.dispatchEvent(motionEndEvent);
             }
@@ -224,11 +245,14 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
         }
 
         this.setState({startX: 0, startY: 0});
-        this.props.animationLayerData.onEnd = onEnd;
-        this.props.animationLayerData.play = true;
-        this.props.ghostLayer.play = true;
+        this.animationLayerData.play();
+        this.animationLayerData.ghostLayer.play();
         this.ref?.removeEventListener('swipe', this.onSwipe);
         this.ref?.removeEventListener('swipeend', this.onSwipeEnd);
+        queueMicrotask(async () => {
+            await this.animationLayerData.finished;
+            onEnd?.();
+        });
         
     }
 
@@ -246,20 +270,27 @@ export default class AnimationLayer extends Component<AnimationLayerProps, Anima
 
     render() {
         return (
-            <div
-                className="animation-layer"
-                ref={this.setRef}
-                style={{
-                    width: '100%',
-                    height: '100%',
-                    display: 'grid',
-                    '--motion-progress': this.state.progress
-                }  as React.CSSProperties}
-            >
-                <Motion.Provider value={this.state.progress}>
-                    {this.state.children}
-                </Motion.Provider>
-            </div>
+            <AnimationLayerDataContext.Provider value={this.animationLayerData}>
+                <GhostLayer
+                    animationLayerData={this.animationLayerData}
+                    currentScene={this.props.currentScreen?.sharedElementScene}
+                    nextScene={this.props.nextScreen?.sharedElementScene}
+                />
+                <div
+                    className="animation-layer"
+                    ref={this.setRef}
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'grid',
+                        '--motion-progress': this.state.progress
+                    }  as React.CSSProperties}
+                >
+                    <Motion.Provider value={this.state.progress}>
+                        {this.state.children}
+                    </Motion.Provider>
+                </div>
+            </AnimationLayerDataContext.Provider>
         );
     }
 }

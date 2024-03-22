@@ -6,9 +6,9 @@ import AnimationLayerData from './AnimationLayerData';
 import NavigationBase from './NavigationBase';
 import { Component } from 'react';
 import { MAX_PROGRESS, MAX_Z_INDEX, MIN_PROGRESS } from './common/constants';
+import { RouterDataContext } from './RouterData';
 
 interface GhostLayerProps {
-    navigation: NavigationBase;
     animationLayerData: AnimationLayerData;
     currentScene?: SharedElementScene;
     nextScene?: SharedElementScene;
@@ -41,6 +41,8 @@ interface TransitionState {
 export default class GhostLayer extends Component<GhostLayerProps, GhostLayerState> {
     private ref: HTMLDialogElement | null = null;
     private animations: Animation[] = [];
+    static contextType = RouterDataContext;
+    context!: React.ContextType<typeof RouterDataContext>;
 
     constructor(props: GhostLayerProps) {
         super(props);
@@ -55,11 +57,17 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
         return Promise.all(this.animations.map(animation => animation.finished));
     }
 
-    set play(_play: boolean) {
+    pause() {
         this.animations.forEach(animation => {
             animation.playbackRate = this.props.animationLayerData.playbackRate;
-            if (_play) return animation.play();
             return animation.pause();
+        });
+    }
+
+    play() {
+        this.animations.forEach(animation => {
+            animation.playbackRate = this.props.animationLayerData.playbackRate;
+            return animation.play();
         });
     }
 
@@ -526,20 +534,20 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
         
         this.finished.then(onEnd).catch(onCancel);
 
-        this.props.navigation.addEventListener('page-animation-cancel' , onCancel, {once: true});
+        this.context!.navigation.addEventListener('page-animation-cancel' , onCancel, {once: true});
     }
     
     componentDidMount() {
-        this.props.navigation.addEventListener('motion-progress-start', this.onProgressStart);
+        this.context!.navigation.addEventListener('motion-progress-start', this.onProgressStart);
     }
 
     componentWillUnmount() {
-        this.props.navigation.removeEventListener('motion-progress-start', this.onProgressStart);
+        this.context!.navigation.removeEventListener('motion-progress-start', this.onProgressStart);
     }
 
     onProgressStart = () => {
-        this.props.navigation.addEventListener('motion-progress', this.onProgress);
-        this.props.navigation.addEventListener('motion-progress-end', this.onProgressEnd);
+        this.context!.navigation.addEventListener('motion-progress', this.onProgress);
+        this.context!.navigation.addEventListener('motion-progress-end', this.onProgressEnd);
     }
 
     onProgress = (e: MotionProgressEvent) => {
@@ -560,8 +568,8 @@ export default class GhostLayer extends Component<GhostLayerProps, GhostLayerSta
         await this.finish();
         this.setState({transitioning: false});
         this.animations = [];
-        this.props.navigation.removeEventListener('motion-progress', this.onProgress);
-        this.props.navigation.removeEventListener('motion-progress-end', this.onProgressEnd);
+        this.context!.navigation.removeEventListener('motion-progress', this.onProgress);
+        this.context!.navigation.removeEventListener('motion-progress-end', this.onProgressEnd);
     }
 
     render() {
