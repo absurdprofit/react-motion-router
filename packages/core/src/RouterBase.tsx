@@ -1,6 +1,5 @@
 import NavigationBase, { NavigateEvent, BackEvent } from './NavigationBase';
 import AnimationLayer from './AnimationLayer';
-import GhostLayer from './GhostLayer';
 import {
     AnimationConfig,
     AnimationKeyframeEffectConfig,
@@ -12,7 +11,7 @@ import {
 } from './common/types';
 import RouterData, { RoutesData, RouterDataContext } from './RouterData';
 import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
-import { PageAnimationEndEvent } from './MotionEvents';
+import { PageAnimationEndEvent } from './common/events';
 import { concatenateURL, dispatchEvent, includesRoute, matchRoute, searchParamsToObject } from './common/utils';
 import { Component } from 'react';
 import { DEFAULT_ANIMATION, DEFAULT_GESTURE_CONFIG } from './common/constants';

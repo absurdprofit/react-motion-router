@@ -30,7 +30,7 @@ import {
     PageAnimationCancelEvent,
     PageAnimationEndEvent,
     PageAnimationStartEvent
-} from './MotionEvents';
+} from './common/events';
 import ScrollRestoration from './ScrollRestoration';
 import {URLPattern} from "urlpattern-polyfill";
 import {SharedElement} from './SharedElement';

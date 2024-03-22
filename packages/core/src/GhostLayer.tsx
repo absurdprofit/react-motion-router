@@ -1,9 +1,8 @@
 import { SharedElementNode, SharedElementScene } from './SharedElement';
 import { clamp, interpolate } from './common/utils';
 import { EasingFunction, PlainObject } from './common/types';
-import { MotionProgressEvent } from './MotionEvents';
+import { MotionProgressEvent } from './common/events';
 import AnimationLayerData from './AnimationLayerData';
-import NavigationBase from './NavigationBase';
 import { Component } from 'react';
 import { MAX_PROGRESS, MAX_Z_INDEX, MIN_PROGRESS } from './common/constants';
 import { RouterDataContext } from './RouterData';

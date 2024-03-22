@@ -4,7 +4,7 @@ import { clamp, interpolate } from './common/utils';
 import Navigation from './NavigationBase';
 import { ScreenBase, ScreenChild } from './index';
 import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
-import { MotionProgressDetail } from './MotionEvents';
+import { MotionProgressDetail } from './common/events';
 import { SwipeDirection } from './common/types';
 import { MAX_PROGRESS, MIN_PROGRESS } from './common/constants';
 import GhostLayer from './GhostLayer';
