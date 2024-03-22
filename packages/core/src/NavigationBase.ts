@@ -19,7 +19,7 @@ export interface NavigateEventDetail<Params extends PlainObject = {}, Config ext
     routerId: string;
     route: string;
     props: NavigationProps<Params, Config>;
-    replace: boolean;
+    type: NavigateOptions["type"];
     signal: AbortSignal;
     finished: Promise<void>;
 }
@@ -101,8 +101,8 @@ export default abstract class NavigationBase {
         return !this._entries.length ? true : false;
     }
 
-    abstract canGoBack(): boolean;
-    abstract canGoForward(): boolean;
+    abstract get canGoBack(): boolean;
+    abstract get canGoForward(): boolean;
     abstract get next(): HistoryEntry | null;
     abstract get current(): HistoryEntry;
     abstract get previous(): HistoryEntry | null;

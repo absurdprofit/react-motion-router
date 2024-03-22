@@ -10,7 +10,6 @@ import {
     RouterEventMap
 } from './common/types';
 import RouterData, { RoutesData, RouterDataContext } from './RouterData';
-import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
 import { PageAnimationEndEvent } from './common/events';
 import { concatenateURL, dispatchEvent, includesRoute, matchRoute, searchParamsToObject } from './common/utils';
 import { Component } from 'react';

@@ -70,10 +70,10 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
 
     onExit(): void {
         super.onExit();
-        const current = this.context?.navigation.history.current;
+        const current = this.context?.navigation.current;
         const routes = Children.toArray(this.context?.routes);
         const nextRoute = routes.find(route => {
-            return isValidElement(route) && matchRoute(route.props.path, current);
+            return isValidElement(route) && matchRoute(route.props.path, current?.url);
         }) as ScreenBase<ScreenProps, ScreenState> | undefined;
         if (nextRoute?.props.config?.presentation === "modal"
             || nextRoute?.props.config?.presentation === "dialog") {

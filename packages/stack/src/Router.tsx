@@ -1,7 +1,6 @@
 import { BackEvent, DEFAULT_ANIMATION, NavigateEvent, RouterBase, RouterData } from '@react-motion-router/core';
 import type { RouterBaseProps, RouterBaseState } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
-import { History } from './History';
 
 export interface RouterProps extends RouterBaseProps {}
 
@@ -33,18 +32,12 @@ export class Router extends RouterBase {
     
     componentDidMount(): void {
         super.componentDidMount();
+        const defaultRoute = new URL(this.props.config.defaultRoute ?? '/', this.baseURL);
         this._routerData.navigation = new Navigation(
             this.id,
             this._routerData,
-            new History(
-                this.id,
-                Boolean(this.props.config.disableBrowserRouting),
-                this.props.config.defaultRoute ?? null,
-                this.baseURL
-            ),
-            this.animationLayerData,
             this.props.config.disableBrowserRouting,
-            this.props.config.defaultRoute
+            defaultRoute
         );
         this.initialise(this.navigation);
     }
@@ -76,7 +69,7 @@ export class Router extends RouterBase {
 
     onBackListener = (e: BackEvent) => {
         if (e.detail.routerId !== this.id) return;
-        let pathname = this.navigation.location.pathname;
+        let pathname = this.navigation.current.route;
 
         if (!this.config.disableBrowserRouting) { // replaced state with default route
             this._routerData.currentPath = pathname;
@@ -94,7 +87,7 @@ export class Router extends RouterBase {
         if (!this.state.backNavigating) {
             if (!this.state.implicitBack) {
                 this.setState({backNavigating: true}, () => {
-                    this.animationLayerData.finished.then(this.onAnimationEnd.bind(this));
+                    // this.animationLayerData.finished.then(this.onAnimationEnd.bind(this));
                 });
                 this._routerData.backNavigating = true;
             } else {

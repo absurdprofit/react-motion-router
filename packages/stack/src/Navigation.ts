@@ -9,27 +9,20 @@ import {
     searchParamsFromObject
 } from '@react-motion-router/core';
 import type { AnimationLayerData, NavigationProps, PlainObject } from '@react-motion-router/core';
-import { History } from './History';
 import { ScreenProps } from './Screen';
 
 export class Navigation extends NavigationBase {
-    protected _history: History;
-    private _animationLayerData: AnimationLayerData;
     private isInternalBack = false;
     private _finished: Promise<void> = new Promise(() => {});
+    private _currentIndex = 0;
 
     constructor(
         _routerId: string,
         _routerData: RouterData<Navigation>,
-        _history: History,
-        _animationLayerData: AnimationLayerData,
         _disableBrowserRouting: boolean = false,
-        _defaultRoute: string | null = null
+        _defaultRoute: URL | null = null
     ) {
         super(_routerId, _routerData, _disableBrowserRouting, _defaultRoute);
-
-        this._history = _history;
-        this._animationLayerData = _animationLayerData;
     }
 
     onPopState = (e: Event) => {
@@ -39,12 +32,16 @@ export class Navigation extends NavigationBase {
             return;
         }
 
-        const pathname = window.location.pathname.replace(this.history.baseURL.pathname, '') || '/';
-        if (pathname === this.history.previous) {
-            this.implicitBack();
-        } else {
-            this.implicitNavigate(pathname);
-        }
+        // const pathname = window.location.pathname.replace(this.history.baseURL.pathname, '') || '/';
+        // if (pathname === this.history.previous) {
+        //     this.implicitBack();
+        // } else {
+        //     this.implicitNavigate(pathname);
+        // }
+    }
+
+    traverseTo(key: string) {
+        window.navigation.traverseTo(key);
     }
 
     navigate<T extends PlainObject = PlainObject>(
@@ -52,20 +49,23 @@ export class Navigation extends NavigationBase {
         props: NavigationProps<T, ScreenProps["config"]> = {},
         options: NavigateOptions = {}
     ) {
-        const {replace, hash} = options;
+        const {type = "push", hash} = options;
         const search = searchParamsFromObject(props?.params || {}, this.paramsSerializer || null);
 
         if (this._disableBrowserRouting) {
-            this._history.implicitPush(route, Boolean(replace));
+            // if browser routing is disabled, we need to handle history manually
         } else {
-            this._history.push(route, search, hash || '', Boolean(replace));
+            const url = new URL(route, this.baseURL);
+            url.search = search;
+            url.hash = hash ?? '';
+            window.navigation.navigate(url.href, { history: type, state: { ...props.params } })
         }
 
         const controller = new AbortController();
         controller.signal.addEventListener('abort', this.onNavigateAbort.bind(this), {once: true});
         options.signal?.addEventListener('abort', this.onNavigateAbort.bind(this), {once: true});
         this._finished = this.createFinishedPromise(controller);
-        const event = this.createNavigateEvent(route, props, Boolean(replace), controller);
+        const event = this.createNavigateEvent(route, props, type, controller);
 
         if (this.dispatchEvent) this.dispatchEvent(event);
         this._currentParams = props?.params || {};
@@ -74,19 +74,19 @@ export class Navigation extends NavigationBase {
     }
 
     private implicitNavigate(route: string, props: NavigationProps = {}) {
-        this._history.implicitPush(route);
+        // this._history.implicitPush(route);
         
         const controller = new AbortController();
         this._finished = this.createFinishedPromise(controller);
-        const event = this.createNavigateEvent(route, props, false, controller);
+        // const event = this.createNavigateEvent(route, props, false, controller);
 
-        if (this.dispatchEvent) this.dispatchEvent(event);
+        // if (this.dispatchEvent) this.dispatchEvent(event);
         this._currentParams = props?.params || {};
         return this._finished;
     }
 
     private implicitBack() {
-        this._history.implicitBack();
+        // this._history.implicitBack();
 
         const controller = new AbortController();
         this._finished = this.createFinishedPromise(controller);
@@ -102,47 +102,52 @@ export class Navigation extends NavigationBase {
         controller.signal.addEventListener('abort', this.onBackAbort.bind(this), {once: true});
         options.signal?.addEventListener('abort', this.onBackAbort.bind(this), {once: true});
         this._finished = this.createFinishedPromise(controller);
-        if (this._history.length === 1) {
-            if (this.parent === null) {
-                // if no history in root router, fallback to browser back
-                window.history.back();
-                return;
-            }
-            this.parent.goBack();
-        } else {
-            let event = this.createBackEvent(controller);
-            if (this._disableBrowserRouting) {
-                this._history.implicitBack();
-            } else {
-                if (this.history.state.get<string>("routerId") !== this.routerId) {
-                    // handle superfluous history entries on call to go back on ancestor navigator
-                    // delta = 1 for current navigator stack entry pop
-                    let delta = 0;
-                    // travel down navigator tree to find all current history entries
-                    let navigator: Navigation | undefined = this;
-                    while (navigator) {
-                        if (!navigator.disableBrowserRouting) {
-                            if (navigator === this) {
-                                delta += 1;
-                            } else {
-                                if (navigator.history.length > 1) {
-                                    delta += navigator.history.length;
-                                }
-                            }
-                        }
-                        navigator = navigator.routerData.childRouterData?.navigation as Navigation;
-                    }
-                    window.history.go(-delta);
-                    this._history.implicitBack();
-                } else {
-                    this._history.back();
-                }
-            }
-            if (this.dispatchEvent) this.dispatchEvent(event);
-        } 
+        // if (this._history.length === 1) {
+        //     if (this.parent === null) {
+        //         // if no history in root router, fallback to browser back
+        //         window.history.back();
+        //         return;
+        //     }
+        //     this.parent.goBack();
+        // } else {
+        //     let event = this.createBackEvent(controller);
+        //     if (this._disableBrowserRouting) {
+        //         this._history.implicitBack();
+        //     } else {
+        //         if (this.history.state.get<string>("routerId") !== this.routerId) {
+        //             // handle superfluous history entries on call to go back on ancestor navigator
+        //             // delta = 1 for current navigator stack entry pop
+        //             let delta = 0;
+        //             // travel down navigator tree to find all current history entries
+        //             let navigator: Navigation | undefined = this;
+        //             while (navigator) {
+        //                 if (!navigator.disableBrowserRouting) {
+        //                     if (navigator === this) {
+        //                         delta += 1;
+        //                     } else {
+        //                         if (navigator.history.length > 1) {
+        //                             delta += navigator.history.length;
+        //                         }
+        //                     }
+        //                 }
+        //                 navigator = navigator.routerData.childRouterData?.navigation as Navigation;
+        //             }
+        //             window.history.go(-delta);
+        //             // this._history.implicitBack();
+        //         } else {
+        //             this._history.back();
+        //         }
+        //     }
+        //     if (this.dispatchEvent) this.dispatchEvent(event);
+        // } 
 
 
         return this._finished;
+    }
+
+    goForward() {
+        if (!this.canGoForward) return;
+        this.traverseTo(this.next!.key);
     }
 
     private createBackEvent(controller: AbortController) {
@@ -159,7 +164,7 @@ export class Navigation extends NavigationBase {
     private createNavigateEvent(
         route: string,
         props: NavigationProps<PlainObject, ScreenProps["config"]>,
-        replace: boolean,
+        type: NavigateOptions["type"],
         controller: AbortController
     ) {
         return new CustomEvent<NavigateEventDetail>('navigate', {
@@ -172,7 +177,7 @@ export class Navigation extends NavigationBase {
                     config: props.config
                 
                 },
-                replace,
+                type,
                 signal: controller.signal,
                 finished: this._finished
             }
@@ -182,7 +187,7 @@ export class Navigation extends NavigationBase {
     private createFinishedPromise(controller: AbortController) {
         return new Promise<void>(async (resolve, reject) => {
             try {
-                await this._animationLayerData.finished;
+                // await this._animationLayerData.finished;
                 resolve();
             } catch (e) {
                 controller.abort(e);
@@ -192,35 +197,13 @@ export class Navigation extends NavigationBase {
     }
 
     private onNavigateAbort() {
-        this._animationLayerData.cancel();
+        // this._animationLayerData.cancel();
         this.goBack();
     }
 
     private onBackAbort() {
-        this._animationLayerData.cancel();
-        if (!this.history.next) return;
-        this.navigate(this.history.next);
-    }
-
-    assign(url: string | URL) {
-        url = new URL(url, window.location.origin);
-        if (url.origin === location.origin) {
-            this.navigate(url.pathname);
-        } else {
-            location.assign(url);
-        }
-    }
-
-    replace(url: string | URL) {
-        url = new URL(url, window.location.origin);
-        if (url.origin === location.origin) {
-            this.navigate(url.pathname, {}, {
-                hash: url.hash,
-                replace: true
-            });
-        } else {
-            location.replace(url);
-        }
+        // this._animationLayerData.cancel();
+        this.goForward();
     }
 
     get finished() {
@@ -231,25 +214,27 @@ export class Navigation extends NavigationBase {
         return this.routerData.parentRouterData?.navigation ?? null;
     }
 
-    get location() {
-        const {location} = window;
-        const url = concatenateURL(this._history.current, this.history.baseURL);
-        return {
-            ancestorOrigins: location.ancestorOrigins,
-            assign: this.assign.bind(this),
-            hash: location.hash,
-            host: location.host,
-            hostname: location.hostname,
-            href: url.href,
-            origin: location.origin,
-            pathname: url.pathname,
-            port: location.port,
-            protocol: location.protocol,
-            reload() {
-                location.reload();
-            },
-            replace: this.replace.bind(this),
-            search: searchParamsFromObject(this._currentParams, this.paramsSerializer || null)
-        }
+    get previous() {
+        return this._entries.at(this._currentIndex - 1) ?? null;
+    }
+
+    get next() {
+        return this._entries.at(this._currentIndex + 1) ?? null;
+    }
+
+    get current() {
+        return this._entries.at(this._currentIndex)!;
+    }
+
+    get canGoBack() {
+        return Boolean(this.previous);
+    }
+
+    get canGoForward() {
+        return Boolean(this.next);
+    }
+
+    get committed() {
+        return Promise.resolve();
     }
 }
