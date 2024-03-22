@@ -111,6 +111,7 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
                 // this._animationLayerData.onEnter = this.props.onEnter;
                 this._animationLayerData.nextScreen = this;
             }
+            this.ref?.toggleAttribute('inert', this.state.zIndex === 0);
         }
     }
 
@@ -381,7 +382,6 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
                 className="animation-provider"
                 ref={this.setRef}
                 tabIndex={this.state.zIndex - 1}
-                inert={this.state.zIndex === 0}
                 style={{
                     gridArea: '1 / 1',
                     width: '100%',

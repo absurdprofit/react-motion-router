@@ -2,8 +2,8 @@ const path = require('path');
 const webpack = require('webpack');
 const TerserPlugin = require("terser-webpack-plugin");
 
-module.exports = {
-    mode: "production",
+module.exports = (env, argv) => ({
+    mode: argv.mode ?? "production",
     experiments: {
         outputModule: true
     },
@@ -36,7 +36,7 @@ module.exports = {
         }),
     ],
     optimization: {
-        minimize: true,
+        minimize: this.mode === 'production',
         minimizer: [new TerserPlugin()]
     },
     externals: {
@@ -44,4 +44,4 @@ module.exports = {
         'react-dom': 'module react-dom',
         '@react-motion-router/core': 'module @react-motion-router/core'
     }
-};
+});

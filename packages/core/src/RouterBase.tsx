@@ -53,7 +53,7 @@ function StateFromChildren(
     props: RouterBaseProps,
     state: RouterBaseState,
 ) {
-    let {paths, currentPath, nextPath} = state;
+    let { paths, currentPath, nextPath } = state;
     let nextMatched = false;
     let currentMatched = false;
     let swipeDirection: SwipeDirection | undefined;
@@ -103,8 +103,8 @@ function StateFromChildren(
                 matchInfo = matchRoute(child.props.resolvedPathname, currentPath);
             }
             if (matchInfo) {
-                let mountProps = {out: true, in: false};
-                if (state.gestureNavigating) mountProps = {in: true, out: false};
+                let mountProps = { out: true, in: false };
+                if (state.gestureNavigating) mountProps = { in: true, out: false };
                 currentMatched = true;
                 children.push(
                     cloneElement(child, {
@@ -127,15 +127,15 @@ function StateFromChildren(
             const matchInfo = matchRoute(child.props.path, nextPath);
             if (matchInfo) {
                 nextMatched = true;
-                const {config} = child.props;
+                const { config } = child.props;
                 swipeDirection = config?.swipeDirection;
                 swipeAreaWidth = config?.swipeAreaWidth;
                 hysteresis = config?.hysteresis;
                 disableDiscovery = config?.disableDiscovery;
                 minFlingVelocity = config?.minFlingVelocity;
                 documentTitle = child.props.name || null;
-                let mountProps = {in: true, out: false};
-                if (state.gestureNavigating) mountProps = {out: true, in: false};
+                let mountProps = { in: true, out: false };
+                if (state.gestureNavigating) mountProps = { out: true, in: false };
                 const key = keptAliveKey || Math.random();
                 children.push(
                     cloneElement(child, {
@@ -153,7 +153,7 @@ function StateFromChildren(
         const children = Children.map(props.children, (child: ScreenChild) => {
             if (!isValidElement(child)) return undefined;
             if (matchRoute(child.props.path, undefined)) {
-                const {config} = child.props;
+                const { config } = child.props;
                 swipeDirection = config?.swipeDirection;
                 swipeAreaWidth = config?.swipeAreaWidth;
                 hysteresis = config?.hysteresis;
@@ -162,9 +162,9 @@ function StateFromChildren(
                 documentTitle = child.props.name ?? null;
                 return cloneElement(
                     child, {
-                        in: true,
-                        out: false,
-                    }
+                    in: true,
+                    out: false,
+                }
                 ) as ScreenChild;
             }
         });
@@ -213,7 +213,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
             }
         }
     }
-    
+
     state: S = {
         currentPath: undefined,
         backNavigating: false,
@@ -222,6 +222,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
         implicitBack: false,
         defaultDocumentTitle: document.title,
         documentTitle: document.title,
+        paths: new Array<string>(),
     } as S;
 
     static getDerivedStateFromProps(props: RouterBaseProps, state: RouterBaseState) {
@@ -256,19 +257,19 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
         const searchParams = searchParamsToObject(window.location.search, paramsDeserializer);
         const routesData = this.state.routesData;
         this._routerData.routesData = routesData;
-        
+
         if (searchParams) {
             const routeData = routesData.get(currentPath);
             routesData.set(currentPath, {
                 focused: routeData?.focused ?? false,
                 preloaded: routeData?.preloaded ?? false,
-                setParams: routeData?.setParams ?? (() => {}),
+                setParams: routeData?.setParams ?? (() => { }),
                 params: searchParams,
                 config: routeData?.config ?? {},
-                setConfig: routeData?.setConfig ?? (() => {})
+                setConfig: routeData?.setConfig ?? (() => { })
             });
         }
-        this.setState({currentPath, routesData});
+        this.setState({ currentPath, routesData });
         this._routerData.currentPath = currentPath;
 
         this._routerData.dispatchEvent = this.dispatchEvent;
@@ -290,7 +291,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     }
 
     get id() {
-        return Array.from(this.baseURL.pathname).map(char => 
+        return Array.from(this.baseURL.pathname).map(char =>
             char.charCodeAt(0).toString(16).padStart(2, '0')
         ).join('');
     }
@@ -324,19 +325,19 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
         const searchParams = searchParamsToObject(window.location.search, paramsDeserializer);
         const routesData = this.state.routesData;
         this._routerData.routesData = this.state.routesData;
-        
+
         if (searchParams) {
             const routeData = this.state.routesData.get(currentPath);
             routesData.set(currentPath, {
                 focused: routeData?.focused ?? false,
                 preloaded: routeData?.preloaded ?? false,
-                setParams: routeData?.setParams ?? (() => {}),
+                setParams: routeData?.setParams ?? (() => { }),
                 params: searchParams,
                 config: routeData?.config ?? {},
-                setConfig: routeData?.setConfig ?? (() => {})
+                setConfig: routeData?.setConfig ?? (() => { })
             });
         }
-        this.setState({routesData});
+        this.setState({ routesData });
     };
 
     abstract onBackListener: (e: BackEvent) => void;
@@ -349,8 +350,8 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
     }
 
     addNavigationEventListeners(ref: HTMLElement) {
-        ref.addEventListener('go-back', this.onBackListener, {capture: true});
-        ref.addEventListener('navigate', this.onNavigateListener, {capture: true});
+        ref.addEventListener('go-back', this.onBackListener, { capture: true });
+        ref.addEventListener('navigate', this.onNavigateListener, { capture: true });
     }
 
     removeNavigationEventListeners(ref: HTMLElement) {
@@ -360,17 +361,17 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
 
     private setRef = (ref: HTMLElement | null) => {
         if (this.ref)
-            this.removeNavigationEventListeners(this.ref); 
-        
+            this.removeNavigationEventListeners(this.ref);
+
         this.ref = ref;
 
         if (ref)
             this.addNavigationEventListeners(ref);
     }
-    
+
     render() {
         return (
-            <div id={this.id} className="react-motion-router" style={{width: '100%', height: '100%'}} ref={this.setRef}>
+            <div id={this.id} className="react-motion-router" style={{ width: '100%', height: '100%' }} ref={this.setRef}>
                 <RouterDataContext.Consumer>
                     {(routerData) => {
                         this._routerData.parentRouterData = routerData;
@@ -404,7 +405,7 @@ export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseP
                         );
                     }}
                 </RouterDataContext.Consumer>
-                
+
             </div>
         );
     }
