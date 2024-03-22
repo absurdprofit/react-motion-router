@@ -10,7 +10,6 @@ export default class AnimationLayerData extends EventTarget {
     private _isStarted = false;
     private _currentScreen: AnimationProvider | null = null;
     private _nextScreen: AnimationProvider | null = null;
-    private _onExit: Function | undefined;
     private _progressUpdateID: number = 0;
     private _pseudoElementInAnimation: Animation | null = null;
     private _pseudoElementOutAnimation: Animation | null = null;
@@ -83,8 +82,6 @@ export default class AnimationLayerData extends EventTarget {
 
             if (this._onProgress) this._onProgress(this.progress);
 
-            // failing to call _onExit to disable SETs
-            if (this._onExit && this._shouldAnimate) this._onExit();
             await this._nextScreen.mounted(true);
         }
     }
@@ -256,10 +253,6 @@ export default class AnimationLayerData extends EventTarget {
             _screen.mounted(true, false);
             this._nextScreen = null;
         }
-    }
-
-    set onExit(_onExit: Function | undefined) {
-        this._onExit = _onExit;
     }
 
     set onAnimationStart(_onAnimationStart: (() => void) | null) {

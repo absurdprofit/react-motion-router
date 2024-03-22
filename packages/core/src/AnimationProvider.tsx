@@ -43,8 +43,6 @@ const OppositeDirection = {
 export default class AnimationProvider extends Component<AnimationProviderProps, AnimationProviderState> {
     private _animationLayerData: AnimationLayerData | null = null;
     private ref: HTMLElement | null = null;
-    private onAnimationEnd = this.animationEnd.bind(this);
-    private onNavigate = this.navigate.bind(this);
     private setRef = this.onRef.bind(this);
 
     constructor(props: AnimationProviderProps) {
@@ -67,7 +65,7 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
         this.props.onRef(ref);
     }
 
-    animationEnd() {
+    private onAnimationEnd = () => {
         if (this.ref) {
             this.ref.style.willChange = 'auto';
             this.ref.style.pointerEvents = 'auto';
@@ -77,18 +75,19 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
         }
     }
 
-    navigate() {
+    private onAnimationStart = () => {
         if (this.ref) {
             this.ref.style.willChange = 'transform, opacity';
             this.ref.style.pointerEvents = 'none';
         }
+        if (this.props.out) {
+            this.props.onExit();
+        }
     }
 
     componentDidMount() {
-        this.props.navigation.addEventListener('page-animation-start', this.onNavigate);
-        this.props.navigation.addEventListener('motion-progress-start', this.onNavigate);
+        this.props.navigation.addEventListener('page-animation-start', this.onAnimationStart);
         this.props.navigation.addEventListener('page-animation-end', this.onAnimationEnd);
-        this.props.navigation.addEventListener('motion-progress-end', this.onAnimationEnd);
         if (this.state.mounted) {
             this.props.onEntered();
         }
@@ -97,7 +96,6 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
                 this._animationLayerData.nextScreen = this;
             }
             if (this.props.out && !this.state.mounted) {
-                this._animationLayerData.onExit = this.props.onExit;
                 this._animationLayerData.currentScreen = this;
             }
         }
@@ -108,7 +106,6 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
         if (this.props.out !== prevProps.out || this.props.in !== prevProps.in) {
             if (this.props.out) {
                 // set current screen and call onExit
-                this._animationLayerData.onExit = this.props.onExit;
                 this._animationLayerData.currentScreen = this;
             } else if (this.props.in) {
                 // this._animationLayerData.onEnter = this.props.onEnter;
@@ -118,10 +115,8 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
     }
 
     componentWillUnmount() {
-        this.props.navigation.removeEventListener('page-animation-start', this.onNavigate);
-        this.props.navigation.removeEventListener('motion-progress-start', this.onNavigate);
+        this.props.navigation.removeEventListener('page-animation-start', this.onAnimationStart);
         this.props.navigation.removeEventListener('page-animation-end', this.onAnimationEnd);
-        this.props.navigation.removeEventListener('motion-progress-end', this.onAnimationEnd);
     }
 
     private getAnimationConfig(
