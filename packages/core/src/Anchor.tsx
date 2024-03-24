@@ -23,7 +23,7 @@ interface BackAnchorProps extends BaseAnchorProps {
 
 type AnchorProps = XOR<ForwardAnchorProps, BackAnchorProps>;
 
-export default function Anchor(props: AnchorProps) {
+export function Anchor(props: AnchorProps) {
     const routerData = useContext(RouterDataContext);
     const navigation = props.navigation ?? useNavigation();
     const [href, setHref] = useState<string | undefined>(undefined);

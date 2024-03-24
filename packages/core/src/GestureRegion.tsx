@@ -1,7 +1,7 @@
 interface GestureRegionProps extends React.HTMLAttributes<HTMLDivElement> {
     disabled?: boolean;
 }
-export default function GestureRegion({disabled, children, ...props}: GestureRegionProps) {
+export function GestureRegion({disabled, children, ...props}: GestureRegionProps) {
     return (
         <div
             className="gesture-region"

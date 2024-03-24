@@ -1,10 +1,10 @@
 import { createContext } from 'react';
-import AnimationProvider from './AnimationProvider';
+import { AnimationProvider } from './AnimationProvider';
 import { getAnimationDuration, interpolate } from './common/utils';
 import { MAX_NORM_PROGRESS, MAX_PROGRESS, MIN_NORM_PROGRESS, MIN_PROGRESS } from './common/constants';
-import GhostLayer from './GhostLayer';
+import { GhostLayer } from './GhostLayer';
 
-export default class AnimationLayerData extends EventTarget {
+export class AnimationLayerData extends EventTarget {
     private _paused: boolean = false;
     private _isPlaying: boolean = false;
     private _isStarted = false;
@@ -93,10 +93,10 @@ export default class AnimationLayerData extends EventTarget {
             this.reset();
         }
         if (this._currentScreen && this._nextScreen && this._shouldAnimate) {
-            this._outAnimation = this._currentScreen.animation;
-            this._pseudoElementOutAnimation = this._currentScreen.pseudoElementAnimation;
-            this._inAnimation = this._nextScreen.animation;
-            this._pseudoElementInAnimation = this._nextScreen.pseudoElementAnimation;
+            this._outAnimation = this._currentScreen.outAnimation;
+            this._pseudoElementOutAnimation = this._currentScreen.pseudoElementOutAnimation;
+            this._inAnimation = this._nextScreen.inAnimation;
+            this._pseudoElementInAnimation = this._nextScreen.pseudoElementInAnimation;
             if (this._inAnimation && this._outAnimation) {
                 if (!this._shouldAnimate) {
                     this.finish();
@@ -284,10 +284,10 @@ export default class AnimationLayerData extends EventTarget {
     }
 
     get duration() {
-        const outDuration = this._outAnimation?.effect?.getComputedTiming().duration ?? this._currentScreen?.duration;
-        const inDuration = this._inAnimation?.effect?.getComputedTiming().duration ?? this._nextScreen?.duration;
-        const pseudoElementOutDuration = this._pseudoElementOutAnimation?.effect?.getComputedTiming().duration ?? this._currentScreen?.pseudoElementDuration;
-        const pseudoElementInDuration = this._pseudoElementInAnimation?.effect?.getComputedTiming().duration ?? this._nextScreen?.pseudoElementDuration;
+        const outDuration = this._outAnimation?.effect?.getComputedTiming().duration;
+        const inDuration = this._inAnimation?.effect?.getComputedTiming().duration;
+        const pseudoElementOutDuration = this._pseudoElementOutAnimation?.effect?.getComputedTiming().duration;
+        const pseudoElementInDuration = this._pseudoElementInAnimation?.effect?.getComputedTiming().duration;
         return Math.max(
             Number(outDuration),
             Number(inDuration),

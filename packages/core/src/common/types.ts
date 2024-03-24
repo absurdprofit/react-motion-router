@@ -35,24 +35,11 @@ export type ParamsDeserializer = (queryString: string) => PlainObject;
 
 export type AnimationType = keyof typeof AnimationTypeEnum;
 export type AnimationDirection = keyof typeof AnimationDirectionEnum;
+
 export interface AnimationConfig {
-    type: AnimationType;
-    direction?: AnimationDirection;
-    duration: number;
-    easingFunction?: EasingFunction;
+    in?: Animation;
+    out?: Animation;
 }
-
-export interface AnimationKeyframeEffectConfig {
-    keyframes: Keyframe[] | PropertyIndexedKeyframes | null;
-    options?: number | KeyframeEffectOptions;
-}
-
-export interface AnimationConfigSet {
-    in: AnimationConfig | AnimationKeyframeEffectConfig;
-    out: AnimationConfig | AnimationKeyframeEffectConfig;
-}
-
-export type ReducedAnimationConfigSet = Partial<AnimationConfigSet> & Pick<AnimationConfigSet, 'in'>;
 
 export interface ConfigFactoryProps {
     current: {
@@ -64,7 +51,7 @@ export interface ConfigFactoryProps {
     gestureNavigating: boolean;
 }
 
-export type AnimationConfigFactory = (props: ConfigFactoryProps) => AnimationConfig | AnimationKeyframeEffectConfig | ReducedAnimationConfigSet;
+export type AnimationConfigFactory = (props: ConfigFactoryProps) => AnimationConfig;
 
 export interface Vec2 {
     x: number;

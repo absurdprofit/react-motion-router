@@ -1,7 +1,7 @@
 import { ParamsDeserializer, ParamsSerializer, PlainObject, RouterEventMap } from "./common/types";
 import { HistoryEntry } from "./HistoryEntry";
-import MetaData from "./MetaData";
-import RouterData from "./RouterData";
+import { MetaData } from "./MetaData";
+import { RouterData } from "./RouterData";
 import { ScreenBaseProps } from "./ScreenBase";
 
 export interface BackEventDetail {
@@ -38,7 +38,7 @@ export interface NavigateOptions extends NavigationOptions {
 
 export interface GoBackOptions extends NavigationOptions {}
 
-export default abstract class NavigationBase {
+export abstract class NavigationBase {
     protected readonly routerData: RouterData;
     private static rootNavigatorRef: WeakRef<NavigationBase> | null = null;
     protected readonly _routerId: string;

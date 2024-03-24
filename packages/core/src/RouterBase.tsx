@@ -1,15 +1,13 @@
-import NavigationBase, { NavigateEvent, BackEvent } from './NavigationBase';
-import AnimationLayer from './AnimationLayer';
+import { NavigationBase, NavigateEvent, BackEvent } from './NavigationBase';
+import { AnimationLayer } from './AnimationLayer';
 import {
     AnimationConfig,
-    AnimationKeyframeEffectConfig,
-    ReducedAnimationConfigSet,
     SwipeDirection,
     ScreenChild,
     PlainObject,
     RouterEventMap
 } from './common/types';
-import RouterData, { RoutesData, RouterDataContext } from './RouterData';
+import { RouterData, RoutesData, RouterDataContext } from './RouterData';
 import { PageAnimationEndEvent } from './common/events';
 import { concatenateURL, dispatchEvent, includesRoute, matchRoute, searchParamsToObject } from './common/utils';
 import { Component } from 'react';
@@ -17,7 +15,7 @@ import { DEFAULT_ANIMATION, DEFAULT_GESTURE_CONFIG } from './common/constants';
 import { isValidElement, Children, cloneElement } from 'react';
 
 interface Config {
-    animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig;
+    animation?: AnimationConfig;
     defaultRoute?: string;
     swipeAreaWidth?: number;
     minFlingVelocity?: number;
@@ -192,7 +190,7 @@ function StateFromChildren(
     }
 }
 
-export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState> extends Component<P, S> {
+export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState> extends Component<P, S> {
     protected ref: HTMLElement | null = null;
     protected abstract _routerData: RouterData;
     protected config: Config;

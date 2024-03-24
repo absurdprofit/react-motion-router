@@ -2,7 +2,7 @@ import { SharedElementNode, SharedElementScene } from './SharedElement';
 import { clamp, interpolate } from './common/utils';
 import { EasingFunction, PlainObject } from './common/types';
 import { MotionProgressEvent } from './common/events';
-import AnimationLayerData from './AnimationLayerData';
+import { AnimationLayerData } from './AnimationLayerData';
 import { Component } from 'react';
 import { MAX_PROGRESS, MAX_Z_INDEX, MIN_PROGRESS } from './common/constants';
 import { RouterDataContext } from './RouterData';
@@ -37,7 +37,7 @@ interface TransitionState {
     }
 }
 
-export default class GhostLayer extends Component<GhostLayerProps, GhostLayerState> {
+export class GhostLayer extends Component<GhostLayerProps, GhostLayerState> {
     private ref: HTMLDialogElement | null = null;
     private animations: Animation[] = [];
     static contextType = RouterDataContext;

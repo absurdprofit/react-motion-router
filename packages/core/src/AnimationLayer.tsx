@@ -1,13 +1,13 @@
 import { Children, Component, createContext } from 'react';
 import { SwipeEndEvent, SwipeEvent, SwipeStartEvent } from 'web-gesture-events';
 import { clamp, interpolate } from './common/utils';
-import Navigation from './NavigationBase';
+import { NavigationBase } from './NavigationBase';
 import { ScreenBase, ScreenChild } from './index';
-import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
+import { AnimationLayerData, AnimationLayerDataContext } from './AnimationLayerData';
 import { MotionProgressDetail } from './common/events';
 import { SwipeDirection } from './common/types';
 import { MAX_PROGRESS, MIN_PROGRESS } from './common/constants';
-import GhostLayer from './GhostLayer';
+import { GhostLayer } from './GhostLayer';
 
 export const Motion = createContext(0);
 
@@ -15,7 +15,7 @@ interface AnimationLayerProps {
     children: ScreenChild | ScreenChild[];
     currentScreen: ScreenBase | null;
     nextScreen: ScreenBase | null;
-    navigation: Navigation;
+    navigation: NavigationBase;
     onGestureNavigationEnd: Function;
     onGestureNavigationStart: Function;
     onDocumentTitleChange(title: string | null): void;
@@ -44,7 +44,7 @@ interface AnimationLayerState {
 }
 
 
-export default class AnimationLayer extends Component<AnimationLayerProps, AnimationLayerState> {
+export class AnimationLayer extends Component<AnimationLayerProps, AnimationLayerState> {
     protected readonly animationLayerData = new AnimationLayerData();
     private ref: HTMLDivElement | null = null;
 

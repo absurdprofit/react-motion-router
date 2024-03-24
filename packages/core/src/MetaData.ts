@@ -1,6 +1,6 @@
 import { MetaKey, MetaType, MetaTypeKey } from "./common/types";
 
-export default class MetaData {
+export class MetaData {
     private _map = new Map<MetaKey, string | undefined>();
     private mutationObserver: MutationObserver;
 

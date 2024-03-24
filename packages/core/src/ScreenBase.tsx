@@ -1,13 +1,10 @@
 import { Component, ElementType, Suspense, cloneElement, isValidElement } from "react";
-import AnimationProvider from "./AnimationProvider";
+import { AnimationProvider } from "./AnimationProvider";
 import {
-    AnimationConfig,
     AnimationConfigFactory,
-    AnimationConfigSet,
-    AnimationKeyframeEffectConfig,
+    AnimationConfig,
     LazyExoticComponent,
     PlainObject,
-    ReducedAnimationConfigSet,
     RouteProp,
     SwipeDirection,
     isValidComponentConstructor
@@ -16,7 +13,7 @@ import { RouterDataContext } from "./RouterData";
 import { SharedElementScene, SharedElementSceneContext } from "./SharedElement";
 import { DEFAULT_ANIMATION } from "./common/constants";
 import { RouteDataContext } from "./RouteData";
-import { AnimationLayerData, NavigationBase } from ".";
+import { NavigationBase } from "./NavigationBase";
 
 export interface ScreenBaseProps {
     out?: boolean;
@@ -36,11 +33,8 @@ export interface ScreenBaseProps {
             fallback?: React.ReactNode;
             component: React.JSXElementConstructor<any> | LazyExoticComponent<any>
         },
-        animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig | AnimationConfigFactory;
-        pseudoElement?: {
-            selector: string;
-            animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig | AnimationConfigFactory;
-        };
+        animation?: AnimationConfig | AnimationConfigFactory;
+        pseudoElementAnimation?: AnimationConfig | AnimationConfigFactory;
         keepAlive?: boolean;
         swipeDirection?: SwipeDirection;
         swipeAreaWidth?: number;
@@ -54,14 +48,14 @@ export interface ScreenBaseState {
     shouldKeepAlive: boolean;
 }
 
-export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState> extends Component<P, S> {
+export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState> extends Component<P, S> {
     protected name = this.props.path === undefined ? 'not-found' : this.props.path?.toString().slice(1).replace('/', '-') || 'index';
     protected _sharedElementScene: SharedElementScene = new SharedElementScene(this.name);
     protected ref: HTMLElement | null = null;
     private onRef = this.setRef.bind(this);
     private onAnimationProviderRef = this.setAnimationProviderRef.bind(this);
-    private animation: AnimationConfigSet | (() => AnimationConfigSet) = DEFAULT_ANIMATION;
-    private pseudoElementAnimation: AnimationConfigSet | (() => AnimationConfigSet) = DEFAULT_ANIMATION;
+    private animation: AnimationConfig | (() => AnimationConfig) = DEFAULT_ANIMATION;
+    private pseudoElementAnimation: AnimationConfig | (() => AnimationConfig) = DEFAULT_ANIMATION;
     protected elementType: ElementType | string = "div";
     protected animationProviderRef: HTMLElement | null = null;
     protected _routeData: RouteProp<P["config"], PlainObject> = {
@@ -90,8 +84,8 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
 
     componentDidMount() {        
         const routeData = this.routeData;
-        this.animation = this.setupAnimation(routeData.config.animation) ?? this.context!.animation;
-        this.pseudoElementAnimation = this.setupAnimation(routeData.config.pseudoElement?.animation) ?? DEFAULT_ANIMATION;
+        this.animation = this.animationFactory.bind(this, routeData.config.animation);
+        this.pseudoElementAnimation = this.animationFactory.bind(this, routeData.config.pseudoElementAnimation);
 
         this.forceUpdate();
     }
@@ -143,28 +137,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
         return this._sharedElementScene;
     }
 
-    setupAnimation(animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig | AnimationConfigFactory) {
-        if (animation) {
-            if (typeof animation === "function") {
-                return this.animationFactory.bind(this, animation);
-            } else {
-                if ('in' in animation) {
-                    return {
-                        in: animation.in,
-                        out: animation.out || animation.in
-                    };
-                } else {
-                    return {
-                        in: animation,
-                        out: animation
-                    };
-                }
-            }
-        }
-        return null;
-    }
-
-    animationFactory(animation?: AnimationKeyframeEffectConfig | AnimationConfig | ReducedAnimationConfigSet | AnimationConfigFactory): AnimationConfigSet {
+    animationFactory(animation?: AnimationConfig | AnimationConfigFactory): AnimationConfig {
         if (typeof animation === "function") {
             let currentPath = this.context!.navigation!.next?.route ?? null;
             if (!this.context!.backNavigating) {
@@ -173,7 +146,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
             let nextPath = this.context!.navigation!.current.route;
             const gestureNavigating = this.context!.gestureNavigating;
 
-            const animationConfig = animation({
+            return animation({
                 current: {
                     path: currentPath
                 },
@@ -182,21 +155,9 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
                 },
                 gestureNavigating
             });
-
-            if ('in' in animationConfig) {
-                return {
-                    in: animationConfig.in,
-                    out: animationConfig.out || animationConfig.in
-                };
-            } else {
-                return {
-                    in: animationConfig,
-                    out: animationConfig
-                };
-            }
         }
 
-        return this.context!.animation;
+        return animation ?? DEFAULT_ANIMATION;
     }
 
     onExited() {}
@@ -256,13 +217,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
                 footerPreloaded = true;
             }
         }
-        let pseudoElement = undefined;
-        if (routeData.config.pseudoElement) {
-            pseudoElement = {
-                selector: routeData.config.pseudoElement.selector,
-                animation: this.pseudoElementAnimation
-            };
-        }
+
         routeData.preloaded = preloaded;
         routeData.focused = Boolean(this.props.in);
         this.sharedElementScene.keepAlive = Boolean(routeData.config.keepAlive);
@@ -279,8 +234,7 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
                 name={this.props.name?.toLowerCase().replace(' ', '-') ?? this.name}
                 resolvedPathname={this.props.resolvedPathname}
                 animation={this.animation}
-                pseudoElement={pseudoElement}
-                backNavigating={this.context!.backNavigating}
+                pseudoElementAnimation={this.pseudoElementAnimation}
                 keepAlive={this.state.shouldKeepAlive ? routeData.config.keepAlive || false : false}
                 navigation={this.context!.navigation}
             >

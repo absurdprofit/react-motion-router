@@ -4,14 +4,8 @@ export const MIN_PROGRESS = 0;
 export const MIN_NORM_PROGRESS = 0;
 export const MAX_NORM_PROGRESS = 1;
 export const DEFAULT_ANIMATION = {
-    in: {
-        type: 'none',
-        duration: 0
-    },
-    out: {
-        type: 'none',
-        duration: 0
-    }
+    in: new Animation(),
+    out: new Animation()
 } as const;
 export const DEFAULT_GESTURE_CONFIG = {
     hysteresis: 50,

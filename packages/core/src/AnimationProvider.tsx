@@ -1,7 +1,6 @@
-import { AnimationConfigSet, AnimationDirection, AnimationKeyframeEffectConfig, CustomElementType, EasingFunction } from './common/types';
-import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
-import AnimationKeyframePresets from './Animations';
-import NavigationBase from './NavigationBase';
+import { AnimationConfig, AnimationDirection, CustomElementType, EasingFunction } from './common/types';
+import { AnimationLayerData, AnimationLayerDataContext } from './AnimationLayerData';
+import { NavigationBase } from './NavigationBase';
 import { Component, ElementType } from 'react';
 
 interface AnimationProviderProps {
@@ -14,12 +13,8 @@ interface AnimationProviderProps {
     out: boolean;
     name: string;
     resolvedPathname?: string;
-    animation: AnimationConfigSet | (() => AnimationConfigSet);
-    pseudoElement?: {
-        selector: string;
-        animation: AnimationConfigSet | (() => AnimationConfigSet);
-    }
-    backNavigating: boolean;
+    animation: AnimationConfig | (() => AnimationConfig);
+    pseudoElementAnimation?: AnimationConfig | (() => AnimationConfig);
     keepAlive: boolean;
     children: React.ReactNode
     navigation: NavigationBase;
@@ -31,16 +26,7 @@ interface AnimationProviderState {
     zIndex: number;
 }
 
-const OppositeDirection = {
-    "left": "right" as const,
-    "right": "left" as const,
-    "up": "down" as const,
-    "down": "up" as const,
-    "in": "out" as const,
-    "out": "in" as const
-}
-
-export default class AnimationProvider extends Component<AnimationProviderProps, AnimationProviderState> {
+export class AnimationProvider extends Component<AnimationProviderProps, AnimationProviderState> {
     private _animationLayerData: AnimationLayerData | null = null;
     private ref: HTMLElement | null = null;
     private setRef = this.onRef.bind(this);
@@ -122,42 +108,15 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
 
     private getAnimationConfig(
         type: "in" | "out",
-        animation: AnimationConfigSet | (() => AnimationConfigSet)
-    ): AnimationKeyframeEffectConfig | [keyof typeof AnimationKeyframePresets, number, EasingFunction | undefined] {
+        animation: AnimationConfig | (() => AnimationConfig)
+    ) {
         if (typeof animation === "function") {
             animation = animation();
         } else {
             animation = animation;
         }
 
-        const animationConfig = animation[type];
-        if ('type' in animationConfig) {
-            let direction: AnimationDirection | undefined = animationConfig.direction;
-            let directionPrefix: '' | 'back-' = '' as const;
-            if (this.props.out && direction) {
-                if (animationConfig.type === "zoom" || animationConfig.type === "slide") {
-                    direction = OppositeDirection[direction];
-                    directionPrefix = 'back-' as const;
-                }
-            }
-            switch(animationConfig.type) {
-                case "slide":
-                    if (direction === 'in' || direction === 'out') direction = 'left';
-                    return [`slide-${directionPrefix}${direction || 'left'}-${type}`, animationConfig.duration, animationConfig.easingFunction];
-    
-                case "zoom":
-                    if (direction !== 'in' && direction !== 'out') direction = 'in';
-                    return [`zoom-${direction || 'in'}-${type}`, animationConfig.duration, animationConfig.easingFunction];
-                
-                case "fade":
-                    return [`fade-${type}`, animationConfig.duration, animationConfig.easingFunction];
-                
-                default:
-                    return ["none", animationConfig.duration, undefined];
-            }
-        } else {
-            return animationConfig;
-        }
+        return animation[type] ?? null;
     }
 
     get zIndex() {
@@ -165,14 +124,14 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
     }
 
     get pseudoElementInAnimation() {
-        if (this.props.pseudoElement)
-            return this.getAnimationConfig("in", this.props.pseudoElement.animation);
+        if (this.props.pseudoElementAnimation)
+            return this.getAnimationConfig("in", this.props.pseudoElementAnimation);
         return null;
     }
 
     get pseudoElementOutAnimation() {
-        if (this.props.pseudoElement)
-            return this.getAnimationConfig("out", this.props.pseudoElement.animation);
+        if (this.props.pseudoElementAnimation)
+            return this.getAnimationConfig("out", this.props.pseudoElementAnimation);
         return null;
     }
 
@@ -180,170 +139,8 @@ export default class AnimationProvider extends Component<AnimationProviderProps,
         return this.getAnimationConfig("in", this.props.animation);
     }
 
-    get outAnimation(): AnimationKeyframeEffectConfig | [keyof typeof AnimationKeyframePresets, number, EasingFunction | undefined] {
+    get outAnimation() {
         return this.getAnimationConfig("out", this.props.animation);
-    }
-
-    get pseudoElementDuration() {
-        const animation = this.props.in ? this.pseudoElementInAnimation : this.pseudoElementOutAnimation;
-        if (!animation) return null;
-        if (Array.isArray(animation)) {
-            const [_, duration] = animation;
-            return duration;
-        } else {
-            if (typeof animation.options === "number") return animation.options;
-            return animation.options?.duration;
-        }
-    }
-
-    get duration() {
-        const animation = this.props.in ? this.inAnimation : this.outAnimation;
-        if (Array.isArray(animation)) {
-            const [_, duration] = animation;
-            return duration;
-        } else {
-            if (typeof animation.options === "number") return animation.options;
-            return animation.options?.duration;
-        }
-    }
-
-    get pseudoElementAnimation() {
-        if (!this.ref || !this.props.pseudoElement) return null;
-        const pseudoElement = this.props.pseudoElement.selector;
-        let easingFunction = this._animationLayerData?.gestureNavigating ? 'linear' : 'ease-out';
-        if (this.props.in) {
-            if (Array.isArray(this.pseudoElementInAnimation)) { // predefined animation
-                const [animation, duration, userDefinedEasingFunction] = this.pseudoElementInAnimation;
-                return new Animation(
-                    new KeyframeEffect(this.ref, AnimationKeyframePresets[animation], {
-                        fill: 'both',
-                        duration: duration,
-                        easing: userDefinedEasingFunction || easingFunction,
-                        pseudoElement
-                    })
-                );
-            } else { // user provided animation
-                let {keyframes, options} = this.pseudoElementInAnimation!;
-                if (typeof options === "number") {
-                    options = {
-                        duration: options,
-                        easing: easingFunction,
-                        fill: 'both',
-                        pseudoElement
-                    };
-                } else {
-                    options = {
-                        ...options,
-                        fill: options?.fill || 'both',
-                        duration: options?.duration || this._animationLayerData?.duration,
-                        easing: options?.easing || easingFunction,
-                        pseudoElement
-                    };
-                }
-                return new Animation(
-                    new KeyframeEffect(this.ref, keyframes, options)
-                );
-            }
-        } else {
-            if (Array.isArray(this.pseudoElementOutAnimation)) { // predefined animation
-                const [animation, duration, userDefinedEasingFunction] = this.pseudoElementOutAnimation;
-                return new Animation(
-                    new KeyframeEffect(this.ref, AnimationKeyframePresets[animation], {
-                        fill: 'both',
-                        duration: duration,
-                        easing: userDefinedEasingFunction || easingFunction,
-                        pseudoElement
-                    })
-                );
-            } else { // user provided animation
-                let {keyframes, options} = this.pseudoElementOutAnimation!;
-                if (typeof options === "number") {
-                    options = {
-                        duration: options,
-                        easing: easingFunction,
-                        fill: 'both',
-                        pseudoElement
-                    };
-                } else {
-                    options = {
-                        ...options,
-                        easing: options?.easing || easingFunction,
-                        duration: options?.duration || this._animationLayerData?.duration,
-                        fill: options?.fill || 'both',
-                        pseudoElement
-                    };
-                }
-                return new Animation(
-                    new KeyframeEffect(this.ref, keyframes, options)
-                );
-            }
-        }
-    }
-
-    get animation() {
-        if (!this.ref) return null;
-        let easingFunction = this._animationLayerData?.gestureNavigating ? 'linear' : 'ease-out';
-        if (this.props.in) {
-            if (Array.isArray(this.inAnimation)) { // predefined animation
-                const [animation, duration, userDefinedEasingFunction] = this.inAnimation;
-                return new Animation(
-                    new KeyframeEffect(this.ref, AnimationKeyframePresets[animation], {
-                        fill: 'both',
-                        duration: duration,
-                        easing: userDefinedEasingFunction || easingFunction
-                    })
-                );
-            } else { // user provided animation
-                let {keyframes, options} = this.inAnimation;
-                if (typeof options === "number") {
-                    options = {
-                        duration: options,
-                        easing: easingFunction,
-                        fill: 'both'
-                    };
-                } else {
-                    options = {
-                        ...options,
-                        fill: options?.fill || 'both',
-                        duration: options?.duration || this._animationLayerData?.duration,
-                        easing: options?.easing || easingFunction
-                    };
-                }
-                return new Animation(
-                    new KeyframeEffect(this.ref, keyframes, options)
-                );
-            }
-        } else {
-            if (Array.isArray(this.outAnimation)) { // predefined animation
-                const [animation, duration, userDefinedEasingFunction] = this.outAnimation;
-                return new Animation(
-                    new KeyframeEffect(this.ref, AnimationKeyframePresets[animation], {
-                        fill: 'both',
-                        duration: duration,
-                        easing: userDefinedEasingFunction || easingFunction
-                    })
-                );
-            } else { // user provided animation
-                let {keyframes, options} = this.outAnimation;
-                if (typeof options === "number") {
-                    options = {
-                        duration: options,
-                        easing: easingFunction,
-                        fill: 'both'
-                    };
-                } else {
-                    options = {
-                        ...options,
-                        easing: options?.easing || easingFunction,
-                        duration: options?.duration || this._animationLayerData?.duration,
-                        fill: options?.fill || 'both'
-                    };
-                }
-                return new Animation(
-                    new KeyframeEffect(this.ref, keyframes, options)
-                );
-            }
-        }
     }
 
     mounted(_mounted: boolean, willAnimate: boolean = true): Promise<void> {
