@@ -6,7 +6,7 @@ import { ScreenBase, ScreenChild } from './index';
 import { AnimationLayerData, AnimationLayerDataContext } from './AnimationLayerData';
 import { MotionProgressDetail } from './common/events';
 import { SwipeDirection } from './common/types';
-import { MAX_PROGRESS, MIN_PROGRESS } from './common/constants';
+import { DEFAULT_GESTURE_CONFIG, MAX_PROGRESS, MIN_PROGRESS } from './common/constants';
 import { GhostLayer } from './GhostLayer';
 
 export const Motion = createContext(0);
@@ -19,11 +19,6 @@ interface AnimationLayerProps {
     onGestureNavigationEnd: Function;
     onGestureNavigationStart: Function;
     onDocumentTitleChange(title: string | null): void;
-    swipeDirection: SwipeDirection;
-    hysteresis: number;
-    minFlingVelocity: number;
-    swipeAreaWidth: number;
-    disableDiscovery: boolean;
     disableBrowserRouting: boolean;
     dispatchEvent: ((event: Event) => Promise<boolean>) | null;
 }
@@ -63,21 +58,18 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
         shouldAnimate: true,
         startX: 0,
         startY: 0,
-        swipeDirection: this.props.swipeDirection,
-        swipeAreaWidth: this.props.swipeAreaWidth,
-        minFlingVelocity: this.props.minFlingVelocity,
-        hysteresis: this.props.hysteresis,
-        disableDiscovery: false
+        disableDiscovery: false,
+        ...DEFAULT_GESTURE_CONFIG,
     }
 
-    static getDerivedStateFromProps({ currentScreen, ...props }: AnimationLayerProps) {
-        const config = currentScreen?.props.config;
+    static getDerivedStateFromProps(props: AnimationLayerProps, state: AnimationLayerState) {
+        const config = props.currentScreen?.props.config;
         return {
-            swipeDirection: config?.swipeDirection ?? props.swipeDirection,
-            swipeAreaWidth: config?.swipeAreaWidth ?? props.swipeAreaWidth,
-            minFlingVelocity: config?.minFlingVelocity ?? props.minFlingVelocity,
-            hysteresis: config?.hysteresis ?? props.hysteresis,
-            disableDiscovery: config?.disableDiscovery ?? props.disableDiscovery
+            swipeDirection: config?.swipeDirection ?? state.swipeDirection,
+            swipeAreaWidth: config?.swipeAreaWidth ?? state.swipeAreaWidth,
+            minFlingVelocity: config?.minFlingVelocity ?? state.minFlingVelocity,
+            hysteresis: config?.hysteresis ?? state.hysteresis,
+            disableDiscovery: config?.disableDiscovery ?? state.disableDiscovery
         }
     }
 

@@ -1,4 +1,4 @@
-import { AnimationConfig, AnimationDirection, CustomElementType, EasingFunction } from './common/types';
+import { AnimationConfig, CustomElementType } from './common/types';
 import { AnimationLayerData, AnimationLayerDataContext } from './AnimationLayerData';
 import { NavigationBase } from './NavigationBase';
 import { Component, ElementType } from 'react';

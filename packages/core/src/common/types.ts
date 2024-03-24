@@ -1,23 +1,7 @@
-import NavigationBase from '../NavigationBase';
-import ScreenBase, { ScreenBaseProps } from '../ScreenBase';
+import { NavigationBase } from '../NavigationBase';
+import { ScreenBase, ScreenBaseProps } from '../ScreenBase';
 
 export type ScreenChild<P extends ScreenBaseProps = ScreenBaseProps, E extends typeof ScreenBase = typeof ScreenBase> = React.ReactElement<P, React.JSXElementConstructor<E>>;
-
-enum AnimationDirectionEnum {
-    up,
-    down,
-    left,
-    right,
-    in,
-    out
-}
-
-enum AnimationTypeEnum {
-    slide,
-    fade,
-    zoom,
-    none
-}
 
 enum EasingFunctionKeywordEnum {
     "ease",
@@ -32,9 +16,6 @@ export type EasingFunction = EasingFunctionKeyword  | `cubic-bezier(${number},${
 
 export type ParamsSerializer = (params: PlainObject) => string;
 export type ParamsDeserializer = (queryString: string) => PlainObject;
-
-export type AnimationType = keyof typeof AnimationTypeEnum;
-export type AnimationDirection = keyof typeof AnimationDirectionEnum;
 
 export interface AnimationConfig {
     in?: Animation;

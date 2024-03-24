@@ -1,4 +1,4 @@
-import {createContext} from 'react';
+import { createContext } from 'react';
 import { ScreenBaseProps, ScreenBase } from './ScreenBase';
 import { prefetchRoute } from './common/utils';
 import { AnimationConfig, PlainObject, RouteProp, RouterEventMap, SearchParamsDeserializer, SearchParamsSerializer } from './common/types';

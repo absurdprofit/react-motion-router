@@ -1,8 +1,6 @@
 import { NavigationBase, NavigateEvent, BackEvent } from './NavigationBase';
 import { AnimationLayer } from './AnimationLayer';
 import {
-    AnimationConfig,
-    SwipeDirection,
     ScreenChild,
     PlainObject,
     RouterEventMap
@@ -13,24 +11,18 @@ import { concatenateURL, dispatchEvent, includesRoute, matchRoute, searchParamsT
 import { Component } from 'react';
 import { DEFAULT_ANIMATION, DEFAULT_GESTURE_CONFIG } from './common/constants';
 import { isValidElement, Children, cloneElement } from 'react';
-
-interface Config {
-    animation?: AnimationConfig;
-    defaultRoute?: string;
-    swipeAreaWidth?: number;
-    minFlingVelocity?: number;
-    hysteresis?: number;
-    basePathname?: string;
-    disableDiscovery?: boolean;
-    swipeDirection?: SwipeDirection;
-    disableBrowserRouting?: boolean;
-    paramsSerializer?(params: PlainObject): string;
-    paramsDeserializer?(queryString: string): PlainObject;
-}
+import { ScreenBaseProps } from './ScreenBase';
 
 export interface RouterBaseProps {
     id?: string;
-    config: Config;
+    config: {
+        screenOptions: ScreenBaseProps["config"];
+        defaultRoute?: string;
+        basePathname?: string;
+        disableBrowserRouting?: boolean;
+        paramsSerializer?(params: PlainObject): string;
+        paramsDeserializer?(queryString: string): PlainObject;
+    };
     children: ScreenChild | ScreenChild[];
 }
 
@@ -54,11 +46,6 @@ function StateFromChildren(
     let { paths, currentPath, nextPath } = state;
     let nextMatched = false;
     let currentMatched = false;
-    let swipeDirection: SwipeDirection | undefined;
-    let swipeAreaWidth: number | undefined;
-    let minFlingVelocity: number | undefined;
-    let hysteresis: number | undefined;
-    let disableDiscovery: boolean | undefined;
     let documentTitle: string | null = null;
 
     if (state.paths.length) {
@@ -101,12 +88,15 @@ function StateFromChildren(
                 matchInfo = matchRoute(child.props.resolvedPathname, currentPath);
             }
             if (matchInfo) {
-                let mountProps = { out: true, in: false };
-                if (state.gestureNavigating) mountProps = { in: true, out: false };
                 currentMatched = true;
                 children.push(
                     cloneElement(child, {
-                        ...mountProps,
+                        in: false,
+                        out: true,
+                        config: {
+                            ...props.config.screenOptions,
+                            ...child.props.config
+                        },
                         resolvedPathname: matchInfo.matchedPathname,
                         key: child.key ?? Math.random()
                     }) as ScreenChild
@@ -125,19 +115,16 @@ function StateFromChildren(
             const matchInfo = matchRoute(child.props.path, nextPath);
             if (matchInfo) {
                 nextMatched = true;
-                const { config } = child.props;
-                swipeDirection = config?.swipeDirection;
-                swipeAreaWidth = config?.swipeAreaWidth;
-                hysteresis = config?.hysteresis;
-                disableDiscovery = config?.disableDiscovery;
-                minFlingVelocity = config?.minFlingVelocity;
                 documentTitle = child.props.name || null;
-                let mountProps = { in: true, out: false };
-                if (state.gestureNavigating) mountProps = { out: true, in: false };
                 const key = keptAliveKey || Math.random();
                 children.push(
                     cloneElement(child, {
-                        ...mountProps,
+                        in: true,
+                        out: false,
+                        config: {
+                            ...props.config.screenOptions,
+                            ...child.props.config
+                        },
                         resolvedPathname: matchInfo.matchedPathname,
                         key
                     }) as ScreenChild
@@ -151,30 +138,21 @@ function StateFromChildren(
         const children = Children.map(props.children, (child: ScreenChild) => {
             if (!isValidElement(child)) return undefined;
             if (matchRoute(child.props.path, undefined)) {
-                const { config } = child.props;
-                swipeDirection = config?.swipeDirection;
-                swipeAreaWidth = config?.swipeAreaWidth;
-                hysteresis = config?.hysteresis;
-                disableDiscovery = config?.disableDiscovery;
-                minFlingVelocity = config?.minFlingVelocity;
                 documentTitle = child.props.name ?? null;
-                return cloneElement(
-                    child, {
+                return cloneElement(child, {
                     in: true,
                     out: false,
-                }
-                ) as ScreenChild;
+                    config: {
+                        ...props.config.screenOptions,
+                        ...child.props.config
+                    }
+                }) as ScreenChild;
             }
         });
 
         return {
             children,
             documentTitle,
-            swipeDirection: swipeDirection || props.config.swipeDirection,
-            swipeAreaWidth: swipeAreaWidth || props.config.swipeAreaWidth,
-            hysteresis: hysteresis || props.config.hysteresis,
-            disableDiscovery: disableDiscovery === undefined ? props.config.disableDiscovery : disableDiscovery,
-            minFlingVelocity: minFlingVelocity || props.config.minFlingVelocity
         };
     }
 
@@ -182,35 +160,19 @@ function StateFromChildren(
         paths,
         children,
         documentTitle,
-        swipeDirection: swipeDirection || props.config.swipeDirection,
-        swipeAreaWidth: swipeAreaWidth || props.config.swipeAreaWidth,
-        hysteresis: hysteresis || props.config.hysteresis,
-        disableDiscovery: disableDiscovery === undefined ? props.config.disableDiscovery : disableDiscovery,
-        minFlingVelocity: minFlingVelocity || props.config.minFlingVelocity
     }
 }
 
 export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState> extends Component<P, S> {
     protected ref: HTMLElement | null = null;
     protected abstract _routerData: RouterData;
-    protected config: Config;
 
     static defaultProps = {
         config: {
-            animation: DEFAULT_ANIMATION
+            animation: DEFAULT_ANIMATION,
+            ...DEFAULT_GESTURE_CONFIG
         }
-    }
-
-    constructor(props: RouterBaseProps) {
-        super(props as P);
-        if (props.config) {
-            this.config = props.config;
-        } else {
-            this.config = {
-                animation: DEFAULT_ANIMATION
-            }
-        }
-    }
+    };
 
     state: S = {
         currentPath: undefined,
@@ -374,23 +336,12 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
                     {(routerData) => {
                         this._routerData.parentRouterData = routerData;
                         if (!this._routerData.navigation) return;
-                        const {
-                            hysteresis = DEFAULT_GESTURE_CONFIG.hysteresis,
-                            minFlingVelocity = DEFAULT_GESTURE_CONFIG.minFlingVelocity,
-                            swipeAreaWidth = DEFAULT_GESTURE_CONFIG.swipeAreaWidth,
-                            swipeDirection = DEFAULT_GESTURE_CONFIG.swipeDirection
-                        } = this.props.config;
                         return (
                             <RouterDataContext.Provider value={this._routerData}>
                                 <AnimationLayer
                                     currentScreen={this._routerData.currentScreen}
                                     nextScreen={this._routerData.nextScreen}
                                     disableBrowserRouting={Boolean(this.props.config.disableBrowserRouting)}
-                                    disableDiscovery={Boolean(this.props.config.disableDiscovery)}
-                                    hysteresis={hysteresis}
-                                    minFlingVelocity={minFlingVelocity}
-                                    swipeAreaWidth={swipeAreaWidth}
-                                    swipeDirection={swipeDirection}
                                     navigation={this.navigation}
                                     onGestureNavigationStart={this.onGestureNavigationStart}
                                     onGestureNavigationEnd={this.onGestureNavigationEnd}

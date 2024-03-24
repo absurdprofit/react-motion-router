@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { Motion, NavigationBase, PlainObject, RouteProp, ScreenBaseProps } from "..";
 import { RouterDataContext } from "../RouterData";
 import { RouteDataContext } from "../RouteData";

@@ -1,5 +1,5 @@
-import {Children, lazy as ReactLazy, isValidElement} from "react";
-import RouterData from "../RouterData";
+import { Children, lazy as ReactLazy, isValidElement } from "react";
+import { RouterData } from "../RouterData";
 import { ScreenBaseProps } from "../ScreenBase";
 import { Input, LazyExoticComponent, LerpRange, MatchedRoute, Output, PlainObject, ScreenChild, SearchParamsDeserializer, SearchParamsSerializer, Weights, is1DRange } from "./types";
 

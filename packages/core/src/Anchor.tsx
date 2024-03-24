@@ -3,7 +3,7 @@ import { useNavigation } from './common/hooks';
 import { PlainObject, XOR } from './common/types';
 import { searchParamsFromObject } from './common/utils';
 import { RouterDataContext } from './RouterData';
-import type NavigationBase from './NavigationBase';
+import type { NavigationBase } from './NavigationBase';
 import { NavigateOptions } from './NavigationBase';
 
 interface BaseAnchorProps extends React.DetailedHTMLProps<React.AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
