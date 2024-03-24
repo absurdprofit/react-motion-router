@@ -5,8 +5,8 @@ import {
     NodeAppendedEvent,
     NodeRemovedEvent
 } from './common/types';
-import RouterData from './RouterData';
-import NavigationBase, { NavigationProps } from './NavigationBase';
+import { RouterData } from './RouterData';
+import { NavigationBase, NavigationProps } from './NavigationBase';
 import type {
     BackEvent,
     BackEventDetail,
@@ -16,12 +16,12 @@ import type {
     NavigationOptions,
     GoBackOptions
 } from './NavigationBase';
-import RouterBase, { RouterBaseProps, RouterBaseState } from './RouterBase';
-import ScreenBase, { ScreenBaseProps, ScreenBaseState } from './ScreenBase';
-import Anchor from './Anchor';
+import { RouterBase, RouterBaseProps, RouterBaseState } from './RouterBase';
+import { ScreenBase, ScreenBaseProps, ScreenBaseState } from './ScreenBase';
+import { Anchor } from './Anchor';
 import { Motion } from './AnimationLayer';
-import type AnimationLayerData from './AnimationLayerData';
-import GestureRegion from './GestureRegion';
+import type { AnimationLayerData } from './AnimationLayerData';
+import { GestureRegion } from './GestureRegion';
 import 'web-gesture-events';
 import {
     MotionProgressEndEvent,
@@ -31,7 +31,7 @@ import {
     PageAnimationEndEvent,
     PageAnimationStartEvent
 } from './common/events';
-import ScrollRestoration from './ScrollRestoration';
+import { ScrollRestoration } from './ScrollRestoration';
 import {URLPattern} from "urlpattern-polyfill";
 import {SharedElement} from './SharedElement';
 
