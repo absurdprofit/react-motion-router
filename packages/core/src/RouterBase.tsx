@@ -16,7 +16,7 @@ import { ScreenBaseProps } from './ScreenBase';
 export interface RouterBaseProps {
     id?: string;
     config: {
-        screenOptions: ScreenBaseProps["config"];
+        screenConfig: ScreenBaseProps["config"];
         defaultRoute?: string;
         basePathname?: string;
         disableBrowserRouting?: boolean;
@@ -94,7 +94,7 @@ function StateFromChildren(
                         in: false,
                         out: true,
                         config: {
-                            ...props.config.screenOptions,
+                            ...props.config.screenConfig,
                             ...child.props.config
                         },
                         resolvedPathname: matchInfo.matchedPathname,
@@ -122,7 +122,7 @@ function StateFromChildren(
                         in: true,
                         out: false,
                         config: {
-                            ...props.config.screenOptions,
+                            ...props.config.screenConfig,
                             ...child.props.config
                         },
                         resolvedPathname: matchInfo.matchedPathname,
@@ -143,7 +143,7 @@ function StateFromChildren(
                     in: true,
                     out: false,
                     config: {
-                        ...props.config.screenOptions,
+                        ...props.config.screenConfig,
                         ...child.props.config
                     }
                 }) as ScreenChild;
@@ -169,7 +169,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
 
     static defaultProps = {
         config: {
-            screenOptions: {
+            screenConfig: {
                 animation: DEFAULT_ANIMATION,
                 ...DEFAULT_GESTURE_CONFIG
             }
