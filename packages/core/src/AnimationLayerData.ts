@@ -307,15 +307,15 @@ export class AnimationLayerData extends EventTarget {
             pseudoElementInDuration,
             pseudoElementOutDuration
         ];
-        const maxDuration = Math.max(...durations.map(Number).filter(duration => !isNaN(duration)));
+        const minDuration = Math.min(...durations.map(Number).filter(duration => !isNaN(duration)));
         let progress: number | null | undefined = MAX_NORM_PROGRESS;
-        if (maxDuration === Number(outDuration)) {
+        if (minDuration === Number(outDuration)) {
             progress = this._outAnimation?.effect?.getComputedTiming().progress;
-        } else if (maxDuration === Number(inDuration)) {
+        } else if (minDuration === Number(inDuration)) {
             progress = this._inAnimation?.effect?.getComputedTiming().progress;
-        } else if (maxDuration === Number(pseudoElementInDuration)) {
+        } else if (minDuration === Number(pseudoElementInDuration)) {
             progress = this._pseudoElementInAnimation?.effect?.getComputedTiming().progress;
-        } else if (maxDuration === Number(pseudoElementOutDuration)) {
+        } else if (minDuration === Number(pseudoElementOutDuration)) {
             progress = this._pseudoElementOutAnimation?.effect?.getComputedTiming().progress;
         }
         progress = Number(progress);
