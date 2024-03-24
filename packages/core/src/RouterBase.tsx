@@ -169,8 +169,10 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
 
     static defaultProps = {
         config: {
-            animation: DEFAULT_ANIMATION,
-            ...DEFAULT_GESTURE_CONFIG
+            screenOptions: {
+                animation: DEFAULT_ANIMATION,
+                ...DEFAULT_GESTURE_CONFIG
+            }
         }
     };
 

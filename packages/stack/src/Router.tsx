@@ -1,4 +1,4 @@
-import { BackEvent, DEFAULT_ANIMATION, NavigateEvent, RouterBase, RouterData } from '@react-motion-router/core';
+import { BackEvent, NavigateEvent, RouterBase, RouterData } from '@react-motion-router/core';
 import type { RouterBaseProps, RouterBaseState } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 
@@ -13,21 +13,6 @@ export class Router extends RouterBase {
         super(props);
 
         this._routerData = new RouterData(this);
-
-        if (!this.config.animation) {
-            this.config.animation = DEFAULT_ANIMATION;
-        }
-        if ('in' in this.config.animation) {
-            this._routerData.animation = {
-                in: this.config.animation.in,
-                out: this.config.animation.out || this.config.animation.in
-            };
-        } else {
-            this._routerData.animation = {
-                in: this.config.animation,
-                out: this.config.animation
-            };
-        }
     }
     
     componentDidMount(): void {
@@ -71,12 +56,12 @@ export class Router extends RouterBase {
         if (e.detail.routerId !== this.id) return;
         let pathname = this.navigation.current.route;
 
-        if (!this.config.disableBrowserRouting) { // replaced state with default route
+        if (!this.props.config.disableBrowserRouting) { // replaced state with default route
             this._routerData.currentPath = pathname;
             this.setState({currentPath: pathname});
         }
 
-        if (this.config.disableBrowserRouting) {
+        if (this.props.config.disableBrowserRouting) {
             this._routerData.currentPath = pathname;
             this.setState({currentPath: pathname});
             if (this.state.implicitBack) {

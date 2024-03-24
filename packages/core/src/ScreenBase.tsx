@@ -54,8 +54,6 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     protected ref: HTMLElement | null = null;
     private onRef = this.setRef.bind(this);
     private onAnimationProviderRef = this.setAnimationProviderRef.bind(this);
-    private animation: AnimationConfig | (() => AnimationConfig) = DEFAULT_ANIMATION;
-    private pseudoElementAnimation: AnimationConfig | (() => AnimationConfig) = DEFAULT_ANIMATION;
     protected elementType: ElementType | string = "div";
     protected animationProviderRef: HTMLElement | null = null;
     protected _routeData: RouteProp<P["config"], PlainObject> = {
@@ -81,14 +79,6 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     state: S = {
         shouldKeepAlive: this.props.out && this.props.config?.keepAlive,
     } as S;
-
-    componentDidMount() {        
-        const routeData = this.routeData;
-        this.animation = this.animationFactory.bind(this, routeData.config.animation);
-        this.pseudoElementAnimation = this.animationFactory.bind(this, routeData.config.pseudoElementAnimation);
-
-        this.forceUpdate();
-    }
 
     shouldComponentUpdate(nextProps: P) {
         if (nextProps.out && !nextProps.in) {
@@ -233,8 +223,8 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
                 out={this.props.out || false}
                 name={this.props.name?.toLowerCase().replace(' ', '-') ?? this.name}
                 resolvedPathname={this.props.resolvedPathname}
-                animation={this.animation}
-                pseudoElementAnimation={this.pseudoElementAnimation}
+                animationFactory={this.animationFactory.bind(this, routeData.config.animation)}
+                pseudoElementAnimationFactory={this.animationFactory.bind(this, routeData.config.pseudoElementAnimation)}
                 keepAlive={this.state.shouldKeepAlive ? routeData.config.keepAlive || false : false}
                 navigation={this.context!.navigation}
             >

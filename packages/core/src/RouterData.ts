@@ -1,11 +1,10 @@
 import { createContext } from 'react';
 import { ScreenBaseProps, ScreenBase } from './ScreenBase';
 import { prefetchRoute } from './common/utils';
-import { AnimationConfig, PlainObject, RouteProp, RouterEventMap, SearchParamsDeserializer, SearchParamsSerializer } from './common/types';
+import { PlainObject, RouteProp, RouterEventMap, SearchParamsDeserializer, SearchParamsSerializer } from './common/types';
 import { NavigationBase } from './NavigationBase';
 import { RouterBase } from './RouterBase';
 import { ScrollRestorationData } from './ScrollRestorationData';
-import { DEFAULT_ANIMATION } from './common/constants';
 
 export type RoutesData = Map<string | undefined, RouteProp<ScreenBaseProps["config"], PlainObject>>;
 
@@ -24,7 +23,6 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
     private _gestureNavigating: boolean = false;
     private _paramsSerializer?: SearchParamsSerializer;
     private _paramsDeserializer?: SearchParamsDeserializer;
-    private _animation: AnimationConfig = DEFAULT_ANIMATION;
     private _currentScreen: ScreenBase | null = null;
     private _nextScreen: ScreenBase | null = null;
 
@@ -80,9 +78,6 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
     }
     set navigation(_navigation: N) {
         this._navigation = _navigation;
-    }
-    set animation(_animation: AnimationConfig) {
-        this._animation = _animation;
     }
     set backNavigating(_backNavigating: boolean) {
         this._backNavigating = _backNavigating;
@@ -141,9 +136,6 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
     }
     get navigation(): N {
         return this._navigation!;
-    }
-    get animation() {
-        return this._animation;
     }
     get backNavigating() {
         return this._backNavigating;

@@ -13,8 +13,8 @@ interface AnimationProviderProps {
     out: boolean;
     name: string;
     resolvedPathname?: string;
-    animation: AnimationConfig | (() => AnimationConfig);
-    pseudoElementAnimation?: AnimationConfig | (() => AnimationConfig);
+    animationFactory: () => AnimationConfig;
+    pseudoElementAnimationFactory: () => AnimationConfig;
     keepAlive: boolean;
     children: React.ReactNode
     navigation: NavigationBase;
@@ -108,14 +108,8 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
 
     private getAnimationConfig(
         type: "in" | "out",
-        animation: AnimationConfig | (() => AnimationConfig)
+        animation: AnimationConfig
     ) {
-        if (typeof animation === "function") {
-            animation = animation();
-        } else {
-            animation = animation;
-        }
-
         return animation[type] ?? null;
     }
 
@@ -124,23 +118,19 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
     }
 
     get pseudoElementInAnimation() {
-        if (this.props.pseudoElementAnimation)
-            return this.getAnimationConfig("in", this.props.pseudoElementAnimation);
-        return null;
+        return this.getAnimationConfig("in", this.props.pseudoElementAnimationFactory());
     }
 
     get pseudoElementOutAnimation() {
-        if (this.props.pseudoElementAnimation)
-            return this.getAnimationConfig("out", this.props.pseudoElementAnimation);
-        return null;
+        return this.getAnimationConfig("out", this.props.pseudoElementAnimationFactory());
     }
 
     get inAnimation() {
-        return this.getAnimationConfig("in", this.props.animation);
+        return this.getAnimationConfig("in", this.props.animationFactory());
     }
 
     get outAnimation() {
-        return this.getAnimationConfig("out", this.props.animation);
+        return this.getAnimationConfig("out", this.props.animationFactory());
     }
 
     mounted(_mounted: boolean, willAnimate: boolean = true): Promise<void> {
