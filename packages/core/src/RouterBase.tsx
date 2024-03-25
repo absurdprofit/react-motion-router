@@ -29,9 +29,6 @@ export interface RouterBaseProps {
 export interface RouterBaseState {
     currentPath: string | undefined;
     nextPath: string | undefined;
-    backNavigating: boolean;
-    gestureNavigating: boolean;
-    implicitBack: boolean;
     children: ScreenChild | ScreenChild[];
     paths: (string | undefined)[];
     defaultDocumentTitle: string;
@@ -211,9 +208,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
 
     state: S = {
         currentPath: undefined,
-        backNavigating: false,
-        gestureNavigating: false,
-        implicitBack: false,
         defaultDocumentTitle: document.title,
         documentTitle: document.title,
         paths: new Array<string>(),

@@ -37,53 +37,13 @@ export class Router extends RouterBase {
         return this._routerData.navigation;
     }
 
-    onGestureNavigationStart = () => {
-        this._routerData.gestureNavigating = true;
-        this.setState({ gestureNavigating: true });
-    }
+    onGestureNavigationStart = () => {}
 
-    onGestureNavigationEnd = () => {
-        this._routerData.gestureNavigating = false;
-        this.setState({ implicitBack: true, gestureNavigating: false }, () => {
-            this.navigation.goBack();
-            this.setState({ backNavigating: false });
-            this._routerData.backNavigating = false;
-        });
-    }
+    onGestureNavigationEnd = () => {}
 
-    onAnimationEnd = () => {
-        if (this.state.backNavigating) {
-            this._routerData.backNavigating = false;
-            this.setState({ backNavigating: false });
-        }
-    }
+    onAnimationEnd = () => {}
 
-    onBackListener = (e: BackEvent) => {
-        if (e.detail.routerId !== this.id) return;
-        let pathname = this.navigation.current.route;
-
-        if (!this.props.config.disableBrowserRouting) { // replaced state with default route
-            this.setState({ currentPath: pathname });
-        }
-
-        if (this.props.config.disableBrowserRouting) {
-            this.setState({ currentPath: pathname });
-            if (this.state.implicitBack) {
-                this.setState({ implicitBack: false });
-            }
-        }
-
-        if (!this.state.backNavigating) {
-            if (!this.state.implicitBack) {
-                this.setState({ backNavigating: true }, () => {
-                    // this.animationLayerData.finished.then(this.onAnimationEnd.bind(this));
-                });
-                this._routerData.backNavigating = true;
-            } else {
-                this.setState({ implicitBack: false });
-            }
-        }
-    }
+    onBackListener = (e: BackEvent) => {}
 
     onNavigateListener = (e: NavigateEvent) => {
         if (e.detail.routerId !== this.id) return;
