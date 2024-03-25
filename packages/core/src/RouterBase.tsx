@@ -80,6 +80,7 @@ function StateFromChildren(
             if (isFirstLoad) {
                 // first load so resolve by path instead of resolvedPathname
                 matchInfo = matchRoute(child.props.path?.replace(/^\//, ''), currentPath, baseURL);
+                if (!state.paths.includes(child.props.path)) paths.push(child.props.path);
             } else {
                 matchInfo = matchRoute(child.props.resolvedPathname, currentPath, baseURL);
             }
@@ -107,9 +108,8 @@ function StateFromChildren(
             props.children,
             (child) => {
                 if (!isValidElement(child)) return;
-                if (!state.paths.includes(child.props.path)) paths.push(child.props.path);
                 if (nextMatched) return;
-                const matchInfo = matchRoute(child.props.path, nextPath, baseURL);
+                const matchInfo = matchRoute(child.props.path?.replace(/^\//, ''), nextPath, baseURL);
                 if (matchInfo) {
                     nextMatched = true;
                     documentTitle = child.props.name || state.defaultDocumentTitle;
