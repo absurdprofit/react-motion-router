@@ -20,9 +20,10 @@ export class Navigation extends NavigationBase {
         _routerId: string,
         _routerData: RouterData<Navigation>,
         _disableBrowserRouting: boolean = false,
+        _baseURL: URL,
         _defaultRoute: URL | null = null
     ) {
-        super(_routerId, _routerData, _disableBrowserRouting, _defaultRoute);
+        super(_routerId, _routerData, _disableBrowserRouting, _baseURL);
     }
 
     onPopState = (e: Event) => {

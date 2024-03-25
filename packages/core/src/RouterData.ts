@@ -15,7 +15,6 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
     private _dispatchEvent: ((event: Event) => Promise<boolean>) | null = null;
     private _addEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined) => void) | null = null;
     private _removeEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | EventListenerOptions | undefined) => void) | null = null;
-    private _currentPath: string = '';
     private _routesData: RoutesData = new Map();
     private static _scrollRestorationData = new ScrollRestorationData();
     private _navigation?: N;
@@ -70,9 +69,6 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
         this._removeEventListener = _removeEventListener;
     }
 
-    set currentPath(_currentPath: string) {
-        this._currentPath = _currentPath;
-    }
     set routesData(_routesData: RoutesData) {
         this._routesData = _routesData;
     }
@@ -124,9 +120,6 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
     }
     get removeEventListener() {
         return this._removeEventListener;
-    }
-    get currentPath() {
-        return this._currentPath;
     }
     get routesData() {
         return this._routesData;

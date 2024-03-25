@@ -5,7 +5,7 @@ import {
     PlainObject,
     RouterEventMap
 } from './common/types';
-import { RouterData, RoutesData, RouterDataContext } from './RouterData';
+import { RouterData, RouterDataContext } from './RouterData';
 import { PageAnimationEndEvent } from './common/events';
 import { concatenateURL, dispatchEvent, includesRoute, matchRoute, searchParamsToObject } from './common/utils';
 import { Component } from 'react';
@@ -31,12 +31,12 @@ export interface RouterBaseState {
     nextPath: string | undefined;
     backNavigating: boolean;
     gestureNavigating: boolean;
-    routesData: RoutesData;
     implicitBack: boolean;
     children: ScreenChild | ScreenChild[];
     paths: (string | undefined)[];
     defaultDocumentTitle: string;
     documentTitle: string;
+    baseURL: URL;
 }
 
 function StateFromChildren(
@@ -44,9 +44,11 @@ function StateFromChildren(
     state: RouterBaseState,
 ) {
     let { paths, currentPath, nextPath } = state;
+    const baseURL = state.baseURL.toString();
+    const isFirstLoad = props.children === state.children;
     let nextMatched = false;
     let currentMatched = false;
-    let documentTitle: string | null = null;
+    let documentTitle: string = state.defaultDocumentTitle;
 
     if (state.paths.length) {
         if (!includesRoute(nextPath, paths) && state.paths.includes(undefined)) {
@@ -65,7 +67,7 @@ function StateFromChildren(
         (child) => {
             if (currentPath === null) return;
             if (!isValidElement(child)) return;
-            if (matchRoute(child.props.resolvedPathname, nextPath)) {
+            if (matchRoute(child.props.resolvedPathname, nextPath, baseURL)) {
                 // fetch kept alive key
                 // needed since elements kept alive are apart of the DOM
                 // to avoid confusing react we need to preserve this key
@@ -78,21 +80,18 @@ function StateFromChildren(
             // match resolved pathname instead to avoid matching the next component first
             // this can happen if the same component matches both current and next paths
             let matchInfo;
-            if (props.children === state.children) {
+            if (isFirstLoad) {
                 // first load so resolve by path instead of resolvedPathname
-                if (child.props.config?.keepAlive) {
-                    // only match screens with keep alive.
-                    matchInfo = matchRoute(child.props.path, currentPath);
-                }
+                matchInfo = matchRoute(child.props.path?.replace(/^\//, ''), currentPath, baseURL);
             } else {
-                matchInfo = matchRoute(child.props.resolvedPathname, currentPath);
+                matchInfo = matchRoute(child.props.resolvedPathname, currentPath, baseURL);
             }
             if (matchInfo) {
                 currentMatched = true;
                 children.push(
                     cloneElement(child, {
-                        in: false,
-                        out: true,
+                        in: isFirstLoad,
+                        out: !isFirstLoad,
                         config: {
                             ...props.config.screenConfig,
                             ...child.props.config
@@ -105,40 +104,42 @@ function StateFromChildren(
         }
     )
 
-    // get next child
-    Children.forEach(
-        props.children,
-        (child) => {
-            if (!isValidElement(child)) return;
-            if (!state.paths.includes(child.props.path)) paths.push(child.props.path);
-            if (nextMatched) return;
-            const matchInfo = matchRoute(child.props.path, nextPath);
-            if (matchInfo) {
-                nextMatched = true;
-                documentTitle = child.props.name || null;
-                const key = keptAliveKey || Math.random();
-                children.push(
-                    cloneElement(child, {
-                        in: true,
-                        out: false,
-                        config: {
-                            ...props.config.screenConfig,
-                            ...child.props.config
-                        },
-                        resolvedPathname: matchInfo.matchedPathname,
-                        key
-                    }) as ScreenChild
-                );
+    if (!isFirstLoad) {
+        // get next child
+        Children.forEach(
+            props.children,
+            (child) => {
+                if (!isValidElement(child)) return;
+                if (!state.paths.includes(child.props.path)) paths.push(child.props.path);
+                if (nextMatched) return;
+                const matchInfo = matchRoute(child.props.path, nextPath, baseURL);
+                if (matchInfo) {
+                    nextMatched = true;
+                    documentTitle = child.props.name || state.defaultDocumentTitle;
+                    const key = keptAliveKey || Math.random();
+                    children.push(
+                        cloneElement(child, {
+                            in: true,
+                            out: false,
+                            config: {
+                                ...props.config.screenConfig,
+                                ...child.props.config
+                            },
+                            resolvedPathname: matchInfo.matchedPathname,
+                            key
+                        }) as ScreenChild
+                    );
+                }
             }
-        }
-    );
+        );
+    }
 
     // not found case
     if (!children.some((child) => child.props.in)) {
         const children = Children.map(props.children, (child: ScreenChild) => {
             if (!isValidElement(child)) return undefined;
-            if (matchRoute(child.props.path, undefined)) {
-                documentTitle = child.props.name ?? null;
+            if (matchRoute(child.props.path, undefined, baseURL)) {
+                documentTitle = child.props.name ?? state.defaultDocumentTitle;
                 return cloneElement(child, {
                     in: true,
                     out: false,
@@ -151,6 +152,7 @@ function StateFromChildren(
         });
 
         return {
+            paths,
             children,
             documentTitle,
         };
@@ -165,7 +167,38 @@ function StateFromChildren(
 
 export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState> extends Component<P, S> {
     protected ref: HTMLElement | null = null;
-    protected abstract _routerData: RouterData;
+    protected _routerData: RouterData = new RouterData(this);
+    static contextType = RouterDataContext;
+    context!: React.ContextType<typeof RouterDataContext>;
+
+    constructor(props: P, context: React.ContextType<typeof RouterDataContext>) {
+        super(props);
+
+        this._routerData.dispatchEvent = this.dispatchEvent;
+        this._routerData.addEventListener = this.addEventListener;
+        this._routerData.removeEventListener = this.removeEventListener;
+        this._routerData.parentRouterData = context;
+
+        this.state.baseURL = this.baseURL;
+
+        // get url search params and append to existing route params
+        const { currentPath } = this.state;
+        const paramsDeserializer = this._routerData.paramsDeserializer || null;
+        const searchParams = searchParamsToObject(window.location.search, paramsDeserializer);
+        const routesData = this._routerData.routesData;
+
+        if (searchParams) {
+            const routeData = routesData.get(currentPath);
+            routesData.set(currentPath, {
+                focused: routeData?.focused ?? false,
+                preloaded: routeData?.preloaded ?? false,
+                setParams: routeData?.setParams ?? (() => { }),
+                params: searchParams,
+                config: routeData?.config ?? {},
+                setConfig: routeData?.setConfig ?? (() => { })
+            });
+        }
+    }
 
     static defaultProps = {
         config: {
@@ -180,11 +213,11 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         currentPath: undefined,
         backNavigating: false,
         gestureNavigating: false,
-        routesData: new Map(),
         implicitBack: false,
         defaultDocumentTitle: document.title,
         documentTitle: document.title,
         paths: new Array<string>(),
+        children: this.props.children
     } as S;
 
     static getDerivedStateFromProps(props: RouterBaseProps, state: RouterBaseState) {
@@ -194,8 +227,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     componentDidMount() {
         this._routerData.paramsDeserializer = this.props.config.paramsDeserializer;
         this._routerData.paramsSerializer = this.props.config.paramsSerializer;
-        this.onPopStateListener = this.onPopStateListener.bind(this);
-        window.addEventListener('popstate', this.onPopStateListener);
     }
 
     componentDidUpdate(_: Readonly<P>, prevState: Readonly<S>): void {
@@ -206,37 +237,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
 
     componentWillUnmount() {
         if (this.ref) this.removeNavigationEventListeners(this.ref);
-        window.removeEventListener('popstate', this.onPopStateListener);
-    }
-
-    /**
-     * Initialises current path and routes data from URL search params.
-     */
-    protected initialise(navigation: NavigationBase) {
-        // get url search params and append to existing route params
-        let currentPath = navigation.baseURL.pathname;
-        const paramsDeserializer = this._routerData.paramsDeserializer || null;
-        const searchParams = searchParamsToObject(window.location.search, paramsDeserializer);
-        const routesData = this.state.routesData;
-        this._routerData.routesData = routesData;
-
-        if (searchParams) {
-            const routeData = routesData.get(currentPath);
-            routesData.set(currentPath, {
-                focused: routeData?.focused ?? false,
-                preloaded: routeData?.preloaded ?? false,
-                setParams: routeData?.setParams ?? (() => { }),
-                params: searchParams,
-                config: routeData?.config ?? {},
-                setConfig: routeData?.setConfig ?? (() => { })
-            });
-        }
-        this.setState({ currentPath, routesData });
-        this._routerData.currentPath = currentPath;
-
-        this._routerData.dispatchEvent = this.dispatchEvent;
-        this._routerData.addEventListener = this.addEventListener;
-        this._routerData.removeEventListener = this.removeEventListener;
     }
 
     protected dispatchEvent = (event: Event) => {
@@ -264,7 +264,10 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
 
     protected get baseURL() {
         const origin = window.location.origin;
-        const basePathname = this.props.config.basePathname || "";
+        let basePathname = this.props.config.basePathname || "/";
+        // baseURL must end with / for proper concatenation in URL and URLPattern APIs
+        if (!basePathname.endsWith("/"))
+            basePathname += "/";
         if (this.parentRouterData) {
             const parentBaseURL = this.parentRouterData.navigation.baseURL;
             const parentCurrentPath = this.parentRouterData.currentScreen?.resolvedPathname || "";
@@ -280,27 +283,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
 
     abstract onGestureNavigationStart: () => void;
     abstract onGestureNavigationEnd: () => void;
-
-    protected onPopStateListener(e: Event) {
-        let currentPath = this.navigation.baseURL.pathname;
-        const paramsDeserializer = this._routerData.paramsDeserializer || null;
-        const searchParams = searchParamsToObject(window.location.search, paramsDeserializer);
-        const routesData = this.state.routesData;
-        this._routerData.routesData = this.state.routesData;
-
-        if (searchParams) {
-            const routeData = this.state.routesData.get(currentPath);
-            routesData.set(currentPath, {
-                focused: routeData?.focused ?? false,
-                preloaded: routeData?.preloaded ?? false,
-                setParams: routeData?.setParams ?? (() => { }),
-                params: searchParams,
-                config: routeData?.config ?? {},
-                setConfig: routeData?.setConfig ?? (() => { })
-            });
-        }
-        this.setState({ routesData });
-    };
 
     abstract onBackListener: (e: BackEvent) => void;
 
@@ -332,31 +314,23 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     }
 
     render() {
+        if (!this._routerData.navigation) return;
         return (
             <div id={this.id} className="react-motion-router" style={{ width: '100%', height: '100%' }} ref={this.setRef}>
-                <RouterDataContext.Consumer>
-                    {(routerData) => {
-                        this._routerData.parentRouterData = routerData;
-                        if (!this._routerData.navigation) return;
-                        return (
-                            <RouterDataContext.Provider value={this._routerData}>
-                                <AnimationLayer
-                                    currentScreen={this._routerData.currentScreen}
-                                    nextScreen={this._routerData.nextScreen}
-                                    disableBrowserRouting={Boolean(this.props.config.disableBrowserRouting)}
-                                    navigation={this.navigation}
-                                    onGestureNavigationStart={this.onGestureNavigationStart}
-                                    onGestureNavigationEnd={this.onGestureNavigationEnd}
-                                    onDocumentTitleChange={this.onDocumentTitleChange}
-                                    dispatchEvent={this.dispatchEvent}
-                                >
-                                    {this.state.children}
-                                </AnimationLayer>
-                            </RouterDataContext.Provider>
-                        );
-                    }}
-                </RouterDataContext.Consumer>
-
+                <RouterDataContext.Provider value={this._routerData}>
+                    <AnimationLayer
+                        currentScreen={this._routerData.currentScreen}
+                        nextScreen={this._routerData.nextScreen}
+                        disableBrowserRouting={Boolean(this.props.config.disableBrowserRouting)}
+                        navigation={this.navigation}
+                        onGestureNavigationStart={this.onGestureNavigationStart}
+                        onGestureNavigationEnd={this.onGestureNavigationEnd}
+                        onDocumentTitleChange={this.onDocumentTitleChange}
+                        dispatchEvent={this.dispatchEvent}
+                    >
+                        {this.state.children}
+                    </AnimationLayer>
+                </RouterDataContext.Provider>
             </div>
         );
     }

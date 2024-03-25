@@ -1,30 +1,32 @@
 import { BackEvent, NavigateEvent, RouterBase, RouterData } from '@react-motion-router/core';
 import type { RouterBaseProps, RouterBaseState } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
+import { RouterDataContext } from 'packages/core/build/RouterData';
 
-export interface RouterProps extends RouterBaseProps {}
+export interface RouterProps extends RouterBaseProps { }
 
-export interface RouterState extends RouterBaseState {}
+export interface RouterState extends RouterBaseState { }
 
 export class Router extends RouterBase {
     protected _routerData: RouterData<Navigation>;
 
-    constructor(props: RouterProps) {
-        super(props);
+    constructor(props: RouterProps, context: React.ContextType<typeof RouterDataContext>) {
+        super(props, context);
 
         this._routerData = new RouterData(this);
-    }
-    
-    componentDidMount(): void {
-        super.componentDidMount();
-        const defaultRoute = new URL(this.props.config.defaultRoute ?? '/', this.baseURL);
+        const defaultRoute = new URL(props.config.defaultRoute ?? '/', this.baseURL);
         this._routerData.navigation = new Navigation(
             this.id,
             this._routerData,
-            this.props.config.disableBrowserRouting,
+            props.config.disableBrowserRouting,
+            this.baseURL,
             defaultRoute
         );
-        this.initialise(this.navigation);
+        this.state.currentPath = this.baseURL.pathname;
+    }
+
+    componentDidMount(): void {
+        super.componentDidMount();
     }
 
     get navigation() {
@@ -33,14 +35,14 @@ export class Router extends RouterBase {
 
     onGestureNavigationStart = () => {
         this._routerData.gestureNavigating = true;
-        this.setState({gestureNavigating: true});
+        this.setState({ gestureNavigating: true });
     }
 
     onGestureNavigationEnd = () => {
         this._routerData.gestureNavigating = false;
-        this.setState({implicitBack: true, gestureNavigating: false}, () => {
+        this.setState({ implicitBack: true, gestureNavigating: false }, () => {
             this.navigation.goBack();
-            this.setState({backNavigating: false});
+            this.setState({ backNavigating: false });
             this._routerData.backNavigating = false;
         });
     }
@@ -48,7 +50,7 @@ export class Router extends RouterBase {
     onAnimationEnd = () => {
         if (this.state.backNavigating) {
             this._routerData.backNavigating = false;
-            this.setState({backNavigating: false});
+            this.setState({ backNavigating: false });
         }
     }
 
@@ -57,26 +59,24 @@ export class Router extends RouterBase {
         let pathname = this.navigation.current.route;
 
         if (!this.props.config.disableBrowserRouting) { // replaced state with default route
-            this._routerData.currentPath = pathname;
-            this.setState({currentPath: pathname});
+            this.setState({ currentPath: pathname });
         }
 
         if (this.props.config.disableBrowserRouting) {
-            this._routerData.currentPath = pathname;
-            this.setState({currentPath: pathname});
+            this.setState({ currentPath: pathname });
             if (this.state.implicitBack) {
-                this.setState({implicitBack: false});
+                this.setState({ implicitBack: false });
             }
         }
 
         if (!this.state.backNavigating) {
             if (!this.state.implicitBack) {
-                this.setState({backNavigating: true}, () => {
+                this.setState({ backNavigating: true }, () => {
                     // this.animationLayerData.finished.then(this.onAnimationEnd.bind(this));
                 });
                 this._routerData.backNavigating = true;
             } else {
-                this.setState({implicitBack: false});
+                this.setState({ implicitBack: false });
             }
         }
     }
@@ -84,24 +84,21 @@ export class Router extends RouterBase {
     onNavigateListener = (e: NavigateEvent) => {
         if (e.detail.routerId !== this.id) return;
         const currentPath = e.detail.route;
-        this._routerData.currentPath = currentPath;
-        const routesData = this.state.routesData;
+        const routesData = this._routerData.routesData;
 
         //store per route data in object
         //with pathname as key and route data as value
-        const routeData = this.state.routesData.get(currentPath);
+        const routeData = this._routerData.routesData.get(currentPath);
         routesData.set(currentPath, {
             focused: routeData?.focused ?? false,
             preloaded: routeData?.preloaded ?? false,
-            setParams: routeData?.setParams ?? (() => {}),
+            setParams: routeData?.setParams ?? (() => { }),
             params: e.detail.props.params ?? {},
             config: { ...routeData?.config, ...e.detail.props.config },
-            setConfig: routeData?.setConfig ?? (() => {})
+            setConfig: routeData?.setConfig ?? (() => { })
         });
 
         this._routerData.routesData = routesData;
-        this.setState({routesData: routesData}, () => {
-            this.setState({currentPath: currentPath});
-        });
+        this.setState({ currentPath });
     }
 }

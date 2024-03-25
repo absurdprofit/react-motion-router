@@ -36,7 +36,7 @@ export interface NavigateOptions extends NavigationOptions {
     hash?: string;
 }
 
-export interface GoBackOptions extends NavigationOptions {}
+export interface GoBackOptions extends NavigationOptions { }
 
 export abstract class NavigationBase {
     protected readonly routerData: RouterData;
@@ -56,7 +56,6 @@ export abstract class NavigationBase {
 
     ) {
         _baseURL = _baseURL || new URL(window.location.toString());
-        _baseURL = new URL(_baseURL.href.replace(/\/$/, '')); // negate trailing slash
         this._baseURL = _baseURL;
         this.routerData = _routerData;
         this._disableBrowserRouting = _disableBrowserRouting;

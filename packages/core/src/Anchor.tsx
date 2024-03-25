@@ -27,17 +27,18 @@ export function Anchor(props: AnchorProps) {
     const routerData = useContext(RouterDataContext);
     const navigation = props.navigation ?? useNavigation();
     const [href, setHref] = useState<string | undefined>(undefined);
-    const {goBack, params = {}, type = "push", href: hrefProp, onClick: onClickProp, ...aProps} = props;
-    
+    const { goBack, params = {}, type = "push", href: hrefProp, onClick: onClickProp, ...aProps } = props;
+
     useEffect(() => {
         if (goBack) {
             setHref(navigation.previous?.url ?? undefined);
         } else if (hrefProp) {
             const paramsSerializer = routerData?.paramsSerializer || null;
             const search = searchParamsFromObject(params, paramsSerializer);
-            const uri = new URL(hrefProp, navigation.baseURL);
+            const uri = new URL(hrefProp.replace(/^\//, ''), navigation.baseURL);
             uri.search = search;
             setHref(uri.href);
+            console.log(navigation.baseURL.href);
         }
     }, [hrefProp, params]);
 
@@ -51,12 +52,14 @@ export function Anchor(props: AnchorProps) {
         }
         onClickProp?.(e);
     };
-    
-    <a
-        href={href}
-        onClick={onClick}
-        {...aProps}
-    >
-        {props.children}
-    </a>
+
+    return (
+        <a
+            href={href}
+            onClick={onClick}
+            {...aProps}
+        >
+            {props.children}
+        </a>
+    );
 }
