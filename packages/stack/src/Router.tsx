@@ -22,7 +22,11 @@ export class Router extends RouterBase {
             this.baseURL,
             defaultRoute
         );
-        this.state.currentPath = this.baseURL.pathname;
+        if (props.config.disableBrowserRouting) {
+            this.state.currentPath = defaultRoute.pathname;
+        } else {
+            this.state.currentPath = window.location.pathname;
+        }
     }
 
     componentDidMount(): void {

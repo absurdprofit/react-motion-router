@@ -38,7 +38,6 @@ export function Anchor(props: AnchorProps) {
             const uri = new URL(hrefProp.replace(/^\//, ''), navigation.baseURL);
             uri.search = search;
             setHref(uri.href);
-            console.log(navigation.baseURL.href);
         }
     }, [hrefProp, params]);
 
