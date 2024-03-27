@@ -42,10 +42,10 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
     }
 
     state: AnimationProviderState = {
-        mounted: this.props.out && this.props.keepAlive,
+        mounted: this.props.in,
         zIndex: this.props.in ? 1 : 0
     }
-    
+
     onRef(ref: HTMLElement | null) {
         this.ref = ref;
         this.props.onRef(ref);
@@ -156,7 +156,7 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
             if (this.props.keepAlive && !_mounted) { // keep screen in the DOM
                 resolve();
             } else {
-                this.setState({mounted: _mounted}, onMountChange);
+                this.setState({ mounted: _mounted }, onMountChange);
             }
         });
     }
@@ -189,6 +189,6 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
                     }}
                 </AnimationLayerDataContext.Consumer>
             </Element>
-        ); 
+        );
     }
 }

@@ -7,21 +7,20 @@ export interface RouterProps extends RouterBaseProps { }
 
 export interface RouterState extends RouterBaseState { }
 
-export class Router extends RouterBase {
-    protected _routerData: RouterData<Navigation>;
-
+export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
     constructor(props: RouterProps, context: React.ContextType<typeof RouterDataContext>) {
         super(props, context);
 
-        this._routerData = new RouterData(this);
         const defaultRoute = new URL(props.config.defaultRoute ?? '.', this.baseURL);
-        this._routerData.navigation = new Navigation(
+        const navigation = new Navigation(
             this.id,
-            this._routerData,
+            this.routerData,
             props.config.disableBrowserRouting,
             this.baseURL,
             defaultRoute
         );
+        this.routerData.navigation = navigation;
+        this.state.navigation = navigation;
         if (props.config.disableBrowserRouting) {
             this.state.currentPath = defaultRoute.pathname;
         } else {
@@ -34,25 +33,25 @@ export class Router extends RouterBase {
     }
 
     get navigation() {
-        return this._routerData.navigation;
+        return this.routerData.navigation;
     }
 
-    onGestureNavigationStart = () => {}
+    onGestureNavigationStart = () => { }
 
-    onGestureNavigationEnd = () => {}
+    onGestureNavigationEnd = () => { }
 
-    onAnimationEnd = () => {}
+    onAnimationEnd = () => { }
 
-    onBackListener = (e: BackEvent) => {}
+    onBackListener = (e: BackEvent) => { }
 
     onNavigateListener = (e: NavigateEvent) => {
         if (e.detail.routerId !== this.id) return;
         const currentPath = e.detail.route;
-        const routesData = this._routerData.routesData;
+        const routesData = this.routerData.routesData;
 
         //store per route data in object
         //with pathname as key and route data as value
-        const routeData = this._routerData.routesData.get(currentPath);
+        const routeData = this.routerData.routesData.get(currentPath);
         routesData.set(currentPath, {
             focused: routeData?.focused ?? false,
             preloaded: routeData?.preloaded ?? false,
@@ -62,7 +61,7 @@ export class Router extends RouterBase {
             setConfig: routeData?.setConfig ?? (() => { })
         });
 
-        this._routerData.routesData = routesData;
+        this.routerData.routesData = routesData;
         this.setState({ currentPath });
     }
 }

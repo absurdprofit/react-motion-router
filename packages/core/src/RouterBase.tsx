@@ -16,7 +16,7 @@ import { ScreenBaseProps } from './ScreenBase';
 export interface RouterBaseProps {
     id?: string;
     config: {
-        screenConfig: ScreenBaseProps["config"];
+        screenConfig?: ScreenBaseProps["config"];
         defaultRoute?: string;
         basePathname?: string;
         disableBrowserRouting?: boolean;
@@ -33,7 +33,7 @@ export interface RouterBaseState {
     paths: (string | undefined)[];
     defaultDocumentTitle: string;
     documentTitle: string;
-    baseURL: URL;
+    navigation: NavigationBase;
 }
 
 function StateFromChildren(
@@ -41,7 +41,7 @@ function StateFromChildren(
     state: RouterBaseState,
 ) {
     let { paths, currentPath, nextPath } = state;
-    const baseURL = state.baseURL.toString();
+    const baseURL = state.navigation.baseURL.toString();
     const isFirstLoad = props.children === state.children;
     let nextMatched = false;
     let currentMatched = false;
@@ -162,9 +162,9 @@ function StateFromChildren(
     }
 }
 
-export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState> extends Component<P, S> {
+export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState, N extends NavigationBase = NavigationBase> extends Component<P, S> {
     protected ref: HTMLElement | null = null;
-    protected _routerData: RouterData = new RouterData(this);
+    private _routerData = new RouterData<N>(this);
     static contextType = RouterDataContext;
     context!: React.ContextType<typeof RouterDataContext>;
 
@@ -175,8 +175,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         this._routerData.addEventListener = this.addEventListener;
         this._routerData.removeEventListener = this.removeEventListener;
         this._routerData.parentRouterData = context;
-
-        this.state.baseURL = this.baseURL;
 
         // get url search params and append to existing route params
         const { currentPath } = this.state;
@@ -247,9 +245,15 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     }
 
     get id() {
-        return Array.from(this.baseURL.pathname).map(char =>
-            char.charCodeAt(0).toString(16).padStart(2, '0')
-        ).join('');
+        return this.baseURL.pathname
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, '-') // Replace non-alphanumeric chars with hyphens
+            .replace(/-+/g, '-') // Replace multiple hyphens with a single one
+            .replace(/^-|-$/g, ''); // Remove leading and trailing hyphens
+    }
+
+    protected get routerData() {
+        return this._routerData;
     }
 
     protected get parentRouterData() {
@@ -257,18 +261,21 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     }
 
     protected get baseURL() {
-        const origin = window.location.origin;
-        let basePathname = this.props.config.basePathname || "/";
+        let baseURL = window.location.origin;
+        let basePathname = this.props.config.basePathname || ".";
+
+        const parentCurrentPath = this.parentRouterData?.currentScreen?.props.path;
+        if (parentCurrentPath) {
+            baseURL = new URL(parentCurrentPath, this.parentRouterData.navigation.baseURL).href;
+        }
         // baseURL must end with / for proper concatenation in URL and URLPattern APIs
         if (!basePathname.endsWith("/"))
             basePathname += "/";
-        if (this.parentRouterData) {
-            const parentBaseURL = this.parentRouterData.navigation.baseURL;
-            const parentCurrentPath = this.parentRouterData.currentScreen?.resolvedPathname || "";
-            return concatenateURL(basePathname, concatenateURL(parentCurrentPath, parentBaseURL));
-        } else {
-            return new URL(basePathname, origin);
-        }
+        // basePathname must not start with / for proper concatenation in URL
+        if (basePathname.startsWith("/"))
+            basePathname = basePathname.slice(1);
+
+        return new URL(basePathname, baseURL);
     }
 
     protected abstract get navigation(): NavigationBase;

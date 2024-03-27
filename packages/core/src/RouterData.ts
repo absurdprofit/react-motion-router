@@ -25,11 +25,8 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
     private _currentScreen: ScreenBase | null = null;
     private _nextScreen: ScreenBase | null = null;
 
-    constructor(routerInstance: RouterBase, navigation?: N) {
+    constructor(routerInstance: RouterBase) {
         this.routerInstance = routerInstance;
-        if (navigation) {
-            this.navigation = navigation;
-        }
     }
 
     public prefetchRoute(path: string): Promise<boolean> {
@@ -45,13 +42,13 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
 
     set childRouterData(childRouterData: RouterData<NavigationBase> | null) {
         const currentChildRouterData = this._childRouterData?.deref();
-        if (currentChildRouterData !== undefined
-            && childRouterData
-            && childRouterData.routerId !== currentChildRouterData.routerId
+        if (
+            currentChildRouterData
+            && childRouterData?.routerId !== currentChildRouterData?.routerId
         ) {
             throw new Error("It looks like you have two navigators at the same level. Try simplifying your navigation structure by using a nested router instead.");
         }
-        if (childRouterData) 
+        if (childRouterData)
             this._childRouterData = new WeakRef(childRouterData);
         else
             this._childRouterData = null;
@@ -61,7 +58,7 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
         this._dispatchEvent = _dispatchEvent;
     }
 
-    set addEventListener(_addEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined)=> void) | null) {
+    set addEventListener(_addEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined) => void) | null) {
         this._addEventListener = _addEventListener;
     }
 
@@ -93,7 +90,7 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
     set nextScreen(_nextScreen: ScreenBase | null) {
         this._nextScreen = _nextScreen;
     }
-    
+
     get currentScreen() {
         return this._currentScreen;
     }
@@ -139,7 +136,7 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
     get paramsSerializer(): ((params: PlainObject) => string) | undefined {
         return this._paramsSerializer;
     }
-    get paramsDeserializer():( (queryString: string) => PlainObject) | undefined {
+    get paramsDeserializer(): ((queryString: string) => PlainObject) | undefined {
         return this._paramsDeserializer;
     }
 }

@@ -13,7 +13,7 @@ import { ScreenProps } from './Screen';
 
 export class Navigation extends NavigationBase {
     private isInternalBack = false;
-    private _finished: Promise<void> = new Promise(() => {});
+    private _finished: Promise<void> = new Promise(() => { });
     private _currentIndex = 0;
 
     constructor(
@@ -50,7 +50,7 @@ export class Navigation extends NavigationBase {
         props: NavigationProps<T, ScreenProps["config"]> = {},
         options: NavigateOptions = {}
     ) {
-        const {type = "push", hash} = options;
+        const { type = "push", hash } = options;
         const search = searchParamsFromObject(props?.params || {}, this.paramsSerializer || null);
 
         if (this._disableBrowserRouting) {
@@ -63,8 +63,8 @@ export class Navigation extends NavigationBase {
         }
 
         const controller = new AbortController();
-        controller.signal.addEventListener('abort', this.onNavigateAbort.bind(this), {once: true});
-        options.signal?.addEventListener('abort', this.onNavigateAbort.bind(this), {once: true});
+        controller.signal.addEventListener('abort', this.onNavigateAbort.bind(this), { once: true });
+        options.signal?.addEventListener('abort', this.onNavigateAbort.bind(this), { once: true });
         this._finished = this.createFinishedPromise(controller);
         const event = this.createNavigateEvent(route, props, type, controller);
 
@@ -76,7 +76,7 @@ export class Navigation extends NavigationBase {
 
     private implicitNavigate(route: string, props: NavigationProps = {}) {
         // this._history.implicitPush(route);
-        
+
         const controller = new AbortController();
         this._finished = this.createFinishedPromise(controller);
         // const event = this.createNavigateEvent(route, props, false, controller);
@@ -100,8 +100,8 @@ export class Navigation extends NavigationBase {
         this.isInternalBack = true;
 
         const controller = new AbortController();
-        controller.signal.addEventListener('abort', this.onBackAbort.bind(this), {once: true});
-        options.signal?.addEventListener('abort', this.onBackAbort.bind(this), {once: true});
+        controller.signal.addEventListener('abort', this.onBackAbort.bind(this), { once: true });
+        options.signal?.addEventListener('abort', this.onBackAbort.bind(this), { once: true });
         this._finished = this.createFinishedPromise(controller);
         // if (this._history.length === 1) {
         //     if (this.parent === null) {
@@ -176,7 +176,6 @@ export class Navigation extends NavigationBase {
                 props: {
                     params: props.params,
                     config: props.config
-                
                 },
                 type,
                 signal: controller.signal,
@@ -224,7 +223,7 @@ export class Navigation extends NavigationBase {
     }
 
     get current() {
-        return this._entries.at(this._currentIndex)!;
+        return this.entries.at(this._currentIndex)!;
     }
 
     get canGoBack() {

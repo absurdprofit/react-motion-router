@@ -150,8 +150,8 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         return animation ?? DEFAULT_ANIMATION;
     }
 
-    onExited() {}
-    
+    onExited() { }
+
     onExit() {
         this.context!.currentScreen = this;
     }
@@ -242,14 +242,14 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
                 >
                     <SharedElementSceneContext.Provider value={this.sharedElementScene}>
                         <RouteDataContext.Provider value={routeData}>
-                            <Suspense fallback={<ComponentWithRouteData component={routeData.config.header?.fallback} route={{...routeData, preloaded: headerPreloaded}} navigation={this.context!.navigation} />}>
-                                <ComponentWithRouteData component={HeaderComponent} route={{...routeData, preloaded: headerPreloaded}} navigation={this.context!.navigation} />
+                            <Suspense fallback={<ComponentWithRouteData component={routeData.config.header?.fallback} route={{ ...routeData, preloaded: headerPreloaded }} navigation={this.context!.navigation} />}>
+                                <ComponentWithRouteData component={HeaderComponent} route={{ ...routeData, preloaded: headerPreloaded }} navigation={this.context!.navigation} />
                             </Suspense>
                             <Suspense fallback={<ComponentWithRouteData component={this.props.fallback} route={routeData} navigation={this.context!.navigation} />}>
                                 <ComponentWithRouteData component={Component} route={routeData} navigation={this.context!.navigation} />
                             </Suspense>
-                            <Suspense fallback={<ComponentWithRouteData component={routeData.config.footer?.fallback} route={{...routeData, preloaded: footerPreloaded}} navigation={this.context!.navigation} />}>
-                                <ComponentWithRouteData component={FooterComponent} route={{...routeData, preloaded: footerPreloaded}} navigation={this.context!.navigation} />
+                            <Suspense fallback={<ComponentWithRouteData component={routeData.config.footer?.fallback} route={{ ...routeData, preloaded: footerPreloaded }} navigation={this.context!.navigation} />}>
+                                <ComponentWithRouteData component={FooterComponent} route={{ ...routeData, preloaded: footerPreloaded }} navigation={this.context!.navigation} />
                             </Suspense>
                         </RouteDataContext.Provider>
                     </SharedElementSceneContext.Provider>
@@ -260,11 +260,11 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
 }
 
 interface ComponentWithRouteDataProps<P extends ScreenBaseProps> {
-    component: React.JSXElementConstructor<any>  | LazyExoticComponent<any> | React.ReactNode;
+    component: React.JSXElementConstructor<any> | LazyExoticComponent<any> | React.ReactNode;
     route: RouteProp<P["config"], PlainObject>;
     navigation: NavigationBase;
 }
-function ComponentWithRouteData<P extends ScreenBaseProps>({component, route, navigation}: ComponentWithRouteDataProps<P>) {
+function ComponentWithRouteData<P extends ScreenBaseProps>({ component, route, navigation }: ComponentWithRouteDataProps<P>) {
     const Component = component ?? null;
     if (isValidElement(Component)) {
         return cloneElement<any>(Component, {

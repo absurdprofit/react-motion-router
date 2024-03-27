@@ -4,7 +4,7 @@ import Home from "./Home";
 import Player from "./Player";
 import Sheet from "./Sheet";
 import { useEffect } from "react";
-import { BackdropAnimation, ModalAnimation } from "./animations";
+import { BackdropAnimation, ModalAnimation } from "./Animations";
 import './index.css';
 import { iOS, isPWA } from "../../common/utils";
 import { STATIC_ANIMATION } from "../../common/constants";
@@ -45,14 +45,14 @@ export default function Overlays(props: OverlaysProps) {
                 <Stack.Router config={{
                     disableBrowserRouting: isPWA() && iOS(),
                 }}>
-                    <Stack.Screen component={Home} path="/" />
-                    <Stack.Screen component={Player} path="/player" config={{
+                    <Stack.Screen component={Home} path="." />
+                    <Stack.Screen component={Player} path="player" config={{
                         ...modalConfig,
                         animation: ModalAnimation
                     }} />
                     <Stack.Screen
                         component={Sheet}
-                        path="/sheet"
+                        path="sheet"
                         config={modalConfig}
                     />
                 </Stack.Router>
