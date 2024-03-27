@@ -2,7 +2,7 @@ import React from 'react';
 import * as Stack from '@react-motion-router/stack';
 import { lazy } from '@react-motion-router/core';
 import { iOS, isPWA } from './common/utils';
-import { OverlaysAnimation } from './Screens/Overlays/animations';
+import { OverlaysAnimation } from './Screens/Overlays/Animations';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './Theme';
 import Navbar from './Components/Navbar';
@@ -29,14 +29,15 @@ function Routes() {
   return (
     <Stack.Router config={{
       basePathname: '/index.html',
-      defaultRoute: '/',
-      disableDiscovery: false,
+      screenConfig: {
+        disableDiscovery: false,
+        animation: !(iOS() && !isPWA) ? AppAnimation : STATIC_ANIMATION,
+        minFlingVelocity: 1000
+      },
       disableBrowserRouting: isPWA() && iOS(),
-      animation: !(iOS() && !isPWA) ? AppAnimation : STATIC_ANIMATION,
-      minFlingVelocity: 1000
     }}>
       <Stack.Screen
-        path='/overlays/**'
+        path='overlays/**'
         name="Overlays"
         component={Overlays}
         fallback={<div className='screen-fallback overlays'></div>}
@@ -45,7 +46,7 @@ function Routes() {
         }}
       />
       <Stack.Screen
-        path={'/slides'}
+        path={'slides'}
         name="Slides"
         component={Slides}
         defaultParams={{ hero: 0 }}
@@ -56,7 +57,7 @@ function Routes() {
         }}
       />
       <Stack.Screen
-        path={'/cards'}
+        path={'cards'}
         name="Cards Demo"
         component={Cards}
         config={{
@@ -66,7 +67,7 @@ function Routes() {
         fallback={<div className='screen-fallback cards'></div>}
       />
       <Stack.Screen
-        path={'/cards-2'}
+        path={'cards-2'}
         name="Cards Demo 2"
         component={Cards2}
         config={{
@@ -76,7 +77,7 @@ function Routes() {
         fallback={<div className='screen-fallback cards-2'></div>}
       />
       <Stack.Screen
-        path={"/details"}
+        path={"details"}
         name="Details"
         component={Details}
         config={{
@@ -89,7 +90,7 @@ function Routes() {
         fallback={<div className='screen-fallback details'></div>}
       />
       <Stack.Screen
-        path={"/"}
+        path={"."}
         name='Home'
         component={Home}
         config={{
@@ -98,7 +99,7 @@ function Routes() {
         fallback={<div className='screen-fallback home'></div>}
       />
       <Stack.Screen
-        path="/tiles"
+        path="tiles"
         name="Tiles"
         component={Tiles}
         fallback={<div className='screen-fallback tiles'></div>}
@@ -107,8 +108,8 @@ function Routes() {
           animation: !(iOS() && !isPWA) ? TilesAnimation : STATIC_ANIMATION,
         }}
       />
-      <Stack.Screen path="/video" component={Video} />
-      <Stack.Screen path="/fullscreen-video" component={FullscreenVideo} />
+      <Stack.Screen path="video" component={Video} />
+      <Stack.Screen path="fullscreen-video" component={FullscreenVideo} />
       <Stack.Screen
         name="Not Found"
         component={NotFound}

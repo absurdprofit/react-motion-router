@@ -14,7 +14,7 @@ export class Router extends RouterBase {
         super(props, context);
 
         this._routerData = new RouterData(this);
-        const defaultRoute = new URL(props.config.defaultRoute ?? '/', this.baseURL);
+        const defaultRoute = new URL(props.config.defaultRoute ?? '.', this.baseURL);
         this._routerData.navigation = new Navigation(
             this.id,
             this._routerData,
