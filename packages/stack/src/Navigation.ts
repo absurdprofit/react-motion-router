@@ -1,6 +1,5 @@
 import {
     BackEventDetail,
-    concatenateURL,
     GoBackOptions,
     NavigateEventDetail,
     NavigateOptions,
@@ -8,7 +7,7 @@ import {
     RouterData,
     searchParamsFromObject
 } from '@react-motion-router/core';
-import type { AnimationLayerData, NavigationProps, PlainObject } from '@react-motion-router/core';
+import type { NavigationProps, PlainObject } from '@react-motion-router/core';
 import { ScreenProps } from './Screen';
 
 export class Navigation extends NavigationBase {

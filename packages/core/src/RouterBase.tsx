@@ -7,7 +7,7 @@ import {
 } from './common/types';
 import { RouterData, RouterDataContext } from './RouterData';
 import { PageAnimationEndEvent } from './common/events';
-import { concatenateURL, dispatchEvent, includesRoute, matchRoute, searchParamsToObject } from './common/utils';
+import { dispatchEvent, includesRoute, matchRoute, searchParamsToObject } from './common/utils';
 import { Component } from 'react';
 import { DEFAULT_ANIMATION, DEFAULT_GESTURE_CONFIG } from './common/constants';
 import { isValidElement, Children, cloneElement } from 'react';

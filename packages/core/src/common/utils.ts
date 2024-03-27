@@ -123,22 +123,6 @@ export function dispatchEvent<T>(event: CustomEvent<T> | Event, target: HTMLElem
     });
 }
 
-export function concatenateURL(path: string | URL, base: string | URL) {
-    if (typeof base === "string") {
-        base = new URL(base);
-    }
-    if (typeof path !== "string") {
-        path = path.pathname;
-    }
-    // replace leading slash from then add trailing slash to base
-    // when this is combined with the URL API, automatic nested occurs
-    path = path.replace(/^\//, '');
-    if (!base.pathname.endsWith('/')) {
-        base = new URL(base.href + '/');
-    }
-    return new URL(path, base);
-}
-
 export function defaultSearchParamsToObject(searchPart: string) {
     const entries = new URLSearchParams(decodeURI(searchPart)).entries();
     const result: PlainObject<string> = {};
