@@ -102,4 +102,5 @@ export interface MatchedRoute {
     matchedPathname?: string;
     rest?: string;
     exact: boolean;
+    params?: PlainObject<string | undefined>;
 }

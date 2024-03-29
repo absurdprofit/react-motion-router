@@ -97,6 +97,7 @@ export function matchRoute(
     const pattern = new URLPattern({baseURL, pathname: routeTest});
     const routeURL = new URL(route, baseURL);
     const match = pattern.exec(routeURL);
+    const params = match?.pathname.groups ?? {};
     let matchedPathname = '';
     let rest = '';
     for (let i = 0; i < pattern.pathname.length; i++) {
@@ -110,7 +111,8 @@ export function matchRoute(
         return {
             exact: routeTest === route,
             matchedPathname,
-            rest
+            rest,
+            params
         };
     }
     return null;

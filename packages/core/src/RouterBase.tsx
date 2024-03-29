@@ -94,6 +94,10 @@ function StateFromChildren(
                             ...props.config.screenConfig,
                             ...child.props.config
                         },
+                        defaultParams: {
+                            ...child.props.defaultParams,
+                            ...matchInfo.params,
+                        },
                         resolvedPathname: matchInfo.matchedPathname,
                         key: child.key ?? Math.random()
                     }) as ScreenChild
@@ -122,6 +126,10 @@ function StateFromChildren(
                                 ...props.config.screenConfig,
                                 ...child.props.config
                             },
+                            defaultParams: {
+                                ...child.props.defaultParams,
+                                ...matchInfo.params,
+                            },
                             resolvedPathname: matchInfo.matchedPathname,
                             key
                         }) as ScreenChild
@@ -135,7 +143,8 @@ function StateFromChildren(
     if (!children.some((child) => child.props.in)) {
         const children = Children.map(props.children, (child: ScreenChild) => {
             if (!isValidElement(child)) return undefined;
-            if (matchRoute(child.props.path, undefined, baseURL)) {
+            const matchInfo = matchRoute(child.props.path, undefined, baseURL);
+            if (matchInfo) {
                 documentTitle = child.props.name ?? state.defaultDocumentTitle;
                 return cloneElement(child, {
                     in: true,
@@ -143,6 +152,10 @@ function StateFromChildren(
                     config: {
                         ...props.config.screenConfig,
                         ...child.props.config
+                    },
+                    defaultParams: {
+                        ...child.props.defaultParams,
+                        ...matchInfo.params,
                     }
                 }) as ScreenChild;
             }
