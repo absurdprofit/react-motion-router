@@ -28,7 +28,6 @@ const FullscreenVideo = lazy(() => import('./Screens/FullscreenVideo'));
 function Routes() {
   return (
     <Stack.Router config={{
-      basePathname: '/index.html',
       screenConfig: {
         disableDiscovery: false,
         animation: !(iOS() && !isPWA) ? AppAnimation : STATIC_ANIMATION,
@@ -112,6 +111,7 @@ function Routes() {
       <Stack.Screen path="fullscreen-video" component={FullscreenVideo} />
       <Stack.Screen
         name="Not Found"
+        path="*"
         component={NotFound}
         fallback={<div className='screen-fallback not-found'></div>}
         config={{

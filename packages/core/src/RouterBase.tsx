@@ -55,8 +55,10 @@ function StateFromChildren(
         (child) => {
             if (currentPath === null) return;
             if (!isValidElement(child)) return;
-            if (typeof child.props.resolvedPathname !== 'string') return;
-            if (nextPath && matchRoute(child.props.resolvedPathname, nextPath, baseURL, child.props.caseSensitive)) {
+            if (
+                nextPath
+                && typeof child.props.resolvedPathname === "string"
+                && matchRoute(child.props.resolvedPathname, nextPath, baseURL, child.props.caseSensitive)) {
                 // fetch kept alive key
                 // needed since elements kept alive are apart of the DOM
                 // to avoid confusing react we need to preserve this key
@@ -73,8 +75,10 @@ function StateFromChildren(
                 // first load so resolve by path instead of resolvedPathname
                 matchInfo = matchRoute(child.props.path, currentPath, baseURL, child.props.caseSensitive);
                 if (!state.paths.includes(child.props.path)) paths.push(child.props.path);
-            } else {
+            } else if (child.props.resolvedPathname) {
                 matchInfo = matchRoute(child.props.resolvedPathname, currentPath, baseURL, child.props.caseSensitive);
+            } else {
+                return;
             }
             if (matchInfo) {
                 currentMatched = true;
@@ -236,22 +240,21 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         return this._routerData.parentRouterData;
     }
 
+    protected get isRoot() {
+        return !this.parentRouterData;
+    }
+
     protected get baseURL() {
-        let baseURL = window.location.origin;
-        let basePathname = this.props.config.basePathname || ".";
+        let baseURL = window.location.origin + "/";
+        const defaultBasePathname = this.isRoot ? new URL(".", document.baseURI).href.replace(baseURL, '') : "/";
+        let basePathname = this.props.config.basePathname || defaultBasePathname;
 
         const parentCurrentPath = this.parentRouterData?.currentScreen?.props.path;
         if (parentCurrentPath) {
-            baseURL = new URL(parentCurrentPath, this.parentRouterData.navigation.baseURL).href;
+            baseURL = this.parentRouterData.navigation.baseURL + parentCurrentPath;
         }
-        // baseURL must end with / for proper concatenation in URL and URLPattern APIs
-        if (!basePathname.endsWith("/"))
-            basePathname += "/";
-        // basePathname must not start with / for proper concatenation in URL
-        if (basePathname.startsWith("/"))
-            basePathname = basePathname.slice(1);
 
-        return new URL(basePathname, baseURL);
+        return new URL(baseURL + basePathname);
     }
 
     protected abstract get navigation(): NavigationBase;
