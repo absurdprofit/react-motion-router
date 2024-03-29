@@ -27,7 +27,7 @@ export interface RouterBaseProps {
 }
 
 export interface RouterBaseState {
-    currentPath: string | undefined;
+    currentPath: string;
     nextPath: string | undefined;
     children: ScreenChild | ScreenChild[];
     paths: (string | undefined)[];
@@ -47,15 +47,6 @@ function StateFromChildren(
     let currentMatched = false;
     let documentTitle: string = state.defaultDocumentTitle;
 
-    if (state.paths.length) {
-        if (!includesRoute(nextPath, paths) && state.paths.includes(undefined)) {
-            nextPath = undefined;
-        }
-        if (currentPath !== null && !includesRoute(currentPath, paths) && state.paths.includes(undefined)) {
-            currentPath = undefined;
-        }
-    }
-
     const children: ScreenChild[] = [];
     let keptAliveKey: React.Key | undefined = undefined;
     // get current child
@@ -64,7 +55,8 @@ function StateFromChildren(
         (child) => {
             if (currentPath === null) return;
             if (!isValidElement(child)) return;
-            if (matchRoute(child.props.resolvedPathname, nextPath, baseURL, child.props.caseSensitive)) {
+            if (typeof child.props.resolvedPathname !== 'string') return;
+            if (nextPath && matchRoute(child.props.resolvedPathname, nextPath, baseURL, child.props.caseSensitive)) {
                 // fetch kept alive key
                 // needed since elements kept alive are apart of the DOM
                 // to avoid confusing react we need to preserve this key
@@ -98,7 +90,7 @@ function StateFromChildren(
                             ...child.props.defaultParams,
                             ...matchInfo.params,
                         },
-                        resolvedPathname: matchInfo.matchedPathname,
+                        resolvedPathname: currentPath,
                         key: child.key ?? Math.random()
                     }) as ScreenChild
                 );
@@ -112,6 +104,7 @@ function StateFromChildren(
             props.children,
             (child) => {
                 if (!isValidElement(child)) return;
+                if (typeof nextPath !== 'string') return;
                 if (nextMatched) return;
                 const matchInfo = matchRoute(child.props.path, nextPath, baseURL, child.props.caseSensitive);
                 if (matchInfo) {
@@ -130,42 +123,13 @@ function StateFromChildren(
                                 ...child.props.defaultParams,
                                 ...matchInfo.params,
                             },
-                            resolvedPathname: matchInfo.matchedPathname,
+                            resolvedPathname: nextPath,
                             key
                         }) as ScreenChild
                     );
                 }
             }
         );
-    }
-
-    // not found case
-    if (!children.some((child) => child.props.in)) {
-        const children = Children.map(props.children, (child: ScreenChild) => {
-            if (!isValidElement(child)) return undefined;
-            const matchInfo = matchRoute(child.props.path, undefined, baseURL);
-            if (matchInfo) {
-                documentTitle = child.props.name ?? state.defaultDocumentTitle;
-                return cloneElement(child, {
-                    in: true,
-                    out: false,
-                    config: {
-                        ...props.config.screenConfig,
-                        ...child.props.config
-                    },
-                    defaultParams: {
-                        ...child.props.defaultParams,
-                        ...matchInfo.params,
-                    }
-                }) as ScreenChild;
-            }
-        });
-
-        return {
-            paths,
-            children,
-            documentTitle,
-        };
     }
 
     return {
@@ -178,7 +142,7 @@ function StateFromChildren(
 export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState, N extends NavigationBase = NavigationBase> extends Component<P, S> {
     protected ref: HTMLElement | null = null;
     private _routerData = new RouterData<N>(this);
-    static contextType = RouterDataContext;
+    static readonly contextType = RouterDataContext;
     context!: React.ContextType<typeof RouterDataContext>;
 
     constructor(props: P, context: React.ContextType<typeof RouterDataContext>) {
@@ -208,7 +172,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         }
     }
 
-    static defaultProps = {
+    static readonly defaultProps = {
         config: {
             screenConfig: {
                 animation: DEFAULT_ANIMATION,
@@ -218,7 +182,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     };
 
     state: S = {
-        currentPath: undefined,
         defaultDocumentTitle: document.title,
         documentTitle: document.title,
         paths: new Array<string>(),

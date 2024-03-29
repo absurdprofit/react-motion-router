@@ -207,7 +207,7 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
     private _ref: HTMLDivElement | null = null;
     private _computedStyle: CSSStyleDeclaration | null = null;
     private onRef = this.setRef.bind(this);
-    static contextType = SharedElementSceneContext;
+    static readonly contextType = SharedElementSceneContext;
     context!: React.ContextType<typeof SharedElementSceneContext>;
 
     state: SharedElementState = {

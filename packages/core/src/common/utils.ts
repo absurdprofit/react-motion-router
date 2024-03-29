@@ -73,52 +73,28 @@ export function clamp(num: number, min: number, max?: number) {
 }
 
 export function matchRoute(
-    routeTest: string | undefined | null,
-    route: string | undefined | null,
+    routeTest: string,
+    route: string,
     baseURL: string = window.location.origin,
     caseSensitive: boolean = true
 ): MatchedRoute | null {
-    routeTest ??= undefined;
-    route ??= undefined;
-    if (typeof routeTest === "undefined" || typeof route === "undefined") {
-        if (routeTest === route) {
-            return {
-                exact: true,
-                matchedPathname: route
-            }
-        }
-        return null;
-    }
-
     if (!caseSensitive) {
         routeTest = routeTest.toLowerCase();
         route = route.toLowerCase();
     }
     const pattern = new URLPattern({baseURL, pathname: routeTest});
-    const routeURL = new URL(route, baseURL);
-    const match = pattern.exec(routeURL);
+    const match = pattern.exec(route, baseURL);
     const params = match?.pathname.groups ?? {};
-    let matchedPathname = '';
-    let rest = '';
-    for (let i = 0; i < pattern.pathname.length; i++) {
-        if (pattern.pathname[i] !== routeURL.pathname[i]) {
-            rest = routeURL.pathname.substring(i);
-            break;
-        } else
-            matchedPathname += pattern.pathname[i];
-    }
     if (match) {
         return {
             exact: routeTest === route,
-            matchedPathname,
-            rest,
             params
         };
     }
     return null;
 }
 
-export function includesRoute(routeString: string | undefined, routeTests: (string | undefined)[], baseURL: string = window.location.origin) {
+export function includesRoute(routeString: string, routeTests: string[], baseURL: string = window.location.origin) {
     return routeTests.some((routeTest) => matchRoute(routeTest, routeString, baseURL));
 }
 

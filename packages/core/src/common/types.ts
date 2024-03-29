@@ -99,8 +99,6 @@ export function is1DRange(range: number[] | LerpRange): range is number[] {
 }
 
 export interface MatchedRoute {
-    matchedPathname?: string;
-    rest?: string;
     exact: boolean;
     params?: PlainObject<string | undefined>;
 }

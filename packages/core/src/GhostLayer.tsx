@@ -40,7 +40,7 @@ interface TransitionState {
 export class GhostLayer extends Component<GhostLayerProps, GhostLayerState> {
     private ref: HTMLDialogElement | null = null;
     private animations: Animation[] = [];
-    static contextType = RouterDataContext;
+    static readonly contextType = RouterDataContext;
     context!: React.ContextType<typeof RouterDataContext>;
 
     constructor(props: GhostLayerProps) {

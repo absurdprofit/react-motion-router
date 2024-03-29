@@ -20,7 +20,7 @@ export interface ScreenBaseProps {
     in?: boolean;
     component: React.JSXElementConstructor<any> | LazyExoticComponent<any>;
     fallback?: React.ReactNode;
-    path?: string;
+    path: string;
     resolvedPathname?: string;
     defaultParams?: PlainObject;
     caseSensitive?: boolean;
@@ -66,7 +66,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         setConfig: this.setConfig.bind(this),
         focused: false
     };
-    static contextType = RouterDataContext;
+    static readonly contextType = RouterDataContext;
     context!: React.ContextType<typeof RouterDataContext>;
 
     constructor(props: P) {
