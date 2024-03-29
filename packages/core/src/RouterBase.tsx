@@ -64,7 +64,7 @@ function StateFromChildren(
         (child) => {
             if (currentPath === null) return;
             if (!isValidElement(child)) return;
-            if (matchRoute(child.props.resolvedPathname, nextPath, baseURL)) {
+            if (matchRoute(child.props.resolvedPathname, nextPath, baseURL, child.props.caseSensitive)) {
                 // fetch kept alive key
                 // needed since elements kept alive are apart of the DOM
                 // to avoid confusing react we need to preserve this key
@@ -79,10 +79,10 @@ function StateFromChildren(
             let matchInfo;
             if (isFirstLoad) {
                 // first load so resolve by path instead of resolvedPathname
-                matchInfo = matchRoute(child.props.path, currentPath, baseURL);
+                matchInfo = matchRoute(child.props.path, currentPath, baseURL, child.props.caseSensitive);
                 if (!state.paths.includes(child.props.path)) paths.push(child.props.path);
             } else {
-                matchInfo = matchRoute(child.props.resolvedPathname, currentPath, baseURL);
+                matchInfo = matchRoute(child.props.resolvedPathname, currentPath, baseURL, child.props.caseSensitive);
             }
             if (matchInfo) {
                 currentMatched = true;
@@ -109,7 +109,7 @@ function StateFromChildren(
             (child) => {
                 if (!isValidElement(child)) return;
                 if (nextMatched) return;
-                const matchInfo = matchRoute(child.props.path, nextPath, baseURL);
+                const matchInfo = matchRoute(child.props.path, nextPath, baseURL, child.props.caseSensitive);
                 if (matchInfo) {
                     nextMatched = true;
                     documentTitle = child.props.name || state.defaultDocumentTitle;

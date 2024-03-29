@@ -23,6 +23,7 @@ export interface ScreenBaseProps {
     path?: string;
     resolvedPathname?: string;
     defaultParams?: PlainObject;
+    caseSensitive?: boolean;
     name?: string;
     config?: {
         header?: {

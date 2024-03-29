@@ -75,7 +75,8 @@ export function clamp(num: number, min: number, max?: number) {
 export function matchRoute(
     routeTest: string | undefined | null,
     route: string | undefined | null,
-    baseURL: string = window.location.origin
+    baseURL: string = window.location.origin,
+    caseSensitive: boolean = true
 ): MatchedRoute | null {
     routeTest ??= undefined;
     route ??= undefined;
@@ -89,6 +90,10 @@ export function matchRoute(
         return null;
     }
 
+    if (!caseSensitive) {
+        routeTest = routeTest.toLowerCase();
+        route = route.toLowerCase();
+    }
     const pattern = new URLPattern({baseURL, pathname: routeTest});
     const routeURL = new URL(route, baseURL);
     const match = pattern.exec(routeURL);
