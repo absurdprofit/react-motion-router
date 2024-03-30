@@ -18,7 +18,7 @@ export default function Tile({hero, navigation, onClick}: TileProps) {
 
     React.useEffect(() => {
         navigation.finished.then(() => {
-            if (navigation.location.pathname === '/tiles') {
+            if (new URL(navigation.current).pathname === '/tiles') {
                 setInset('');
             }
         });
