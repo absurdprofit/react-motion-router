@@ -102,3 +102,7 @@ export interface MatchedRoute {
     exact: boolean;
     params?: PlainObject<string | undefined>;
 }
+
+export interface NavigateEventRouterState {
+    routerId?: string;
+}

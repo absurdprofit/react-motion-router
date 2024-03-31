@@ -1,13 +1,14 @@
-import { NavigationBase, NavigateEvent, BackEvent } from './NavigationBase';
+import { NavigationBase, BackEvent } from './NavigationBase';
 import { AnimationLayer } from './AnimationLayer';
 import {
     ScreenChild,
     PlainObject,
-    RouterEventMap
+    RouterEventMap,
+    NavigateEventRouterState
 } from './common/types';
 import { RouterData, RouterDataContext } from './RouterData';
 import { PageAnimationEndEvent } from './common/events';
-import { dispatchEvent, includesRoute, matchRoute, searchParamsToObject } from './common/utils';
+import { dispatchEvent, matchRoute, searchParamsToObject } from './common/utils';
 import { Component } from 'react';
 import { DEFAULT_ANIMATION, DEFAULT_GESTURE_CONFIG } from './common/constants';
 import { isValidElement, Children, cloneElement } from 'react';
@@ -53,10 +54,9 @@ function StateFromChildren(
     Children.forEach(
         state.children, // match current child from state
         (child) => {
-            if (currentPath === null) return;
             if (!isValidElement(child)) return;
             if (
-                nextPath
+                typeof nextPath === "string"
                 && typeof child.props.resolvedPathname === "string"
                 && matchRoute(child.props.resolvedPathname, nextPath, baseURL, child.props.caseSensitive)) {
                 // fetch kept alive key
@@ -75,7 +75,7 @@ function StateFromChildren(
                 // first load so resolve by path instead of resolvedPathname
                 matchInfo = matchRoute(child.props.path, currentPath, baseURL, child.props.caseSensitive);
                 if (!state.paths.includes(child.props.path)) paths.push(child.props.path);
-            } else if (child.props.resolvedPathname) {
+            } else if (typeof child.props.resolvedPathname === "string") {
                 matchInfo = matchRoute(child.props.resolvedPathname, currentPath, baseURL, child.props.caseSensitive);
             } else {
                 return;
@@ -146,6 +146,7 @@ function StateFromChildren(
 export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState, N extends NavigationBase = NavigationBase> extends Component<P, S> {
     protected ref: HTMLElement | null = null;
     private _routerData = new RouterData<N>(this);
+    private static rootRouterRef: WeakRef<RouterBase> | null = null;
     static readonly contextType = RouterDataContext;
     context!: React.ContextType<typeof RouterDataContext>;
 
@@ -156,6 +157,9 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         this._routerData.addEventListener = this.addEventListener;
         this._routerData.removeEventListener = this.removeEventListener;
         this._routerData.parentRouterData = context;
+        if (this.isRoot) {
+            RouterBase.rootRouterRef = new WeakRef(this);
+        }
 
         // get url search params and append to existing route params
         const { currentPath } = this.state;
@@ -199,6 +203,10 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     componentDidMount() {
         this._routerData.paramsDeserializer = this.props.config.paramsDeserializer;
         this._routerData.paramsSerializer = this.props.config.paramsSerializer;
+
+        if (this.isRoot) {
+            window.navigation.addEventListener('navigate', this.handleNavigationDispatch)
+        }
     }
 
     componentDidUpdate(_: Readonly<P>, prevState: Readonly<S>): void {
@@ -209,6 +217,36 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
 
     componentWillUnmount() {
         if (this.ref) this.removeNavigationEventListeners(this.ref);
+        if (this.isRoot) {
+            window.navigation.removeEventListener('navigate', this.handleNavigationDispatch);
+        }
+    }
+
+    private handleNavigationDispatch = (e: NavigateEvent) => {
+        // for traversing existing entries routerId should be apart of the state
+        let { routerId } = (e.destination.getState() ?? {}) as NavigateEventRouterState;
+        if (e.userInitiated) {
+            // replace with e.sourceElement when available. See https://github.com/WICG/navigation-api/issues/225
+            const sourceElement = document.querySelector(`a[href="${e.destination.url}"]`);
+            routerId = sourceElement?.getAttribute('data-router-id') ?? sourceElement?.closest('.react-motion-router')?.id;
+        }
+        if (routerId) {
+            const router = this.getRouterById(routerId);
+            if (router && router.shouldIntercept(e)) {
+                router.intercept(e);
+            }
+        }
+    }
+
+    protected getRouterById(routerId: string, target?: RouterBase) {
+        const router = target ?? RouterBase.rootRouterRef?.deref();
+        if (router!.id === routerId) {
+            return router;
+        } else if (router?.routerData.childRouterData) {
+            this.getRouterById(routerId, router!.routerData.childRouterData.routerInstance);
+        } else {
+            return null;
+        }
     }
 
     protected dispatchEvent = (event: Event) => {
@@ -259,14 +297,15 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
 
     protected abstract get navigation(): NavigationBase;
 
+    protected abstract shouldIntercept(navigateEvent: NavigateEvent): boolean;
+    protected abstract intercept(navigateEvent: NavigateEvent): void;
+
     abstract onAnimationEnd: (e: PageAnimationEndEvent) => void;
 
     abstract onGestureNavigationStart: () => void;
     abstract onGestureNavigationEnd: () => void;
 
     abstract onBackListener: (e: BackEvent) => void;
-
-    abstract onNavigateListener: (e: NavigateEvent) => void;
 
     protected onDocumentTitleChange = (title: string | null) => {
         if (title) document.title = title;

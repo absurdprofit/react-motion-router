@@ -18,10 +18,6 @@ export default function Sheet({ navigation, route }: SheetProps) {
     const progress = useMotion() / 100;
     const [stiffness] = useState(50);
 
-    const goHome = () => {
-        navigation.parent?.goBack();
-    }
-
     return (
         <motion.div
             className={`sheet modal ${isFirstLoad ? 'loaded' : 'suspense'}`}
@@ -52,9 +48,11 @@ export default function Sheet({ navigation, route }: SheetProps) {
                 <p>
                     You can swipe from the top to dismiss or press the button below.
                 </p>
-                <Button onClick={goHome} variant="contained" className="close">
-                    Go Home
-                </Button>
+                <Anchor goBack navigation={navigation.parent!}>
+                    <Button variant="contained" className="close" fullWidth>
+                        Go Home
+                    </Button>
+                </Anchor>
             </div>
         </motion.div>
     );

@@ -9,7 +9,7 @@ import { ScrollRestorationData } from './ScrollRestorationData';
 export type RoutesData = Map<string | undefined, RouteProp<ScreenBaseProps["config"], PlainObject>>;
 
 export class RouterData<N extends NavigationBase = NavigationBase> {
-    private routerInstance: RouterBase;
+    private _routerInstance: RouterBase;
     private _parentRouterData: RouterData<NavigationBase> | null = null;
     private _childRouterData: WeakRef<RouterData<NavigationBase>> | null = null;
     private _dispatchEvent: ((event: Event) => Promise<boolean>) | null = null;
@@ -26,11 +26,15 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
     private _nextScreen: ScreenBase | null = null;
 
     constructor(routerInstance: RouterBase) {
-        this.routerInstance = routerInstance;
+        this._routerInstance = routerInstance;
     }
 
     public prefetchRoute(path: string): Promise<boolean> {
         return prefetchRoute(path, this);
+    }
+
+    set routerInstance(routerInstance: RouterBase) {
+        this._routerInstance = routerInstance;
     }
 
     set parentRouterData(parentRouterData: RouterData<NavigationBase> | null) {
@@ -96,6 +100,9 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
     }
     get nextScreen() {
         return this._nextScreen;
+    }
+    get routerInstance() {
+        return this._routerInstance;
     }
     get routerId() {
         return this.routerInstance.id;

@@ -24,10 +24,10 @@ interface BackAnchorProps extends BaseAnchorProps {
 type AnchorProps = XOR<ForwardAnchorProps, BackAnchorProps>;
 
 export function Anchor(props: AnchorProps) {
+    const { navigation = useNavigation(), goBack, params = {}, type = "push", href: hrefProp, onClick: onClickProp, ...aProps } = props;
     const routerData = useContext(RouterDataContext);
-    const navigation = props.navigation ?? useNavigation();
     const [href, setHref] = useState<string | undefined>(undefined);
-    const { goBack, params = {}, type = "push", href: hrefProp, onClick: onClickProp, ...aProps } = props;
+    const routerId = navigation?.routerId;
 
     useEffect(() => {
         if (goBack) {
@@ -55,6 +55,7 @@ export function Anchor(props: AnchorProps) {
     return (
         <a
             href={href}
+            data-router-id={routerId}
             onClick={onClick}
             {...aProps}
         >
