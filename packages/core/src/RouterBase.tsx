@@ -216,7 +216,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     }
 
     componentWillUnmount() {
-        if (this.ref) this.removeNavigationEventListeners(this.ref);
         if (this.isRoot) {
             window.navigation.removeEventListener('navigate', this.handleNavigationDispatch);
         }
@@ -312,24 +311,8 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         else document.title = this.state.defaultDocumentTitle;
     }
 
-    addNavigationEventListeners(ref: HTMLElement) {
-        ref.addEventListener('go-back', this.onBackListener, { capture: true });
-        ref.addEventListener('navigate', this.onNavigateListener, { capture: true });
-    }
-
-    removeNavigationEventListeners(ref: HTMLElement) {
-        ref.removeEventListener('go-back', this.onBackListener);
-        ref.removeEventListener('navigate', this.onNavigateListener);
-    }
-
     private setRef = (ref: HTMLElement | null) => {
-        if (this.ref)
-            this.removeNavigationEventListeners(this.ref);
-
         this.ref = ref;
-
-        if (ref)
-            this.addNavigationEventListeners(ref);
     }
 
     render() {

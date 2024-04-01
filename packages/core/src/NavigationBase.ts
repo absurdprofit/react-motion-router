@@ -45,7 +45,6 @@ export abstract class NavigationBase {
     private _metaData = new MetaData();
     protected readonly _disableBrowserRouting: boolean;
     protected _currentParams: PlainObject = {};
-    protected _entries: HistoryEntry[] = new Array<HistoryEntry>();
     private _baseURL: URL;
 
     constructor(
@@ -89,15 +88,11 @@ export abstract class NavigationBase {
     }
 
     get entries() {
-        return this._entries;
+        return this.routerData.entries;
     }
 
     get length() {
         return this.entries.length;
-    }
-
-    get isEmpty() {
-        return !this._entries.length ? true : false;
     }
 
     abstract get canGoBack(): boolean;

@@ -214,11 +214,11 @@ export class Navigation extends NavigationBase {
     }
 
     get previous() {
-        return this._entries.at(this._currentIndex - 1) ?? null;
+        return this.entries.at(this._currentIndex - 1) ?? null;
     }
 
     get next() {
-        return this._entries.at(this._currentIndex + 1) ?? null;
+        return this.entries.at(this._currentIndex + 1) ?? null;
     }
 
     get current() {

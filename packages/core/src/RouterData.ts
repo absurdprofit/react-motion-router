@@ -5,6 +5,7 @@ import { PlainObject, RouteProp, RouterEventMap, SearchParamsDeserializer, Searc
 import { NavigationBase } from './NavigationBase';
 import { RouterBase } from './RouterBase';
 import { ScrollRestorationData } from './ScrollRestorationData';
+import { HistoryEntry } from './HistoryEntry';
 
 export type RoutesData = Map<string | undefined, RouteProp<ScreenBaseProps["config"], PlainObject>>;
 
@@ -18,6 +19,7 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
     private _routesData: RoutesData = new Map();
     private static _scrollRestorationData = new ScrollRestorationData();
     private _navigation?: N;
+    private _entries = new Array<HistoryEntry>();
     private _backNavigating: boolean = false;
     private _gestureNavigating: boolean = false;
     private _paramsSerializer?: SearchParamsSerializer;
@@ -31,6 +33,13 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
 
     public prefetchRoute(path: string): Promise<boolean> {
         return prefetchRoute(path, this);
+    }
+
+    public addEntry(entry: NavigationHistoryEntry) {
+        this._entries.push(new HistoryEntry(entry, this.routerId, this._entries.length));
+        entry.ondispose = () => {
+            this._entries = this._entries.filter(e => e !== entry);
+        };
     }
 
     set routerInstance(routerInstance: RouterBase) {
@@ -133,6 +142,9 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
     }
     get navigation(): N {
         return this._navigation!;
+    }
+    get entries() {
+        return [...this._entries];
     }
     get backNavigating() {
         return this._backNavigating;

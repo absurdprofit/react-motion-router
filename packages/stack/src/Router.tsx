@@ -1,5 +1,5 @@
 import { BackEvent, RouterBase, RouterData } from '@react-motion-router/core';
-import type { RouterBaseProps, RouterBaseState } from '@react-motion-router/core';
+import type { NavigateEventRouterState, RouterBaseProps, RouterBaseState } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { RouterDataContext } from 'packages/core/build/RouterData';
 
@@ -24,12 +24,18 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
         if (props.config.disableBrowserRouting) {
             this.state.currentPath = defaultRoute.pathname;
         } else {
-            this.state.currentPath = window.location.pathname;
+            this.state.currentPath = new URL(window.navigation.currentEntry!.url!).pathname;
         }
     }
 
     componentDidMount(): void {
         super.componentDidMount();
+
+        window.navigation.entries().forEach((entry) => {
+            if (((entry.getState() ?? {}) as NavigateEventRouterState).routerId === this.id) {
+                this.routerData.addEntry(entry);
+            }
+        });
     }
 
     get navigation() {
@@ -49,8 +55,18 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
     }
 
     protected intercept(e: NavigateEvent): void {
-        e.preventDefault();
+        // e.preventDefault();
         console.log(e);
+        e.intercept({
+            handler: () => {
+                return new Promise((resolve) => {
+                    this.setState({
+                        nextPath: new URL(e.destination.url).pathname,
+                    }, resolve);
+                })
+            }
+        })
+
     }
     // onNavigateListener = (e: NavigateEvent) => {
     //     if (e.detail.routerId !== this.id) return;
