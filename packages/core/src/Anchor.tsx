@@ -31,7 +31,7 @@ export function Anchor(props: AnchorProps) {
 
     useEffect(() => {
         if (goBack) {
-            setHref(navigation.previous?.url ?? undefined);
+            setHref(navigation.previous?.url?.href ?? undefined);
         } else if (hrefProp) {
             const paramsSerializer = routerData?.paramsSerializer || null;
             const search = searchParamsFromObject(params, paramsSerializer);

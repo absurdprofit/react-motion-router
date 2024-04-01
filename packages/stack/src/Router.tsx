@@ -55,11 +55,12 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
     }
 
     protected intercept(e: NavigateEvent): void {
-        // e.preventDefault();
-        console.log(e);
         e.intercept({
             handler: () => {
                 return new Promise((resolve) => {
+                    window.navigation.transition?.finished.then(() => {
+                        window.navigation.updateCurrentEntry({ state: { routerId: this.id } });
+                    });
                     this.setState({
                         nextPath: new URL(e.destination.url).pathname,
                     }, resolve);

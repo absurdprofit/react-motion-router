@@ -70,13 +70,18 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
 
     onExit(): void {
         super.onExit();
-        const current = this.context?.navigation.current;
+        const currentPath = this.context?.navigation.current.url?.pathname;
+        if (!currentPath) return;
+        const baseURL = this.context?.navigation.baseURL.href;
         const routes = Children.toArray(this.context?.routes);
-        const nextRoute = routes.find(route => {
-            return isValidElement(route) && matchRoute(route.props.path, current?.url);
+        const currentRoute = routes.find(route => {
+            if (!isValidElement(route)) return false;
+            const path = route.props.path;
+            const caseSensitive = route.props.caseSensitive;
+            return matchRoute(path, currentPath, baseURL, caseSensitive);
         }) as ScreenBase<ScreenProps, ScreenState> | undefined;
-        if (nextRoute?.props.config?.presentation === "modal"
-            || nextRoute?.props.config?.presentation === "dialog") {
+        if (currentRoute?.props.config?.presentation === "modal"
+            || currentRoute?.props.config?.presentation === "dialog") {
                 // if next screen is modal or dialog, keep current screen alive
                 this.setState({shouldKeepAlive: true});
                 this.setConfig({keepAlive: true});

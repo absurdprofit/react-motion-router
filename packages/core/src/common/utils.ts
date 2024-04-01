@@ -28,20 +28,20 @@ export function getCSSData(styles: CSSStyleDeclaration, exclude: string[] = [], 
                 && !propertyName.includes('webkit')
                 && !propertyName.includes('grid')
             ) {
-                switch(propertyName) {
+                switch (propertyName) {
                     case "offset":
                         propertyName = "cssOffset";
                         break;
-                    
+
                     case "float":
                         propertyName = "cssFloat";
                         break;
-                    
+
                     case "visibility":
                         propertyValue = "visible";
                         break;
                 }
-                
+
                 styleObject[propertyName] = propertyValue;
             }
         }
@@ -73,21 +73,20 @@ export function clamp(num: number, min: number, max?: number) {
 }
 
 export function matchRoute(
-    routeTest: string,
-    route: string,
-    baseURL: string = window.location.origin,
+    pathnamePattern: string,
+    pathname: string,
+    baseURLPattern: string = window.location.origin,
     caseSensitive: boolean = true
 ): MatchedRoute | null {
     if (!caseSensitive) {
-        routeTest = routeTest.toLowerCase();
-        route = route.toLowerCase();
+        pathnamePattern = pathnamePattern.toLowerCase();
+        pathname = pathname.toLowerCase();
     }
-    const pattern = new URLPattern(baseURL + routeTest);
-    const match = pattern.exec(route, baseURL);
+    const match = new URLPattern({ baseURL: baseURLPattern, pathname: pathnamePattern }).exec(pathname, baseURLPattern);
     const params = match?.pathname.groups ?? {};
     if (match) {
         return {
-            exact: routeTest === route,
+            exact: pathnamePattern === pathname,
             params
         };
     }
@@ -109,8 +108,8 @@ export function dispatchEvent<T>(event: CustomEvent<T> | Event, target: HTMLElem
 export function defaultSearchParamsToObject(searchPart: string) {
     const entries = new URLSearchParams(decodeURI(searchPart)).entries();
     const result: PlainObject<string> = {};
-    
-    for(const [key, value] of entries) { // each 'entry' is a [key, value] tuple
+
+    for (const [key, value] of entries) { // each 'entry' is a [key, value] tuple
         let parsedValue = '';
         try {
             parsedValue = JSON.parse(value);
@@ -129,9 +128,9 @@ export function searchParamsToObject(searchPart: string, paramsDeserializer: Sea
     return currentParams;
 }
 
-export function searchParamsFromObject(params: {[key: string]: any}, paramsSerializer: SearchParamsSerializer | null) {
+export function searchParamsFromObject(params: { [key: string]: any }, paramsSerializer: SearchParamsSerializer | null) {
     try {
-        const serializer = paramsSerializer || function(paramsObj) {
+        const serializer = paramsSerializer || function (paramsObj) {
             return new URLSearchParams(paramsObj).toString();
         }
         return serializer(params);
@@ -149,8 +148,8 @@ export function lazy<T extends React.ComponentType<any>>(
     Component.preload = () => {
         const result = factory();
         result
-        .then(moduleObject => Component.preloaded = moduleObject.default)
-        .catch(console.error);
+            .then(moduleObject => Component.preloaded = moduleObject.default)
+            .catch(console.error);
         return result;
     };
     return Component;
@@ -167,7 +166,7 @@ export function prefetchRoute(path: string, routerData: RouterData) {
     let currentRouterData: RouterData | null = routerData;
     return new Promise<boolean>((resolve, reject) => {
         let found = false;
-        while(currentRouterData) {
+        while (currentRouterData) {
             const routes = currentRouterData.routes;
             Children.forEach<ScreenChild<ScreenBaseProps>>(routes, (route) => {
                 if (found) return; // stop after first
@@ -181,7 +180,7 @@ export function prefetchRoute(path: string, routerData: RouterData) {
                         preloadTasks.push(route.props.component.preload());
                     }
                     if (route.props.config?.header?.component
-                            && 'preload' in route.props.config?.header?.component) {
+                        && 'preload' in route.props.config?.header?.component) {
                         preloadTasks.push(route.props.config?.header?.component.preload());
                     }
                     if (route.props.config?.footer?.component
@@ -225,7 +224,7 @@ function calculateWeightedMean(input: Input, range: LerpRange, weights: Weights)
     let weightedSum = 0;
     let weightSum = 0;
     for (const [dimension, inputValue] of Object.entries(input)) {
-        const {min, max} = range;
+        const { min, max } = range;
         const weight = weights[dimension] ?? 1;
         const normalised = (inputValue - min[dimension]) / (max[dimension] - min[dimension]);
         const weighted = normalised * weight;
@@ -240,15 +239,15 @@ export function interpolate<O extends LerpRange | number[]>(input: Input, inputR
 export function interpolate(input: Input | number, inputRange: LerpRange | number[], outputRange: number[] | LerpRange, weights: Weights = {}) {
     let inputInterpolatedValue;
     if (typeof input === "number" && is1DRange(inputRange)) {
-        const min = {x: inputRange[0]};
-        const max = {x: inputRange[1]};
-        inputRange = {min, max};
-        input = {x: input};
-    }else {
+        const min = { x: inputRange[0] };
+        const max = { x: inputRange[1] };
+        inputRange = { min, max };
+        input = { x: input };
+    } else {
         throw new TypeError("Input and input range must have the same dimensions.");
     }
     inputInterpolatedValue = calculateWeightedMean(input, inputRange, weights);
-    
+
     if (is1DRange(outputRange)) {
         return mapRange(inputInterpolatedValue, outputRange);
     }
