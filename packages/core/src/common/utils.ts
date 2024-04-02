@@ -82,7 +82,7 @@ export function matchRoute(
         pathnamePattern = pathnamePattern.toLowerCase();
         pathname = pathname.toLowerCase();
     }
-    const match = new URLPattern({ baseURL: baseURLPattern, pathname: pathnamePattern }).exec(pathname, baseURLPattern);
+    const match = new URLPattern(baseURLPattern + pathnamePattern).exec(pathname, window.location.origin);
     const params = match?.pathname.groups ?? {};
     if (match) {
         return {

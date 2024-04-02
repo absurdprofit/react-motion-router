@@ -1,4 +1,4 @@
-import { BackEvent, RouterBase, RouterData } from '@react-motion-router/core';
+import { BackEvent, RouterBase, RouterData, matchRoute } from '@react-motion-router/core';
 import type { NavigateEventRouterState, RouterBaseProps, RouterBaseState } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { RouterDataContext } from 'packages/core/build/RouterData';
@@ -55,19 +55,19 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
     }
 
     protected intercept(e: NavigateEvent): void {
+        const currentIndex = window.navigation.currentEntry?.index ?? 0;
+        const destinationIndex = e.destination.index;
+        const backNavigating = destinationIndex >= 0 && destinationIndex < currentIndex;
         e.intercept({
             handler: () => {
                 return new Promise((resolve) => {
-                    window.navigation.transition?.finished.then(() => {
-                        window.navigation.updateCurrentEntry({ state: { routerId: this.id } });
-                    });
                     this.setState({
                         nextPath: new URL(e.destination.url).pathname,
+                        backNavigating
                     }, resolve);
                 })
             }
-        })
-
+        });
     }
     // onNavigateListener = (e: NavigateEvent) => {
     //     if (e.detail.routerId !== this.id) return;

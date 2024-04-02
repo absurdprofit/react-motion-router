@@ -15,8 +15,10 @@ export class AnimationLayerData extends EventTarget {
     private _pseudoElementOutAnimation: Animation | null = null;
     private _inAnimation: Animation | null = null;
     private _outAnimation: Animation | null = null;
-    private _playbackRate: number = 1;
     private _gestureNavigating: boolean = false;
+    private _playbackRate: number = 1;
+    private _direction: "normal" | "reverse" = "normal";
+    private _timeline: AnimationTimeline = document.timeline;
     private _ghostLayer: GhostLayer | null = null;
     private _onProgress: ((progress: number) => void) | null = null;
     private _shouldAnimate: boolean = true;
@@ -177,12 +179,36 @@ export class AnimationLayerData extends EventTarget {
         this._shouldAnimate = _shouldAnimate;
     }
 
+    set direction(_direction: "normal" | "reverse") {
+        this._direction = _direction;
+        if (this._inAnimation)
+            this._inAnimation.effect?.updateTiming({direction: this._direction});
+        if (this._outAnimation)
+            this._outAnimation.effect?.updateTiming({direction: this._direction});
+        if (this._pseudoElementInAnimation)
+            this._pseudoElementInAnimation.effect?.updateTiming({direction: this._direction});
+        if (this._pseudoElementOutAnimation)
+            this._pseudoElementOutAnimation.effect?.updateTiming({direction: this._direction});
+    }
+
+    set timeline(_timeline: AnimationTimeline) {
+        this._timeline = _timeline;
+        if (this._inAnimation)
+            this._inAnimation.timeline = this._timeline;
+        if (this._outAnimation)
+            this._outAnimation.timeline = this._timeline;
+        if (this._pseudoElementInAnimation)
+            this._pseudoElementInAnimation.timeline = this._timeline;
+        if (this._pseudoElementOutAnimation)
+            this._pseudoElementOutAnimation.timeline = this._timeline;
+    }
+
     set playbackRate(_playbackRate: number) {
         this._playbackRate = _playbackRate;
-        if (this._inAnimation && this._outAnimation) {
+        if (this._inAnimation)
             this._inAnimation.playbackRate = this._playbackRate;
+        if (this._outAnimation)
             this._outAnimation.playbackRate = this._playbackRate;
-        }
         if (this._pseudoElementInAnimation)
             this._pseudoElementInAnimation.playbackRate = this._playbackRate;
         if (this._pseudoElementOutAnimation)
@@ -273,6 +299,14 @@ export class AnimationLayerData extends EventTarget {
 
     get playbackRate() {
         return this._playbackRate;
+    }
+
+    get direction() {
+        return this._direction;
+    }
+
+    get timeline() {
+        return this._timeline;
     }
 
     get ghostLayer() {

@@ -15,7 +15,7 @@ interface AnimationLayerProps {
     children: ScreenChild | ScreenChild[];
     currentScreen: ScreenBase | null;
     nextScreen: ScreenBase | null;
-    navigation: NavigationBase;
+    backNavigating: boolean;
     onGestureNavigationEnd: Function;
     onGestureNavigationStart: Function;
     onDocumentTitleChange(title: string | null): void;
@@ -84,6 +84,7 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
                 this.animate();
             }
         }
+        this.animationLayerData.direction = this.props.backNavigating ? 'reverse' : 'normal';
     }
 
     private onCancel() {

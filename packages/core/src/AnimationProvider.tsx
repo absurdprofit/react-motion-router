@@ -1,7 +1,8 @@
-import { AnimationConfig, CustomElementType } from './common/types';
+import { AnimationConfig, AnimationConfigFactory, CustomElementType } from './common/types';
 import { AnimationLayerData, AnimationLayerDataContext } from './AnimationLayerData';
 import { NavigationBase } from './NavigationBase';
 import { Component, ElementType } from 'react';
+import { DEFAULT_ANIMATION } from './common/constants';
 
 interface AnimationProviderProps {
     onRef: (ref: HTMLElement | null) => void;
@@ -13,8 +14,8 @@ interface AnimationProviderProps {
     out: boolean;
     name: string;
     resolvedPathname?: string;
-    animationFactory: () => AnimationConfig;
-    pseudoElementAnimationFactory: () => AnimationConfig;
+    animation?: AnimationConfig | AnimationConfigFactory;
+    pseudoElementAnimation?: AnimationConfig | AnimationConfigFactory;
     keepAlive: boolean;
     children: React.ReactNode
     navigation: NavigationBase;
@@ -27,9 +28,10 @@ interface AnimationProviderState {
 }
 
 export class AnimationProvider extends Component<AnimationProviderProps, AnimationProviderState> {
-    private _animationLayerData: AnimationLayerData | null = null;
     private ref: HTMLElement | null = null;
     private setRef = this.onRef.bind(this);
+    static readonly contextType = AnimationLayerDataContext;
+    context!: React.ContextType<typeof AnimationLayerDataContext>;
 
     constructor(props: AnimationProviderProps) {
         super(props);
@@ -77,25 +79,25 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
         if (this.state.mounted) {
             this.props.onEntered();
         }
-        if (this._animationLayerData) {
+        if (this.context) {
             if (this.props.in) {
-                this._animationLayerData.nextScreen = this;
+                this.context.nextScreen = this;
             }
             if (this.props.out && !this.state.mounted) {
-                this._animationLayerData.currentScreen = this;
+                this.context.currentScreen = this;
             }
         }
     }
 
     componentDidUpdate(prevProps: AnimationProviderProps) {
-        if (!this._animationLayerData) return;
+        if (!this.context) return;
         if (this.props.out !== prevProps.out || this.props.in !== prevProps.in) {
             if (this.props.out) {
                 // set current screen and call onExit
-                this._animationLayerData.currentScreen = this;
+                this.context.currentScreen = this;
             } else if (this.props.in) {
-                // this._animationLayerData.onEnter = this.props.onEnter;
-                this._animationLayerData.nextScreen = this;
+                // this.context.onEnter = this.props.onEnter;
+                this.context.nextScreen = this;
             }
             this.ref?.toggleAttribute('inert', this.state.zIndex === 0);
         }
@@ -113,24 +115,38 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
         return animation[type] ?? null;
     }
 
+    private animationFactory(animation?: AnimationConfig | AnimationConfigFactory): AnimationConfig {
+        if (typeof animation === "function") {
+            const { timeline, direction, playbackRate } = this.context!;
+
+            return animation({
+                timeline,
+                direction,
+                playbackRate
+            });
+        }
+
+        return animation ?? DEFAULT_ANIMATION;
+    }
+
     get zIndex() {
         return this.props.in ? 1 : 0;
     }
 
     get pseudoElementInAnimation() {
-        return this.getAnimationConfig("in", this.props.pseudoElementAnimationFactory());
+        return this.getAnimationConfig("in", this.animationFactory(this.props.pseudoElementAnimation));
     }
 
     get pseudoElementOutAnimation() {
-        return this.getAnimationConfig("out", this.props.pseudoElementAnimationFactory());
+        return this.getAnimationConfig("out", this.animationFactory(this.props.pseudoElementAnimation));
     }
 
     get inAnimation() {
-        return this.getAnimationConfig("in", this.props.animationFactory());
+        return this.getAnimationConfig("in", this.animationFactory(this.props.animation));
     }
 
     get outAnimation() {
-        return this.getAnimationConfig("out", this.props.animationFactory());
+        return this.getAnimationConfig("out", this.animationFactory(this.props.animation));
     }
 
     mounted(_mounted: boolean, willAnimate: boolean = true): Promise<void> {
@@ -141,8 +157,8 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
                         if (this.ref) this.ref.style.willChange = 'transform, opacity';
                     }
                     const shouldScroll = Boolean(
-                        (this.props.in && !this._animationLayerData?.gestureNavigating)
-                        || (this.props.out && this._animationLayerData?.gestureNavigating)
+                        (this.props.in && !this.context?.gestureNavigating)
+                        || (this.props.out && this.context?.gestureNavigating)
                     );
                     if (this.props.onEnter) {
                         this.props.onEnter(shouldScroll);
@@ -163,6 +179,7 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
 
     render() {
         const Element = this.props.renderAs;
+        if (!this.state.mounted) return <></>;
         return (
             <Element
                 id={`${this.props.name}-animation-provider`}
@@ -177,17 +194,7 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
                     zIndex: this.state.zIndex
                 }}
             >
-                <AnimationLayerDataContext.Consumer>
-                    {(animationLayerData) => {
-                        this._animationLayerData = animationLayerData;
-
-                        if (this.state.mounted) {
-                            return this.props.children;
-                        } else {
-                            return <></>;
-                        }
-                    }}
-                </AnimationLayerDataContext.Consumer>
+                {this.props.children}
             </Element>
         );
     }

@@ -11,7 +11,6 @@ import {
 } from "./common/types";
 import { RouterDataContext } from "./RouterData";
 import { SharedElementScene, SharedElementSceneContext } from "./SharedElement";
-import { DEFAULT_ANIMATION } from "./common/constants";
 import { RouteDataContext } from "./RouteData";
 import { NavigationBase } from "./NavigationBase";
 
@@ -128,29 +127,6 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         return this._sharedElementScene;
     }
 
-    animationFactory(animation?: AnimationConfig | AnimationConfigFactory): AnimationConfig {
-        if (typeof animation === "function") {
-            let currentPath = this.context!.navigation!.next?.route ?? null;
-            if (!this.context!.backNavigating) {
-                currentPath = this.context!.navigation!.previous?.route ?? null;
-            }
-            let nextPath = this.context!.navigation!.current.route;
-            const gestureNavigating = this.context!.gestureNavigating;
-
-            return animation({
-                current: {
-                    path: currentPath
-                },
-                next: {
-                    path: nextPath
-                },
-                gestureNavigating
-            });
-        }
-
-        return animation ?? DEFAULT_ANIMATION;
-    }
-
     onExited() { }
 
     onExit() {
@@ -224,8 +200,8 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
                 out={this.props.out || false}
                 name={this.props.name?.toLowerCase().replace(' ', '-') ?? this.name}
                 resolvedPathname={this.props.resolvedPathname}
-                animationFactory={this.animationFactory.bind(this, routeData.config.animation)}
-                pseudoElementAnimationFactory={this.animationFactory.bind(this, routeData.config.pseudoElementAnimation)}
+                animation={routeData.config.animation}
+                pseudoElementAnimation={routeData.config.pseudoElementAnimation}
                 keepAlive={this.state.shouldKeepAlive ? routeData.config.keepAlive || false : false}
                 navigation={this.context!.navigation}
             >

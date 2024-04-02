@@ -30,6 +30,7 @@ export interface RouterBaseProps {
 export interface RouterBaseState {
     currentPath: string;
     nextPath: string | undefined;
+    backNavigating: boolean;
     children: ScreenChild | ScreenChild[];
     paths: (string | undefined)[];
     defaultDocumentTitle: string;
@@ -58,7 +59,7 @@ function StateFromChildren(
             if (
                 typeof nextPath === "string"
                 && typeof child.props.resolvedPathname === "string"
-                && matchRoute(child.props.resolvedPathname, nextPath, baseURL, child.props.caseSensitive)) {
+                && matchRoute(child.props.resolvedPathname, nextPath, undefined, child.props.caseSensitive)) {
                 // fetch kept alive key
                 // needed since elements kept alive are apart of the DOM
                 // to avoid confusing react we need to preserve this key
@@ -76,7 +77,7 @@ function StateFromChildren(
                 matchInfo = matchRoute(child.props.path, currentPath, baseURL, child.props.caseSensitive);
                 if (!state.paths.includes(child.props.path)) paths.push(child.props.path);
             } else if (typeof child.props.resolvedPathname === "string") {
-                matchInfo = matchRoute(child.props.resolvedPathname, currentPath, baseURL, child.props.caseSensitive);
+                matchInfo = matchRoute(child.props.resolvedPathname, currentPath, undefined, child.props.caseSensitive);
             } else {
                 return;
             }
@@ -193,7 +194,8 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         defaultDocumentTitle: document.title,
         documentTitle: document.title,
         paths: new Array<string>(),
-        children: this.props.children
+        children: this.props.children,
+        backNavigating: false,
     } as S;
 
     static getDerivedStateFromProps(props: RouterBaseProps, state: RouterBaseState) {
@@ -223,17 +225,18 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
 
     private handleNavigationDispatch = (e: NavigateEvent) => {
         // for traversing existing entries routerId should be apart of the state
-        let { routerId } = (e.destination.getState() ?? {}) as NavigateEventRouterState;
+        let { routerId = this.id } = (e.destination.getState() ?? {}) as NavigateEventRouterState;
         if (e.userInitiated) {
             // replace with e.sourceElement when available. See https://github.com/WICG/navigation-api/issues/225
             const sourceElement = document.querySelector(`a[href="${e.destination.url}"]`);
-            routerId = sourceElement?.getAttribute('data-router-id') ?? sourceElement?.closest('.react-motion-router')?.id;
+            routerId = sourceElement?.getAttribute('data-router-id') ?? sourceElement?.closest('.react-motion-router')?.id ?? routerId;
         }
-        if (routerId) {
-            const router = this.getRouterById(routerId);
-            if (router && router.shouldIntercept(e)) {
-                router.intercept(e);
-            }
+        const router = this.getRouterById(routerId);
+        if (router && router.shouldIntercept(e)) {
+            router.intercept(e);
+            window.navigation.transition?.finished.then(() => {
+                window.navigation.updateCurrentEntry({ state: { routerId: this.id } });
+            });
         }
     }
 

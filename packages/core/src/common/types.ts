@@ -12,7 +12,7 @@ enum EasingFunctionKeywordEnum {
 }
 
 export type EasingFunctionKeyword = keyof typeof EasingFunctionKeywordEnum;
-export type EasingFunction = EasingFunctionKeyword  | `cubic-bezier(${number},${' ' | ''}${number},${' ' | ''}${number},${' ' | ''}${number})`;
+export type EasingFunction = EasingFunctionKeyword | `cubic-bezier(${number},${' ' | ''}${number},${' ' | ''}${number},${' ' | ''}${number})`;
 
 export type ParamsSerializer = (params: PlainObject) => string;
 export type ParamsDeserializer = (queryString: string) => PlainObject;
@@ -23,13 +23,9 @@ export interface AnimationConfig {
 }
 
 export interface ConfigFactoryProps {
-    current: {
-        path: string | null;
-    };
-    next: {
-        path: string | null;
-    }
-    gestureNavigating: boolean;
+    timeline: AnimationTimeline;
+    playbackRate: number;
+    direction: "normal" | "reverse";
 }
 
 export type AnimationConfigFactory = (props: ConfigFactoryProps) => AnimationConfig;
@@ -81,18 +77,18 @@ export function isValidComponentConstructor(value: any): value is React.Componen
         (typeof value === 'object' && value.$$typeof === Symbol.for('react.lazy'));
 }
 
-export type PlainObject<T = any> = {[key:string]: T};
+export type PlainObject<T = any> = { [key: string]: T };
 
 export type RouterEventMap = Pick<HTMLElementEventMap, "navigate" | "go-back" | "motion-progress" | "motion-progress-start" | "motion-progress-end" | "page-animation-start" | "page-animation-end" | "page-animation-cancel">;
 
-export type NodeAppendedEvent = CustomEvent<{node: Node;}>;
-export type NodeRemovedEvent = CustomEvent<{node: Node;}>;
+export type NodeAppendedEvent = CustomEvent<{ node: Node; }>;
+export type NodeRemovedEvent = CustomEvent<{ node: Node; }>;
 export type CustomElementType = string;
 
 export type Input = Record<string, number>;
 export type Output = Record<string, number>;
 export type Weights = Record<string, number>;
-export type LerpRange = {min: Input, max: Input};
+export type LerpRange = { min: Input, max: Input };
 
 export function is1DRange(range: number[] | LerpRange): range is number[] {
     return Array.isArray(range);
