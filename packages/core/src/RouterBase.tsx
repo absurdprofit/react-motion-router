@@ -265,6 +265,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     }
 
     get id() {
+        if (this.props.id) return this.props.id;
         return this.baseURL?.pathname
             .toLowerCase()
             .replace(/[^a-z0-9]/g, '') // Remove non-alphanumeric chars
@@ -287,20 +288,26 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     get baseURL() {
         const pathname = this.isRoot ? window.location.pathname : this.parentRouterData?.currentScreen?.props.resolvedPathname!;
 
-        return resolveBaseURLFromPattern(this.baseURLPattern, pathname)!;
+        const pattern = `${window.location.origin}${this.baseURLPattern.pathname}`;
+        return resolveBaseURLFromPattern(pattern, pathname)!;
     }
 
     get baseURLPattern() {
         let baseURL = window.location.origin + "/";
-        const defaultBasePathname = this.isRoot ? new URL(".", document.baseURI).href.replace(baseURL, '') : "/";
+        const defaultBasePathname = this.isRoot ? new URL(".", document.baseURI).href.replace(baseURL, '') : ".";
         let basePathname = this.props.config.basePathname || defaultBasePathname;
 
-        const parentCurrentPath = this.parentRouterData?.currentScreen?.props.path;
-        if (parentCurrentPath) {
-            baseURL = this.parentRouterData.baseURLPattern + parentCurrentPath;
+        const { resolvedPathname = window.location.pathname, path } = this.parentRouterData?.currentScreen?.props ?? {};
+        if (this.parentRouterData) {
+            baseURL = this.parentRouterData.baseURL.href;
+            const pattern = new URLPattern({ baseURL, pathname: path });
+            baseURL = resolveBaseURLFromPattern(
+                `${window.location.origin}${pattern.pathname}`,
+                resolvedPathname!
+            )!.href;
         }
 
-        return baseURL + basePathname;
+        return new URLPattern({ baseURL, pathname: basePathname });
     }
 
     protected abstract get navigation(): NavigationBase;
