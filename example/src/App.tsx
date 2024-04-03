@@ -28,6 +28,7 @@ const FullscreenVideo = lazy(() => import('./Screens/FullscreenVideo'));
 function Routes() {
   return (
     <Stack.Router config={{
+      basePathname: '{react-motion-router/}?',
       screenConfig: {
         disableDiscovery: false,
         animation: !(iOS() && !isPWA) ? AppAnimation : STATIC_ANIMATION,

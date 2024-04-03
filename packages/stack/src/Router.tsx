@@ -16,7 +16,6 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
             this.id,
             this.routerData,
             props.config.disableBrowserRouting,
-            this.baseURL,
             defaultRoute
         );
         this.routerData.navigation = navigation;

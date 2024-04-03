@@ -116,6 +116,12 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
     get routerId() {
         return this.routerInstance.id;
     }
+    get baseURL() {
+        return this.routerInstance.baseURL;
+    }
+    get baseURLPattern() {
+        return this.routerInstance.baseURLPattern;
+    }
     get routes() {
         return this.routerInstance.props.children;
     }

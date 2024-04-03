@@ -72,17 +72,31 @@ export function clamp(num: number, min: number, max?: number) {
     return num;
 }
 
+export function resolveBaseURLFromPattern(pattern: string, pathname: string) {
+    pattern += '**'; // allows us to match nested routes
+    const baseURLMatch = new URLPattern(pattern).exec(pathname, window.location.origin);
+    if (!baseURLMatch) return null;
+
+    const nestedPathnameGroup = baseURLMatch.pathname.groups[0] ?? '';
+    // derive concrete baseURL
+    return new URL(pathname.replace(nestedPathnameGroup, ''), window.location.origin);
+}
+
 export function matchRoute(
     pathnamePattern: string,
     pathname: string,
-    baseURLPattern: string = window.location.origin,
+    baseURLPattern: string = `${window.location.origin}/`,
     caseSensitive: boolean = true
 ): MatchedRoute | null {
     if (!caseSensitive) {
         pathnamePattern = pathnamePattern.toLowerCase();
         pathname = pathname.toLowerCase();
     }
-    const match = new URLPattern(baseURLPattern + pathnamePattern).exec(pathname, window.location.origin);
+
+    const baseURL = resolveBaseURLFromPattern(baseURLPattern, pathname)?.href;
+    if (!baseURL) return null;
+
+    const match = new URLPattern({ baseURL, pathname: pathnamePattern }).exec({ pathname, baseURL });
     const params = match?.pathname.groups ?? {};
     if (match) {
         return {

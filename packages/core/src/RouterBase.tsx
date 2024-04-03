@@ -8,7 +8,7 @@ import {
 } from './common/types';
 import { RouterData, RouterDataContext } from './RouterData';
 import { PageAnimationEndEvent } from './common/events';
-import { dispatchEvent, matchRoute, searchParamsToObject } from './common/utils';
+import { dispatchEvent, matchRoute, resolveBaseURLFromPattern, searchParamsToObject } from './common/utils';
 import { Component } from 'react';
 import { DEFAULT_ANIMATION, DEFAULT_GESTURE_CONFIG } from './common/constants';
 import { isValidElement, Children, cloneElement } from 'react';
@@ -59,7 +59,7 @@ function StateFromChildren(
             if (
                 typeof nextPath === "string"
                 && typeof child.props.resolvedPathname === "string"
-                && matchRoute(child.props.resolvedPathname, nextPath, undefined, child.props.caseSensitive)) {
+                && matchRoute(child.props.resolvedPathname, nextPath, baseURL, child.props.caseSensitive)) {
                 // fetch kept alive key
                 // needed since elements kept alive are apart of the DOM
                 // to avoid confusing react we need to preserve this key
@@ -77,7 +77,7 @@ function StateFromChildren(
                 matchInfo = matchRoute(child.props.path, currentPath, baseURL, child.props.caseSensitive);
                 if (!state.paths.includes(child.props.path)) paths.push(child.props.path);
             } else if (typeof child.props.resolvedPathname === "string") {
-                matchInfo = matchRoute(child.props.resolvedPathname, currentPath, undefined, child.props.caseSensitive);
+                matchInfo = matchRoute(child.props.resolvedPathname, currentPath, baseURL, child.props.caseSensitive);
             } else {
                 return;
             }
@@ -265,9 +265,9 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     }
 
     get id() {
-        return this.baseURL.pathname
+        return this.baseURL?.pathname
             .toLowerCase()
-            .replace(/[^a-z0-9]/g, '-') // Replace non-alphanumeric chars with hyphens
+            .replace(/[^a-z0-9]/g, '') // Remove non-alphanumeric chars
             .replace(/-+/g, '-') // Replace multiple hyphens with a single one
             .replace(/^-|-$/g, ''); // Remove leading and trailing hyphens
     }
@@ -284,17 +284,23 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         return !this.parentRouterData;
     }
 
-    protected get baseURL() {
+    get baseURL() {
+        const pathname = this.isRoot ? window.location.pathname : this.parentRouterData?.currentScreen?.props.resolvedPathname!;
+
+        return resolveBaseURLFromPattern(this.baseURLPattern, pathname)!;
+    }
+
+    get baseURLPattern() {
         let baseURL = window.location.origin + "/";
         const defaultBasePathname = this.isRoot ? new URL(".", document.baseURI).href.replace(baseURL, '') : "/";
         let basePathname = this.props.config.basePathname || defaultBasePathname;
 
         const parentCurrentPath = this.parentRouterData?.currentScreen?.props.path;
         if (parentCurrentPath) {
-            baseURL = this.parentRouterData.navigation.baseURL + parentCurrentPath;
+            baseURL = this.parentRouterData.baseURLPattern + parentCurrentPath;
         }
 
-        return new URL(baseURL + basePathname);
+        return baseURL + basePathname;
     }
 
     protected abstract get navigation(): NavigationBase;

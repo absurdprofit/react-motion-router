@@ -45,17 +45,12 @@ export abstract class NavigationBase {
     private _metaData = new MetaData();
     protected readonly _disableBrowserRouting: boolean;
     protected _currentParams: PlainObject = {};
-    private _baseURL: URL;
 
     constructor(
         _routerId: string,
         _routerData: RouterData,
         _disableBrowserRouting: boolean = false,
-        _baseURL: URL | null = null,
-
     ) {
-        _baseURL = _baseURL || new URL(window.location.toString());
-        this._baseURL = _baseURL;
         this.routerData = _routerData;
         this._disableBrowserRouting = _disableBrowserRouting;
         this._routerId = _routerId;
@@ -84,7 +79,7 @@ export abstract class NavigationBase {
     }
 
     get baseURL() {
-        return this._baseURL;
+        return this.routerData.baseURL;
     }
 
     get entries() {
