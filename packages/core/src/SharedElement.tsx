@@ -57,20 +57,20 @@ export type SharedElementNodeMap = Map<string, SharedElementNode>;
 
 export class SharedElementScene {
     private _nodes: SharedElementNodeMap = new Map<string, SharedElementNode>();
-    private _name: string = '';
+    private _id: string = '';
     private _scrollPos: Vec2 | null = null;
     private _getScreenRect: () => DOMRect = () => new DOMRect();
     private _keepAlive: boolean = false;
     private _previousScene: SharedElementScene | null = null;
     private _canTransition: boolean = true; // should be false if page animation already started
 
-    constructor(name: string) {
-        this._name = name;
+    constructor(id: string) {
+        this._id = id;
     }
 
     addNode(node: SharedElementNode | null) {
         if (!node) return;
-        console.assert(!this.nodes.has(node.id), `Duplicate Shared Element ID: ${node.id} in ${this._name}`);
+        console.assert(!this.nodes.has(node.id), `Duplicate Shared Element ID: ${node.id} in ${this._id}`);
         this._nodes.set(node.id, node);
     }
 
@@ -95,7 +95,7 @@ export class SharedElementScene {
     }
 
     get name(): string {
-        return this._name;
+        return this._id;
     }
     
     get scrollPos() {

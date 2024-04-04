@@ -114,7 +114,7 @@ function StateFromChildren(
                 const matchInfo = matchRoute(child.props.path, nextPath, baseURL, child.props.caseSensitive);
                 if (matchInfo) {
                     nextMatched = true;
-                    documentTitle = child.props.name || state.defaultDocumentTitle;
+                    documentTitle = child.props.config?.title || state.defaultDocumentTitle;
                     const key = keptAliveKey || Math.random();
                     children.push(
                         cloneElement(child, {
@@ -146,7 +146,7 @@ function StateFromChildren(
 
 export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState, N extends NavigationBase = NavigationBase> extends Component<P, S> {
     protected ref: HTMLElement | null = null;
-    private _routerData = new RouterData<N>(this);
+    private _routerData: RouterData<N>;
     private static rootRouterRef: WeakRef<RouterBase> | null = null;
     static readonly contextType = RouterDataContext;
     context!: React.ContextType<typeof RouterDataContext>;
@@ -154,6 +154,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     constructor(props: P, context: React.ContextType<typeof RouterDataContext>) {
         super(props);
 
+        this._routerData = new RouterData<N>(this);
         this._routerData.dispatchEvent = this.dispatchEvent;
         this._routerData.addEventListener = this.addEventListener;
         this._routerData.removeEventListener = this.removeEventListener;
@@ -266,9 +267,9 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
 
     get id() {
         if (this.props.id) return this.props.id;
-        return this.baseURL?.pathname
+        return this.baseURL.pathname
             .toLowerCase()
-            .replace(/[^a-z0-9]/g, '') // Remove non-alphanumeric chars
+            .replace(/[^\w-]/g, '-') // Remove non-alphanumeric chars
             .replace(/-+/g, '-') // Replace multiple hyphens with a single one
             .replace(/^-|-$/g, ''); // Remove leading and trailing hyphens
     }
@@ -339,8 +340,8 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
                     <AnimationLayer
                         currentScreen={this._routerData.currentScreen}
                         nextScreen={this._routerData.nextScreen}
+                        backNavigating={this.state.backNavigating}
                         disableBrowserRouting={Boolean(this.props.config.disableBrowserRouting)}
-                        navigation={this.navigation}
                         onGestureNavigationStart={this.onGestureNavigationStart}
                         onGestureNavigationEnd={this.onGestureNavigationEnd}
                         onDocumentTitleChange={this.onDocumentTitleChange}

@@ -23,8 +23,9 @@ export interface ScreenBaseProps {
     resolvedPathname?: string;
     defaultParams?: PlainObject;
     caseSensitive?: boolean;
-    name?: string;
+    id?: string;
     config?: {
+        title?: string;
         header?: {
             fallback?: React.ReactNode;
             component: React.JSXElementConstructor<any> | LazyExoticComponent<any>
@@ -49,8 +50,7 @@ export interface ScreenBaseState {
 }
 
 export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState> extends Component<P, S> {
-    protected name = this.props.path === undefined ? 'not-found' : this.props.path?.toString().slice(1).replace('/', '-') || 'index';
-    protected _sharedElementScene: SharedElementScene = new SharedElementScene(this.name);
+    protected _sharedElementScene: SharedElementScene;
     protected ref: HTMLElement | null = null;
     private onRef = this.setRef.bind(this);
     private onAnimationProviderRef = this.setAnimationProviderRef.bind(this);
@@ -74,6 +74,8 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         this.onEntered = this.onEntered.bind(this);
         this.onExit = this.onExit.bind(this);
         this.onExited = this.onExited.bind(this);
+
+        this._sharedElementScene = new SharedElementScene(`${this.id}-shared-element-scene`);
     }
 
     state: S = {
@@ -107,6 +109,15 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
             ...config
         };
         this.forceUpdate();
+    }
+
+    get id() {
+        if (this.props.id) return this.props.id;
+        return this.props.path
+            .toLowerCase()
+            .replace(/[^\w-]/g, '-') // Remove non-alphanumeric chars
+            .replace(/-+/g, '-') // Replace multiple hyphens with a single one
+            .replace(/^-|-$/g, ''); // Remove leading and trailing hyphens;
     }
 
     protected get routeData() {
@@ -198,15 +209,14 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
                 onEntered={this.onEntered}
                 in={this.props.in || false}
                 out={this.props.out || false}
-                name={this.props.name?.toLowerCase().replace(' ', '-') ?? this.name}
-                resolvedPathname={this.props.resolvedPathname}
+                id={`${this.id}-animation-provider`}
                 animation={routeData.config.animation}
                 pseudoElementAnimation={routeData.config.pseudoElementAnimation}
                 keepAlive={this.state.shouldKeepAlive ? routeData.config.keepAlive || false : false}
                 navigation={this.context!.navigation}
             >
                 <div
-                    id={this.name}
+                    id={this.id}
                     ref={this.onRef}
                     className="screen"
                     style={{

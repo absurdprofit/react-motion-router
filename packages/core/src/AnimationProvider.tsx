@@ -12,8 +12,7 @@ interface AnimationProviderProps {
     onEntered: Function;
     in: boolean;
     out: boolean;
-    name: string;
-    resolvedPathname?: string;
+    id: string;
     animation?: AnimationConfig | AnimationConfigFactory;
     pseudoElementAnimation?: AnimationConfig | AnimationConfigFactory;
     keepAlive: boolean;
@@ -182,7 +181,7 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
         if (!this.state.mounted) return <></>;
         return (
             <Element
-                id={`${this.props.name}-animation-provider`}
+                id={this.props.id}
                 className="animation-provider"
                 ref={this.setRef}
                 tabIndex={this.state.zIndex - 1}

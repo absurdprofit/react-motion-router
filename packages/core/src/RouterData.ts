@@ -38,7 +38,7 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
     public addEntry(entry: NavigationHistoryEntry) {
         this._entries.push(new HistoryEntry(entry, this.routerId, this._entries.length));
         entry.ondispose = () => {
-            this._entries = this._entries.filter(e => e !== entry);
+            this._entries = this._entries.filter(e => e.key !== entry.key);
         };
     }
 
