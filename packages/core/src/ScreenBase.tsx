@@ -249,14 +249,12 @@ function ComponentWithRouteData<P extends ScreenBaseProps>({ component, route, n
     const Component = component ?? null;
     if (isValidElement(Component)) {
         return cloneElement<any>(Component, {
-            orientation: screen.orientation,
             navigation,
             route
         });
     } else if (isValidComponentConstructor(Component)) {
         return (
             <Component
-                orientation={screen.orientation}
                 navigation={navigation}
                 route={route}
             />
