@@ -28,7 +28,6 @@ interface AnimationProviderState {
 
 export class AnimationProvider extends Component<AnimationProviderProps, AnimationProviderState> {
     private ref: HTMLElement | null = null;
-    private setRef = this.onRef.bind(this);
     static readonly contextType = AnimationLayerDataContext;
     context!: React.ContextType<typeof AnimationLayerDataContext>;
 
@@ -47,7 +46,7 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
         zIndex: this.props.in ? 1 : 0
     }
 
-    onRef(ref: HTMLElement | null) {
+    onRef = (ref: HTMLElement | null) => {
         this.ref = ref;
         this.props.onRef(ref);
     }
@@ -183,7 +182,7 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
             <Element
                 id={this.props.id}
                 className="animation-provider"
-                ref={this.setRef}
+                ref={this.onRef}
                 tabIndex={this.state.zIndex - 1}
                 style={{
                     gridArea: '1 / 1',

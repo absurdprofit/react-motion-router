@@ -41,19 +41,15 @@ export interface GoBackOptions extends NavigationOptions { }
 export abstract class NavigationBase {
     protected readonly routerData: RouterData;
     private static rootNavigatorRef: WeakRef<NavigationBase> | null = null;
-    protected readonly _routerId: string;
-    private _metaData = new MetaData();
-    protected readonly _disableBrowserRouting: boolean;
-    protected _currentParams: PlainObject = {};
+    public readonly metaData = new MetaData();
+    protected readonly disableBrowserRouting: boolean;
 
     constructor(
-        _routerId: string,
         _routerData: RouterData,
         _disableBrowserRouting: boolean = false,
     ) {
         this.routerData = _routerData;
-        this._disableBrowserRouting = _disableBrowserRouting;
-        this._routerId = _routerId;
+        this.disableBrowserRouting = _disableBrowserRouting;
         const rootNavigator = NavigationBase.rootNavigatorRef?.deref();
         if (!rootNavigator || !rootNavigator.isInDocument)
             NavigationBase.rootNavigatorRef = new WeakRef(this);
@@ -68,14 +64,14 @@ export abstract class NavigationBase {
         return this.routerData.removeEventListener?.(type, listener, options);
     }
 
-    abstract get parent(): NavigationBase | null;
-
-    get disableBrowserRouting() {
-        return this._disableBrowserRouting;
+    dispatchEvent(event: Event) {
+        return this.routerData.dispatchEvent?.(event);
     }
 
+    abstract get parent(): NavigationBase | null;
+
     get routerId() {
-        return this._routerId;
+        return this.routerData.routerId;
     }
 
     get baseURL() {
@@ -118,20 +114,12 @@ export abstract class NavigationBase {
 
     abstract goBack(options?: GoBackOptions): void;
 
-    protected get dispatchEvent() {
-        return this.routerData.dispatchEvent;
-    }
-
     get paramsDeserializer(): ParamsDeserializer | undefined {
         return this.routerData.paramsDeserializer;
     }
 
     get paramsSerializer(): ParamsSerializer | undefined {
         return this.routerData.paramsSerializer;
-    }
-
-    get metaData() {
-        return this._metaData;
     }
 
     private get isInDocument() {

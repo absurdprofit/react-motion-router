@@ -56,21 +56,24 @@ export interface SharedElementNode {
 export type SharedElementNodeMap = Map<string, SharedElementNode>;
 
 export class SharedElementScene {
-    private _nodes: SharedElementNodeMap = new Map<string, SharedElementNode>();
-    private _id: string = '';
-    private _scrollPos: Vec2 | null = null;
-    private _getScreenRect: () => DOMRect = () => new DOMRect();
-    private _keepAlive: boolean = false;
-    private _previousScene: SharedElementScene | null = null;
-    private _canTransition: boolean = true; // should be false if page animation already started
+    public readonly id: string;
+    public readonly nodes: SharedElementNodeMap = new Map<string, SharedElementNode>();
+    public scrollPos: Vec2 | null = {
+        x: 0,
+        y: 0
+    };
+    public getScreenRect: () => DOMRect = () => new DOMRect();
+    public keepAlive: boolean = false;
+    public previousScene: SharedElementScene | null = null;
+    public canTransition: boolean = true; // should be false if page animation already started
 
     constructor(id: string) {
-        this._id = id;
+        this.id = id;
     }
 
     addNode(node: SharedElementNode | null) {
         if (!node) return;
-        console.assert(!this.nodes.has(node.id), `Duplicate Shared Element ID: ${node.id} in ${this._id}`);
+        console.assert(!this.nodes.has(node.id), `Duplicate Shared Element ID: ${node.id} in ${this.id}`);
         this._nodes.set(node.id, node);
     }
 
@@ -79,70 +82,23 @@ export class SharedElementScene {
     }
 
     get xRatio() {
-        const screenRect = this._getScreenRect();
+        const screenRect = this.getScreenRect();
         const xRatio = (screenRect.width / window.innerWidth).toFixed(2);
         return parseFloat(xRatio);
     }
 
     get yRatio() {
-        const screenRect = this._getScreenRect();
+        const screenRect = this.getScreenRect();
         const yRatio = (screenRect.height / window.innerHeight).toFixed(2);
         return parseFloat(yRatio);
     }
 
-    get nodes(): SharedElementNodeMap {
-        return this._nodes;
-    }
-
-    get name(): string {
-        return this._id;
-    }
-    
-    get scrollPos() {
-        return this._scrollPos || {
-            x: 0,
-            y: 0
-        };
-    }
-
     get x() {
-        return this._getScreenRect().x;
+        return this.getScreenRect().x;
     }
     
     get y() {
-        return this._getScreenRect().y;
-    }
-
-    get keepAlive() {
-        return this._keepAlive;
-    }
-
-    get previousScene() {
-        return this._previousScene;
-    }
-
-    get canTransition() {
-        return this._canTransition;
-    }
-
-    set canTransition(_canTransition: boolean) {
-        this._canTransition = _canTransition;
-    }
-
-    set previousScene(_previousScene: SharedElementScene | null) {
-        this._previousScene = _previousScene;
-    }
-
-    set scrollPos(_scrollPos: Vec2) {
-        this._scrollPos = _scrollPos;
-    }
-
-    set getScreenRect(_getScreenRect: () => DOMRect) {
-        this._getScreenRect = _getScreenRect;
-    }
-
-    set keepAlive(_keepAlive: boolean) {
-        this._keepAlive = _keepAlive
+        return this.getScreenRect().y;
     }
 
     isEmpty() {
@@ -203,10 +159,8 @@ interface SharedElementState {
 
 const transformKeys = ["transform", "top", "left", "right", "bottom"];
 export class SharedElement extends Component<SharedElementProps, SharedElementState> {
-    private _id : string = this.props.id.toString();
     private _ref: HTMLDivElement | null = null;
     private _computedStyle: CSSStyleDeclaration | null = null;
-    private onRef = this.setRef.bind(this);
     static readonly contextType = SharedElementSceneContext;
     context!: React.ContextType<typeof SharedElementSceneContext>;
 
@@ -260,7 +214,7 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
     }
 
     get id() {
-        return this._id;
+        return this.props.id.toString();
     }
 
     get transitionType() {
@@ -291,16 +245,16 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
         });
     }
 
-    private setRef(_ref: HTMLDivElement | null) {
+    private onRef = (_ref: HTMLDivElement | null) => {
         if (this._ref !== _ref) {
             if (this._ref) {
-                this.scene?.removeNode(this._id);
+                this.scene?.removeNode(this.id);
                 this._computedStyle = null;
             }
             this._ref = _ref;
             
             if (_ref && !this.props.disabled) {
-                this.scene?.addNode(nodeFromRef(this._id, _ref, this));
+                this.scene?.addNode(nodeFromRef(this.id, _ref, this));
                 if (_ref.firstElementChild) {
                     this._computedStyle = window.getComputedStyle(_ref.firstElementChild);
                 }
@@ -309,14 +263,7 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
 
     }
 
-    componentDidUpdate(prevProps: SharedElementProps) {
-        if (this._id !== this.props.id.toString()) {
-            if (this._ref) {
-                this.scene?.removeNode(this._id);
-                this._id = this.props.id.toString();
-                this.scene?.addNode(nodeFromRef(this._id, this._ref, this));
-            }
-        }
+    componentDidUpdate() {
         if (this.props.disabled && this.scene?.nodes.has(this.id)) {
             this.scene.removeNode(this.id);
         }
@@ -326,7 +273,7 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
         return (
             <div
                 ref={this.onRef}
-                id={`shared-element-${this._id}`}
+                id={`shared-element-${this.id}`}
                 style={{
                     display: this.state.hidden && !this.keepAlive ? 'block' : 'contents',
                     visibility: this.state.hidden ? 'hidden': 'inherit'

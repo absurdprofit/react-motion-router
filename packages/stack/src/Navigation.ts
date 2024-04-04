@@ -16,12 +16,11 @@ export class Navigation extends NavigationBase {
     private _currentIndex = 0;
 
     constructor(
-        _routerId: string,
         _routerData: RouterData<Navigation>,
         _disableBrowserRouting: boolean = false,
         _defaultRoute: URL | null = null
     ) {
-        super(_routerId, _routerData, _disableBrowserRouting);
+        super(_routerData, _disableBrowserRouting);
     }
 
     onPopState = (e: Event) => {
@@ -51,7 +50,7 @@ export class Navigation extends NavigationBase {
         const { type = "push", hash } = options;
         const search = searchParamsFromObject(props?.params || {}, this.paramsSerializer || null);
 
-        if (this._disableBrowserRouting) {
+        if (this.disableBrowserRouting) {
             // if browser routing is disabled, we need to handle history manually
         } else {
             const url = new URL(route, this.baseURL);
@@ -67,7 +66,6 @@ export class Navigation extends NavigationBase {
         const event = this.createNavigateEvent(route, props, type, controller);
 
         if (this.dispatchEvent) this.dispatchEvent(event);
-        this._currentParams = props?.params || {};
 
         return this._finished;
     }
@@ -80,7 +78,6 @@ export class Navigation extends NavigationBase {
         // const event = this.createNavigateEvent(route, props, false, controller);
 
         // if (this.dispatchEvent) this.dispatchEvent(event);
-        this._currentParams = props?.params || {};
         return this._finished;
     }
 

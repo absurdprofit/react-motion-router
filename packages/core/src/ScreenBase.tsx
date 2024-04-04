@@ -50,12 +50,10 @@ export interface ScreenBaseState {
 }
 
 export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState> extends Component<P, S> {
-    protected _sharedElementScene: SharedElementScene;
+    protected readonly sharedElementScene: SharedElementScene;
     protected ref: HTMLElement | null = null;
-    private onRef = this.setRef.bind(this);
-    private onAnimationProviderRef = this.setAnimationProviderRef.bind(this);
-    protected elementType: ElementType | string = "div";
     protected animationProviderRef: HTMLElement | null = null;
+    protected elementType: ElementType | string = "div";
     protected _routeData: RouteProp<P["config"], PlainObject> = {
         params: {},
         config: this.props.config ?? {},
@@ -75,7 +73,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         this.onExit = this.onExit.bind(this);
         this.onExited = this.onExited.bind(this);
 
-        this._sharedElementScene = new SharedElementScene(`${this.id}-shared-element-scene`);
+        this.sharedElementScene = new SharedElementScene(`${this.id}-shared-element-scene`);
     }
 
     state: S = {
@@ -134,10 +132,6 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         return this._routeData;
     }
 
-    get sharedElementScene() {
-        return this._sharedElementScene;
-    }
-
     onExited() { }
 
     onExit() {
@@ -154,14 +148,14 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         this.context!.nextScreen = null;
     }
 
-    private setRef(ref: HTMLElement | null) {
+    private onRef = (ref: HTMLElement | null) => {
         if (this.ref !== ref) {
             this.ref = ref;
         }
         this.sharedElementScene.getScreenRect = () => this.ref?.getBoundingClientRect() || new DOMRect();
     }
 
-    private setAnimationProviderRef(ref: HTMLElement | null) {
+    private onAnimationProviderRef = (ref: HTMLElement | null) => {
         if (this.animationProviderRef !== ref) {
             this.animationProviderRef = ref;
         }

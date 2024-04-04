@@ -10,25 +10,19 @@ import { HistoryEntry } from './HistoryEntry';
 export type RoutesData = Map<string | undefined, RouteProp<ScreenBaseProps["config"], PlainObject>>;
 
 export class RouterData<N extends NavigationBase = NavigationBase> {
-    private _routerInstance: RouterBase;
+    public readonly routerInstance: RouterBase;
     private _parentRouterData: RouterData<NavigationBase> | null = null;
     private _childRouterData: WeakRef<RouterData<NavigationBase>> | null = null;
-    private _dispatchEvent: ((event: Event) => Promise<boolean>) | null = null;
-    private _addEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined) => void) | null = null;
-    private _removeEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | EventListenerOptions | undefined) => void) | null = null;
-    private _routesData: RoutesData = new Map();
+    public routesData: RoutesData = new Map();
     private static _scrollRestorationData = new ScrollRestorationData();
-    private _navigation?: N;
     private _entries = new Array<HistoryEntry>();
-    private _backNavigating: boolean = false;
-    private _gestureNavigating: boolean = false;
-    private _paramsSerializer?: SearchParamsSerializer;
-    private _paramsDeserializer?: SearchParamsDeserializer;
-    private _currentScreen: ScreenBase | null = null;
-    private _nextScreen: ScreenBase | null = null;
+    public paramsSerializer?: SearchParamsSerializer;
+    public paramsDeserializer?: SearchParamsDeserializer;
+    public currentScreen: ScreenBase | null = null;
+    public nextScreen: ScreenBase | null = null;
 
     constructor(routerInstance: RouterBase) {
-        this._routerInstance = routerInstance;
+        this.routerInstance = routerInstance;
     }
 
     public prefetchRoute(path: string): Promise<boolean> {
@@ -40,10 +34,6 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
         entry.ondispose = () => {
             this._entries = this._entries.filter(e => e.key !== entry.key);
         };
-    }
-
-    set routerInstance(routerInstance: RouterBase) {
-        this._routerInstance = routerInstance;
     }
 
     set parentRouterData(parentRouterData: RouterData<NavigationBase> | null) {
@@ -67,52 +57,6 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
             this._childRouterData = null;
     }
 
-    set dispatchEvent(_dispatchEvent: ((event: Event) => Promise<boolean>) | null) {
-        this._dispatchEvent = _dispatchEvent;
-    }
-
-    set addEventListener(_addEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined) => void) | null) {
-        this._addEventListener = _addEventListener;
-    }
-
-    set removeEventListener(_removeEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | EventListenerOptions | undefined) => void) | null) {
-        this._removeEventListener = _removeEventListener;
-    }
-
-    set routesData(_routesData: RoutesData) {
-        this._routesData = _routesData;
-    }
-    set navigation(_navigation: N) {
-        this._navigation = _navigation;
-    }
-    set backNavigating(_backNavigating: boolean) {
-        this._backNavigating = _backNavigating;
-    }
-    set gestureNavigating(_gestureNavigating: boolean) {
-        this._gestureNavigating = _gestureNavigating;
-    }
-    set paramsSerializer(_paramsSerializer: ((params: PlainObject) => string) | undefined) {
-        this._paramsSerializer = _paramsSerializer;
-    }
-    set paramsDeserializer(_paramsDeserializer: ((queryString: string) => PlainObject) | undefined) {
-        this._paramsDeserializer = _paramsDeserializer;
-    }
-    set currentScreen(_currentScreen: ScreenBase | null) {
-        this._currentScreen = _currentScreen;
-    }
-    set nextScreen(_nextScreen: ScreenBase | null) {
-        this._nextScreen = _nextScreen;
-    }
-
-    get currentScreen() {
-        return this._currentScreen;
-    }
-    get nextScreen() {
-        return this._nextScreen;
-    }
-    get routerInstance() {
-        return this._routerInstance;
-    }
     get routerId() {
         return this.routerInstance.id;
     }
@@ -132,37 +76,25 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
         return this._childRouterData?.deref() ?? null;
     }
     get dispatchEvent() {
-        return this._dispatchEvent;
+        return this.routerInstance.dispatchEvent;
     }
     get addEventListener() {
-        return this._addEventListener;
+        return this.routerInstance.addEventListener;
     }
     get removeEventListener() {
-        return this._removeEventListener;
-    }
-    get routesData() {
-        return this._routesData;
+        return this.routerInstance.removeEventListener;
     }
     get scrollRestorationData() {
         return RouterData._scrollRestorationData;
     }
     get navigation(): N {
-        return this._navigation!;
+        return this.routerInstance.state.navigation as N;
     }
     get entries() {
         return [...this._entries];
     }
     get backNavigating() {
-        return this._backNavigating;
-    }
-    get gestureNavigating() {
-        return this._gestureNavigating;
-    }
-    get paramsSerializer(): ((params: PlainObject) => string) | undefined {
-        return this._paramsSerializer;
-    }
-    get paramsDeserializer(): ((queryString: string) => PlainObject) | undefined {
-        return this._paramsDeserializer;
+        return this.routerInstance.state.backNavigating;
     }
 }
 

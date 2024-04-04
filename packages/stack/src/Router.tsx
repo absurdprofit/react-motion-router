@@ -13,12 +13,10 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
 
         const defaultRoute = new URL(props.config.defaultRoute ?? '.', this.baseURL);
         const navigation = new Navigation(
-            this.id,
             this.routerData,
             props.config.disableBrowserRouting,
             defaultRoute
         );
-        this.routerData.navigation = navigation;
         this.state.navigation = navigation;
         if (props.config.disableBrowserRouting) {
             this.state.currentPath = defaultRoute.pathname;

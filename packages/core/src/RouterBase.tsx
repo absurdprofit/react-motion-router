@@ -146,7 +146,7 @@ function StateFromChildren(
 
 export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState, N extends NavigationBase = NavigationBase> extends Component<P, S> {
     protected ref: HTMLElement | null = null;
-    private _routerData: RouterData<N>;
+    protected readonly routerData: RouterData<N>;
     private static rootRouterRef: WeakRef<RouterBase> | null = null;
     static readonly contextType = RouterDataContext;
     context!: React.ContextType<typeof RouterDataContext>;
@@ -154,20 +154,17 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     constructor(props: P, context: React.ContextType<typeof RouterDataContext>) {
         super(props);
 
-        this._routerData = new RouterData<N>(this);
-        this._routerData.dispatchEvent = this.dispatchEvent;
-        this._routerData.addEventListener = this.addEventListener;
-        this._routerData.removeEventListener = this.removeEventListener;
-        this._routerData.parentRouterData = context;
+        this.routerData = new RouterData<N>(this);
+        this.routerData.parentRouterData = context;
         if (this.isRoot) {
             RouterBase.rootRouterRef = new WeakRef(this);
         }
 
         // get url search params and append to existing route params
         const { currentPath } = this.state;
-        const paramsDeserializer = this._routerData.paramsDeserializer || null;
+        const paramsDeserializer = this.routerData.paramsDeserializer || null;
         const searchParams = searchParamsToObject(window.location.search, paramsDeserializer);
-        const routesData = this._routerData.routesData;
+        const routesData = this.routerData.routesData;
 
         if (searchParams) {
             const routeData = routesData.get(currentPath);
@@ -204,8 +201,8 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     }
 
     componentDidMount() {
-        this._routerData.paramsDeserializer = this.props.config.paramsDeserializer;
-        this._routerData.paramsSerializer = this.props.config.paramsSerializer;
+        this.routerData.paramsDeserializer = this.props.config.paramsDeserializer;
+        this.routerData.paramsSerializer = this.props.config.paramsSerializer;
 
         if (this.isRoot) {
             window.navigation.addEventListener('navigate', this.handleNavigationDispatch)
@@ -252,16 +249,16 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         }
     }
 
-    protected dispatchEvent = (event: Event) => {
+    public dispatchEvent = (event: Event) => {
         const ref = this.ref ?? undefined;
         return dispatchEvent(event, ref);
     }
 
-    protected addEventListener = <K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined) => {
+    public addEventListener = <K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined) => {
         return this.ref?.addEventListener(type, listener, options);
     }
 
-    protected removeEventListener = <K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | EventListenerOptions | undefined) => {
+    public removeEventListener = <K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | EventListenerOptions | undefined) => {
         return this.ref?.removeEventListener(type, listener, options);
     }
 
@@ -274,12 +271,8 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
             .replace(/^-|-$/g, ''); // Remove leading and trailing hyphens
     }
 
-    protected get routerData() {
-        return this._routerData;
-    }
-
     protected get parentRouterData() {
-        return this._routerData.parentRouterData;
+        return this.routerData.parentRouterData;
     }
 
     protected get isRoot() {
@@ -333,13 +326,13 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     }
 
     render() {
-        if (!this._routerData.navigation) return;
+        if (!this.routerData.navigation) return;
         return (
             <div id={this.id} className="react-motion-router" style={{ width: '100%', height: '100%' }} ref={this.setRef}>
-                <RouterDataContext.Provider value={this._routerData}>
+                <RouterDataContext.Provider value={this.routerData}>
                     <AnimationLayer
-                        currentScreen={this._routerData.currentScreen}
-                        nextScreen={this._routerData.nextScreen}
+                        currentScreen={this.routerData.currentScreen}
+                        nextScreen={this.routerData.nextScreen}
                         backNavigating={this.state.backNavigating}
                         disableBrowserRouting={Boolean(this.props.config.disableBrowserRouting)}
                         onGestureNavigationStart={this.onGestureNavigationStart}
