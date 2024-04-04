@@ -74,11 +74,11 @@ export class SharedElementScene {
     addNode(node: SharedElementNode | null) {
         if (!node) return;
         console.assert(!this.nodes.has(node.id), `Duplicate Shared Element ID: ${node.id} in ${this.id}`);
-        this._nodes.set(node.id, node);
+        this.nodes.set(node.id, node);
     }
 
     removeNode(_id: string) {
-        this._nodes.delete(_id);
+        this.nodes.delete(_id);
     }
 
     get xRatio() {
@@ -102,7 +102,7 @@ export class SharedElementScene {
     }
 
     isEmpty() {
-        return !Boolean(this._nodes.size);
+        return !Boolean(this.nodes.size);
     }
 }
 

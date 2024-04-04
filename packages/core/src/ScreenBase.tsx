@@ -50,7 +50,7 @@ export interface ScreenBaseState {
 }
 
 export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState> extends Component<P, S> {
-    protected readonly sharedElementScene: SharedElementScene;
+    public readonly sharedElementScene: SharedElementScene;
     protected ref: HTMLElement | null = null;
     protected animationProviderRef: HTMLElement | null = null;
     protected elementType: ElementType | string = "div";
