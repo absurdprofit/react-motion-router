@@ -1,4 +1,4 @@
-import { AnimationConfig, AnimationConfigFactory, CustomElementType } from './common/types';
+import { AnimationFactory, CustomElementType } from './common/types';
 import { AnimationLayerData, AnimationLayerDataContext } from './AnimationLayerData';
 import { NavigationBase } from './NavigationBase';
 import { Component, ElementType } from 'react';
@@ -13,8 +13,14 @@ interface AnimationProviderProps {
     in: boolean;
     out: boolean;
     id: string;
-    animation?: AnimationConfig | AnimationConfigFactory;
-    pseudoElementAnimation?: AnimationConfig | AnimationConfigFactory;
+    animation?: {
+        in?: AnimationFactory;
+        out?: AnimationFactory;
+    };
+    pseudoElementAnimation?: {
+        in?: AnimationFactory;
+        out?: AnimationFactory;
+    };
     keepAlive: boolean;
     children: React.ReactNode
     navigation: NavigationBase;
@@ -31,7 +37,7 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
     static readonly contextType = AnimationLayerDataContext;
     context!: React.ContextType<typeof AnimationLayerDataContext>;
 
-    constructor(props: AnimationProviderProps) {
+    constructor(props: AnimationProviderProps, context: React.ContextType<typeof AnimationLayerDataContext>) {
         super(props);
 
         requestAnimationFrame(() => {
@@ -80,8 +86,7 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
         if (this.context) {
             if (this.props.in) {
                 this.context.nextScreen = this;
-            }
-            if (this.props.out && !this.state.mounted) {
+            } else if (this.props.out) {
                 this.context.currentScreen = this;
             }
         }
@@ -106,25 +111,15 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
         this.props.navigation.removeEventListener('page-animation-end', this.onAnimationEnd);
     }
 
-    private getAnimationConfig(
-        type: "in" | "out",
-        animation: AnimationConfig
-    ) {
-        return animation[type] ?? null;
-    }
+    private getAnimation(animationFactory?: AnimationFactory) {
+        const { timeline, direction, playbackRate } = this.context!;
 
-    private animationFactory(animation?: AnimationConfig | AnimationConfigFactory): AnimationConfig {
-        if (typeof animation === "function") {
-            const { timeline, direction, playbackRate } = this.context!;
-
-            return animation({
-                timeline,
-                direction,
-                playbackRate
-            });
-        }
-
-        return animation ?? DEFAULT_ANIMATION;
+        return animationFactory?.({
+            ref: this.ref,
+            timeline,
+            direction,
+            playbackRate
+        }) ?? null;
     }
 
     get zIndex() {
@@ -132,19 +127,19 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
     }
 
     get pseudoElementInAnimation() {
-        return this.getAnimationConfig("in", this.animationFactory(this.props.pseudoElementAnimation));
+        return this.getAnimation(this.props.pseudoElementAnimation?.in);
     }
 
     get pseudoElementOutAnimation() {
-        return this.getAnimationConfig("out", this.animationFactory(this.props.pseudoElementAnimation));
+        return this.getAnimation(this.props.pseudoElementAnimation?.out);
     }
 
     get inAnimation() {
-        return this.getAnimationConfig("in", this.animationFactory(this.props.animation));
+        return this.getAnimation(this.props.animation?.in);
     }
 
     get outAnimation() {
-        return this.getAnimationConfig("out", this.animationFactory(this.props.animation));
+        return this.getAnimation(this.props.animation?.out);
     }
 
     mounted(_mounted: boolean, willAnimate: boolean = true): Promise<void> {

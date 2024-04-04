@@ -1,8 +1,7 @@
 import { Component, ElementType, Suspense, cloneElement, isValidElement } from "react";
 import { AnimationProvider } from "./AnimationProvider";
 import {
-    AnimationConfigFactory,
-    AnimationConfig,
+    AnimationFactory,
     LazyExoticComponent,
     PlainObject,
     RouteProp,
@@ -29,13 +28,19 @@ export interface ScreenBaseProps {
         header?: {
             fallback?: React.ReactNode;
             component: React.JSXElementConstructor<any> | LazyExoticComponent<any>
-        },
+        };
         footer?: {
             fallback?: React.ReactNode;
             component: React.JSXElementConstructor<any> | LazyExoticComponent<any>
-        },
-        animation?: AnimationConfig | AnimationConfigFactory;
-        pseudoElementAnimation?: AnimationConfig | AnimationConfigFactory;
+        };
+        animation?: {
+            in?: AnimationFactory;
+            out?: AnimationFactory;
+        };
+        pseudoElementAnimation?: {
+            in?: AnimationFactory;
+            out?: AnimationFactory;
+        };
         keepAlive?: boolean;
         swipeDirection?: SwipeDirection;
         swipeAreaWidth?: number;

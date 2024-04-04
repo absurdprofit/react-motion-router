@@ -80,7 +80,7 @@ export class AnimationLayerData extends EventTarget {
         if (this._currentScreen && this._nextScreen && this._shouldAnimate) {
             if (this._gestureNavigating) {
                 await this._currentScreen.mounted(true);
-            } 
+            }
 
             if (this._onProgress) this._onProgress(this.progress);
 
@@ -106,14 +106,14 @@ export class AnimationLayerData extends EventTarget {
                     this._shouldAnimate = true;
                     return;
                 }
-            
+
                 this._inAnimation.playbackRate = this._playbackRate;
                 this._outAnimation.playbackRate = this._playbackRate;
                 if (this._pseudoElementInAnimation)
                     this._pseudoElementInAnimation.playbackRate = this._playbackRate;
                 if (this._pseudoElementOutAnimation)
                     this._pseudoElementOutAnimation.playbackRate = this._playbackRate;
-                
+
                 if (this._gestureNavigating) {
                     const inDuration = getAnimationDuration(this._inAnimation, this.duration);
                     const outDuration = getAnimationDuration(this._outAnimation, this.duration);
@@ -175,20 +175,20 @@ export class AnimationLayerData extends EventTarget {
         this._onProgress = _onProgress;
     }
 
-    set shouldAnimate(_shouldAnimate: boolean)  {
+    set shouldAnimate(_shouldAnimate: boolean) {
         this._shouldAnimate = _shouldAnimate;
     }
 
     set direction(_direction: "normal" | "reverse") {
         this._direction = _direction;
         if (this._inAnimation)
-            this._inAnimation.effect?.updateTiming({direction: this._direction});
+            this._inAnimation.effect?.updateTiming({ direction: this._direction });
         if (this._outAnimation)
-            this._outAnimation.effect?.updateTiming({direction: this._direction});
+            this._outAnimation.effect?.updateTiming({ direction: this._direction });
         if (this._pseudoElementInAnimation)
-            this._pseudoElementInAnimation.effect?.updateTiming({direction: this._direction});
+            this._pseudoElementInAnimation.effect?.updateTiming({ direction: this._direction });
         if (this._pseudoElementOutAnimation)
-            this._pseudoElementOutAnimation.effect?.updateTiming({direction: this._direction});
+            this._pseudoElementOutAnimation.effect?.updateTiming({ direction: this._direction });
     }
 
     set timeline(_timeline: AnimationTimeline) {
@@ -224,7 +224,7 @@ export class AnimationLayerData extends EventTarget {
         this._inAnimation?.pause();
         this._outAnimation?.pause();
         this._pseudoElementInAnimation?.pause();
-        this._pseudoElementOutAnimation?.pause();    
+        this._pseudoElementOutAnimation?.pause();
     }
 
     play() {
@@ -400,7 +400,7 @@ export class AnimationLayerData extends EventTarget {
     get started() {
         if (this._isStarted) return Promise.resolve();
         return new Promise<void>((resolve) => {
-            this.addEventListener?.('animation-start', () => resolve(), {once: true});
+            this.addEventListener?.('animation-start', () => resolve(), { once: true });
         });
     }
 }

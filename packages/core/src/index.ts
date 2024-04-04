@@ -1,7 +1,6 @@
 import {
     ScreenChild,
-    AnimationConfig,
-    AnimationConfigFactory,
+    AnimationFactory,
     NodeAppendedEvent,
     NodeRemovedEvent
 } from './common/types';
@@ -32,8 +31,8 @@ import {
     PageAnimationStartEvent
 } from './common/events';
 import { ScrollRestoration } from './ScrollRestoration';
-import {URLPattern} from "urlpattern-polyfill";
-import {SharedElement} from './SharedElement';
+import { URLPattern } from "urlpattern-polyfill";
+import { SharedElement } from './SharedElement';
 
 // @ts-ignore: Property 'UrlPattern' does not exist 
 if (!globalThis.URLPattern) {
@@ -68,12 +67,11 @@ interface MotionEventsMap {
 }
 
 declare global {
-    interface GlobalEventHandlersEventMap extends MotionEventsMap {}
+    interface GlobalEventHandlersEventMap extends MotionEventsMap { }
 }
 
 export type {
-    AnimationConfig,
-    AnimationConfigFactory,
+    AnimationFactory,
     ScreenChild,
     RouterBaseProps,
     RouterBaseState,
@@ -81,8 +79,8 @@ export type {
     ScreenBaseState,
     NavigationProps
 };
-export {SharedElement, Anchor, Motion, GestureRegion, ScrollRestoration};
-export {NavigationBase, RouterBase, RouterData, ScreenBase};
+export { SharedElement, Anchor, Motion, GestureRegion, ScrollRestoration };
+export { NavigationBase, RouterBase, RouterData, ScreenBase };
 export type {
     MotionProgressEndEvent,
     MotionProgressEvent,
@@ -100,3 +98,4 @@ export * from './common/hooks';
 export * from './common/types';
 export * from './common/utils';
 export * from './common/constants';
+export * from './AnimationPresets';

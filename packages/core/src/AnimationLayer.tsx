@@ -1,7 +1,6 @@
 import { Children, Component, createContext } from 'react';
 import { SwipeEndEvent, SwipeEvent, SwipeStartEvent } from 'web-gesture-events';
 import { clamp, interpolate } from './common/utils';
-import { NavigationBase } from './NavigationBase';
 import { ScreenBase, ScreenChild } from './index';
 import { AnimationLayerData, AnimationLayerDataContext } from './AnimationLayerData';
 import { MotionProgressDetail } from './common/events';
@@ -25,7 +24,6 @@ interface AnimationLayerProps {
 
 interface AnimationLayerState {
     progress: number;
-    children: ScreenChild | ScreenChild[];
     shouldPlay: boolean;
     gestureNavigating: boolean;
     shouldAnimate: boolean;
@@ -52,7 +50,6 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
 
     state: AnimationLayerState = {
         progress: MAX_PROGRESS,
-        children: this.props.children,
         shouldPlay: true,
         gestureNavigating: false,
         shouldAnimate: true,
@@ -144,7 +141,7 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
         }
         if (ev.direction === this.state.swipeDirection && swipePos < this.state.swipeAreaWidth) {
             // if only one child return
-            if (!Children.count(this.state.children)) return;
+            if (!Children.count(this.props.children)) return;
             ev.stopPropagation();
             // if gesture region in touch path return
             for (let target of ev.composedPath().reverse()) {
@@ -280,7 +277,7 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
                     }  as React.CSSProperties}
                 >
                     <Motion.Provider value={this.state.progress}>
-                        {this.state.children}
+                        {this.props.children}
                     </Motion.Provider>
                 </div>
             </AnimationLayerDataContext.Provider>
