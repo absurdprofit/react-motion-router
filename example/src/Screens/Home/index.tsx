@@ -17,27 +17,27 @@ export default function Home(props: HomeProps) {
         {
             title: 'Tiles Demo',
             description: "Image tiles that zoom-in and then allow gestures to paginate and dismiss",
-            href: '/tiles'
+            href: 'tiles'
         },
         {
             title: 'Cards Demo',
             description: 'Card reveal with shared element transitions',
-            href: '/cards'
+            href: 'cards'
         },
         {
             title: 'Cards Demo 2',
             description: 'Heavier card demo with fading gradient overlay and cross-fading texts',
-            href: '/cards-2'
+            href: 'cards-2'
         },
         {
             title: 'Overlay Demo',
             description: 'Various Overlays such as modals with spring and default timing functions',
-            href: '/overlays'
+            href: 'overlays'
         },
         {
             title: 'Video Demo',
             description: 'Video with shared element transitions',
-            href: '/video'
+            href: 'video'
         }
     ];
 
@@ -45,14 +45,6 @@ export default function Home(props: HomeProps) {
         props.navigation.finished.then(() => {
             isFirstLoad = true;
         });
-        if (!props.orientation) return;
-        props.orientation.onchange = async () => {
-            if (props.orientation.type !== "portrait-primary") {
-                try {
-                    await props.orientation.lock?.('portrait');
-                } catch (e) { }
-            }
-        }
     }, []);
 
     return (
