@@ -28,6 +28,8 @@ export function Anchor(props: AnchorProps) {
     const routerData = useContext(RouterDataContext);
     const [href, setHref] = useState<string | undefined>(undefined);
     const routerId = navigation?.routerId;
+    const isExternal = !href?.includes(window.location.origin);
+    const rel = isExternal ? "noopener noreferrer" : goBack ? "prev" : "next";
 
     useEffect(() => {
         if (goBack) {
@@ -35,7 +37,7 @@ export function Anchor(props: AnchorProps) {
         } else if (hrefProp) {
             const paramsSerializer = routerData?.paramsSerializer || null;
             const search = searchParamsFromObject(params, paramsSerializer);
-            const uri = new URL(hrefProp.replace(/^\//, ''), navigation.baseURL);
+            const uri = new URL(hrefProp, navigation.baseURL);
             uri.search = search;
             setHref(uri.href);
         }
@@ -57,6 +59,7 @@ export function Anchor(props: AnchorProps) {
             href={href}
             data-router-id={routerId}
             onClick={onClick}
+            rel={rel}
             {...aProps}
         >
             {props.children}
