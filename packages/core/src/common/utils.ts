@@ -73,8 +73,9 @@ export function clamp(num: number, min: number, max?: number) {
 }
 
 export function resolveBaseURLFromPattern(pattern: string, pathname: string) {
-    pattern += '**'; // allows us to match nested routes
-    const baseURLMatch = new URLPattern(pattern).exec(pathname, window.location.origin);
+    if (!pattern.endsWith("**")) pattern += '**'; // allows us to match nested routes
+    const origin = window.location.origin;
+    const baseURLMatch = new URLPattern(pattern, origin).exec(pathname, origin);
     if (!baseURLMatch) return null;
 
     const nestedPathnameGroup = baseURLMatch.pathname.groups[0] ?? '';

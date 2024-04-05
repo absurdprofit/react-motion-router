@@ -282,7 +282,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     get baseURL() {
         const pathname = this.isRoot ? window.location.pathname : this.parentRouterData?.currentScreen?.props.resolvedPathname!;
 
-        const pattern = `${window.location.origin}${this.baseURLPattern.pathname}`;
+        const pattern = this.baseURLPattern.pathname;
         return resolveBaseURLFromPattern(pattern, pathname)!;
     }
 
@@ -296,7 +296,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
             baseURL = this.parentRouterData.baseURL.href;
             const pattern = new URLPattern({ baseURL, pathname: path });
             baseURL = resolveBaseURLFromPattern(
-                `${window.location.origin}${pattern.pathname}`,
+                pattern.pathname,
                 resolvedPathname!
             )!.href;
         }
