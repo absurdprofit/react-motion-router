@@ -15,6 +15,7 @@ interface ForwardAnchorProps extends BaseAnchorProps {
     params?: PlainObject;
     href: string;
     type?: NavigateOptions["type"];
+    preload?: boolean;
 }
 
 interface BackAnchorProps extends BaseAnchorProps {
@@ -24,12 +25,26 @@ interface BackAnchorProps extends BaseAnchorProps {
 type AnchorProps = XOR<ForwardAnchorProps, BackAnchorProps>;
 
 export function Anchor(props: AnchorProps) {
-    const { navigation = useNavigation(), goBack, params = {}, type = "push", href: hrefProp, onClick: onClickProp, ...aProps } = props;
+    const {
+        navigation = useNavigation(),
+        preload,
+        goBack,
+        params = {},
+        type = "push",
+        href: hrefProp,
+        onClick: onClickProp,
+        ...aProps
+    } = props;
     const routerData = useContext(RouterDataContext);
     const [href, setHref] = useState<string | undefined>(undefined);
     const routerId = navigation?.routerId;
     const isExternal = !href?.includes(window.location.origin);
     const rel = isExternal ? "noopener noreferrer" : goBack ? "prev" : "next";
+
+    useEffect(() => {
+        if (!preload || !href) return;
+        navigation.preloadRoute(new URL(href).pathname);
+    }, [preload, href]);
 
     useEffect(() => {
         if (goBack) {
