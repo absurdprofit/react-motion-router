@@ -10,7 +10,7 @@ export default function Home() {
     const size = window.screen.availWidth;
 
     React.useEffect(() => {
-        navigation.prefetchRoute('/fullscreen-video');
+        navigation.preloadRoute('/fullscreen-video');
     }, [navigation]);
     return (
         <div className="video">

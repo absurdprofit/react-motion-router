@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 import { ScreenBaseProps, ScreenBase } from './ScreenBase';
-import { prefetchRoute } from './common/utils';
+import { preloadRoute } from './common/utils';
 import { PlainObject, RouteProp, RouterEventMap, SearchParamsDeserializer, SearchParamsSerializer } from './common/types';
 import { NavigationBase } from './NavigationBase';
 import { RouterBase } from './RouterBase';
@@ -25,8 +25,8 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
         this.routerInstance = routerInstance;
     }
 
-    public prefetchRoute(path: string): Promise<boolean> {
-        return prefetchRoute(path, this);
+    public preloadRoute(path: string): Promise<boolean> {
+        return preloadRoute(path, this);
     }
 
     public addEntry(entry: NavigationHistoryEntry) {

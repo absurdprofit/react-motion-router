@@ -103,8 +103,8 @@ export abstract class NavigationBase {
         }
     }
 
-    public prefetchRoute(path: string) {
-        return this.routerData.prefetchRoute(path);
+    public preloadRoute(path: string) {
+        return this.routerData.preloadRoute(path);
     }
 
     abstract get finished(): Promise<void>;

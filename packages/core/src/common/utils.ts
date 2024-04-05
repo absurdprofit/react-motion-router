@@ -176,45 +176,39 @@ export function lazy<T extends React.ComponentType<any>>(
  * @param routerData 
  * @returns 
  */
-export function prefetchRoute(path: string, routerData: RouterData) {
-    let currentRouterData: RouterData | null = routerData;
+export function preloadRoute(pathname: string, routerData: RouterData) {
     return new Promise<boolean>((resolve, reject) => {
         let found = false;
-        while (currentRouterData) {
-            const routes = currentRouterData.routes;
-            Children.forEach<ScreenChild<ScreenBaseProps>>(routes, (route) => {
-                if (found) return; // stop after first
-                if (!isValidElement(route)) return;
-                const matchInfo = matchRoute(route.props.path, path);
-                if (!matchInfo) return;
-                found = true;
-                queueMicrotask(async () => {
-                    const preloadTasks = [];
-                    if ('preload' in route.props.component) {
-                        preloadTasks.push(route.props.component.preload());
-                    }
-                    if (route.props.config?.header?.component
-                        && 'preload' in route.props.config?.header?.component) {
-                        preloadTasks.push(route.props.config?.header?.component.preload());
-                    }
-                    if (route.props.config?.footer?.component
-                        && 'preload' in route.props.config?.footer?.component) {
-                        preloadTasks.push(route.props.config?.footer?.component.preload());
-                    }
-                    try {
-                        await Promise.all(preloadTasks);
-                        resolve(found);
-                    } catch (e) {
-                        reject(e);
-                    }
-                });
+        const routes = routerData.routes;
+        Children.forEach<ScreenChild<ScreenBaseProps>>(routes, (route) => {
+            if (found) return; // stop after first
+            if (!isValidElement(route)) return;
+            const { path, caseSensitive } = route.props;
+            const baseURL = routerData.baseURL.href;
+            const matchInfo = matchRoute(path, pathname, baseURL, caseSensitive);
+            if (!matchInfo) return;
+            found = true;
+            queueMicrotask(async () => {
+                const preloadTasks = [];
+                if ('preload' in route.props.component) {
+                    preloadTasks.push(route.props.component.preload());
+                }
+                if (route.props.config?.header?.component
+                    && 'preload' in route.props.config?.header?.component) {
+                    preloadTasks.push(route.props.config?.header?.component.preload());
+                }
+                if (route.props.config?.footer?.component
+                    && 'preload' in route.props.config?.footer?.component) {
+                    preloadTasks.push(route.props.config?.footer?.component.preload());
+                }
+                try {
+                    await Promise.all(preloadTasks);
+                    resolve(found);
+                } catch (e) {
+                    reject(e);
+                }
             });
-            if (!found) {
-                currentRouterData = routerData.parentRouterData;
-            } else {
-                break;
-            }
-        }
+        });
         if (!found)
             resolve(false);
     });
