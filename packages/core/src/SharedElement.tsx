@@ -1,6 +1,6 @@
 import { Component, createContext } from 'react';
 import { getCSSData } from './common/utils';
-import { EasingFunction, NodeAppendedEvent, PlainObject, Vec2 } from './common/types';
+import { EasingFunction, PlainObject, Vec2 } from './common/types';
 
 
 //https://developer.mozilla.org/en-US/docs/Web/CSS/transform-origin#formal_syntax

@@ -1,20 +1,9 @@
 import {
     ScreenChild,
     AnimationFactory,
-    NodeAppendedEvent,
-    NodeRemovedEvent
 } from './common/types';
 import { RouterData } from './RouterData';
-import { NavigationBase, NavigationProps } from './NavigationBase';
-import type {
-    BackEvent,
-    BackEventDetail,
-    NavigateEvent,
-    NavigateEventDetail,
-    NavigateOptions,
-    NavigationOptions,
-    GoBackOptions
-} from './NavigationBase';
+import { NavigationBase, NavigationBaseProps, NavigationBaseOptions } from './NavigationBase';
 import { RouterBase, RouterBaseProps, RouterBaseState } from './RouterBase';
 import { ScreenBase, ScreenBaseProps, ScreenBaseState } from './ScreenBase';
 import { Anchor } from './Anchor';
@@ -22,17 +11,6 @@ import { Motion } from './AnimationLayer';
 import type { AnimationLayerData } from './AnimationLayerData';
 import { GestureRegion } from './GestureRegion';
 import 'web-gesture-events';
-import {
-    GestureCancelEvent,
-    GestureEndEvent,
-    GestureStartEvent,
-    MotionProgressEndEvent,
-    MotionProgressEvent,
-    MotionProgressStartEvent,
-    TransitionCancelEvent,
-    TransitionEndEvent,
-    TransitionStartEvent
-} from './common/events';
 import { ScrollRestoration } from './ScrollRestoration';
 import { URLPattern } from "urlpattern-polyfill";
 import { SharedElement } from './SharedElement';
@@ -63,25 +41,17 @@ export type {
     RouterBaseState,
     ScreenBaseProps,
     ScreenBaseState,
-    NavigationProps
+    NavigationBaseProps,
+    NavigationBaseOptions
 };
 export { SharedElement, Anchor, Motion, GestureRegion, ScrollRestoration };
 export { NavigationBase, RouterBase, RouterData, ScreenBase };
 export type {
-    MotionProgressEndEvent,
-    MotionProgressEvent,
-    MotionProgressStartEvent,
-    BackEvent,
-    BackEventDetail,
-    NavigateEvent,
-    NavigateEventDetail,
-    NavigateOptions,
-    NavigationOptions,
-    GoBackOptions,
     AnimationLayerData
 };
 export * from './common/hooks';
 export * from './common/types';
+export * from './common/events';
 export * from './common/utils';
 export * from './common/constants';
 export * from './AnimationPresets';

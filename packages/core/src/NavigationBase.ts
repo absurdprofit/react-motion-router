@@ -4,39 +4,14 @@ import { MetaData } from "./MetaData";
 import { RouterData } from "./RouterData";
 import { ScreenBaseProps } from "./ScreenBase";
 
-export interface BackEventDetail {
-    routerId: string;
-    signal: AbortSignal;
-    finished: Promise<void>;
-}
-
-export interface NavigationProps<Params extends PlainObject = {}, Config extends ScreenBaseProps["config"] = {}> {
+export interface NavigationBaseProps<Params extends PlainObject = {}, Config extends ScreenBaseProps["config"] = {}> {
     params?: Params;
     config?: Config;
 }
 
-export interface NavigateEventDetail<Params extends PlainObject = {}, Config extends ScreenBaseProps["config"] = {}> {
-    routerId: string;
-    route: string;
-    props: NavigationProps<Params, Config>;
-    type: NavigateOptions["type"];
-    signal: AbortSignal;
-    finished: Promise<void>;
-}
-
-export type NavigateEvent = CustomEvent<NavigateEventDetail>;
-export type BackEvent = CustomEvent<BackEventDetail>;
-
-export interface NavigationOptions {
+export interface NavigationBaseOptions {
     signal?: AbortSignal;
 }
-
-export interface NavigateOptions extends NavigationOptions {
-    type?: "push" | "replace";
-    hash?: string;
-}
-
-export interface GoBackOptions extends NavigationOptions { }
 
 export abstract class NavigationBase {
     protected readonly routerData: RouterData;
@@ -86,8 +61,6 @@ export abstract class NavigationBase {
         return this.entries.length;
     }
 
-    abstract get canGoBack(): boolean;
-    abstract get canGoForward(): boolean;
     abstract get next(): HistoryEntry | null;
     abstract get current(): HistoryEntry;
     abstract get previous(): HistoryEntry | null;
@@ -109,10 +82,6 @@ export abstract class NavigationBase {
 
     abstract get finished(): Promise<void>;
     abstract get committed(): Promise<void>;
-
-    abstract navigate<T extends PlainObject = PlainObject>(route: string, props?: NavigationProps<T>, options?: NavigateOptions): void;
-
-    abstract goBack(options?: GoBackOptions): void;
 
     get paramsDeserializer(): ParamsDeserializer | undefined {
         return this.routerData.paramsDeserializer;

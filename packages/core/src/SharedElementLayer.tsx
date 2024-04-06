@@ -548,7 +548,7 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
     onProgress = (e: MotionProgressEvent) => {
         if (this.props.paused) {
             for (const animation of this.animations) {
-                const progress = e.detail.progress;
+                const progress = e.progress;
                 const defaultDuration = this.props.animationLayerData.duration;
                 let duration = animation.effect?.getComputedTiming().duration;
                 duration = Number(duration || defaultDuration);

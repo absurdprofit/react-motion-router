@@ -30,7 +30,7 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
             this.animationProvider?.ref instanceof HTMLDialogElement
             && this.animationProvider.ref.open === false
         ) {
-            const navigation = this.context?.navigation;
+            const navigation = this.context?.navigation as Navigation | undefined;
             if (this.props.config?.presentation === "modal") {
                 this.animationProvider.ref.showModal();
             } else {

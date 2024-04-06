@@ -2,8 +2,8 @@ import { Children, Component, RefObject, createContext, createRef } from 'react'
 import { SwipeEndEvent, SwipeEvent, SwipeStartEvent } from 'web-gesture-events';
 import { clamp, getAnimationDuration, interpolate } from './common/utils';
 import { NavigationBase, ScreenBase, ScreenChild } from './index';
+import { GestureEndEvent, MotionProgressEndEvent, MotionProgressEvent, MotionProgressStartEvent, TransitionCancelEvent, TransitionEndEvent, TransitionStartEvent } from './common/events';
 import { AnimationLayerData, AnimationLayerDataContext } from './AnimationLayerData';
-import { MotionProgressDetail } from './common/events';
 import { SwipeDirection } from './common/types';
 import { DEFAULT_GESTURE_CONFIG, MAX_PROGRESS, MIN_PROGRESS } from './common/constants';
 import { SharedElementLayer } from './SharedElementLayer';
@@ -75,18 +75,15 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
     }
 
     private onTransitionCancel() {
-        const cancelAnimationEvent = new CustomEvent('transition-cancel');
-        this.props.navigation.dispatchEvent(cancelAnimationEvent);
+        this.props.navigation.dispatchEvent(new TransitionCancelEvent());
     }
 
     private onTransitionStart() {
-        const startAnimationEvent = new CustomEvent('transition-start');
-        this.props.navigation.dispatchEvent(startAnimationEvent);
+        this.props.navigation.dispatchEvent(new TransitionStartEvent());
     }
 
     private onTransitionEnd() {
-        const endAnimationEvent = new CustomEvent('transition-end');
-        this.props.navigation.dispatchEvent(endAnimationEvent);
+        this.props.navigation.dispatchEvent(new TransitionEndEvent());
     }
 
     private onProgress(_progress: number) {
@@ -94,10 +91,7 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
 
         if (progress === this.state.progress) return;
 
-        const progressEvent = new CustomEvent<MotionProgressDetail>('motion-progress', {
-            detail: { progress }
-        });
-        this.props.navigation.dispatchEvent(progressEvent);
+        this.props.navigation.dispatchEvent(new MotionProgressEvent(progress));
         this.setState({ progress });
     }
 
@@ -326,15 +320,13 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
                 startX: ev.x,
                 startY: ev.y
             }, () => {
-                const motionStartEvent = new CustomEvent('motion-progress-start');
-
                 this.animationLayerData.gestureNavigating = true;
                 this.playbackRate = -1;
                 this.pause();
                 this.sharedElementLayer.current?.pause();
                 this.animate();
 
-                this.props.navigation.dispatchEvent(motionStartEvent);
+                this.props.navigation.dispatchEvent(new MotionProgressStartEvent());
                 this.ref?.addEventListener('swipe', this.onSwipe);
                 this.ref?.addEventListener('swipeend', this.onSwipeEnd);
             });
@@ -381,17 +373,17 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
                 this.playbackRate = -1;
             }
             onEnd = () => {
-                this.props.navigation.dispatchEvent(new CustomEvent('gesture-end', {detail: {source: ev}}));
+                this.props.navigation.dispatchEvent(new GestureEndEvent(ev));
 
                 this.setState({ gestureNavigating: false });
 
-                this.props.navigation.dispatchEvent(motionEndEvent);
+                this.props.navigation.dispatchEvent(new MotionProgressEndEvent());
             }
             this.setState({ shouldPlay: true, shouldAnimate: false });
         } else {
             this.playbackRate = 0.5;
             onEnd = () => {
-                this.props.navigation.dispatchEvent(motionEndEvent);
+                this.props.navigation.dispatchEvent(new MotionProgressEndEvent());
             }
             this.setState({ shouldPlay: true, gestureNavigating: false });
         }

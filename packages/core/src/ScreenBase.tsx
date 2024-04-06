@@ -13,6 +13,11 @@ import { SharedElementScene, SharedElementSceneContext } from "./SharedElement";
 import { RouteDataContext } from "./RouteData";
 import { NavigationBase } from "./NavigationBase";
 
+export interface RouteProps<P extends ScreenBaseProps, N extends NavigationBase> {
+    route: RouteProp<P["config"], PlainObject>;
+    navigation: N;
+}
+
 export interface ScreenBaseProps {
     out?: boolean;
     in?: boolean;
@@ -47,6 +52,10 @@ export interface ScreenBaseProps {
         minFlingVelocity?: number;
         hysteresis?: number;
         disableDiscovery?: boolean;
+        onEnter?: (props: RouteProps<ScreenBaseProps, NavigationBase>) => void | Promise<void>;
+        onExit?: (props: RouteProps<ScreenBaseProps, NavigationBase>) => void | Promise<void>;
+        onEntered?: (props: RouteProps<ScreenBaseProps, NavigationBase>) => void | Promise<void>;
+        onExited?: (props: RouteProps<ScreenBaseProps, NavigationBase>) => void | Promise<void>;
     }
 }
 
@@ -73,10 +82,6 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
 
     constructor(props: P) {
         super(props);
-        this.onEnter = this.onEnter.bind(this);
-        this.onEntered = this.onEntered.bind(this);
-        this.onExit = this.onExit.bind(this);
-        this.onExited = this.onExited.bind(this);
 
         this.sharedElementScene = new SharedElementScene(`${this.id}-shared-element-scene`);
     }
@@ -124,6 +129,12 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     }
 
     protected get routeData() {
+        let preloaded = false;
+        let Component = this.props.component as React.JSXElementConstructor<any>;
+        if ('preloaded' in Component && Component.preloaded) {
+            Component = Component.preloaded as React.JSXElementConstructor<any>;
+            preloaded = true;
+        }
         this._routeData.params = {
             ...this.props.defaultParams, // passed as prop
             ...this._routeData.params, // passed by setParams
@@ -134,18 +145,39 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
             ...this._routeData.config, // passed by setConfig
             ...this.context!.routesData.get(this.props.path)?.config // passed by other screens using navigate
         };
+        this._routeData.focused = Boolean(this.props.in);
+        this._routeData.preloaded = preloaded;
         return this._routeData;
     }
 
-    onExited() { }
+    onExited() {
+        return this.routeData.config.onExited?.({
+            route: this.routeData,
+            navigation: this.context!.navigation
+        });
+    }
 
-    onExit() {}
+    onExit() {
+        return this.routeData.config.onExit?.({
+            route: this.routeData,
+            navigation: this.context!.navigation
+        });
+    }
 
     onEnter() {
         this.sharedElementScene.previousScene = this.context!.currentScreen?.sharedElementScene ?? null;
+        return this.routeData.config.onEnter?.({
+            route: this.routeData,
+            navigation: this.context!.navigation
+        });
     }
 
-    onEntered() {}
+    onEntered() {
+        return this.routeData.config.onEntered?.({
+            route: this.routeData,
+            navigation: this.context!.navigation
+        });
+    }
 
     private onRef = (ref: HTMLElement | null) => {
         if (this.ref !== ref) {
@@ -167,13 +199,9 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         let Component = this.props.component as React.JSXElementConstructor<any>;
         let HeaderComponent = routeData.config.header?.component as React.JSXElementConstructor<any>;
         let FooterComponent = routeData.config.footer?.component as React.JSXElementConstructor<any>;
-        let preloaded = false;
         let headerPreloaded = false;
         let footerPreloaded = false;
-        if ('preloaded' in Component && Component.preloaded) {
-            Component = Component.preloaded as React.JSXElementConstructor<any>;
-            preloaded = true;
-        }
+        
         if (HeaderComponent) {
             if ('preloaded' in HeaderComponent && HeaderComponent.preloaded) {
                 HeaderComponent = HeaderComponent.preloaded as React.JSXElementConstructor<any>;
@@ -187,8 +215,6 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
             }
         }
 
-        routeData.preloaded = preloaded;
-        routeData.focused = Boolean(this.props.in);
         this.sharedElementScene.keepAlive = Boolean(routeData.config.keepAlive);
         return (
             <AnimationProvider
@@ -237,10 +263,8 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     }
 }
 
-interface ComponentWithRouteDataProps<P extends ScreenBaseProps> {
+interface ComponentWithRouteDataProps<P extends ScreenBaseProps> extends RouteProps<P, NavigationBase> {
     component: React.JSXElementConstructor<any> | LazyExoticComponent<any> | React.ReactNode;
-    route: RouteProp<P["config"], PlainObject>;
-    navigation: NavigationBase;
 }
 function ComponentWithRouteData<P extends ScreenBaseProps>({ component, route, navigation }: ComponentWithRouteDataProps<P>) {
     const Component = component ?? null;

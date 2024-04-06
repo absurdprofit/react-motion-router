@@ -4,10 +4,10 @@ import { NavigationBase } from './NavigationBase';
 import { Component, ElementType } from 'react';
 
 interface AnimationProviderProps {
-    onExit: Function;
-    onExited: Function;
-    onEnter: Function;
-    onEntered: Function;
+    onExit: () => void | Promise<void>;
+    onExited: () => void | Promise<void>;
+    onEnter: () => void | Promise<void>;
+    onEntered: () => void | Promise<void>;
     in: boolean;
     out: boolean;
     id: string;

@@ -26,7 +26,7 @@ export interface RouterBaseProps {
     children: ScreenChild | ScreenChild[];
 }
 
-export interface RouterBaseState {
+export interface RouterBaseState<N extends NavigationBase = NavigationBase> {
     currentPath: string;
     nextPath: string | undefined;
     currentScreen?: RefObject<ScreenBase>;
@@ -36,7 +36,7 @@ export interface RouterBaseState {
     paths: (string | undefined)[];
     defaultDocumentTitle: string;
     documentTitle: string;
-    navigation: NavigationBase;
+    navigation: N;
 }
 
 function StateFromChildren(
@@ -137,7 +137,7 @@ function StateFromChildren(
                             resolvedPathname: nextPath,
                             key,
                             ref: nextScreen
-                        }) as ScreenChild
+                        })
                     );
                 }
             }
@@ -169,13 +169,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         if (this.isRoot) {
             RouterBase.rootRouterRef = new WeakRef(this);
         }
-
-        // get url search params and append to existing route params
-        // TODO: move to GetDerivedStateFromProps
-        const { currentScreen } = this.state;
-        const paramsDeserializer = this.routerData.paramsDeserializer || null;
-        const searchParams = searchParamsToObject(window.location.search, paramsDeserializer);
-        const routesData = this.routerData.routesData;
     }
 
     static readonly defaultProps = {

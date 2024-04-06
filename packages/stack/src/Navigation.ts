@@ -1,14 +1,10 @@
 import {
-    BackEventDetail,
-    GoBackOptions,
-    NavigateEventDetail,
-    NavigateOptions,
     NavigationBase,
     RouterData,
     searchParamsFromObject
 } from '@react-motion-router/core';
-import type { NavigationProps, PlainObject } from '@react-motion-router/core';
-import { ScreenProps } from './Screen';
+import { GoBackOptions, NavigateOptions, NavigationProps } from './common/types';
+import { BackEvent, NavigateEvent } from './common/events';
 
 export class Navigation extends NavigationBase {
     private isInternalBack = false;
@@ -42,9 +38,9 @@ export class Navigation extends NavigationBase {
         window.navigation.traverseTo(key);
     }
 
-    navigate<T extends PlainObject = PlainObject>(
+    navigate(
         route: string,
-        props: NavigationProps<T, ScreenProps["config"]> = {},
+        props: NavigationProps = {},
         options: NavigateOptions = {}
     ) {
         const { type = "push", hash } = options;
@@ -147,34 +143,16 @@ export class Navigation extends NavigationBase {
     }
 
     private createBackEvent(controller: AbortController) {
-        return new CustomEvent<BackEventDetail>('go-back', {
-            detail: {
-                routerId: this.routerId,
-                signal: controller.signal,
-                finished: this._finished
-            }
-        });
+        return new BackEvent(this.routerId, controller.signal, this._finished);
     }
 
     private createNavigateEvent(
         route: string,
-        props: NavigationProps<PlainObject, ScreenProps["config"]>,
+        props: NavigationProps,
         type: NavigateOptions["type"],
         controller: AbortController
     ) {
-        return new CustomEvent<NavigateEventDetail>('navigate', {
-            detail: {
-                routerId: this.routerId,
-                route,
-                props: {
-                    params: props.params,
-                    config: props.config
-                },
-                type,
-                signal: controller.signal,
-                finished: this._finished
-            }
-        })
+        return new NavigateEvent(this.routerId, route, props, type, controller.signal, this._finished);
     }
 
     private createFinishedPromise(controller: AbortController) {

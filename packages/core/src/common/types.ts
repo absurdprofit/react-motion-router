@@ -99,12 +99,12 @@ export interface RouterEventMap {
     "motion-progress-start": MotionProgressStartEvent;
     "motion-progress": MotionProgressEvent;
     "motion-progress-end": MotionProgressEndEvent;
-    "node-appended": NodeAppendedEvent;
-    "node-removed": NodeRemovedEvent;
 }
 
-export type NodeAppendedEvent = CustomEvent<{ node: Node; }>;
-export type NodeRemovedEvent = CustomEvent<{ node: Node; }>;
+declare global {
+    interface HTMLElementEventMap extends RouterEventMap {}
+}
+
 export type CustomElementType = string;
 
 export type Input = Record<string, number>;
