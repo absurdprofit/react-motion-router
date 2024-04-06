@@ -128,43 +128,46 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
             .replace(/^-|-$/g, ''); // Remove leading and trailing hyphens;
     }
 
-    protected get routeData() {
+    get routeData() {
         let preloaded = false;
         let Component = this.props.component as React.JSXElementConstructor<any>;
         if ('preloaded' in Component && Component.preloaded) {
             Component = Component.preloaded as React.JSXElementConstructor<any>;
             preloaded = true;
         }
-        this._routeData.params = {
-            ...this.props.defaultParams, // passed as prop
-            ...this._routeData.params, // passed by setParams
-            ...this.context!.routesData.get(this.props.path)?.params // passed by other screens using navigate
+        const focused = Boolean(this.props.in);
+        return {
+            ...this._routeData,
+            params: {
+                ...this.props.defaultParams, // passed as prop
+                ...this._routeData.params, // passed by setParams
+                ...this.context!.routesData.get(this.props.path)?.params // passed by other screens using navigate
+            },
+            config: {
+                ...this.props.config, // passed as prop
+                ...this._routeData.config, // passed by setConfig
+                ...this.context!.routesData.get(this.props.path)?.config // passed by other screens using navigate
+            },
+            focused,
+            preloaded
         };
-        this._routeData.config = {
-            ...this.props.config, // passed as prop
-            ...this._routeData.config, // passed by setConfig
-            ...this.context!.routesData.get(this.props.path)?.config // passed by other screens using navigate
-        };
-        this._routeData.focused = Boolean(this.props.in);
-        this._routeData.preloaded = preloaded;
-        return this._routeData;
     }
 
-    onExited() {
+    onExited = () => {
         return this.routeData.config.onExited?.({
             route: this.routeData,
             navigation: this.context!.navigation
         });
     }
 
-    onExit() {
+    onExit = () => {
         return this.routeData.config.onExit?.({
             route: this.routeData,
             navigation: this.context!.navigation
         });
     }
 
-    onEnter() {
+    onEnter = () => {
         this.sharedElementScene.previousScene = this.context!.currentScreen?.sharedElementScene ?? null;
         return this.routeData.config.onEnter?.({
             route: this.routeData,
@@ -172,7 +175,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         });
     }
 
-    onEntered() {
+    onEntered = () => {
         return this.routeData.config.onEntered?.({
             route: this.routeData,
             navigation: this.context!.navigation
@@ -201,7 +204,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         let FooterComponent = routeData.config.footer?.component as React.JSXElementConstructor<any>;
         let headerPreloaded = false;
         let footerPreloaded = false;
-        
+
         if (HeaderComponent) {
             if ('preloaded' in HeaderComponent && HeaderComponent.preloaded) {
                 HeaderComponent = HeaderComponent.preloaded as React.JSXElementConstructor<any>;

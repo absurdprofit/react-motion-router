@@ -1,6 +1,6 @@
 import { Children, Component, RefObject, createContext, createRef } from 'react';
 import { SwipeEndEvent, SwipeEvent, SwipeStartEvent } from 'web-gesture-events';
-import { clamp, getAnimationDuration, interpolate } from './common/utils';
+import { clamp, interpolate } from './common/utils';
 import { NavigationBase, ScreenBase, ScreenChild } from './index';
 import { GestureEndEvent, MotionProgressEndEvent, MotionProgressEvent, MotionProgressStartEvent, TransitionCancelEvent, TransitionEndEvent, TransitionStartEvent } from './common/events';
 import { AnimationLayerData, AnimationLayerDataContext } from './AnimationLayerData';
@@ -50,7 +50,7 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
     }
 
     static getDerivedStateFromProps(props: AnimationLayerProps, state: AnimationLayerState) {
-        const config = props.currentScreen?.current?.props.config;
+        const config = props.currentScreen?.current?.routeData.config;
         return {
             swipeDirection: config?.swipeDirection ?? state.swipeDirection,
             swipeAreaWidth: config?.swipeAreaWidth ?? state.swipeAreaWidth,
