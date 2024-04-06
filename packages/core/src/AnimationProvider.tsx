@@ -110,12 +110,13 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
 
     render() {
         const Element = this.props.renderAs;
+        const inert = this.state.zIndex === 0 ? '' : undefined;
         return (
             <Element
                 id={this.props.id}
                 className="animation-provider"
                 ref={this.onRef}
-                inert={(this.state.zIndex === 0).toString()}
+                {...{ inert }}
                 tabIndex={this.state.zIndex - 1}
                 style={{
                     gridArea: '1 / 1',
