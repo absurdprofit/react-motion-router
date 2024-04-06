@@ -31,7 +31,7 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
     context!: React.ContextType<typeof AnimationLayerDataContext>;
 
     state: AnimationProviderState = {
-        zIndex: this.props.in ? 1 : 0
+        zIndex: 0
     }
 
     onRef = (ref: HTMLElement | null) => {
@@ -77,8 +77,8 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
         return this._ref;
     }
 
-    get zIndex() {
-        return this.props.in ? 1 : 0;
+    setZIndex(zIndex: number) {
+        return new Promise<void>(resolve => this.setState({ zIndex }, resolve));
     }
 
     get pseudoElementInAnimation() {

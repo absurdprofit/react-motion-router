@@ -62,6 +62,7 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
 
     componentDidMount() {
         this.animationLayerData.onProgress = this.onProgress.bind(this);
+        this.props.currentScreen?.current?.animationProvider?.setZIndex(1);
     }
 
     componentDidUpdate(prevProps: AnimationLayerProps, prevState: AnimationLayerState) {
@@ -243,10 +244,25 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
         const nextScreen = this.props.nextScreen?.current;
 
         if (currentScreen?.animationProvider && nextScreen?.animationProvider && this.state.shouldAnimate) {
-            this.animationLayerData.outAnimation = currentScreen?.animationProvider.outAnimation;
-            this.animationLayerData.pseudoElementOutAnimation = currentScreen?.animationProvider.pseudoElementOutAnimation;
-            this.animationLayerData.inAnimation = nextScreen?.animationProvider.inAnimation;
-            this.animationLayerData.pseudoElementInAnimation = nextScreen?.animationProvider.pseudoElementInAnimation;
+            if (!this.props.backNavigating) {
+                this.animationLayerData.outAnimation = currentScreen?.animationProvider.outAnimation;
+                this.animationLayerData.pseudoElementOutAnimation = currentScreen?.animationProvider.pseudoElementOutAnimation;
+                this.animationLayerData.inAnimation = nextScreen?.animationProvider.inAnimation;
+                this.animationLayerData.pseudoElementInAnimation = nextScreen?.animationProvider.pseudoElementInAnimation;
+                await Promise.all([
+                    nextScreen.animationProvider.setZIndex(1),
+                    currentScreen.animationProvider.setZIndex(0)
+                ]);
+            } else {
+                this.animationLayerData.outAnimation = nextScreen?.animationProvider.outAnimation;
+                this.animationLayerData.pseudoElementOutAnimation = nextScreen?.animationProvider.pseudoElementOutAnimation;
+                this.animationLayerData.inAnimation = currentScreen?.animationProvider.inAnimation;
+                this.animationLayerData.pseudoElementInAnimation = currentScreen?.animationProvider.pseudoElementInAnimation;
+                await Promise.all([
+                    nextScreen.animationProvider.setZIndex(0),
+                    currentScreen.animationProvider.setZIndex(1)
+                ]);
+            }
             if (this.animationLayerData.inAnimation && this.animationLayerData.outAnimation) {
                 if (!this.state.shouldAnimate) {
                     this.finishTransition();
@@ -256,8 +272,10 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
 
                 await this.ready;
 
-                await nextScreen?.onEnter();
-                await currentScreen.onExit();
+                await Promise.all([
+                    await nextScreen.onEnter(),
+                    await currentScreen.onExit()
+                ]);
 
                 if (this.paused) {
                     this.animationLayerData.inAnimation.pause();
@@ -275,10 +293,14 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
 
                 await this.finished;
 
-                await nextScreen.onEntered();
-                await currentScreen.onExited();
-
                 this.commitAndRemoveAnimations();
+
+                await Promise.all([
+                    await nextScreen.onEntered(),
+                    await currentScreen.onExited()
+                ]);
+
+                await nextScreen.animationProvider.setZIndex(1);
 
                 this.onTransitionEnd();
 
@@ -321,7 +343,7 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
                 }
             }
 
-            this.props.navigation.dispatchEvent(new CustomEvent('gesture-start', {detail: {source: ev}}));
+            this.props.navigation.dispatchEvent(new CustomEvent('gesture-start', { detail: { source: ev } }));
             this.setState({
                 shouldPlay: false,
                 gestureNavigating: true,
