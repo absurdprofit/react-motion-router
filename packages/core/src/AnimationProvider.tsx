@@ -4,10 +4,6 @@ import { NavigationBase } from './NavigationBase';
 import { Component, ElementType } from 'react';
 
 interface AnimationProviderProps {
-    onExit: () => void | Promise<void>;
-    onExited: () => void | Promise<void>;
-    onEnter: () => void | Promise<void>;
-    onEntered: () => void | Promise<void>;
     in: boolean;
     out: boolean;
     id: string;
@@ -47,18 +43,12 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
             this.ref.style.willChange = 'auto';
             this.ref.style.pointerEvents = 'auto';
         }
-        if (this.props.in) {
-            this.props.onEntered();
-        }
     }
 
     private onAnimationStart = () => {
         if (this.ref) {
             this.ref.style.willChange = 'transform, opacity';
             this.ref.style.pointerEvents = 'none';
-        }
-        if (this.props.out) {
-            this.props.onExit();
         }
     }
 

@@ -223,10 +223,6 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
             <AnimationProvider
                 ref={this._animationProvider}
                 renderAs={this.elementType}
-                onExit={this.onExit.bind(this)}
-                onExited={this.onExited.bind(this)}
-                onEnter={this.onEnter.bind(this)}
-                onEntered={this.onEntered.bind(this)}
                 in={this.props.in || false}
                 out={this.props.out || false}
                 id={`${this.id}-animation-provider`}

@@ -239,12 +239,14 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
             // cancel playing animation
             this.cancelTransition();
         }
-        const { currentScreen, nextScreen } = this.props;
-        if (currentScreen?.current?.animationProvider && nextScreen?.current?.animationProvider && this.state.shouldAnimate) {
-            this.animationLayerData.outAnimation = currentScreen?.current?.animationProvider.outAnimation;
-            this.animationLayerData.pseudoElementOutAnimation = currentScreen?.current?.animationProvider.pseudoElementOutAnimation;
-            this.animationLayerData.inAnimation = nextScreen?.current?.animationProvider.inAnimation;
-            this.animationLayerData.pseudoElementInAnimation = nextScreen?.current?.animationProvider.pseudoElementInAnimation;
+        const currentScreen = this.props.currentScreen?.current;
+        const nextScreen = this.props.nextScreen?.current;
+
+        if (currentScreen?.animationProvider && nextScreen?.animationProvider && this.state.shouldAnimate) {
+            this.animationLayerData.outAnimation = currentScreen?.animationProvider.outAnimation;
+            this.animationLayerData.pseudoElementOutAnimation = currentScreen?.animationProvider.pseudoElementOutAnimation;
+            this.animationLayerData.inAnimation = nextScreen?.animationProvider.inAnimation;
+            this.animationLayerData.pseudoElementInAnimation = nextScreen?.animationProvider.pseudoElementInAnimation;
             if (this.animationLayerData.inAnimation && this.animationLayerData.outAnimation) {
                 if (!this.state.shouldAnimate) {
                     this.finishTransition();
@@ -253,6 +255,9 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
                 }
 
                 await this.ready;
+
+                await nextScreen?.onEnter();
+                await currentScreen.onExit();
 
                 if (this.paused) {
                     this.animationLayerData.inAnimation.pause();
@@ -269,6 +274,9 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
                 this.onTransitionStart();
 
                 await this.finished;
+
+                await nextScreen.onEntered();
+                await currentScreen.onExited();
 
                 this.commitAndRemoveAnimations();
 
