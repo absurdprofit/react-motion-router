@@ -24,8 +24,8 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
         )
             this.elementType = "dialog";
     }
-    onEnter = () => {
-        super.onEnter();
+
+    onEnter() {
         if (
             this.animationProvider?.ref instanceof HTMLDialogElement
             && this.animationProvider.ref.open === false
@@ -66,10 +66,11 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
                     navigation?.goBack();
             }, {once: true});
         }
+
+        return super.onEnter();
     };
 
-    onExit(): void {
-        super.onExit();
+    onExit() {
         const currentPath = this.context?.navigation.current.url?.pathname;
         if (!currentPath) return;
         const baseURL = this.context?.navigation.baseURL.href;
@@ -86,12 +87,15 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
                 this.setState({shouldKeepAlive: true});
                 this.setConfig({keepAlive: true});
         }
+
+        return super.onExit();
     }
 
-    onExited = () => {
-        super.onExited();
+    onExited() {
         if (this.animationProvider?.ref instanceof HTMLDialogElement) {
             this.animationProvider.ref.close("screen-exit");
         }
+
+        return super.onExited();
     }
 }

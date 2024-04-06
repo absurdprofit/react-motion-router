@@ -153,21 +153,21 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         };
     }
 
-    onExited = () => {
+    onExited() {
         return this.routeData.config.onExited?.({
             route: this.routeData,
             navigation: this.context!.navigation
         });
     }
 
-    onExit = () => {
+    onExit() {
         return this.routeData.config.onExit?.({
             route: this.routeData,
             navigation: this.context!.navigation
         });
     }
 
-    onEnter = () => {
+    onEnter() {
         this.sharedElementScene.previousScene = this.context!.currentScreen?.sharedElementScene ?? null;
         return this.routeData.config.onEnter?.({
             route: this.routeData,
@@ -175,7 +175,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         });
     }
 
-    onEntered = () => {
+    onEntered() {
         return this.routeData.config.onEntered?.({
             route: this.routeData,
             navigation: this.context!.navigation
@@ -223,10 +223,10 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
             <AnimationProvider
                 ref={this._animationProvider}
                 renderAs={this.elementType}
-                onExit={this.onExit}
-                onExited={this.onExited}
-                onEnter={this.onEnter}
-                onEntered={this.onEntered}
+                onExit={this.onExit.bind(this)}
+                onExited={this.onExited.bind(this)}
+                onEnter={this.onEnter.bind(this)}
+                onEntered={this.onEntered.bind(this)}
                 in={this.props.in || false}
                 out={this.props.out || false}
                 id={`${this.id}-animation-provider`}
