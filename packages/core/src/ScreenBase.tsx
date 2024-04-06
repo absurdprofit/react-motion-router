@@ -139,19 +139,13 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
 
     onExited() { }
 
-    onExit() {
-        this.context!.currentScreen = this;
-    }
+    onExit() {}
 
     onEnter() {
-        this.context!.nextScreen = this;
         this.sharedElementScene.previousScene = this.context!.currentScreen?.sharedElementScene ?? null;
     }
 
-    onEntered() {
-        this.context!.currentScreen = this;
-        this.context!.nextScreen = null;
-    }
+    onEntered() {}
 
     private onRef = (ref: HTMLElement | null) => {
         if (this.ref !== ref) {

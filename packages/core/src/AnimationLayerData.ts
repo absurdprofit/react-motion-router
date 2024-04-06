@@ -1,8 +1,6 @@
 import { createContext } from 'react';
-import { AnimationProvider } from './AnimationProvider';
-import { getAnimationDuration, interpolate } from './common/utils';
+import { interpolate } from './common/utils';
 import { MAX_NORM_PROGRESS, MAX_PROGRESS, MIN_NORM_PROGRESS, MIN_PROGRESS } from './common/constants';
-import { SharedElementLayer } from './SharedElementLayer';
 
 export class AnimationLayerData extends EventTarget {
     private _paused: boolean = false;
@@ -17,12 +15,7 @@ export class AnimationLayerData extends EventTarget {
     private _playbackRate: number = 1;
     private _direction: "normal" | "reverse" = "normal";
     private _timeline: AnimationTimeline = document.timeline;
-    private _sharedElementLayer: SharedElementLayer | null = null;
     private _onProgress: ((progress: number) => void) | null = null;
-    private _shouldAnimate: boolean = true;
-    private _onAnimationStart: (() => void) | null = null;
-    private _onAnimationEnd: (() => void) | null = null;
-    private _onAnimationCancel: (() => void) | null = null;
 
     private updateProgress() {
         if (this._gestureNavigating && this._paused) {
@@ -45,10 +38,6 @@ export class AnimationLayerData extends EventTarget {
 
     set onProgress(_onProgress: ((progress: number) => void) | null) {
         this._onProgress = _onProgress;
-    }
-
-    set shouldAnimate(_shouldAnimate: boolean) {
-        this._shouldAnimate = _shouldAnimate;
     }
 
     set direction(_direction: "normal" | "reverse") {
@@ -74,22 +63,6 @@ export class AnimationLayerData extends EventTarget {
         
     }
 
-    set onAnimationStart(_onAnimationStart: (() => void) | null) {
-        this._onAnimationStart = _onAnimationStart;
-    }
-
-    set onAnimationEnd(_onAnimationEnd: (() => void) | null) {
-        this._onAnimationEnd = _onAnimationEnd;
-    }
-
-    set onAnimationCancel(_onAnimationCancel: (() => void) | null) {
-        this._onAnimationCancel = _onAnimationCancel;
-    }
-
-    set sharedElementLayer(_sharedElementLayer: SharedElementLayer) {
-        this._sharedElementLayer = _sharedElementLayer;
-    }
-
     get playbackRate() {
         return this._playbackRate;
     }
@@ -100,10 +73,6 @@ export class AnimationLayerData extends EventTarget {
 
     get timeline() {
         return this._timeline;
-    }
-
-    get sharedElementLayer() {
-        return this._sharedElementLayer!;
     }
 
     get duration() {

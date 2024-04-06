@@ -1,7 +1,7 @@
 import { NavigationBase } from '../NavigationBase';
 import { ScreenBase, ScreenBaseProps } from '../ScreenBase';
 
-export type ScreenChild<P extends ScreenBaseProps = ScreenBaseProps, E extends typeof ScreenBase = typeof ScreenBase> = React.ReactElement<P, React.JSXElementConstructor<E>>;
+export type ScreenChild<P extends ScreenBaseProps = ScreenBaseProps, E extends ScreenBase<P> = ScreenBase<P>> = React.CElement<P, E>;
 
 enum EasingFunctionKeywordEnum {
     "ease",

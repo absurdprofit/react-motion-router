@@ -18,8 +18,6 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
     private _entries = new Array<HistoryEntry>();
     public paramsSerializer?: SearchParamsSerializer;
     public paramsDeserializer?: SearchParamsDeserializer;
-    public currentScreen: ScreenBase | null = null;
-    public nextScreen: ScreenBase | null = null;
 
     constructor(routerInstance: RouterBase) {
         this.routerInstance = routerInstance;
@@ -57,6 +55,12 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
             this._childRouterData = null;
     }
 
+    get currentScreen() {
+        return this.routerInstance.state.currentScreen?.current;
+    }
+    get nextScreen() {
+        return this.routerInstance.state.nextScreen?.current;
+    }
     get routerId() {
         return this.routerInstance.id;
     }

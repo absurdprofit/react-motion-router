@@ -9,10 +9,10 @@ import {
 import { RouterData, RouterDataContext } from './RouterData';
 import { TransitionEndEvent } from './common/events';
 import { dispatchEvent, matchRoute, resolveBaseURLFromPattern, searchParamsToObject } from './common/utils';
-import { Component } from 'react';
+import { Component, RefObject, createRef } from 'react';
 import { DEFAULT_ANIMATION, DEFAULT_GESTURE_CONFIG } from './common/constants';
 import { isValidElement, Children, cloneElement } from 'react';
-import { ScreenBaseProps } from './ScreenBase';
+import { ScreenBase, ScreenBaseProps } from './ScreenBase';
 
 export interface RouterBaseProps {
     id?: string;
@@ -30,6 +30,8 @@ export interface RouterBaseProps {
 export interface RouterBaseState {
     currentPath: string;
     nextPath: string | undefined;
+    currentScreen?: RefObject<ScreenBase>;
+    nextScreen?: RefObject<ScreenBase>;
     backNavigating: boolean;
     children: ScreenChild | ScreenChild[];
     paths: (string | undefined)[];
@@ -48,6 +50,8 @@ function StateFromChildren(
     let nextMatched = false;
     let currentMatched = false;
     let documentTitle: string = state.defaultDocumentTitle;
+    let currentScreen = state.currentScreen;
+    let nextScreen = state.nextScreen;
 
     const children: ScreenChild[] = [];
     let keptAliveKey: React.Key | undefined = undefined;
@@ -83,6 +87,7 @@ function StateFromChildren(
             }
             if (matchInfo) {
                 currentMatched = true;
+                currentScreen = createRef<ScreenBase>();
                 children.push(
                     cloneElement(child, {
                         in: isFirstLoad,
@@ -96,8 +101,9 @@ function StateFromChildren(
                             ...matchInfo.params,
                         },
                         resolvedPathname: currentPath,
-                        key: child.key ?? Math.random()
-                    }) as ScreenChild
+                        key: child.key ?? Math.random(),
+                        ref: currentScreen
+                    })
                 );
             }
         }
@@ -116,6 +122,7 @@ function StateFromChildren(
                     nextMatched = true;
                     documentTitle = child.props.config?.title || state.defaultDocumentTitle;
                     const key = keptAliveKey || Math.random();
+                    nextScreen = createRef<ScreenBase>();
                     children.push(
                         cloneElement(child, {
                             in: true,
@@ -129,7 +136,8 @@ function StateFromChildren(
                                 ...matchInfo.params,
                             },
                             resolvedPathname: nextPath,
-                            key
+                            key,
+                            ref: nextScreen
                         }) as ScreenChild
                     );
                 }
@@ -141,6 +149,8 @@ function StateFromChildren(
         paths,
         children,
         documentTitle,
+        currentScreen,
+        nextScreen
     }
 }
 
@@ -332,8 +342,8 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
                 <RouterDataContext.Provider value={this.routerData}>
                     <AnimationLayer
                         navigation={this.state.navigation}
-                        currentScreen={this.routerData.currentScreen}
-                        nextScreen={this.routerData.nextScreen}
+                        currentScreen={this.state.currentScreen ?? null}
+                        nextScreen={this.state.nextScreen ?? null}
                         backNavigating={this.state.backNavigating}
                         disableBrowserRouting={Boolean(this.props.config.disableBrowserRouting)}
                         onGestureNavigationStart={this.onGestureNavigationStart}
