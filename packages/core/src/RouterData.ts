@@ -1,13 +1,10 @@
 import { createContext } from 'react';
-import { ScreenBaseProps, ScreenBase } from './ScreenBase';
 import { preloadRoute } from './common/utils';
-import { PlainObject, RouteProp, RouterEventMap, SearchParamsDeserializer, SearchParamsSerializer } from './common/types';
+import { RoutesData, SearchParamsDeserializer, SearchParamsSerializer } from './common/types';
 import { NavigationBase } from './NavigationBase';
 import { RouterBase } from './RouterBase';
 import { ScrollRestorationData } from './ScrollRestorationData';
 import { HistoryEntry } from './HistoryEntry';
-
-export type RoutesData = Map<string | undefined, RouteProp<ScreenBaseProps["config"], PlainObject>>;
 
 export class RouterData<N extends NavigationBase = NavigationBase> {
     public readonly routerInstance: RouterBase;

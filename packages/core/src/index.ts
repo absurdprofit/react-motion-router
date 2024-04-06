@@ -23,6 +23,9 @@ import type { AnimationLayerData } from './AnimationLayerData';
 import { GestureRegion } from './GestureRegion';
 import 'web-gesture-events';
 import {
+    GestureCancelEvent,
+    GestureEndEvent,
+    GestureStartEvent,
     MotionProgressEndEvent,
     MotionProgressEvent,
     MotionProgressStartEvent,
@@ -51,23 +54,6 @@ let root = document.getElementById('root');
 if (root) {
     root.style.width = '100%';
     root.style.height = '100%';
-}
-
-interface MotionEventsMap {
-    "transition-start": TransitionStartEvent;
-    "transition-cancel": TransitionCancelEvent;
-    "transition-end": TransitionEndEvent;
-    "motion-progress-start": MotionProgressStartEvent;
-    "motion-progress": MotionProgressEvent;
-    "motion-progress-end": MotionProgressEndEvent;
-    "go-back": BackEvent;
-    "navigate": NavigateEvent;
-    "node-appended": NodeAppendedEvent;
-    "node-removed": NodeRemovedEvent;
-}
-
-declare global {
-    interface GlobalEventHandlersEventMap extends MotionEventsMap { }
 }
 
 export type {

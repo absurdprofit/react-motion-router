@@ -1,8 +1,7 @@
 import { AnimationFactory, CustomElementType } from './common/types';
-import { AnimationLayerData, AnimationLayerDataContext } from './AnimationLayerData';
+import { AnimationLayerDataContext } from './AnimationLayerData';
 import { NavigationBase } from './NavigationBase';
 import { Component, ElementType } from 'react';
-import { DEFAULT_ANIMATION } from './common/constants';
 
 interface AnimationProviderProps {
     onExit: Function;

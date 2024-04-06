@@ -1,3 +1,5 @@
+import { GestureEvent } from "web-gesture-events";
+
 export interface TransitionStartDetail {}
 
 export type TransitionStartEvent = CustomEvent<TransitionStartDetail>;
@@ -9,6 +11,18 @@ export type TransitionCancelEvent = CustomEvent<TransitionCancelDetail>;
 export interface TransitionEndDetail {}
 
 export type TransitionEndEvent = CustomEvent<TransitionEndDetail>;
+
+export interface GestureStartDetail {
+    source: GestureEvent;
+}
+export type GestureStartEvent = CustomEvent<GestureStartDetail>;
+
+export interface GestureEndDetail {
+    source: GestureEvent;
+}
+export type GestureEndEvent = CustomEvent<GestureEndDetail>;
+
+export type GestureCancelEvent = CustomEvent;
 
 export interface MotionProgressStartDetail {}
 

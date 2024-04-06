@@ -1,5 +1,16 @@
 import { NavigationBase } from '../NavigationBase';
 import { ScreenBase, ScreenBaseProps } from '../ScreenBase';
+import {
+    GestureCancelEvent,
+    GestureEndEvent,
+    GestureStartEvent,
+    MotionProgressEndEvent,
+    MotionProgressEvent,
+    MotionProgressStartEvent,
+    TransitionCancelEvent,
+    TransitionEndEvent,
+    TransitionStartEvent
+} from './events';
 
 export type ScreenChild<P extends ScreenBaseProps = ScreenBaseProps, E extends ScreenBase<P> = ScreenBase<P>> = React.CElement<P, E>;
 
@@ -48,8 +59,11 @@ export interface LazyExoticComponent<T extends React.ComponentType<any>> extends
     preloaded: T | undefined;
 }
 
+export type RoutesData<C extends ScreenBaseProps["config"] = ScreenBaseProps["config"]> = Map<string | undefined, Pick<RouteProp<C, PlainObject>, "config" | "params">>;
+
 export interface RouteProp<C extends ScreenBaseProps["config"], T extends PlainObject> {
-    path?: string;
+    path: string;
+    resolvedPathname?: string;
     config: Partial<NonNullable<C>>;
     focused: boolean;
     params: T;
@@ -75,7 +89,19 @@ export function isValidComponentConstructor(value: any): value is React.Componen
 
 export type PlainObject<T = any> = { [key: string]: T };
 
-export type RouterEventMap = Pick<HTMLElementEventMap, "navigate" | "go-back" | "motion-progress" | "motion-progress-start" | "motion-progress-end" | "transition-start" | "transition-end" | "transition-cancel">;
+export interface RouterEventMap {
+    "transition-start": TransitionStartEvent;
+    "transition-cancel": TransitionCancelEvent;
+    "transition-end": TransitionEndEvent;
+    "gesture-start": GestureStartEvent;
+    "gesture-end": GestureEndEvent;
+    "gesture-cancel": GestureCancelEvent;
+    "motion-progress-start": MotionProgressStartEvent;
+    "motion-progress": MotionProgressEvent;
+    "motion-progress-end": MotionProgressEndEvent;
+    "node-appended": NodeAppendedEvent;
+    "node-removed": NodeRemovedEvent;
+}
 
 export type NodeAppendedEvent = CustomEvent<{ node: Node; }>;
 export type NodeRemovedEvent = CustomEvent<{ node: Node; }>;

@@ -1,4 +1,4 @@
-import { BackEvent, RouterBase, RouterData, matchRoute } from '@react-motion-router/core';
+import { RouterBase } from '@react-motion-router/core';
 import type { NavigateEventRouterState, RouterBaseProps, RouterBaseState } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { RouterDataContext } from 'packages/core/build/RouterData';
@@ -38,14 +38,6 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
     get navigation() {
         return this.routerData.navigation;
     }
-
-    onGestureNavigationStart = () => { }
-
-    onGestureNavigationEnd = () => { }
-
-    onAnimationEnd = () => { }
-
-    onBackListener = (e: BackEvent) => { }
 
     protected shouldIntercept(e: NavigateEvent): boolean {
         return e.canIntercept && !e.formData && !e.hashChange && !e.downloadRequest;

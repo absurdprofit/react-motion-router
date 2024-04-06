@@ -1,4 +1,4 @@
-import { NavigationBase, BackEvent } from './NavigationBase';
+import { NavigationBase } from './NavigationBase';
 import { AnimationLayer } from './AnimationLayer';
 import {
     ScreenChild,
@@ -7,7 +7,6 @@ import {
     NavigateEventRouterState
 } from './common/types';
 import { RouterData, RouterDataContext } from './RouterData';
-import { TransitionEndEvent } from './common/events';
 import { dispatchEvent, matchRoute, resolveBaseURLFromPattern, searchParamsToObject } from './common/utils';
 import { Component, RefObject, createRef } from 'react';
 import { DEFAULT_ANIMATION, DEFAULT_GESTURE_CONFIG } from './common/constants';
@@ -172,22 +171,11 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         }
 
         // get url search params and append to existing route params
-        const { currentPath } = this.state;
+        // TODO: move to GetDerivedStateFromProps
+        const { currentScreen } = this.state;
         const paramsDeserializer = this.routerData.paramsDeserializer || null;
         const searchParams = searchParamsToObject(window.location.search, paramsDeserializer);
         const routesData = this.routerData.routesData;
-
-        if (searchParams) {
-            const routeData = routesData.get(currentPath);
-            routesData.set(currentPath, {
-                focused: routeData?.focused ?? false,
-                preloaded: routeData?.preloaded ?? false,
-                setParams: routeData?.setParams ?? (() => { }),
-                params: searchParams,
-                config: routeData?.config ?? {},
-                setConfig: routeData?.setConfig ?? (() => { })
-            });
-        }
     }
 
     static readonly defaultProps = {
@@ -217,12 +205,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
 
         if (this.isRoot) {
             window.navigation.addEventListener('navigate', this.handleNavigationDispatch)
-        }
-    }
-
-    componentDidUpdate(_: Readonly<P>, prevState: Readonly<S>): void {
-        if (prevState.documentTitle !== this.state.documentTitle) {
-            this.onDocumentTitleChange(this.state.documentTitle);
         }
     }
 
@@ -320,18 +302,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     protected abstract shouldIntercept(navigateEvent: NavigateEvent): boolean;
     protected abstract intercept(navigateEvent: NavigateEvent): void;
 
-    abstract onAnimationEnd: (e: TransitionEndEvent) => void;
-
-    abstract onGestureNavigationStart: () => void;
-    abstract onGestureNavigationEnd: () => void;
-
-    abstract onBackListener: (e: BackEvent) => void;
-
-    protected onDocumentTitleChange = (title: string | null) => {
-        if (title) document.title = title;
-        else document.title = this.state.defaultDocumentTitle;
-    }
-
     private setRef = (ref: HTMLElement | null) => {
         this.ref = ref;
     }
@@ -348,9 +318,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
                         nextScreen={this.state.nextScreen ?? null}
                         backNavigating={this.state.backNavigating}
                         disableBrowserRouting={Boolean(this.props.config.disableBrowserRouting)}
-                        onGestureNavigationStart={this.onGestureNavigationStart}
-                        onGestureNavigationEnd={this.onGestureNavigationEnd}
-                        onDocumentTitleChange={this.onDocumentTitleChange}
                     >
                         {this.state.children}
                     </AnimationLayer>

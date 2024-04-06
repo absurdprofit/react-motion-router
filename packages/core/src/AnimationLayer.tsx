@@ -16,9 +16,6 @@ interface AnimationLayerProps {
     currentScreen: RefObject<ScreenBase> | null;
     nextScreen: RefObject<ScreenBase> | null;
     backNavigating: boolean;
-    onGestureNavigationEnd: Function;
-    onGestureNavigationStart: Function;
-    onDocumentTitleChange(title: string | null): void;
     disableBrowserRouting: boolean;
 }
 
@@ -35,7 +32,6 @@ interface AnimationLayerState {
     hysteresis: number;
     disableDiscovery: boolean;
 }
-
 
 export class AnimationLayer extends Component<AnimationLayerProps, AnimationLayerState> {
     protected readonly animationLayerData = new AnimationLayerData();
@@ -79,17 +75,17 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
     }
 
     private onTransitionCancel() {
-        const cancelAnimationEvent = new CustomEvent('transition-cancel', { bubbles: true });
+        const cancelAnimationEvent = new CustomEvent('transition-cancel');
         this.props.navigation.dispatchEvent(cancelAnimationEvent);
     }
 
     private onTransitionStart() {
-        const startAnimationEvent = new CustomEvent('transition-start', { bubbles: true });
+        const startAnimationEvent = new CustomEvent('transition-start');
         this.props.navigation.dispatchEvent(startAnimationEvent);
     }
 
     private onTransitionEnd() {
-        const endAnimationEvent = new CustomEvent('transition-end', { bubbles: true });
+        const endAnimationEvent = new CustomEvent('transition-end');
         this.props.navigation.dispatchEvent(endAnimationEvent);
     }
 
@@ -323,7 +319,7 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
                 }
             }
 
-            this.props.onGestureNavigationStart();
+            this.props.navigation.dispatchEvent(new CustomEvent('gesture-start', {detail: {source: ev}}));
             this.setState({
                 shouldPlay: false,
                 gestureNavigating: true,
@@ -385,7 +381,7 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
                 this.playbackRate = -1;
             }
             onEnd = () => {
-                this.props.onGestureNavigationEnd();
+                this.props.navigation.dispatchEvent(new CustomEvent('gesture-end', {detail: {source: ev}}));
 
                 this.setState({ gestureNavigating: false });
 

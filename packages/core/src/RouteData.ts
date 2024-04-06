@@ -7,7 +7,7 @@ export const RouteDataContext = createContext<RouteProp<ScreenBaseProps["config"
     preloaded: false,
     config: {},
     params: {},
-    path: undefined,
+    path: "*",
     setParams: () => {},
     setConfig: () => {}
 });

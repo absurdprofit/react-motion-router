@@ -148,7 +148,6 @@ export class Navigation extends NavigationBase {
 
     private createBackEvent(controller: AbortController) {
         return new CustomEvent<BackEventDetail>('go-back', {
-            bubbles: true,
             detail: {
                 routerId: this.routerId,
                 signal: controller.signal,
@@ -164,7 +163,6 @@ export class Navigation extends NavigationBase {
         controller: AbortController
     ) {
         return new CustomEvent<NavigateEventDetail>('navigate', {
-            bubbles: true,
             detail: {
                 routerId: this.routerId,
                 route,
