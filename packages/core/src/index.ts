@@ -26,9 +26,9 @@ import {
     MotionProgressEndEvent,
     MotionProgressEvent,
     MotionProgressStartEvent,
-    PageAnimationCancelEvent,
-    PageAnimationEndEvent,
-    PageAnimationStartEvent
+    TransitionCancelEvent,
+    TransitionEndEvent,
+    TransitionStartEvent
 } from './common/events';
 import { ScrollRestoration } from './ScrollRestoration';
 import { URLPattern } from "urlpattern-polyfill";
@@ -54,9 +54,9 @@ if (root) {
 }
 
 interface MotionEventsMap {
-    "page-animation-start": PageAnimationStartEvent;
-    "page-animation-cancel": PageAnimationCancelEvent;
-    "page-animation-end": PageAnimationEndEvent;
+    "transition-start": TransitionStartEvent;
+    "transition-cancel": TransitionCancelEvent;
+    "transition-end": TransitionEndEvent;
     "motion-progress-start": MotionProgressStartEvent;
     "motion-progress": MotionProgressEvent;
     "motion-progress-end": MotionProgressEndEvent;

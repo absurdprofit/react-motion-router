@@ -21,7 +21,7 @@ enum TransformOriginLengthUnitEnum {
 }
 
 enum TransformOriginGlobalEnum {
-    inital,
+    initial,
     inherit,
     revert,
     unset

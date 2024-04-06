@@ -27,26 +27,26 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
     onEnter = () => {
         super.onEnter();
         if (
-            this.animationProviderRef instanceof HTMLDialogElement
-            && this.animationProviderRef.open === false
+            this.animationProvider?.ref instanceof HTMLDialogElement
+            && this.animationProvider.ref.open === false
         ) {
             const navigation = this.context?.navigation;
             if (this.props.config?.presentation === "modal") {
-                this.animationProviderRef.showModal();
+                this.animationProvider.ref.showModal();
             } else {
-                this.animationProviderRef.show();
+                this.animationProvider.ref.show();
             }
-            this.animationProviderRef.style.maxHeight = 'unset';
-            this.animationProviderRef.style.maxWidth = 'unset';
-            this.animationProviderRef.style.width = 'max-content';
-            this.animationProviderRef.style.height = 'max-content';
+            this.animationProvider.ref.style.maxHeight = 'unset';
+            this.animationProvider.ref.style.maxWidth = 'unset';
+            this.animationProvider.ref.style.width = 'max-content';
+            this.animationProvider.ref.style.height = 'max-content';
             if (this.ref) {
                 this.ref.style.width = 'max-content';
                 this.ref.style.height = 'max-content';
             }
 
             // closed by form submit or ESC key
-            this.animationProviderRef.addEventListener('close', function(e) {
+            this.animationProvider?.ref.addEventListener('close', function(e) {
                 if (this.returnValue !== "screen-exit") {
                     this.style.display = "block";
                     navigation?.goBack();
@@ -54,7 +54,7 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
             }, {once: true});
 
             // close by backdrop click
-            this.animationProviderRef.addEventListener('click', function(e) {
+            this.animationProvider?.ref.addEventListener('click', function(e) {
                 const rect = this.getBoundingClientRect();
                 const isInDialog = (
                     rect.top <= e.clientY
@@ -90,8 +90,8 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
 
     onExited = () => {
         super.onExited();
-        if (this.animationProviderRef instanceof HTMLDialogElement) {
-            this.animationProviderRef.close("screen-exit");
+        if (this.animationProvider?.ref instanceof HTMLDialogElement) {
+            this.animationProvider.ref.close("screen-exit");
         }
     }
 }

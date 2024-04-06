@@ -1,14 +1,14 @@
-export interface PageAnimationStartDetail {}
+export interface TransitionStartDetail {}
 
-export type PageAnimationStartEvent = CustomEvent<PageAnimationStartDetail>;
+export type TransitionStartEvent = CustomEvent<TransitionStartDetail>;
 
-export interface PageAnimationCancelDetail {}
+export interface TransitionCancelDetail {}
 
-export type PageAnimationCancelEvent = CustomEvent<PageAnimationCancelDetail>;
+export type TransitionCancelEvent = CustomEvent<TransitionCancelDetail>;
 
-export interface PageAnimationEndDetail {}
+export interface TransitionEndDetail {}
 
-export type PageAnimationEndEvent = CustomEvent<PageAnimationEndDetail>;
+export type TransitionEndEvent = CustomEvent<TransitionEndDetail>;
 
 export interface MotionProgressStartDetail {}
 

@@ -1,17 +1,18 @@
 import { Children, Component, createContext } from 'react';
 import { SwipeEndEvent, SwipeEvent, SwipeStartEvent } from 'web-gesture-events';
-import { clamp, interpolate } from './common/utils';
-import { ScreenBase, ScreenChild } from './index';
+import { clamp, getAnimationDuration, interpolate } from './common/utils';
+import { NavigationBase, ScreenBase, ScreenChild } from './index';
 import { AnimationLayerData, AnimationLayerDataContext } from './AnimationLayerData';
 import { MotionProgressDetail } from './common/events';
 import { SwipeDirection } from './common/types';
 import { DEFAULT_GESTURE_CONFIG, MAX_PROGRESS, MIN_PROGRESS } from './common/constants';
-import { GhostLayer } from './GhostLayer';
+import { SharedElementLayer } from './SharedElementLayer';
 
 export const Motion = createContext(0);
 
 interface AnimationLayerProps {
     children: ScreenChild | ScreenChild[];
+    navigation: NavigationBase;
     currentScreen: ScreenBase | null;
     nextScreen: ScreenBase | null;
     backNavigating: boolean;
@@ -40,13 +41,6 @@ interface AnimationLayerState {
 export class AnimationLayer extends Component<AnimationLayerProps, AnimationLayerState> {
     protected readonly animationLayerData = new AnimationLayerData();
     private ref: HTMLDivElement | null = null;
-
-    constructor(props: AnimationLayerProps) {
-        super(props);
-        this.animationLayerData.onAnimationStart = this.onStart.bind(this);
-        this.animationLayerData.onAnimationEnd = this.onEnd.bind(this);
-        this.animationLayerData.onAnimationCancel = this.onCancel.bind(this);
-    }
 
     state: AnimationLayerState = {
         progress: MAX_PROGRESS,
@@ -77,24 +71,24 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
     componentDidUpdate(prevProps: AnimationLayerProps, prevState: AnimationLayerState) {
         if (prevProps.children !== this.props.children) {
             if (!this.state.gestureNavigating && prevState.shouldAnimate) {
-                this.animationLayerData.play();
+                this.play();
                 this.animate();
             }
         }
         this.animationLayerData.direction = this.props.backNavigating ? 'reverse' : 'normal';
     }
 
-    private onCancel() {
+    private onTransitionCancel() {
         const cancelAnimationEvent = new CustomEvent('page-animation-cancel', {bubbles: true});
         this.props.dispatchEvent?.(cancelAnimationEvent);
     }
 
-    private onStart() {
+    private onTransitionStart() {
         const startAnimationEvent = new CustomEvent('page-animation-start', {bubbles: true});
         this.props.dispatchEvent?.(startAnimationEvent);
     }
 
-    private onEnd() {
+    private onTransitionEnd() {
         const endAnimationEvent = new CustomEvent('page-animation-end', {bubbles: true});
         this.props.dispatchEvent?.(endAnimationEvent);
     }
@@ -112,20 +106,191 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
     }
 
     private async animate() {
-        await Promise.all([
-            this.animationLayerData.ghostLayer.setupTransition(),
-            this.animationLayerData.setupTransition()
-        ]);
+        // await Promise.all([
+        //     this.animationLayerData.sharedElementLayer.setupTransition(),
+        //     this.animationLayerData.setupTransition()
+        // ]);
         requestAnimationFrame(() => {
-            this.animationLayerData.ghostLayer.sharedElementTransition();
-            this.animationLayerData.pageTransition();
+            this.animationLayerData.sharedElementLayer.transition();
+            this.transition();
         });
+    }
+
+    private commitAndRemoveAnimations() {
+        this.animationLayerData.inAnimation?.commitStyles();
+        this.animationLayerData.outAnimation?.commitStyles();
+        this.animationLayerData.inAnimation = null;
+        this.animationLayerData.outAnimation = null;
+        this.animationLayerData.pseudoElementInAnimation = null;
+        this.animationLayerData.pseudoElementOutAnimation = null;
+    }
+
+    private cancelTransition() {
+        this.animationLayerData.inAnimation?.cancel();
+        this.animationLayerData.outAnimation?.cancel();
+        this.animationLayerData.pseudoElementInAnimation?.cancel();
+        this.animationLayerData.pseudoElementOutAnimation?.cancel();
+    }
+
+    private finishTransition() {
+        this.animationLayerData.inAnimation?.finish();
+        this.animationLayerData.outAnimation?.finish();
+        this.animationLayerData.pseudoElementInAnimation?.finish();
+        this.animationLayerData.pseudoElementOutAnimation?.finish();
+    }
+
+    get ready() {
+        return new Promise<void>(async (resolve, reject) => {
+            try {
+                await Promise.all([
+                    this.animationLayerData.outAnimation?.ready,
+                    this.animationLayerData.inAnimation?.ready,
+                    this.animationLayerData.pseudoElementInAnimation?.ready,
+                    this.animationLayerData.pseudoElementOutAnimation?.ready
+                ]);
+                resolve();
+            } catch (e) {
+                reject(e);
+            }
+        });
+    }
+
+    get started() {
+        return new Promise<void>((resolve) => {
+            this.props.navigation.addEventListener('transition-start', () => resolve(), { once: true });
+        });
+    }
+
+    get paused() {
+        return this.animationLayerData.inAnimation?.playState === "paused"
+            || this.animationLayerData.outAnimation?.playState === "paused"
+            || this.animationLayerData.pseudoElementInAnimation?.playState === "paused"
+            || this.animationLayerData.pseudoElementOutAnimation?.playState === "paused";
+    }
+
+    get running() {
+        return this.animationLayerData.inAnimation?.playState === "running"
+            || this.animationLayerData.outAnimation?.playState === "running"
+            || this.animationLayerData.pseudoElementInAnimation?.playState === "running"
+            || this.animationLayerData.pseudoElementOutAnimation?.playState === "running";
+    }
+
+    get finished() {
+        return new Promise(async (resolve, reject) => {
+            try {
+                await this.started;
+                await Promise.all([
+                    this.animationLayerData.outAnimation?.finished,
+                    this.animationLayerData.inAnimation?.finished,
+                    this.animationLayerData.pseudoElementInAnimation?.finished,
+                    this.animationLayerData.pseudoElementOutAnimation?.finished
+                ]);
+                resolve(true);
+            } catch (e) {
+                reject(e);
+            }
+        });
+    }
+
+    private set timeline(timeline: AnimationTimeline) {
+        this.animationLayerData.timeline = timeline;
+        if (this.animationLayerData.inAnimation)
+            this.animationLayerData.inAnimation.timeline = timeline;
+        if (this.animationLayerData.outAnimation)
+            this.animationLayerData.outAnimation.timeline = timeline;
+        if (this.animationLayerData.pseudoElementInAnimation)
+            this.animationLayerData.pseudoElementInAnimation.timeline = timeline;
+        if (this.animationLayerData.pseudoElementOutAnimation)
+            this.animationLayerData.pseudoElementOutAnimation.timeline = timeline;
+    }
+
+    private set playbackRate(playbackRate: number) {
+        this.animationLayerData.playbackRate = playbackRate;
+        if (this.animationLayerData.inAnimation)
+            this.animationLayerData.inAnimation.playbackRate = playbackRate;
+        if (this.animationLayerData.outAnimation)
+            this.animationLayerData.outAnimation.playbackRate = playbackRate;
+        if (this.animationLayerData.pseudoElementInAnimation)
+            this.animationLayerData.pseudoElementInAnimation.playbackRate = playbackRate;
+        if (this.animationLayerData.pseudoElementOutAnimation)
+            this.animationLayerData.pseudoElementOutAnimation.playbackRate = playbackRate;
+    }
+
+    private set direction(direction: "normal" | "reverse") {
+        this.animationLayerData.direction = direction;
+        if (this.animationLayerData.inAnimation)
+            this.animationLayerData.inAnimation.effect?.updateTiming({ direction: direction });
+        if (this.animationLayerData.outAnimation)
+            this.animationLayerData.outAnimation.effect?.updateTiming({ direction: direction });
+        if (this.animationLayerData.pseudoElementInAnimation)
+            this.animationLayerData.pseudoElementInAnimation.effect?.updateTiming({ direction: direction });
+        if (this.animationLayerData.pseudoElementOutAnimation)
+            this.animationLayerData.pseudoElementOutAnimation.effect?.updateTiming({ direction: direction });
+    }
+
+    private pause() {
+        this.animationLayerData.inAnimation?.pause();
+        this.animationLayerData.outAnimation?.pause();
+        this.animationLayerData.pseudoElementInAnimation?.pause();
+        this.animationLayerData.pseudoElementOutAnimation?.pause();
+    }
+
+    private play() {
+        this.animationLayerData.inAnimation?.play();
+        this.animationLayerData.outAnimation?.play();
+        this.animationLayerData.pseudoElementInAnimation?.play();
+        this.animationLayerData.pseudoElementOutAnimation?.play();
+    }
+
+    private async transition() {
+        if (this.animationLayerData.inAnimation || this.animationLayerData.outAnimation) {
+            // cancel playing animation
+            this.cancelTransition();
+        }
+        const { currentScreen, nextScreen } = this.props;
+        if (currentScreen?.animationProvider && nextScreen?.animationProvider && this.state.shouldAnimate) {
+            this.animationLayerData.outAnimation = currentScreen?.animationProvider.outAnimation;
+            this.animationLayerData.pseudoElementOutAnimation = currentScreen?.animationProvider.pseudoElementOutAnimation;
+            this.animationLayerData.inAnimation = nextScreen?.animationProvider.inAnimation;
+            this.animationLayerData.pseudoElementInAnimation = nextScreen?.animationProvider.pseudoElementInAnimation;
+            if (this.animationLayerData.inAnimation && this.animationLayerData.outAnimation) {
+                if (!this.state.shouldAnimate) {
+                    this.finishTransition();
+                    this.setState({shouldAnimate: true});
+                    return;
+                }
+
+                await this.ready;
+
+                if (this.paused) {
+                    this.animationLayerData.inAnimation.pause();
+                    this.animationLayerData.outAnimation.pause();
+                    this.animationLayerData.pseudoElementInAnimation?.pause();
+                    this.animationLayerData.pseudoElementOutAnimation?.pause();
+                } else {
+                    this.animationLayerData.outAnimation.play();
+                    this.animationLayerData.inAnimation.play();
+                    this.animationLayerData.pseudoElementInAnimation?.play();
+                    this.animationLayerData.pseudoElementOutAnimation?.play();
+                }
+                this.animationLayerData.isStarted = true;
+                this.onTransitionStart();
+
+                this.commitAndRemoveAnimations();
+
+                this.onTransitionEnd();
+
+                this.animationLayerData.isStarted = false;
+            }
+        } else {
+            this.state.shouldAnimate = true;
+        }
     }
 
     onSwipeStart = (ev: SwipeStartEvent) => {
         if (ev.touches.length > 1) return; // disable if more than one finger engaged
         if (this.state.disableDiscovery) return;
-        if (this.animationLayerData.isPlaying) return;
+        if (this.running) return;
         if (this.animationLayerData.duration === 0) return;
         let swipePos: number; // 1D
         switch(this.state.swipeDirection) {
@@ -164,9 +329,9 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
                 const motionStartEvent = new CustomEvent('motion-progress-start');
 
                 this.animationLayerData.gestureNavigating = true;
-                this.animationLayerData.playbackRate = -1;
-                this.animationLayerData.pause();
-                this.animationLayerData.ghostLayer.pause();
+                this.playbackRate = -1;
+                this.pause();
+                this.animationLayerData.sharedElementLayer.pause();
                 this.animate();
                 
                 if (this.props.dispatchEvent) this.props.dispatchEvent(motionStartEvent);
@@ -221,26 +386,23 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
                 this.setState({gestureNavigating: false});
 
                 if (this.props.dispatchEvent) this.props.dispatchEvent(motionEndEvent);
-                requestAnimationFrame(() => this.animationLayerData.reset());
             }
             this.setState({shouldPlay: true, shouldAnimate: false});
         } else {
             this.animationLayerData.playbackRate = 0.5;
             onEnd = () => {
-                this.animationLayerData.reset();
-                
                 if (this.props.dispatchEvent) this.props.dispatchEvent(motionEndEvent);
             }
             this.setState({shouldPlay: true, gestureNavigating: false});
         }
 
         this.setState({startX: 0, startY: 0});
-        this.animationLayerData.play();
-        this.animationLayerData.ghostLayer.play();
+        this.play();
+        this.animationLayerData.sharedElementLayer.play();
         this.ref?.removeEventListener('swipe', this.onSwipe);
         this.ref?.removeEventListener('swipeend', this.onSwipeEnd);
         queueMicrotask(async () => {
-            await this.animationLayerData.finished;
+            await this.finished;
             onEnd?.();
         });
         
@@ -261,7 +423,8 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
     render() {
         return (
             <AnimationLayerDataContext.Provider value={this.animationLayerData}>
-                <GhostLayer
+                <SharedElementLayer
+                    paused={this.paused}
                     animationLayerData={this.animationLayerData}
                     currentScene={this.props.currentScreen?.sharedElementScene}
                     nextScene={this.props.nextScreen?.sharedElementScene}

@@ -7,13 +7,14 @@ import { Component } from 'react';
 import { MAX_PROGRESS, MAX_Z_INDEX, MIN_PROGRESS } from './common/constants';
 import { RouterDataContext } from './RouterData';
 
-interface GhostLayerProps {
+interface SharedElementLayerProps {
     animationLayerData: AnimationLayerData;
     currentScene?: SharedElementScene;
     nextScene?: SharedElementScene;
+    paused: boolean;
 }
 
-interface GhostLayerState {
+interface SharedElementLayerState {
     transitioning: boolean;
 }
 
@@ -37,18 +38,13 @@ interface TransitionState {
     }
 }
 
-export class GhostLayer extends Component<GhostLayerProps, GhostLayerState> {
+export class SharedElementLayer extends Component<SharedElementLayerProps, SharedElementLayerState> {
     private ref: HTMLDialogElement | null = null;
     private animations: Animation[] = [];
     static readonly contextType = RouterDataContext;
     context!: React.ContextType<typeof RouterDataContext>;
-
-    constructor(props: GhostLayerProps) {
-        super(props);
-        props.animationLayerData.ghostLayer = this;
-    }
     
-    state: GhostLayerState = {
+    state: SharedElementLayerState = {
         transitioning: false
     }
 
@@ -459,7 +455,7 @@ export class GhostLayer extends Component<GhostLayerProps, GhostLayerState> {
         animations.forEach((animation: Animation | undefined) => {
             if (!animation) return;
             this.animations.push(animation);
-            if (!this.props.animationLayerData.play) {
+            if (this.props.paused) {
                 const defaultDuration = this.props.animationLayerData.duration;
                 let duration = animation.effect?.getComputedTiming().duration;
                 duration = Number(duration || defaultDuration);
@@ -500,7 +496,7 @@ export class GhostLayer extends Component<GhostLayerProps, GhostLayerState> {
         ).then(onEnd).catch(onCancel);
     }
 
-    sharedElementTransition() {
+    transition() {
         if (!this.state.transitioning) return;
         const currentScene = this.props.currentScene;
         const nextScene = this.props.nextScene;
@@ -524,7 +520,7 @@ export class GhostLayer extends Component<GhostLayerProps, GhostLayerState> {
             onEnd();
         }
         
-        this.ref?.showModal(); // render ghost layer in top layer
+        this.ref?.showModal(); // render shared element layer in top layer
         for (const startNode of currentScene.nodes.values()) {
             const endNode = nextScene.nodes.get(startNode.id);
             if (!endNode) continue;
@@ -533,7 +529,7 @@ export class GhostLayer extends Component<GhostLayerProps, GhostLayerState> {
         
         this.finished.then(onEnd).catch(onCancel);
 
-        this.context!.navigation.addEventListener('page-animation-cancel' , onCancel, {once: true});
+        this.context!.navigation.addEventListener('transition-cancel' , onCancel, {once: true});
     }
     
     componentDidMount() {
@@ -550,7 +546,7 @@ export class GhostLayer extends Component<GhostLayerProps, GhostLayerState> {
     }
 
     onProgress = (e: MotionProgressEvent) => {
-        if (!this.props.animationLayerData.play) {
+        if (this.props.paused) {
             for (const animation of this.animations) {
                 const progress = e.detail.progress;
                 const defaultDuration = this.props.animationLayerData.duration;
@@ -574,7 +570,7 @@ export class GhostLayer extends Component<GhostLayerProps, GhostLayerState> {
     render() {
         if (!this.state.transitioning) return <></>
         return (
-            <dialog className="ghost-layer" ref={c => this.ref = c} style={{
+            <dialog className="shared-element-layer" ref={c => this.ref = c} style={{
                 position: 'absolute',
                 zIndex: MAX_Z_INDEX,
                 maxWidth: 'unset',
@@ -586,7 +582,7 @@ export class GhostLayer extends Component<GhostLayerProps, GhostLayerState> {
                 border: 'none',
                 backgroundColor: 'transparent'
             }}>
-                <style dangerouslySetInnerHTML={{__html: ".ghost-layer::backdrop {display: none}"}}></style>
+                <style dangerouslySetInnerHTML={{__html: ".shared-element-layer::backdrop {display: none}"}}></style>
             </dialog>
         );
     }

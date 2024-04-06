@@ -1,4 +1,4 @@
-import { Component, ElementType, Suspense, cloneElement, isValidElement } from "react";
+import { Component, ElementType, Suspense, cloneElement, createRef, isValidElement } from "react";
 import { AnimationProvider } from "./AnimationProvider";
 import {
     AnimationFactory,
@@ -56,8 +56,8 @@ export interface ScreenBaseState {
 
 export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState> extends Component<P, S> {
     public readonly sharedElementScene: SharedElementScene;
+    private _animationProvider = createRef<AnimationProvider>();
     protected ref: HTMLElement | null = null;
-    protected animationProviderRef: HTMLElement | null = null;
     protected elementType: ElementType | string = "div";
     protected _routeData: RouteProp<P["config"], PlainObject> = {
         params: {},
@@ -160,14 +160,12 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         this.sharedElementScene.getScreenRect = () => this.ref?.getBoundingClientRect() || new DOMRect();
     }
 
-    private onAnimationProviderRef = (ref: HTMLElement | null) => {
-        if (this.animationProviderRef !== ref) {
-            this.animationProviderRef = ref;
-        }
-    }
-
     get resolvedPathname() {
         return this.props.resolvedPathname;
+    }
+
+    get animationProvider() {
+        return this._animationProvider.current;
     }
 
     render() {
@@ -200,7 +198,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         this.sharedElementScene.keepAlive = Boolean(routeData.config.keepAlive);
         return (
             <AnimationProvider
-                onRef={this.onAnimationProviderRef}
+                ref={this._animationProvider}
                 renderAs={this.elementType}
                 onExit={this.onExit}
                 onExited={this.onExited}

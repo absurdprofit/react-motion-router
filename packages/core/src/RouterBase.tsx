@@ -7,7 +7,7 @@ import {
     NavigateEventRouterState
 } from './common/types';
 import { RouterData, RouterDataContext } from './RouterData';
-import { PageAnimationEndEvent } from './common/events';
+import { TransitionEndEvent } from './common/events';
 import { dispatchEvent, matchRoute, resolveBaseURLFromPattern, searchParamsToObject } from './common/utils';
 import { Component } from 'react';
 import { DEFAULT_ANIMATION, DEFAULT_GESTURE_CONFIG } from './common/constants';
@@ -309,7 +309,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     protected abstract shouldIntercept(navigateEvent: NavigateEvent): boolean;
     protected abstract intercept(navigateEvent: NavigateEvent): void;
 
-    abstract onAnimationEnd: (e: PageAnimationEndEvent) => void;
+    abstract onAnimationEnd: (e: TransitionEndEvent) => void;
 
     abstract onGestureNavigationStart: () => void;
     abstract onGestureNavigationEnd: () => void;
@@ -326,11 +326,12 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     }
 
     render() {
-        if (!this.routerData.navigation) return;
+        if (!this.state.navigation) return;
         return (
             <div id={this.id} className="react-motion-router" style={{ width: '100%', height: '100%' }} ref={this.setRef}>
                 <RouterDataContext.Provider value={this.routerData}>
                     <AnimationLayer
+                        navigation={this.state.navigation}
                         currentScreen={this.routerData.currentScreen}
                         nextScreen={this.routerData.nextScreen}
                         backNavigating={this.state.backNavigating}

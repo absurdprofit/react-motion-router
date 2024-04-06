@@ -33,7 +33,7 @@ export class ScrollRestoration extends Component<ScrollRestorationProps> {
             });
         }
 
-        this.routerData?.navigation.addEventListener('page-animation-end', this.onPageAnimationEnd);
+        this.routerData?.navigation.addEventListener('transition-end', this.onPageAnimationEnd);
         window.addEventListener('hashchange', this.onHashChange);
     }
 
@@ -44,7 +44,7 @@ export class ScrollRestoration extends Component<ScrollRestorationProps> {
         }
         this.routerData?.scrollRestorationData.set(this.props.id, scrollPos);
     
-        this.routerData?.navigation.removeEventListener('page-animation-end', this.onPageAnimationEnd);
+        this.routerData?.navigation.removeEventListener('transition-end', this.onPageAnimationEnd);
         window.removeEventListener('hashchange', this.onHashChange);
     }
 
