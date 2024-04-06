@@ -56,13 +56,17 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
         const destinationIndex = e.destination.index;
         const backNavigating = destinationIndex >= 0 && destinationIndex < currentIndex;
         e.intercept({
-            handler: () => {
-                return new Promise((resolve) => {
-                    this.setState({
-                        nextPath: new URL(e.destination.url).pathname,
-                        backNavigating
-                    }, resolve);
-                })
+            handler: async () => {
+                this.setState({
+                    nextPath: new URL(e.destination.url).pathname,
+                    backNavigating
+                });
+                await this.animationLayer.current?.finished;
+                this.setState({
+                    currentPath: new URL(e.destination.url).pathname,
+                    nextPath: undefined,
+                    backNavigating
+                });
             }
         });
     }

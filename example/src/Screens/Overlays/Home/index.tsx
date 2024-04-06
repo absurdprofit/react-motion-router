@@ -14,7 +14,7 @@ export default function Overlays({ navigation }: OverlaysProps) {
     const playerRef = useRef<HTMLDivElement | null>(null);
 
     const openPlayer = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-        navigation.navigate('/player').catch(console.log);
+        navigation.navigate('player').catch(console.log);
     }
 
     return (
@@ -27,7 +27,7 @@ export default function Overlays({ navigation }: OverlaysProps) {
                 </Anchor>
             </div>
             <div className="modal-example" style={{ marginBlockStart: "100px" }}>
-                <Anchor href="/sheet">
+                <Anchor href="sheet">
                     <Button>Open Modal</Button>
                 </Anchor>
             </div>

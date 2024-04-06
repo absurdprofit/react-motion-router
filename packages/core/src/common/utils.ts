@@ -275,7 +275,8 @@ export function getAnimationFromKeyframes(keyframes: Keyframe[], options: Keyfra
     options = {
         ...options,
         playbackRate: props.playbackRate,
-        direction: props.direction
+        direction: props.direction,
+        fill: props.direction === "normal" ? "forwards" : "backwards"
     }
     return new Animation(
         new KeyframeEffect(props.ref, keyframes, options),

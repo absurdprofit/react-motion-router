@@ -20,7 +20,6 @@ interface AnimationLayerProps {
     onGestureNavigationStart: Function;
     onDocumentTitleChange(title: string | null): void;
     disableBrowserRouting: boolean;
-    dispatchEvent: ((event: Event) => Promise<boolean>) | null;
 }
 
 interface AnimationLayerState {
@@ -71,30 +70,27 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
 
     componentDidUpdate(prevProps: AnimationLayerProps, prevState: AnimationLayerState) {
         if (prevProps.children !== this.props.children) {
+            this.direction = this.props.backNavigating ? 'reverse' : 'normal';
             if (!this.state.gestureNavigating && prevState.shouldAnimate) {
                 this.play();
                 this.animate();
-                requestAnimationFrame(() => {
-                    console.log(this.props.currentScreen, this.props.nextScreen);
-                });
             }
         }
-        this.direction = this.props.backNavigating ? 'reverse' : 'normal';
     }
 
     private onTransitionCancel() {
         const cancelAnimationEvent = new CustomEvent('transition-cancel', { bubbles: true });
-        this.props.dispatchEvent?.(cancelAnimationEvent);
+        this.props.navigation.dispatchEvent(cancelAnimationEvent);
     }
 
     private onTransitionStart() {
         const startAnimationEvent = new CustomEvent('transition-start', { bubbles: true });
-        this.props.dispatchEvent?.(startAnimationEvent);
+        this.props.navigation.dispatchEvent(startAnimationEvent);
     }
 
     private onTransitionEnd() {
         const endAnimationEvent = new CustomEvent('transition-end', { bubbles: true });
-        this.props.dispatchEvent?.(endAnimationEvent);
+        this.props.navigation.dispatchEvent(endAnimationEvent);
     }
 
     private onProgress(_progress: number) {
@@ -105,7 +101,7 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
         const progressEvent = new CustomEvent<MotionProgressDetail>('motion-progress', {
             detail: { progress }
         });
-        if (this.props.dispatchEvent) this.props.dispatchEvent(progressEvent);
+        this.props.navigation.dispatchEvent(progressEvent);
         this.setState({ progress });
     }
 
@@ -161,7 +157,9 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
 
     get started() {
         return new Promise<void>((resolve) => {
-            this.props.navigation.addEventListener('transition-start', () => resolve(), { once: true });
+            this.props.navigation.addEventListener('transition-start', () => {
+                resolve()
+            }, { once: true });
         });
     }
 
@@ -180,7 +178,7 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
     }
 
     get finished() {
-        return new Promise(async (resolve, reject) => {
+        return new Promise<void>(async (resolve, reject) => {
             try {
                 await this.started;
                 await Promise.all([
@@ -189,7 +187,7 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
                     this.animationLayerData.pseudoElementInAnimation?.finished,
                     this.animationLayerData.pseudoElementOutAnimation?.finished
                 ]);
-                resolve(true);
+                resolve();
             } catch (e) {
                 reject(e);
             }
@@ -252,7 +250,6 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
             this.cancelTransition();
         }
         const { currentScreen, nextScreen } = this.props;
-        console.log({ currentScreen, nextScreen });
         if (currentScreen?.current?.animationProvider && nextScreen?.current?.animationProvider && this.state.shouldAnimate) {
             this.animationLayerData.outAnimation = currentScreen?.current?.animationProvider.outAnimation;
             this.animationLayerData.pseudoElementOutAnimation = currentScreen?.current?.animationProvider.pseudoElementOutAnimation;
@@ -280,6 +277,8 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
                 }
                 this.animationLayerData.isStarted = true;
                 this.onTransitionStart();
+
+                await this.finished;
 
                 this.commitAndRemoveAnimations();
 
@@ -339,7 +338,7 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
                 this.sharedElementLayer.current?.pause();
                 this.animate();
 
-                if (this.props.dispatchEvent) this.props.dispatchEvent(motionStartEvent);
+                this.props.navigation.dispatchEvent(motionStartEvent);
                 this.ref?.addEventListener('swipe', this.onSwipe);
                 this.ref?.addEventListener('swipeend', this.onSwipeEnd);
             });
@@ -390,13 +389,13 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
 
                 this.setState({ gestureNavigating: false });
 
-                if (this.props.dispatchEvent) this.props.dispatchEvent(motionEndEvent);
+                this.props.navigation.dispatchEvent(motionEndEvent);
             }
             this.setState({ shouldPlay: true, shouldAnimate: false });
         } else {
             this.playbackRate = 0.5;
             onEnd = () => {
-                if (this.props.dispatchEvent) this.props.dispatchEvent(motionEndEvent);
+                this.props.navigation.dispatchEvent(motionEndEvent);
             }
             this.setState({ shouldPlay: true, gestureNavigating: false });
         }

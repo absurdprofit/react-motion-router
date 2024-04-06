@@ -157,6 +157,7 @@ function StateFromChildren(
 export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState, N extends NavigationBase = NavigationBase> extends Component<P, S> {
     protected ref: HTMLElement | null = null;
     protected readonly routerData: RouterData<N>;
+    protected animationLayer = createRef<AnimationLayer>();
     private static rootRouterRef: WeakRef<RouterBase> | null = null;
     static readonly contextType = RouterDataContext;
     context!: React.ContextType<typeof RouterDataContext>;
@@ -336,12 +337,13 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     }
 
     render() {
-        if (!this.state.navigation) return;
+        if (!this.navigation) return;
         return (
             <div id={this.id} className="react-motion-router" style={{ width: '100%', height: '100%' }} ref={this.setRef}>
                 <RouterDataContext.Provider value={this.routerData}>
                     <AnimationLayer
-                        navigation={this.state.navigation}
+                        ref={this.animationLayer}
+                        navigation={this.navigation}
                         currentScreen={this.state.currentScreen ?? null}
                         nextScreen={this.state.nextScreen ?? null}
                         backNavigating={this.state.backNavigating}
@@ -349,7 +351,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
                         onGestureNavigationStart={this.onGestureNavigationStart}
                         onGestureNavigationEnd={this.onGestureNavigationEnd}
                         onDocumentTitleChange={this.onDocumentTitleChange}
-                        dispatchEvent={this.dispatchEvent}
                     >
                         {this.state.children}
                     </AnimationLayer>

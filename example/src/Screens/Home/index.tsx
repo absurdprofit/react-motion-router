@@ -32,7 +32,7 @@ export default function Home(props: HomeProps) {
         {
             title: 'Overlay Demo',
             description: 'Various Overlays such as modals with spring and default timing functions',
-            href: 'overlays'
+            href: 'overlays/'
         },
         {
             title: 'Video Demo',
