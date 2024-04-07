@@ -4,7 +4,7 @@ import {
     AnimationEffectFactory,
     LazyExoticComponent,
     PlainObject,
-    RouteProp,
+    RouteData,
     SwipeDirection,
     isValidComponentConstructor
 } from "./common/types";
@@ -14,7 +14,7 @@ import { RouteDataContext } from "./RouteData";
 import { NavigationBase } from "./NavigationBase";
 
 export interface RouteProps<P extends ScreenBaseProps, N extends NavigationBase> {
-    route: RouteProp<P["config"], PlainObject>;
+    route: RouteData<P, PlainObject>;
     navigation: N;
 }
 
@@ -62,7 +62,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     private _animationProvider = createRef<AnimationProvider>();
     protected ref: HTMLElement | null = null;
     protected elementType: ElementType | string = "div";
-    protected _routeData: RouteProp<P["config"], PlainObject> = {
+    protected _routeData: RouteData<P, PlainObject> = {
         params: {},
         config: this.props.config ?? {},
         path: this.props.path,
@@ -139,6 +139,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
 
     get routeData() {
         const focused = Boolean(this.props.in);
+        const resolvedPathname = this.props.resolvedPathname;
         return {
             ...this._routeData,
             params: {
@@ -151,7 +152,8 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
                 ...this._routeData.config, // passed by setConfig
                 ...this.context!.routesData.get(this.props.path)?.config // passed by other screens using navigate
             },
-            focused
+            focused,
+            resolvedPathname
         };
     }
 

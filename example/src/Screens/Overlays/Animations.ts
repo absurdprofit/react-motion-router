@@ -1,18 +1,6 @@
 import { AnimationEffectFactoryProps, SlideInFromRight, ParallelEffect } from '@react-motion-router/core';
 import { isIOS, isPWA } from '../../common/utils';
 
-export function OverlaysAnimation({ref, direction, playbackRate}: AnimationEffectFactoryProps) {
-    const duration = isIOS() && !isPWA() ? 0 : 300;
-    const options: KeyframeEffectOptions = {
-        duration,
-        direction,
-        playbackRate,
-        fill: direction === "normal" ? "forwards" : "backwards"
-    };
-
-    return new KeyframeEffect(ref, SlideInFromRight, options);
-}
-
 function BackdropAnimation({ref, direction, playbackRate, index}: AnimationEffectFactoryProps) {
     const duration = isIOS() && !isPWA() ? 0 : 300;
     const options: KeyframeEffectOptions = {

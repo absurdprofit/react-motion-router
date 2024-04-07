@@ -1,8 +1,7 @@
 import { createContext } from "react";
-import { PlainObject, RouteProp } from "./common/types";
-import { ScreenBaseProps } from "./ScreenBase";
+import { RouteData } from "./common/types";
 
-export const RouteDataContext = createContext<RouteProp<ScreenBaseProps["config"], PlainObject>>({
+export const RouteDataContext = createContext<RouteData>({
     focused: false,
     config: {},
     params: {},

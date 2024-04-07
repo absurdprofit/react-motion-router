@@ -5,7 +5,7 @@ import { MotionProgressEvent } from './common/events';
 import { AnimationLayerData } from './AnimationLayerData';
 import { Component } from 'react';
 import { MAX_PROGRESS, MAX_Z_INDEX, MIN_PROGRESS } from './common/constants';
-import { RouterDataContext } from './RouterData';
+import { NavigationBase } from './NavigationBase';
 
 interface SharedElementLayerProps {
     animation: Animation | null;
@@ -13,6 +13,7 @@ interface SharedElementLayerProps {
     currentScene?: SharedElementScene;
     nextScene?: SharedElementScene;
     paused: boolean;
+    navigation: NavigationBase;
 }
 
 interface SharedElementLayerState {
@@ -42,8 +43,6 @@ interface TransitionState {
 export class SharedElementLayer extends Component<SharedElementLayerProps, SharedElementLayerState> {
     private ref: HTMLDialogElement | null = null;
     private animations: Animation[] = [];
-    static readonly contextType = RouterDataContext;
-    context!: React.ContextType<typeof RouterDataContext>;
     
     state: SharedElementLayerState = {
         transitioning: false
@@ -531,20 +530,20 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
         
         this.finished.then(onEnd).catch(onCancel);
 
-        this.context!.navigation.addEventListener('transition-cancel' , onCancel, {once: true});
+        this.props.navigation.addEventListener('transition-cancel' , onCancel, {once: true});
     }
     
     componentDidMount() {
-        this.context!.navigation.addEventListener('motion-progress-start', this.onProgressStart);
+        this.props.navigation.addEventListener('motion-progress-start', this.onProgressStart);
     }
 
     componentWillUnmount() {
-        this.context!.navigation.removeEventListener('motion-progress-start', this.onProgressStart);
+        this.props.navigation.removeEventListener('motion-progress-start', this.onProgressStart);
     }
 
     onProgressStart = () => {
-        this.context!.navigation.addEventListener('motion-progress', this.onProgress);
-        this.context!.navigation.addEventListener('motion-progress-end', this.onProgressEnd);
+        this.props.navigation.addEventListener('motion-progress', this.onProgress);
+        this.props.navigation.addEventListener('motion-progress-end', this.onProgressEnd);
     }
 
     onProgress = (e: MotionProgressEvent) => {
@@ -565,8 +564,8 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
         await this.finish();
         this.setState({transitioning: false});
         this.animations = [];
-        this.context!.navigation.removeEventListener('motion-progress', this.onProgress);
-        this.context!.navigation.removeEventListener('motion-progress-end', this.onProgressEnd);
+        this.props.navigation.removeEventListener('motion-progress', this.onProgress);
+        this.props.navigation.removeEventListener('motion-progress-end', this.onProgressEnd);
     }
 
     render() {

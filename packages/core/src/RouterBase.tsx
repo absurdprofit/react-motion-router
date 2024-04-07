@@ -261,14 +261,18 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         return this.routerData.parentRouterData;
     }
 
+    protected get parentScreen() {
+        return this.parentRouterData?.nextScreen ?? this.parentRouterData?.currentScreen;
+    }
+
     protected get isRoot() {
         return !this.parentRouterData;
     }
 
     get baseURL() {
-        const pathname = this.isRoot ? window.location.pathname : this.parentRouterData?.currentScreen?.props.resolvedPathname!;
-
+        const pathname = this.isRoot ? window.location.pathname : this.parentScreen?.routeData.resolvedPathname!;
         const pattern = this.baseURLPattern.pathname;
+
         return resolveBaseURLFromPattern(pattern, pathname)!;
     }
 
@@ -277,8 +281,8 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         const defaultBasePathname = this.isRoot ? new URL(".", document.baseURI).href.replace(baseURL, '') : ".";
         let basePathname = this.props.config.basePathname || defaultBasePathname;
 
-        const { resolvedPathname = window.location.pathname, path } = this.parentRouterData?.currentScreen?.props ?? {};
-        if (this.parentRouterData) {
+        if (this.parentRouterData && this.parentScreen) {
+            const { resolvedPathname = window.location.pathname, path } = this.parentScreen.routeData;
             baseURL = this.parentRouterData.baseURL.href;
             const pattern = new URLPattern({ baseURL, pathname: path });
             baseURL = resolveBaseURLFromPattern(

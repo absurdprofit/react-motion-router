@@ -2,7 +2,6 @@ import React from 'react';
 import * as Stack from '@react-motion-router/stack';
 import { lazy } from '@react-motion-router/core';
 import { isIOS, isPWA } from './common/utils';
-import { OverlaysAnimation } from './Screens/Overlays/animations';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './Theme';
 import Navbar from './Components/Navbar';
@@ -37,9 +36,6 @@ function Routes() {
         id="Overlays"
         component={Overlays}
         fallback={<div className='screen-fallback overlays'></div>}
-        config={{
-          animation: OverlaysAnimation,
-        }}
       />
       <Stack.Screen
         path={'slides'}

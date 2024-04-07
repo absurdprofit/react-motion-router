@@ -57,23 +57,23 @@ export interface LazyExoticComponent<T extends React.ComponentType<any>> extends
     load: () => Promise<{ default: T }>;
 }
 
-export type RoutesData<C extends ScreenBaseProps["config"] = ScreenBaseProps["config"]> = Map<string | undefined, Pick<RouteProp<C, PlainObject>, "config" | "params">>;
+export type RoutesData<P extends ScreenBaseProps = ScreenBaseProps> = Map<string | undefined, Pick<RouteData<P, PlainObject>, "config" | "params">>;
 
-export interface RouteProp<C extends ScreenBaseProps["config"], T extends PlainObject> {
+export interface RouteData<P extends ScreenBaseProps = ScreenBaseProps, T extends PlainObject = PlainObject> {
     path: string;
     resolvedPathname?: string;
-    config: Partial<NonNullable<C>>;
+    config: Partial<NonNullable<P["config"]>>;
     focused: boolean;
     params: T;
     setParams(params: Partial<T>): void;
-    setConfig(config: Partial<C>): void;
+    setConfig(config: Partial<P["config"]>): void;
 }
 export interface ScreenComponentBaseProps<
     P extends ScreenBaseProps = ScreenBaseProps,
     T extends PlainObject = {},
     N extends NavigationBase = NavigationBase
 > {
-    route: RouteProp<P["config"], T>;
+    route: RouteData<P, T>;
     navigation: N;
     orientation: ScreenOrientation;
 }

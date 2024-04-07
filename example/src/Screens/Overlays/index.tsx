@@ -30,7 +30,6 @@ export default function Overlays(props: OverlaysProps) {
     const modalConfig = {
         swipeDirection: 'down',
         swipeAreaWidth: window.innerHeight / 1.5,
-        animation: STATIC_ANIMATION,
         disableDiscovery: false,
         hysteresis: 15,
         presentation: "modal"
@@ -39,11 +38,11 @@ export default function Overlays(props: OverlaysProps) {
         <div className={`overlays ${isFirstLoad ? 'loaded' : 'suspense'}`}>
             <div style={{ position: "absolute", width: "100vw", height: "100vh" }}>
                 <Stack.Router config={{
-                    disableBrowserRouting: isPWA() && isIOS(),
-                    screenConfig: modalConfig
+                    disableBrowserRouting: isPWA() && isIOS()
                 }}>
                     <Stack.Screen component={Home} path="." config={{animation: HomeAnimation}} />
                     <Stack.Screen component={Player} path="player" config={{
+                        ...modalConfig,
                         animation: ModalAnimation
                     }} />
                     <Stack.Screen

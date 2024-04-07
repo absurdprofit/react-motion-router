@@ -357,6 +357,7 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
                 <SharedElementLayer
                     ref={this.sharedElementLayer}
                     animation={this.animation}
+                    navigation={this.props.navigation}
                     paused={this.paused}
                     animationLayerData={this.animationLayerData}
                     currentScene={this.props.currentScreen?.current?.sharedElementScene}
