@@ -6,11 +6,6 @@ import { OverlaysAnimation } from './Screens/Overlays/Animations';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './Theme';
 import Navbar from './Components/Navbar';
-import CardsAnimation from './Screens/Cards/animations';
-import Cards2Animation from './Screens/Cards2/animations';
-import SlidesAnimation from './Screens/Slides/animations';
-import TilesAnimation from './Screens/Tiles/animations';
-import animation from './animations';
 import "./App.css";
 import { STATIC_ANIMATION } from './common/constants';
 
@@ -31,7 +26,6 @@ function Routes() {
       basePathname: '{react-motion-router/}?',
       screenConfig: {
         disableDiscovery: false,
-        animation,
         minFlingVelocity: 1000
       },
       disableBrowserRouting: isPWA() && iOS(),
