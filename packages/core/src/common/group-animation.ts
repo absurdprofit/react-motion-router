@@ -2,11 +2,9 @@ import { GroupEffect } from "./group-effect";
 
 export class GroupAnimation extends Animation {
 	readonly animations: Animation[] = [];
-	constructor(effect?: AnimationEffect | null, timeline?: AnimationTimeline | null) {
-		super(effect instanceof GroupEffect ? null : effect, timeline);
-		if (effect instanceof GroupEffect) {
-			this.animations = effect.effects.map(effect => new Animation(effect, timeline));
-		}
+	constructor(effect?: GroupEffect | null, timeline?: AnimationTimeline | null) {
+		super(null, timeline);
+		this.animations = effect?.effects.map(effect => new Animation(effect, timeline)) ?? new Array();
 	}
 
 	play() {

@@ -7,7 +7,7 @@ import { AnimationLayerData, AnimationLayerDataContext } from './AnimationLayerD
 import { SwipeDirection } from './common/types';
 import { DEFAULT_GESTURE_CONFIG, MAX_PROGRESS, MIN_PROGRESS } from './common/constants';
 import { SharedElementLayer } from './SharedElementLayer';
-import { GroupAnimation } from './common/animation';
+import { GroupAnimation } from './common/group-animation';
 import { ParallelEffect } from './common/group-effect';
 
 export const Motion = createContext(0);
@@ -110,11 +110,6 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
         });
     }
 
-    private commitAndRemoveAnimations() {
-        this.animation?.commitStyles();
-        this.animation = null;
-    }
-
     get ready() {
         return this.animation?.ready.then(() => {return;}) ?? Promise.resolve();
     }
@@ -207,14 +202,15 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
 
                 await this.finished;
 
-                this.commitAndRemoveAnimations();
+                this.animation.commitStyles();
+                this.animation = null;
+
+                await nextScreen.animationProvider.setZIndex(1);
 
                 await Promise.all([
                     await nextScreen.onEntered(),
                     await currentScreen.onExited()
                 ]);
-
-                await nextScreen.animationProvider.setZIndex(1);
 
                 this.onTransitionEnd();
 
