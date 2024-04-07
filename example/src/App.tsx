@@ -8,6 +8,7 @@ import theme from './Theme';
 import Navbar from './Components/Navbar';
 import "./App.css";
 import { STATIC_ANIMATION } from './common/constants';
+import { animation } from './animations';
 
 const NotFound = lazy(() => import('./Screens/NotFound'));
 const Home = lazy(() => import('./Screens/Home'));
@@ -26,6 +27,7 @@ function Routes() {
       basePathname: '{react-motion-router/}?',
       screenConfig: {
         disableDiscovery: false,
+        animation: animation,
         minFlingVelocity: 1000
       },
       disableBrowserRouting: isPWA() && iOS(),
