@@ -30,6 +30,8 @@ export type ParamsDeserializer = (queryString: string) => PlainObject;
 
 export interface AnimationFactoryProps<R extends HTMLElement = HTMLElement> {
     ref: R | null;
+    index: number;
+    exiting: boolean;
     timeline: AnimationTimeline;
     playbackRate: number;
     direction: "normal" | "reverse";
@@ -43,9 +45,6 @@ export interface Vec2 {
 }
 
 export type SwipeDirection = 'up' | 'down' | 'left' | 'right';
-
-export type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
-export type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U;
 
 export type MetaTypeKey = 'http-equiv' | 'name' | 'itemprop' | 'property' | 'charset';
 export type MetaType = [MetaTypeKey, string];

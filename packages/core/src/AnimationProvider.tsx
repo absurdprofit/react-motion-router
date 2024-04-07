@@ -67,6 +67,8 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
 
         return animationFactory?.({
             ref: this.ref,
+            index: this.state.zIndex,
+            exiting: this.props.out,
             timeline,
             direction,
             playbackRate

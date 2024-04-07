@@ -151,7 +151,7 @@ export function searchParamsFromObject(params: { [key: string]: any }, paramsSer
         return serializer(params);
     } catch (e) {
         console.error(e);
-        console.warn("Non JSON serialisable value was passed as route param to Anchor.");
+        console.warn("Non JSON serialisable value was passed as route param.");
     }
     return '';
 }

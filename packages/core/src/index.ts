@@ -2,11 +2,10 @@ import {
     ScreenChild,
     AnimationFactory,
 } from './common/types';
-import { RouterData } from './RouterData';
+import { RouterData, RouterDataContext } from './RouterData';
 import { NavigationBase, NavigationBaseProps, NavigationBaseOptions } from './NavigationBase';
 import { RouterBase, RouterBaseProps, RouterBaseState } from './RouterBase';
 import { ScreenBase, ScreenBaseProps, ScreenBaseState } from './ScreenBase';
-import { Anchor } from './Anchor';
 import { Motion } from './AnimationLayer';
 import type { AnimationLayerData } from './AnimationLayerData';
 import { GestureRegion } from './GestureRegion';
@@ -44,8 +43,8 @@ export type {
     NavigationBaseProps,
     NavigationBaseOptions
 };
-export { SharedElement, Anchor, Motion, GestureRegion, ScrollRestoration };
-export { NavigationBase, RouterBase, RouterData, ScreenBase };
+export { SharedElement, Motion, GestureRegion, ScrollRestoration };
+export { NavigationBase, RouterBase, RouterData, RouterDataContext, ScreenBase };
 export type {
     AnimationLayerData
 };

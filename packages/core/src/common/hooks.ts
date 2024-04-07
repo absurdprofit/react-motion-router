@@ -19,7 +19,7 @@ export function useReducedMotion() {
 export function useNavigation<T extends NavigationBase = NavigationBase>() {
     const routerData = useContext(RouterDataContext);
     if (routerData) {
-        return routerData.navigation as NavigationBase;
+        return routerData.navigation as T;
     } else {
         throw new Error("RouterData is null. You may be trying to call useNavigation outside a Router.");
     }
