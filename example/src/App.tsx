@@ -1,14 +1,14 @@
 import React from 'react';
 import * as Stack from '@react-motion-router/stack';
 import { lazy } from '@react-motion-router/core';
-import { iOS, isPWA } from './common/utils';
-import { OverlaysAnimation } from './Screens/Overlays/Animations';
+import { isIOS, isPWA } from './common/utils';
+import { OverlaysAnimation } from './Screens/Overlays/animations';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './Theme';
 import Navbar from './Components/Navbar';
 import "./App.css";
 import { STATIC_ANIMATION } from './common/constants';
-import { animation } from './animations';
+import { animation, slideToStatic } from './animations';
 
 const NotFound = lazy(() => import('./Screens/NotFound'));
 const Home = lazy(() => import('./Screens/Home'));
@@ -30,7 +30,7 @@ function Routes() {
         animation: animation,
         minFlingVelocity: 1000
       },
-      disableBrowserRouting: isPWA() && iOS(),
+      disableBrowserRouting: isPWA() && isIOS(),
     }}>
       <Stack.Screen
         path='overlays/**'
@@ -38,7 +38,7 @@ function Routes() {
         component={Overlays}
         fallback={<div className='screen-fallback overlays'></div>}
         config={{
-          animation: !(iOS() && !isPWA) ? OverlaysAnimation : STATIC_ANIMATION,
+          animation: OverlaysAnimation,
         }}
       />
       <Stack.Screen
@@ -49,6 +49,7 @@ function Routes() {
         fallback={<div className='screen-fallback slides'></div>}
         config={{
           disableDiscovery: true,
+          animation: STATIC_ANIMATION,
         }}
       />
       <Stack.Screen
@@ -57,6 +58,7 @@ function Routes() {
         component={Cards}
         config={{
           header: { component: () => <Navbar title="Cards Demo" /> },
+          animation: slideToStatic
         }}
         fallback={<div className='screen-fallback cards'></div>}
       />
@@ -66,6 +68,7 @@ function Routes() {
         component={Cards2}
         config={{
           header: { component: () => <Navbar title="Cards Demo 2" /> },
+          animation: slideToStatic
         }}
         fallback={<div className='screen-fallback cards-2'></div>}
       />
@@ -98,6 +101,7 @@ function Routes() {
         fallback={<div className='screen-fallback tiles'></div>}
         config={{
           header: { component: () => <Navbar title="Tiles" /> },
+          animation: slideToStatic
         }}
       />
       <Stack.Screen path="video" component={Video} />

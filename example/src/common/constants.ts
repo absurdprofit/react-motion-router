@@ -1,6 +1,3 @@
-import { iOS, isPWA } from "./utils";
+import { AnimationEffectFactory } from "@react-motion-router/core";
 
-export const STATIC_ANIMATION = {
-  in: () => new Animation(new KeyframeEffect(null, [], { duration: iOS() && !isPWA() ? 0 : 350 })),
-  out: () => new Animation(new KeyframeEffect(null, [], { duration: iOS() && !isPWA() ? 0 : 350 }))
-};
+export const STATIC_ANIMATION: AnimationEffectFactory = ({ref}) => new KeyframeEffect(ref, [], { duration: 0 });

@@ -1,89 +1,102 @@
-import { matchRoute, AnimationConfigFactory, AnimationConfigSet } from '@react-motion-router/core';
-import { iOS, isPWA } from '../../common/utils';
+import { AnimationEffectFactoryProps, SlideInFromRight, ParallelEffect } from '@react-motion-router/core';
+import { isIOS, isPWA } from '../../common/utils';
 
-export const OverlaysAnimation: AnimationConfigFactory = ({current, next}) => {
-    if ((matchRoute(current.path, '/overlays') && matchRoute(next.path, '/modal'))
-        || (matchRoute(current.path, '/modal') && matchRoute(next.path, '/overlays'))) {
-        return {
-            in: {
-                keyframes: [
-                    {
-                        transform: 'scale(0.95) translateY(15px)',
-                        borderRadius: '15px'
-                    },
-                    {
-                        transform: 'scale(1) translateY(0%)',
-                        borderRadius: '45px'
-                    }
-                ],
-                options: 350
-            },
-            out: {
-                keyframes: [
-                    {
-                        transform: 'scale(1)  translateY(0%)',
-                        borderRadius: '45px'
-                    },
-                    {
-                        transform: 'scale(0.95) translateY(15px)',
-                        borderRadius: '15px'
-                    }
-                ],
-                options: 350
-            }
-        }
-    }
+export function OverlaysAnimation({ref, direction, playbackRate}: AnimationEffectFactoryProps) {
+    const duration = isIOS() && !isPWA() ? 0 : 300;
+    const options: KeyframeEffectOptions = {
+        duration,
+        direction,
+        playbackRate,
+        fill: direction === "normal" ? "forwards" : "backwards"
+    };
 
-    if (iOS() && !isPWA()) {
-        return {
-          type: 'none',
-          duration: 0
-        }
-    } else {
-        return {
-            type: 'slide',
-            direction: 'right',
-            duration: 350
-        };
-    }
+    return new KeyframeEffect(ref, SlideInFromRight, options);
 }
 
-export const ModalAnimation: AnimationConfigSet = {
-    in: {
-        keyframes: [
-            {transform: 'translateY(90vh)', borderRadius: '0px'},
-            {transform: 'translateY(15vh)', borderRadius: '15px 15px 0px 0px'}
-        ],
-        options: {duration: 350}
-    },
-    out: {
-        keyframes: [
+function BackdropAnimation({ref, direction, playbackRate, index}: AnimationEffectFactoryProps) {
+    const duration = isIOS() && !isPWA() ? 0 : 300;
+    const options: KeyframeEffectOptions = {
+		duration,
+		direction,
+		playbackRate,
+		fill: direction === "normal" ? "forwards" : "backwards",
+        pseudoElement: "::backdrop"
+	};
+    const fadeOut = [
+        {backgroundColor: 'rgba(0, 0, 0, 0.8)'},
+        {backgroundColor: 'rgba(0, 0, 0, 0)'}
+    ];
+    const fadeIn = [
+        {backgroundColor: 'rgba(0, 0, 0, 0)'},
+        {backgroundColor: 'rgba(0, 0, 0, 0.8)'}
+    ];
+    const keyframes = [
+        fadeOut,
+        fadeIn
+    ];
+
+    return new KeyframeEffect(ref, keyframes[index], options);
+};
+
+export function HomeAnimation({ref, direction, playbackRate, index, ...props}: AnimationEffectFactoryProps) {
+    const duration = isIOS() && !isPWA() ? 0 : 300;
+    const options: KeyframeEffectOptions = {
+		duration,
+		direction,
+		playbackRate,
+		fill: direction === "normal" ? "forwards" : "backwards"
+	};
+    const scaleUp = [
+        {
+            transform: 'scale(0.95) translateY(15px)',
+            borderRadius: '15px'
+        },
+        {
+            transform: 'scale(1) translateY(0%)',
+            borderRadius: '45px'
+        }
+    ];
+
+    const scaleDown = [
+        {
+            transform: 'scale(1)  translateY(0%)',
+            borderRadius: '45px'
+        },
+        {
+            transform: 'scale(0.95) translateY(15px)',
+            borderRadius: '15px'
+        }
+    ];
+
+    const keyframes = [
+        scaleDown,
+        scaleUp
+    ];
+
+    return new ParallelEffect([
+        new KeyframeEffect(ref, keyframes, options),
+        BackdropAnimation({ref, direction, playbackRate, index, ...props})
+    ]);
+}
+
+export function ModalAnimation({ref, direction, playbackRate, index}: AnimationEffectFactoryProps) {
+    const duration = isIOS() && !isPWA() ? 0 : 300;
+    const options: KeyframeEffectOptions = {
+		duration,
+		direction,
+		playbackRate,
+		fill: direction === "normal" ? "forwards" : "backwards"
+	};
+
+    const keyframes = [
+        [
             {transform: 'translateY(15vh)', borderRadius: '15px 15px 0px 0px'},
             {transform: 'translateY(90vh)', borderRadius: '0px'}
         ],
-        options: {duration: 250}
-    }
-};
-
-const fadeIn = {
-    keyframes: [
-        {backgroundColor: 'rgba(0, 0, 0, 0)'},
-        {backgroundColor: 'rgba(0, 0, 0, 0.8)'}
-    ],
-    options: {
-        duration: 300,
-    }
-};
-const fadeOut = {
-    keyframes: [
-        {backgroundColor: 'rgba(0, 0, 0, 0.8)'},
-        {backgroundColor: 'rgba(0, 0, 0, 0)'}
-    ],
-    options: {
-        duration: 350,
-    }
-};
-export const BackdropAnimation: AnimationConfigSet = {
-    in: fadeIn,
-    out: fadeOut
+        [
+            {transform: 'translateY(90vh)', borderRadius: '0px'},
+            {transform: 'translateY(15vh)', borderRadius: '15px 15px 0px 0px'}
+        ]
+    ];
+    return new KeyframeEffect(ref, keyframes[index], options);
 };

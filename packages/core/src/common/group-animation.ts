@@ -1,3 +1,4 @@
+// Based on https://github.com/yi-gu/group_effect
 import { GroupEffect } from "./group-effect";
 
 export class GroupAnimation extends Animation {

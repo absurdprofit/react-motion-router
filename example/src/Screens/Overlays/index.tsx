@@ -4,9 +4,9 @@ import Home from "./Home";
 import Player from "./Player";
 import Sheet from "./Sheet";
 import { useEffect } from "react";
-import { BackdropAnimation, ModalAnimation } from "./Animations";
+import { HomeAnimation, ModalAnimation } from "./animations";
 import './index.css';
-import { iOS, isPWA } from "../../common/utils";
+import { isIOS, isPWA } from "../../common/utils";
 import { STATIC_ANIMATION } from "../../common/constants";
 
 interface OverlaysProps extends Stack.ScreenComponentProps { }
@@ -33,27 +33,22 @@ export default function Overlays(props: OverlaysProps) {
         animation: STATIC_ANIMATION,
         disableDiscovery: false,
         hysteresis: 15,
-        presentation: "modal",
-        pseudoElement: {
-            selector: "::backdrop",
-            animation: BackdropAnimation
-        }
+        presentation: "modal"
     } as const;
     return (
         <div className={`overlays ${isFirstLoad ? 'loaded' : 'suspense'}`}>
             <div style={{ position: "absolute", width: "100vw", height: "100vh" }}>
                 <Stack.Router config={{
-                    disableBrowserRouting: isPWA() && iOS(),
+                    disableBrowserRouting: isPWA() && isIOS(),
+                    screenConfig: modalConfig
                 }}>
-                    <Stack.Screen component={Home} path="." />
+                    <Stack.Screen component={Home} path="." config={{animation: HomeAnimation}} />
                     <Stack.Screen component={Player} path="player" config={{
-                        ...modalConfig,
                         animation: ModalAnimation
                     }} />
                     <Stack.Screen
                         component={Sheet}
                         path="sheet"
-                        config={modalConfig}
                     />
                 </Stack.Router>
             </div>

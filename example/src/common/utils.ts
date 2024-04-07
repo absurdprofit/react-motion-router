@@ -7,7 +7,7 @@ export function getPWADisplayMode() {
   }
   return 'browser';
 }
-export function iOS() : boolean {
+export function isIOS() : boolean {
   return [
     'iPad Simulator',
     'iPhone Simulator',
