@@ -244,25 +244,14 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
         const nextScreen = this.props.nextScreen?.current;
 
         if (currentScreen?.animationProvider && nextScreen?.animationProvider && this.state.shouldAnimate) {
-            if (!this.props.backNavigating) {
-                this.animationLayerData.outAnimation = currentScreen?.animationProvider.outAnimation;
-                this.animationLayerData.pseudoElementOutAnimation = currentScreen?.animationProvider.pseudoElementOutAnimation;
-                this.animationLayerData.inAnimation = nextScreen?.animationProvider.inAnimation;
-                this.animationLayerData.pseudoElementInAnimation = nextScreen?.animationProvider.pseudoElementInAnimation;
-                await Promise.all([
-                    nextScreen.animationProvider.setZIndex(1),
-                    currentScreen.animationProvider.setZIndex(0)
-                ]);
-            } else {
-                this.animationLayerData.outAnimation = nextScreen?.animationProvider.outAnimation;
-                this.animationLayerData.pseudoElementOutAnimation = nextScreen?.animationProvider.pseudoElementOutAnimation;
-                this.animationLayerData.inAnimation = currentScreen?.animationProvider.inAnimation;
-                this.animationLayerData.pseudoElementInAnimation = currentScreen?.animationProvider.pseudoElementInAnimation;
-                await Promise.all([
-                    nextScreen.animationProvider.setZIndex(0),
-                    currentScreen.animationProvider.setZIndex(1)
-                ]);
-            }
+            const timeline = this.timeline;
+            this.animationLayerData.outAnimation = new Animation(currentScreen?.animationProvider.animationEffect, timeline);
+            this.animationLayerData.inAnimation = new Animation(nextScreen?.animationProvider.animationEffect, timeline);
+            await Promise.all([
+                nextScreen.animationProvider.setZIndex(1),
+                currentScreen.animationProvider.setZIndex(0)
+            ]);
+
             if (this.animationLayerData.inAnimation && this.animationLayerData.outAnimation) {
                 if (!this.state.shouldAnimate) {
                     this.finishTransition();

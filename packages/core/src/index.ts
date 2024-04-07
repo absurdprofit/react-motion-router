@@ -1,6 +1,6 @@
 import {
     ScreenChild,
-    AnimationFactory,
+    AnimationEffectFactory,
 } from './common/types';
 import { RouterData, RouterDataContext } from './RouterData';
 import { NavigationBase, NavigationBaseProps, NavigationBaseOptions } from './NavigationBase';
@@ -34,7 +34,7 @@ if (root) {
 }
 
 export type {
-    AnimationFactory,
+    AnimationEffectFactory,
     ScreenChild,
     RouterBaseProps,
     RouterBaseState,

@@ -1,7 +1,7 @@
 import { Component, ElementType, Suspense, cloneElement, createRef, isValidElement } from "react";
 import { AnimationProvider } from "./AnimationProvider";
 import {
-    AnimationFactory,
+    AnimationEffectFactory,
     LazyExoticComponent,
     PlainObject,
     RouteProp,
@@ -38,14 +38,7 @@ export interface ScreenBaseProps {
             fallback?: React.ReactNode;
             component: React.JSXElementConstructor<any> | LazyExoticComponent<any>
         };
-        animation?: {
-            in?: AnimationFactory;
-            out?: AnimationFactory;
-        };
-        pseudoElementAnimation?: {
-            in?: AnimationFactory;
-            out?: AnimationFactory;
-        };
+        animation?: AnimationEffectFactory;
         keepAlive?: boolean;
         swipeDirection?: SwipeDirection;
         swipeAreaWidth?: number;
@@ -227,7 +220,6 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
                 out={this.props.out || false}
                 id={`${this.id}-animation-provider`}
                 animation={routeData.config.animation}
-                pseudoElementAnimation={routeData.config.pseudoElementAnimation}
                 keepAlive={this.state.shouldKeepAlive ? routeData.config.keepAlive || false : false}
                 navigation={this.context!.navigation}
             >

@@ -28,7 +28,7 @@ export type EasingFunction = EasingFunctionKeyword | `cubic-bezier(${number},${'
 export type ParamsSerializer = (params: PlainObject) => string;
 export type ParamsDeserializer = (queryString: string) => PlainObject;
 
-export interface AnimationFactoryProps<R extends HTMLElement = HTMLElement> {
+export interface AnimationEffectFactoryProps<R extends HTMLElement = HTMLElement> {
     ref: R | null;
     index: number;
     exiting: boolean;
@@ -37,7 +37,7 @@ export interface AnimationFactoryProps<R extends HTMLElement = HTMLElement> {
     direction: "normal" | "reverse";
 }
 
-export type AnimationFactory<R extends HTMLElement = HTMLElement> = (props: AnimationFactoryProps<R>) => Animation;
+export type AnimationEffectFactory<R extends HTMLElement = HTMLElement> = (props: AnimationEffectFactoryProps<R>) => AnimationEffect;
 
 export interface Vec2 {
     x: number;

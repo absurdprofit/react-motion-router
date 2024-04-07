@@ -1,4 +1,4 @@
-import { AnimationFactory, CustomElementType } from './common/types';
+import { AnimationEffectFactory, CustomElementType } from './common/types';
 import { AnimationLayerDataContext } from './AnimationLayerData';
 import { NavigationBase } from './NavigationBase';
 import { Component, ElementType } from 'react';
@@ -7,14 +7,7 @@ interface AnimationProviderProps {
     in: boolean;
     out: boolean;
     id: string;
-    animation?: {
-        in?: AnimationFactory;
-        out?: AnimationFactory;
-    };
-    pseudoElementAnimation?: {
-        in?: AnimationFactory;
-        out?: AnimationFactory;
-    };
+    animation?: AnimationEffectFactory;
     keepAlive: boolean;
     children: React.ReactNode
     navigation: NavigationBase;
@@ -62,10 +55,11 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
         this.props.navigation.removeEventListener('transition-end', this.onAnimationEnd);
     }
 
-    private getAnimation(animationFactory?: AnimationFactory) {
+    get animationEffect() {
+        const animationEffectFactory = this.props.animation;
         const { timeline, direction, playbackRate } = this.context!;
 
-        return animationFactory?.({
+        return animationEffectFactory?.({
             ref: this.ref,
             index: this.state.zIndex,
             exiting: this.props.out,
@@ -81,22 +75,6 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
 
     setZIndex(zIndex: number) {
         return new Promise<void>(resolve => this.setState({ zIndex }, resolve));
-    }
-
-    get pseudoElementInAnimation() {
-        return this.getAnimation(this.props.pseudoElementAnimation?.in);
-    }
-
-    get pseudoElementOutAnimation() {
-        return this.getAnimation(this.props.pseudoElementAnimation?.out);
-    }
-
-    get inAnimation() {
-        return this.getAnimation(this.props.animation?.in);
-    }
-
-    get outAnimation() {
-        return this.getAnimation(this.props.animation?.out);
     }
 
     render() {

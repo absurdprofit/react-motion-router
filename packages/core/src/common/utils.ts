@@ -1,7 +1,7 @@
 import { Children, lazy as ReactLazy, isValidElement } from "react";
 import { RouterData } from "../RouterData";
 import { ScreenBaseProps } from "../ScreenBase";
-import { AnimationFactoryProps, Input, LazyExoticComponent, LerpRange, MatchedRoute, Output, PlainObject, ScreenChild, SearchParamsDeserializer, SearchParamsSerializer, Weights, is1DRange } from "./types";
+import { Input, LazyExoticComponent, LerpRange, MatchedRoute, Output, PlainObject, ScreenChild, SearchParamsDeserializer, SearchParamsSerializer, Weights, is1DRange } from "./types";
 
 export function getCSSData(styles: CSSStyleDeclaration, exclude: string[] = [], object: boolean = true): [string, PlainObject<string>] {
     let text = '';
@@ -269,17 +269,4 @@ export function interpolate(input: Input | number, inputRange: LerpRange | numbe
         output[dimension] = mapRange(inputInterpolatedValue, range);
     }
     return output;
-}
-
-export function getAnimationFromKeyframes(keyframes: Keyframe[], options: KeyframeAnimationOptions, props: AnimationFactoryProps<HTMLElement>) {
-    options = {
-        ...options,
-        playbackRate: props.playbackRate,
-        direction: props.direction,
-        fill: props.direction === "normal" ? "forwards" : "backwards"
-    }
-    return new Animation(
-        new KeyframeEffect(props.ref, keyframes, options),
-        props.timeline
-    );
 }
