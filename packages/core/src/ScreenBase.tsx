@@ -49,6 +49,7 @@ export interface ScreenBaseProps {
         onExit?: (props: RouteProps<ScreenBaseProps, NavigationBase>) => void | Promise<void>;
         onEntered?: (props: RouteProps<ScreenBaseProps, NavigationBase>) => void | Promise<void>;
         onExited?: (props: RouteProps<ScreenBaseProps, NavigationBase>) => void | Promise<void>;
+        onLoad?: (props: RouteProps<ScreenBaseProps, NavigationBase>) => void | Promise<void>;
     }
 }
 
@@ -65,7 +66,6 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         params: {},
         config: this.props.config ?? {},
         path: this.props.path,
-        preloaded: false,
         setParams: this.setParams.bind(this),
         setConfig: this.setConfig.bind(this),
         focused: false
@@ -121,13 +121,23 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
             .replace(/^-|-$/g, ''); // Remove leading and trailing hyphens;
     }
 
-    get routeData() {
-        let preloaded = false;
-        let Component = this.props.component as React.JSXElementConstructor<any>;
-        if ('preloaded' in Component && Component.preloaded) {
-            Component = Component.preloaded as React.JSXElementConstructor<any>;
-            preloaded = true;
+    async load() {
+        let Component = this.props.component;
+        let result;
+        if ('load' in Component) {
+            result = await Component.load();
+        } else {
+            result = { default: Component };
         }
+
+        const navigation = this.context!.navigation;
+        const route = this.routeData;
+        await this.props.config?.onLoad?.({navigation, route});
+        
+        return result;
+    }
+
+    get routeData() {
         const focused = Boolean(this.props.in);
         return {
             ...this._routeData,
@@ -141,8 +151,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
                 ...this._routeData.config, // passed by setConfig
                 ...this.context!.routesData.get(this.props.path)?.config // passed by other screens using navigate
             },
-            focused,
-            preloaded
+            focused
         };
     }
 
@@ -192,24 +201,9 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
 
     render() {
         const routeData = this.routeData;
-        let Component = this.props.component as React.JSXElementConstructor<any>;
-        let HeaderComponent = routeData.config.header?.component as React.JSXElementConstructor<any>;
-        let FooterComponent = routeData.config.footer?.component as React.JSXElementConstructor<any>;
-        let headerPreloaded = false;
-        let footerPreloaded = false;
-
-        if (HeaderComponent) {
-            if ('preloaded' in HeaderComponent && HeaderComponent.preloaded) {
-                HeaderComponent = HeaderComponent.preloaded as React.JSXElementConstructor<any>;
-                headerPreloaded = true;
-            }
-        }
-        if (FooterComponent) {
-            if ('preloaded' in FooterComponent && FooterComponent.preloaded) {
-                FooterComponent = FooterComponent.preloaded as React.JSXElementConstructor<any>;
-                footerPreloaded = true;
-            }
-        }
+        const Component = this.props.component;
+        const HeaderComponent = routeData.config.header?.component;
+        const FooterComponent = routeData.config.footer?.component;
 
         this.sharedElementScene.keepAlive = Boolean(routeData.config.keepAlive);
         return (
@@ -237,14 +231,14 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
                 >
                     <SharedElementSceneContext.Provider value={this.sharedElementScene}>
                         <RouteDataContext.Provider value={routeData}>
-                            <Suspense fallback={<ComponentWithRouteData component={routeData.config.header?.fallback} route={{ ...routeData, preloaded: headerPreloaded }} navigation={this.context!.navigation} />}>
-                                <ComponentWithRouteData component={HeaderComponent} route={{ ...routeData, preloaded: headerPreloaded }} navigation={this.context!.navigation} />
+                            <Suspense fallback={<ComponentWithRouteData component={routeData.config.header?.fallback} route={routeData} navigation={this.context!.navigation} />}>
+                                <ComponentWithRouteData component={HeaderComponent} route={routeData} navigation={this.context!.navigation} />
                             </Suspense>
                             <Suspense fallback={<ComponentWithRouteData component={this.props.fallback} route={routeData} navigation={this.context!.navigation} />}>
                                 <ComponentWithRouteData component={Component} route={routeData} navigation={this.context!.navigation} />
                             </Suspense>
-                            <Suspense fallback={<ComponentWithRouteData component={routeData.config.footer?.fallback} route={{ ...routeData, preloaded: footerPreloaded }} navigation={this.context!.navigation} />}>
-                                <ComponentWithRouteData component={FooterComponent} route={{ ...routeData, preloaded: footerPreloaded }} navigation={this.context!.navigation} />
+                            <Suspense fallback={<ComponentWithRouteData component={routeData.config.footer?.fallback} route={routeData} navigation={this.context!.navigation} />}>
+                                <ComponentWithRouteData component={FooterComponent} route={routeData} navigation={this.context!.navigation} />
                             </Suspense>
                         </RouteDataContext.Provider>
                     </SharedElementSceneContext.Provider>

@@ -4,7 +4,6 @@ import { ScreenBaseProps } from "./ScreenBase";
 
 export const RouteDataContext = createContext<RouteProp<ScreenBaseProps["config"], PlainObject>>({
     focused: false,
-    preloaded: false,
     config: {},
     params: {},
     path: "*",

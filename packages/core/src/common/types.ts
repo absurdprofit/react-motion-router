@@ -54,8 +54,7 @@ export type SearchParamsDeserializer = (queryString: string) => PlainObject;
 export type SearchParamsSerializer = (params: PlainObject) => string;
 
 export interface LazyExoticComponent<T extends React.ComponentType<any>> extends React.LazyExoticComponent<T> {
-    preload: () => Promise<{ default: T }>;
-    preloaded: T | undefined;
+    load: () => Promise<{ default: T }>;
 }
 
 export type RoutesData<C extends ScreenBaseProps["config"] = ScreenBaseProps["config"]> = Map<string | undefined, Pick<RouteProp<C, PlainObject>, "config" | "params">>;
@@ -66,7 +65,6 @@ export interface RouteProp<C extends ScreenBaseProps["config"], T extends PlainO
     config: Partial<NonNullable<C>>;
     focused: boolean;
     params: T;
-    preloaded: boolean;
     setParams(params: Partial<T>): void;
     setConfig(config: Partial<C>): void;
 }

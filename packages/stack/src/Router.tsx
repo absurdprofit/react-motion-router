@@ -54,6 +54,7 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
                     backNavigating
                 });
                 await this.animationLayer.current?.finished;
+                await this.state.nextScreen?.current?.load();
                 this.setState({
                     currentPath: new URL(e.destination.url).pathname,
                     nextPath: undefined,

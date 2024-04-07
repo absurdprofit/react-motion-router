@@ -160,12 +160,8 @@ export function lazy<T extends React.ComponentType<any>>(
     factory: () => Promise<{ default: T }>
 ): LazyExoticComponent<T> {
     const Component = ReactLazy(factory) as LazyExoticComponent<T>;
-    Component.preload = () => {
-        const result = factory();
-        result
-            .then(moduleObject => Component.preloaded = moduleObject.default)
-            .catch(console.error);
-        return result;
+    Component.load = () => {
+        return factory();
     };
     return Component;
 }
@@ -189,18 +185,20 @@ export function preloadRoute(pathname: string, routerData: RouterData) {
             const matchInfo = matchRoute(path, pathname, baseURL, caseSensitive);
             if (!matchInfo) return;
             found = true;
+            const config = {
+                ...routerData.routesData.get(path)?.config,
+                ...route.props.config
+            };
             queueMicrotask(async () => {
                 const preloadTasks = [];
-                if ('preload' in route.props.component) {
-                    preloadTasks.push(route.props.component.preload());
+                if ('load' in route.props.component) {
+                    preloadTasks.push(route.props.component.load());
                 }
-                if (route.props.config?.header?.component
-                    && 'preload' in route.props.config?.header?.component) {
-                    preloadTasks.push(route.props.config?.header?.component.preload());
+                if (config?.header?.component && 'load' in config?.header?.component) {
+                    preloadTasks.push(config?.header?.component.load());
                 }
-                if (route.props.config?.footer?.component
-                    && 'preload' in route.props.config?.footer?.component) {
-                    preloadTasks.push(route.props.config?.footer?.component.preload());
+                if (config?.footer?.component && 'load' in config?.footer?.component) {
+                    preloadTasks.push(config?.footer?.component.load());
                 }
                 try {
                     await Promise.all(preloadTasks);
