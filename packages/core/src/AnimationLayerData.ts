@@ -1,16 +1,10 @@
 import { createContext } from 'react';
-import { interpolate } from './common/utils';
-import { MAX_NORM_PROGRESS, MAX_PROGRESS, MIN_NORM_PROGRESS, MIN_PROGRESS } from './common/constants';
 
 export class AnimationLayerData extends EventTarget {
     private _paused: boolean = false;
     private _isPlaying: boolean = false;
     public isStarted = false;
     private _progressUpdateID: number = 0;
-    public pseudoElementInAnimation: Animation | null = null;
-    public pseudoElementOutAnimation: Animation | null = null;
-    public inAnimation: Animation | null = null;
-    public outAnimation: Animation | null = null;
     private _gestureNavigating: boolean = false;
     private _playbackRate: number = 1;
     private _direction: "normal" | "reverse" = "normal";
@@ -75,44 +69,44 @@ export class AnimationLayerData extends EventTarget {
         return this._timeline;
     }
 
-    get duration() {
-        const outDuration = this.outAnimation?.effect?.getComputedTiming().duration;
-        const inDuration = this.inAnimation?.effect?.getComputedTiming().duration;
-        const pseudoElementOutDuration = this.pseudoElementOutAnimation?.effect?.getComputedTiming().duration;
-        const pseudoElementInDuration = this.pseudoElementInAnimation?.effect?.getComputedTiming().duration;
-        return Math.max(
-            Number(outDuration),
-            Number(inDuration),
-            Number(pseudoElementOutDuration),
-            Number(pseudoElementInDuration)
-        ) || 0;
-    }
+    // get duration() {
+    //     const outDuration = this.outAnimation?.effect?.getComputedTiming().duration;
+    //     const inDuration = this.inAnimation?.effect?.getComputedTiming().duration;
+    //     const pseudoElementOutDuration = this.pseudoElementOutAnimation?.effect?.getComputedTiming().duration;
+    //     const pseudoElementInDuration = this.pseudoElementInAnimation?.effect?.getComputedTiming().duration;
+    //     return Math.max(
+    //         Number(outDuration),
+    //         Number(inDuration),
+    //         Number(pseudoElementOutDuration),
+    //         Number(pseudoElementInDuration)
+    //     ) || 0;
+    // }
 
-    get progress() {
-        const outDuration = this.outAnimation?.effect?.getComputedTiming().duration;
-        const inDuration = this.inAnimation?.effect?.getComputedTiming().duration;
-        const pseudoElementOutDuration = this.pseudoElementOutAnimation?.effect?.getComputedTiming().duration;
-        const pseudoElementInDuration = this.pseudoElementInAnimation?.effect?.getComputedTiming().duration;
-        const durations = [
-            outDuration,
-            inDuration,
-            pseudoElementInDuration,
-            pseudoElementOutDuration
-        ];
-        const minDuration = Math.min(...durations.map(Number).filter(duration => !isNaN(duration)));
-        let progress: number | null | undefined = MAX_NORM_PROGRESS;
-        if (minDuration === Number(outDuration)) {
-            progress = this.outAnimation?.effect?.getComputedTiming().progress;
-        } else if (minDuration === Number(inDuration)) {
-            progress = this.inAnimation?.effect?.getComputedTiming().progress;
-        } else if (minDuration === Number(pseudoElementInDuration)) {
-            progress = this.pseudoElementInAnimation?.effect?.getComputedTiming().progress;
-        } else if (minDuration === Number(pseudoElementOutDuration)) {
-            progress = this.pseudoElementOutAnimation?.effect?.getComputedTiming().progress;
-        }
-        progress = Number(progress);
-        return interpolate(progress, [MIN_NORM_PROGRESS, MAX_NORM_PROGRESS], [MIN_PROGRESS, MAX_PROGRESS]);
-    }
+    // get progress() {
+    //     const outDuration = this.outAnimation?.effect?.getComputedTiming().duration;
+    //     const inDuration = this.inAnimation?.effect?.getComputedTiming().duration;
+    //     const pseudoElementOutDuration = this.pseudoElementOutAnimation?.effect?.getComputedTiming().duration;
+    //     const pseudoElementInDuration = this.pseudoElementInAnimation?.effect?.getComputedTiming().duration;
+    //     const durations = [
+    //         outDuration,
+    //         inDuration,
+    //         pseudoElementInDuration,
+    //         pseudoElementOutDuration
+    //     ];
+    //     const minDuration = Math.min(...durations.map(Number).filter(duration => !isNaN(duration)));
+    //     let progress: number | null | undefined = MAX_NORM_PROGRESS;
+    //     if (minDuration === Number(outDuration)) {
+    //         progress = this.outAnimation?.effect?.getComputedTiming().progress;
+    //     } else if (minDuration === Number(inDuration)) {
+    //         progress = this.inAnimation?.effect?.getComputedTiming().progress;
+    //     } else if (minDuration === Number(pseudoElementInDuration)) {
+    //         progress = this.pseudoElementInAnimation?.effect?.getComputedTiming().progress;
+    //     } else if (minDuration === Number(pseudoElementOutDuration)) {
+    //         progress = this.pseudoElementOutAnimation?.effect?.getComputedTiming().progress;
+    //     }
+    //     progress = Number(progress);
+    //     return interpolate(progress, [MIN_NORM_PROGRESS, MAX_NORM_PROGRESS], [MIN_PROGRESS, MAX_PROGRESS]);
+    // }
 
     get gestureNavigating() {
         return this._gestureNavigating;

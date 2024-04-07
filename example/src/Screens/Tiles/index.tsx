@@ -1,11 +1,10 @@
 import React from 'react';
 import { Heroes, Hero } from '../../assets/Heroes';
-import { Anchor } from '@react-motion-router/core';
-import * as Stack from '@react-motion-router/stack';
+import { Anchor, ScreenComponentProps } from '@react-motion-router/stack';
 import Tile from '../../Components/Tile';
 import './index.css';
 
-interface TilesProps extends Stack.ScreenComponentProps { }
+interface TilesProps extends ScreenComponentProps { }
 
 interface TilesState {
     heroes: Hero[];

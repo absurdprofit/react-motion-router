@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Anchor, useMotion } from '@react-motion-router/core';
 import { Button } from '@mui/material';
-import * as Stack from '@react-motion-router/stack';
+import { ScreenComponentProps, Anchor } from '@react-motion-router/stack';
 import { motion } from 'framer-motion';
 import { lerp } from '../../../common/utils';
 import './index.css';
+import { useMotion } from '@react-motion-router/core';
 
-interface SheetProps extends Stack.ScreenComponentProps { }
+interface SheetProps extends ScreenComponentProps { }
 
 let isFirstLoad = true;
 const transition = {

@@ -1,5 +1,6 @@
 import { IconButton } from "@mui/material";
-import { Anchor, SharedElement } from "@react-motion-router/core";
+import { SharedElement } from "@react-motion-router/core";
+import { Anchor } from "@react-motion-router/stack";
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 
 export default function BackButton() {

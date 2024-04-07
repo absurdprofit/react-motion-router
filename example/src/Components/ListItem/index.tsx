@@ -1,7 +1,7 @@
 import React from 'react';
 import Button from '@mui/material/Button';
 import './index.css';
-import { Anchor } from '@react-motion-router/core';
+import { Anchor } from '@react-motion-router/stack';
 
 interface ListItemProps {
     href: string;

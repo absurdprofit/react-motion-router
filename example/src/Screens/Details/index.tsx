@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { SharedElement, ScrollRestoration, Anchor, GestureRegion } from '@react-motion-router/core';
-import * as Stack from '@react-motion-router/stack';
+import { SharedElement, ScrollRestoration, GestureRegion } from '@react-motion-router/core';
+import { Anchor, ScreenComponentProps } from '@react-motion-router/stack';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import ClearIcon from '@mui/icons-material/Clear';
@@ -11,7 +11,7 @@ type DetailsParams = Hero & {
     noBg?: boolean;
 };
 
-interface DetailsProps extends Stack.ScreenComponentProps<DetailsParams> { }
+interface DetailsProps extends ScreenComponentProps<DetailsParams> { }
 
 let isFirstLoad = false;
 let originalDesc: string | undefined;

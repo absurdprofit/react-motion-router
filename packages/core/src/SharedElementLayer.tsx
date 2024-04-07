@@ -8,6 +8,7 @@ import { MAX_PROGRESS, MAX_Z_INDEX, MIN_PROGRESS } from './common/constants';
 import { RouterDataContext } from './RouterData';
 
 interface SharedElementLayerProps {
+    animation: Animation | null;
     animationLayerData: AnimationLayerData;
     currentScene?: SharedElementScene;
     nextScene?: SharedElementScene;
@@ -20,7 +21,7 @@ interface SharedElementLayerState {
 
 interface TransitionXYState {
     delay: number;
-    duration: number;
+    duration: string | CSSNumberish | undefined;
     easingFunction: EasingFunction;
     position: number;
     node: HTMLElement;
@@ -54,20 +55,20 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
 
     pause() {
         this.animations.forEach(animation => {
-            animation.playbackRate = this.props.animationLayerData.playbackRate;
+            animation.playbackRate = this.props?.animationLayerData.playbackRate;
             return animation.pause();
         });
     }
 
     play() {
         this.animations.forEach(animation => {
-            animation.playbackRate = this.props.animationLayerData.playbackRate;
+            animation.playbackRate = this.props?.animationLayerData.playbackRate;
             return animation.play();
         });
     }
 
     finish() {
-        const playbackRate = this.props.animationLayerData.playbackRate;
+        const playbackRate = this.props?.animationLayerData.playbackRate;
         return Promise.all(
             this.animations.map(animation => {
                 animation.playbackRate = playbackRate;
@@ -96,6 +97,7 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
         if (!startChild || !endChild) return;
         const startRect = startInstance.rect;
         const endRect = endInstance.rect;
+        const defaultDuration = this.props.animation?.effect?.getComputedTiming().duration;
 
         let startCSSText: string;
         let startCSSObject: PlainObject<string> = {};
@@ -134,7 +136,7 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
                 x: {
                     node: startNode,
                     delay: startInstance.props.config?.x?.delay ?? endInstance.props.config?.delay ?? 0,
-                    duration: startInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.props.animationLayerData.duration,
+                    duration: startInstance.props.config?.x?.duration || endInstance.props.config?.duration || defaultDuration,
                     easingFunction: startInstance.props.config?.x?.easingFunction || startInstance.props.config?.easingFunction ||'ease',
                     position: startRect.x
                     
@@ -142,7 +144,7 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
                 y: {
                     node: startChild,
                     delay: startInstance.props.config?.y?.delay ?? endInstance.props.config?.delay ?? 0,
-                    duration: startInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.props.animationLayerData.duration,
+                    duration: startInstance.props.config?.y?.duration || endInstance.props.config?.duration || defaultDuration,
                     easingFunction: startInstance.props.config?.y?.easingFunction || startInstance.props.config?.easingFunction || 'ease',
                     position: startRect.y
                 }
@@ -151,14 +153,14 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
                 x: {
                     node: endNode,
                     delay: endInstance.props.config?.x?.delay ?? endInstance.props.config?.delay ?? 0,
-                    duration: endInstance.props.config?.x?.duration || endInstance.props.config?.duration || this.props.animationLayerData.duration,
+                    duration: endInstance.props.config?.x?.duration || endInstance.props.config?.duration || defaultDuration,
                     easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
                     position: endRect.x
                 },
                 y: {
                     node: endChild,
                     delay: endInstance.props.config?.y?.delay ?? endInstance.props.config?.delay ?? 0,
-                    duration: endInstance.props.config?.y?.duration || endInstance.props.config?.duration || this.props.animationLayerData.duration,
+                    duration: endInstance.props.config?.y?.duration || endInstance.props.config?.duration || defaultDuration,
                     easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
                     position: endRect.y
                 }
@@ -456,7 +458,7 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
             if (!animation) return;
             this.animations.push(animation);
             if (this.props.paused) {
-                const defaultDuration = this.props.animationLayerData.duration;
+                const defaultDuration = this.props.animation?.effect?.getComputedTiming().duration;
                 let duration = animation.effect?.getComputedTiming().duration;
                 duration = Number(duration || defaultDuration);
                 
@@ -468,7 +470,7 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
         const onEnd = async () => {
             let startInstance = start.instance;
             let endInstance = end.instance;
-            if (this.props.animationLayerData.playbackRate < 0)
+            if (this.props?.animationLayerData.playbackRate < 0)
                 [startInstance, endInstance] = [endInstance, startInstance];
             endInstance.hidden(false);
             if (!this.props.currentScene!.keepAlive) {
@@ -501,7 +503,7 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
         const currentScene = this.props.currentScene;
         const nextScene = this.props.nextScene;
         if (!currentScene || !nextScene) return;
-        const duration = this.props.animationLayerData.duration;
+        const duration = this.props.animation?.effect?.getComputedTiming().duration;
         currentScene.canTransition = !currentScene.isEmpty() && Boolean(duration);
         nextScene.canTransition = !nextScene.isEmpty() && Boolean(duration);
         if (!currentScene.canTransition || !nextScene.canTransition) return;
@@ -549,7 +551,7 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
         if (this.props.paused) {
             for (const animation of this.animations) {
                 const progress = e.progress;
-                const defaultDuration = this.props.animationLayerData.duration;
+                const defaultDuration = this.props.animation?.effect?.getComputedTiming().duration;
                 let duration = animation.effect?.getComputedTiming().duration;
                 duration = Number(duration || defaultDuration);
 

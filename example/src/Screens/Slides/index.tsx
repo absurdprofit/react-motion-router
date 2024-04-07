@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Hero, Heroes } from '../../assets/Heroes';
 import ClearIcon from '@mui/icons-material/Clear';
-import * as Stack from '@react-motion-router/stack';
-import { SharedElement, Anchor } from '@react-motion-router/core';
+import { Anchor, ScreenComponentProps } from '@react-motion-router/stack';
+import { SharedElement } from '@react-motion-router/core';
 import IconButton from '@mui/material/IconButton';
 import './index.css';
 import { SwipeStartEvent, SwipeEvent, SwipeEndEvent } from 'web-gesture-events';
 import { bindKeyboard } from 'react-swipeable-views-utils';
 import SwipeableViews from 'react-swipeable-views';
 
-interface SlidesProps extends Stack.ScreenComponentProps<{ hero: number; }> { }
+interface SlidesProps extends ScreenComponentProps<{ hero: number; }> { }
 
 const KeyboardSwipeableViews = bindKeyboard(SwipeableViews);
 

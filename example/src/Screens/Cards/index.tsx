@@ -1,6 +1,6 @@
 import React from 'react';
-import { Anchor, SharedElement } from '@react-motion-router/core';
-import * as Stack from '@react-motion-router/stack';
+import { SharedElement } from '@react-motion-router/core';
+import { Anchor, ScreenComponentProps } from '@react-motion-router/stack';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
@@ -10,7 +10,7 @@ import ButtonBase from '@mui/material/ButtonBase';
 import './index.css';
 import { getInset } from '../../common/utils';
 
-interface CardsProps extends Stack.ScreenComponentProps { }
+interface CardsProps extends ScreenComponentProps { }
 
 interface CardListProps extends CardsProps {
     observer: IntersectionObserver;
