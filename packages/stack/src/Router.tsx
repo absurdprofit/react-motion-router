@@ -8,21 +8,21 @@ export interface RouterProps extends RouterBaseProps { }
 export interface RouterState extends RouterBaseState { }
 
 export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
-    constructor(props: RouterProps, context: React.ContextType<typeof RouterDataContext>) {
-        super(props, context);
+    public readonly navigation: Navigation;
+    constructor(props: RouterProps) {
+        super(props);
 
-        const defaultRoute = new URL(props.config.defaultRoute ?? '.', this.baseURL);
-        const navigation = new Navigation(
+        // const defaultRoute = new URL(props.config.defaultRoute ?? '.', this.baseURL);
+        this.navigation = new Navigation(
             this.routerData,
-            props.config.disableBrowserRouting,
-            defaultRoute
+            props.config.disableBrowserRouting
         );
-        this.state.navigation = navigation;
-        if (props.config.disableBrowserRouting) {
-            this.state.currentPath = defaultRoute.pathname;
-        } else {
-            this.state.currentPath = new URL(window.navigation.currentEntry!.url!).pathname;
-        }
+        // if (props.config.disableBrowserRouting) {
+        //     this.state.currentPath = defaultRoute.pathname;
+        // } else {
+        //     this.state.currentPath = new URL(window.navigation.currentEntry!.url!).pathname;
+        // }
+        this.state.currentPath = new URL(window.navigation.currentEntry!.url!).pathname;
     }
 
     componentDidMount(): void {
@@ -33,10 +33,6 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
                 this.routerData.addEntry(entry);
             }
         });
-    }
-
-    get navigation() {
-        return this.routerData.navigation;
     }
 
     protected shouldIntercept(e: NavigateEvent): boolean {
@@ -54,7 +50,7 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
                     backNavigating
                 });
                 await this.animationLayer.current?.finished;
-                await this.state.nextScreen?.current?.load();
+                await this.nextScreen?.load();
                 this.setState({
                     currentPath: new URL(e.destination.url).pathname,
                     nextPath: undefined,
