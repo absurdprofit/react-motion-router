@@ -7,7 +7,7 @@ import { AnimationLayerData, AnimationLayerDataContext } from './AnimationLayerD
 import { SwipeDirection } from './common/types';
 import { DEFAULT_GESTURE_CONFIG, MAX_PROGRESS, MIN_PROGRESS } from './common/constants';
 import { SharedElementLayer } from './SharedElementLayer';
-import { Animation } from './common/animation';
+import { GroupAnimation } from './common/animation';
 import { ParallelEffect } from './common/group-effect';
 
 export const Motion = createContext(0);
@@ -116,14 +116,7 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
     }
 
     get ready() {
-        return new Promise<void>(async (resolve, reject) => {
-            try {
-                await this.animation?.ready;
-                resolve();
-            } catch (e) {
-                reject(e);
-            }
-        });
+        return this.animation?.ready.then(() => {return;}) ?? Promise.resolve();
     }
 
     get started() {
@@ -143,15 +136,9 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
     }
 
     get finished() {
-        return new Promise<void>(async (resolve, reject) => {
-            try {
-                await this.started;
-                await this.animation?.finished;
-                resolve();
-            } catch (e) {
-                reject(e);
-            }
-        });
+        return this.started
+            .then(() => this.animation?.finished)
+            .then(() => {return;});
     }
 
     private set timeline(timeline: AnimationTimeline) {
@@ -178,15 +165,23 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
         const nextScreen = this.props.nextScreen?.current;
 
         if (currentScreen?.animationProvider && nextScreen?.animationProvider && this.state.shouldAnimate) {
+            if (this.props.backNavigating) {
+                await Promise.all([
+                    nextScreen.animationProvider.setZIndex(0),
+                    currentScreen.animationProvider.setZIndex(1)
+                ]);
+            } else {
+                await Promise.all([
+                    nextScreen.animationProvider.setZIndex(1),
+                    currentScreen.animationProvider.setZIndex(0)
+                ]);
+            }
+
             const timeline = this.timeline;
-            this.animation = new Animation(new ParallelEffect([
+            this.animation = new GroupAnimation(new ParallelEffect([
                 currentScreen.animationProvider.animationEffect ?? new KeyframeEffect(null, [], {}),
                 nextScreen.animationProvider.animationEffect ?? new KeyframeEffect(null, [], {})
             ]), timeline);
-            await Promise.all([
-                nextScreen.animationProvider.setZIndex(1),
-                currentScreen.animationProvider.setZIndex(0)
-            ]);
 
             if (this.animation) {
                 if (!this.state.shouldAnimate) {
