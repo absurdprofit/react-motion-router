@@ -183,10 +183,6 @@ export class Navigation extends NavigationBase {
         return this._finished;
     }
 
-    get parent() {
-        return this.routerData.parentRouterData?.navigation ?? null;
-    }
-
     get previous() {
         return this.entries.at(this._currentIndex - 1) ?? null;
     }

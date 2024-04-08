@@ -13,7 +13,6 @@ import { Component, RefObject, createRef } from 'react';
 import { DEFAULT_ANIMATION, DEFAULT_GESTURE_CONFIG } from './common/constants';
 import { isValidElement, Children, cloneElement } from 'react';
 import { ScreenBase, ScreenBaseProps } from './ScreenBase';
-import { RouteDataContext } from './RouteData';
 
 export interface RouterBaseProps {
     id?: string;
@@ -160,6 +159,8 @@ function StateFromChildren(
 export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState, N extends NavigationBase = NavigationBase> extends Component<P, S> {
     protected ref: HTMLElement | null = null;
     protected readonly routerData: RouterData<N>;
+    public readonly parentRouterData: RouterData<NavigationBase> | null = null;
+    public readonly parentRouteData: RouteData | null = null;
     protected animationLayer = createRef<AnimationLayer>();
     private static rootRouterRef: WeakRef<RouterBase> | null = null;
     static readonly contextType = NestedRouterDataContext;
@@ -168,7 +169,12 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     constructor(props: P, context: React.ContextType<typeof NestedRouterDataContext>) {
         super(props);
 
-        this.routerData = new RouterData<N>(this, context?.routerData, context?.routeData);
+        this.routerData = new RouterData<N>(this);
+        this.parentRouteData = context?.routeData ?? null;
+        this.parentRouterData = context?.routerData ?? null;
+        if (this.parentRouterData) {
+            this.parentRouterData.childRouterData = this.routerData;
+        }
         if (this.isRoot) {
             RouterBase.rootRouterRef = new WeakRef(this);
         }
@@ -262,14 +268,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
             .replace(/^-|-$/g, ''); // Remove leading and trailing hyphens
     }
 
-    protected get parentRouterData() {
-        return this.routerData.parentRouterData;
-    }
-
-    protected get parentRouteData() {
-        return this.routerData.parentRouteData;
-    }
-
     protected get isRoot() {
         return !this.parentRouterData;
     }
@@ -277,7 +275,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     get baseURL() {
         const pathname = this.isRoot ? window.location.pathname : this.parentRouteData?.resolvedPathname!;
         const pattern = this.baseURLPattern.pathname;
-        if (!this.isRoot) console.log(this.parentRouteData);
 
         return resolveBaseURLFromPattern(pattern, pathname)!;
     }

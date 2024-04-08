@@ -8,8 +8,6 @@ import { HistoryEntry } from './HistoryEntry';
 
 export class RouterData<N extends NavigationBase = NavigationBase> {
     public readonly routerInstance: RouterBase;
-    public readonly parentRouterData: RouterData<NavigationBase> | null = null;
-    public readonly parentRouteData: RouteData | null = null;
     private _childRouterData: WeakRef<RouterData<NavigationBase>> | null = null;
     public routesData: RoutesData = new Map();
     private static _scrollRestorationData = new ScrollRestorationData();
@@ -17,17 +15,8 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
     public paramsSerializer?: SearchParamsSerializer;
     public paramsDeserializer?: SearchParamsDeserializer;
 
-    constructor(
-        routerInstance: RouterBase,
-        parentRouterData?: RouterData<NavigationBase>,
-        parentRouteData?: RouteData
-    ) {
+    constructor(routerInstance: RouterBase) {
         this.routerInstance = routerInstance;
-        this.parentRouteData = parentRouteData ?? null;
-        this.parentRouterData = parentRouterData ?? null;
-        if (this.parentRouterData) {
-            this.parentRouterData.childRouterData = this;
-        }
     }
 
     public preloadRoute(path: string): Promise<boolean> {

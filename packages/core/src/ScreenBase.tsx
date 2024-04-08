@@ -157,6 +157,10 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         };
     }
 
+    get nestedRouterData() {
+        return {routeData: this.routeData, routerData: this.context!};
+    }
+
     onExited() {
         return this.routeData.config.onExited?.({
             route: this.routeData,
@@ -199,13 +203,6 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
 
     get animationProvider() {
         return this._animationProvider.current;
-    }
-
-    private get nestedRouterData() {
-        return {
-            routerData: this.context!,
-            routeData: this.routeData
-        };
     }
 
     render() {

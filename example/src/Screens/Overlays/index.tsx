@@ -14,7 +14,7 @@ let isFirstLoad = false;
 export default function Overlays(props: OverlaysProps) {
     useEffect(() => {
         props.navigation.addEventListener('navigate', (e) => {
-            e.detail.signal.addEventListener('abort', () => {
+            e.signal.addEventListener('abort', () => {
                 console.log("Aborted");
             });
         }, { once: true, capture: true });

@@ -43,7 +43,9 @@ export abstract class NavigationBase {
         return this.routerData.dispatchEvent?.(event);
     }
 
-    abstract get parent(): NavigationBase | null;
+    get parent(): NavigationBase | null {
+        return this.routerData.routerInstance.parentRouterData?.navigation ?? null;
+    }
 
     get routerId() {
         return this.routerData.routerId;

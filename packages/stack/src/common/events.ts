@@ -6,7 +6,7 @@ export class NavigateEvent<Params extends PlainObject = {}, Config extends Scree
 	readonly routerId: string;
 	readonly route: string;
 	readonly props: NavigationProps;
-	readonly type: NonNullable<NavigateOptions["type"]>;
+	readonly navigationType: NonNullable<NavigateOptions["type"]>;
 	readonly signal: AbortSignal;
 	readonly finished: Promise<void>;
 
@@ -15,7 +15,7 @@ export class NavigateEvent<Params extends PlainObject = {}, Config extends Scree
 		this.routerId = routerId;
 		this.route = route;
 		this.props = props;
-		this.type = type ?? "push";
+		this.navigationType = type ?? "push";
 		this.signal = signal;
 		this.finished = finished;
 	}
