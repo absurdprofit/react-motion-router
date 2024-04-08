@@ -1,15 +1,18 @@
-import { ConfigFactoryProps, matchRoute } from "@react-motion-router/core";
+import { FadeOut, FadeIn, AnimationEffectFactoryProps } from "@react-motion-router/core";
+import { isIOS, isPWA } from "example/src/common/utils";
 
-export default function Animation({current, next}: ConfigFactoryProps) {
-    if (matchRoute(current.path, "/slides") && matchRoute(next.path, "/")) {
-        return {
-            type: "slide",
-            direction: "right",
-            duration: 350,
-        } as const;
-    }
-    return {
-        type: "fade",
-        duration: 350
-    } as const;
+export function SlidesAnimation({ref, direction, playbackRate, index}: AnimationEffectFactoryProps) {
+    const duration = isIOS() && !isPWA() ? 0 : 300;
+    const options: KeyframeEffectOptions = {
+		duration,
+		direction,
+		playbackRate,
+		fill: direction === "normal" ? "forwards" : "backwards"
+	};
+    const keyframes = [
+        FadeOut,
+        FadeIn
+    ];
+
+    return new KeyframeEffect(ref, keyframes[index], options);
 }

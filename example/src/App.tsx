@@ -8,6 +8,7 @@ import Navbar from './Components/Navbar';
 import "./App.css";
 import { STATIC_ANIMATION } from './common/constants';
 import { animation, slideToStatic } from './animations';
+import { SlidesAnimation } from './Screens/Slides/animations';
 
 const NotFound = lazy(() => import('./Screens/NotFound'));
 const Home = lazy(() => import('./Screens/Home'));
@@ -45,7 +46,7 @@ function Routes() {
         fallback={<div className='screen-fallback slides'></div>}
         config={{
           disableDiscovery: true,
-          animation: STATIC_ANIMATION,
+          animation: SlidesAnimation,
         }}
       />
       <Stack.Screen

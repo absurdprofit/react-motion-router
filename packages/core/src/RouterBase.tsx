@@ -215,7 +215,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     private handleNavigationDispatch = (e: NavigateEvent) => {
         let router: RouterBase = this;
         const pathname = new URL(e.destination.url).pathname;
-        const baseURLPattern = router.baseURLPattern.pathname;
         // travel down router tree to find the correct router
         while(
             router.routerData.childRouterData
@@ -223,7 +222,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
             && includesRoute(
                 router.routerData.childRouterData.routerInstance.pathPatterns,
                 pathname,
-                router.routerData.childRouterData.routerInstance.baseURL.href
+                router.routerData.childRouterData.routerInstance.baseURLPattern.pathname
             )
         ) {
             router = router.routerData.childRouterData.routerInstance;
