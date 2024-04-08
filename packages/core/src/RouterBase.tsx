@@ -4,14 +4,16 @@ import {
     ScreenChild,
     PlainObject,
     RouterEventMap,
-    NavigateEventRouterState
+    NavigateEventRouterState,
+    RouteData
 } from './common/types';
-import { RouterData, RouterDataContext } from './RouterData';
+import { NestedRouterDataContext, RouterData, RouterDataContext } from './RouterData';
 import { dispatchEvent, matchRoute, resolveBaseURLFromPattern, searchParamsToObject } from './common/utils';
 import { Component, RefObject, createRef } from 'react';
 import { DEFAULT_ANIMATION, DEFAULT_GESTURE_CONFIG } from './common/constants';
 import { isValidElement, Children, cloneElement } from 'react';
 import { ScreenBase, ScreenBaseProps } from './ScreenBase';
+import { RouteDataContext } from './RouteData';
 
 export interface RouterBaseProps {
     id?: string;
@@ -27,13 +29,13 @@ export interface RouterBaseProps {
 }
 
 export interface RouterBaseState<N extends NavigationBase = NavigationBase> {
-    currentPath: string;
+    currentPath: string | undefined;
     nextPath: string | undefined;
     currentScreen?: RefObject<ScreenBase>;
     nextScreen?: RefObject<ScreenBase>;
     backNavigating: boolean;
     children: ScreenChild | ScreenChild[];
-    paths: (string | undefined)[];
+    paths: string[];
     defaultDocumentTitle: string;
     documentTitle: string;
     navigation: N;
@@ -45,7 +47,7 @@ function StateFromChildren(
 ) {
     let { paths, currentPath, nextPath } = state;
     const baseURL = state.navigation.baseURL.toString();
-    const isFirstLoad = props.children === state.children;
+    const isFirstLoad = (props.children === state.children) || Children.count(state.children) === 0;
     let nextMatched = false;
     let currentMatched = false;
     let documentTitle: string = state.defaultDocumentTitle;
@@ -54,61 +56,63 @@ function StateFromChildren(
 
     const children: ScreenChild[] = [];
     let keptAliveKey: React.Key | undefined = undefined;
-    // get current child
-    Children.forEach(
-        state.children, // match current child from state
-        (child) => {
-            if (!isValidElement(child)) return;
-            if (
-                typeof nextPath === "string"
-                && typeof child.props.resolvedPathname === "string"
-                && matchRoute(child.props.resolvedPathname, nextPath, baseURL, child.props.caseSensitive)) {
-                // fetch kept alive key
-                // needed since elements kept alive are apart of the DOM
-                // to avoid confusing react we need to preserve this key
-                if (child.props.config?.keepAlive) {
-                    keptAliveKey = child.key || undefined;
+    if (currentPath) {
+        // get current child
+        Children.forEach(
+            state.children, // match current child from state
+            (child) => {
+                if (!isValidElement(child)) return;
+                if (
+                    typeof nextPath === "string"
+                    && typeof child.props.resolvedPathname === "string"
+                    && matchRoute(child.props.resolvedPathname, nextPath, baseURL, child.props.caseSensitive)) {
+                    // fetch kept alive key
+                    // needed since elements kept alive are apart of the DOM
+                    // to avoid confusing react we need to preserve this key
+                    if (child.props.config?.keepAlive) {
+                        keptAliveKey = child.key || undefined;
+                    }
+                }
+
+                if (currentMatched) return;
+                // match resolved pathname instead to avoid matching the next component first
+                // this can happen if the same component matches both current and next paths
+                let matchInfo;
+                if (isFirstLoad) {
+                    // first load so resolve by path instead of resolvedPathname
+                    matchInfo = matchRoute(child.props.path, currentPath, baseURL, child.props.caseSensitive);
+                    if (!state.paths.includes(child.props.path)) paths.push(child.props.path);
+                } else if (typeof child.props.resolvedPathname === "string") {
+                    matchInfo = matchRoute(child.props.resolvedPathname, currentPath, baseURL, child.props.caseSensitive);
+                } else {
+                    return;
+                }
+                if (matchInfo) {
+                    currentMatched = true;
+                    currentScreen = createRef<ScreenBase>();
+                    children.push(
+                        cloneElement(child, {
+                            in: isFirstLoad,
+                            out: !isFirstLoad,
+                            config: {
+                                ...props.config.screenConfig,
+                                ...child.props.config
+                            },
+                            defaultParams: {
+                                ...child.props.defaultParams,
+                                ...matchInfo.params,
+                            },
+                            resolvedPathname: currentPath,
+                            key: child.key ?? Math.random(),
+                            ref: currentScreen
+                        })
+                    );
                 }
             }
+        );
+    }
 
-            if (currentMatched) return;
-            // match resolved pathname instead to avoid matching the next component first
-            // this can happen if the same component matches both current and next paths
-            let matchInfo;
-            if (isFirstLoad) {
-                // first load so resolve by path instead of resolvedPathname
-                matchInfo = matchRoute(child.props.path, currentPath, baseURL, child.props.caseSensitive);
-                if (!state.paths.includes(child.props.path)) paths.push(child.props.path);
-            } else if (typeof child.props.resolvedPathname === "string") {
-                matchInfo = matchRoute(child.props.resolvedPathname, currentPath, baseURL, child.props.caseSensitive);
-            } else {
-                return;
-            }
-            if (matchInfo) {
-                currentMatched = true;
-                currentScreen = createRef<ScreenBase>();
-                children.push(
-                    cloneElement(child, {
-                        in: isFirstLoad,
-                        out: !isFirstLoad,
-                        config: {
-                            ...props.config.screenConfig,
-                            ...child.props.config
-                        },
-                        defaultParams: {
-                            ...child.props.defaultParams,
-                            ...matchInfo.params,
-                        },
-                        resolvedPathname: currentPath,
-                        key: child.key ?? Math.random(),
-                        ref: currentScreen
-                    })
-                );
-            }
-        }
-    )
-
-    if (!isFirstLoad) {
+    if (nextPath) {
         // get next child
         Children.forEach(
             props.children,
@@ -158,14 +162,13 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     protected readonly routerData: RouterData<N>;
     protected animationLayer = createRef<AnimationLayer>();
     private static rootRouterRef: WeakRef<RouterBase> | null = null;
-    static readonly contextType = RouterDataContext;
-    context!: React.ContextType<typeof RouterDataContext>;
+    static readonly contextType = NestedRouterDataContext;
+    context!: React.ContextType<typeof NestedRouterDataContext>;
 
-    constructor(props: P, context: React.ContextType<typeof RouterDataContext>) {
+    constructor(props: P, context: React.ContextType<typeof NestedRouterDataContext>) {
         super(props);
 
-        this.routerData = new RouterData<N>(this);
-        this.routerData.parentRouterData = context;
+        this.routerData = new RouterData<N>(this, context?.routerData, context?.routeData);
         if (this.isRoot) {
             RouterBase.rootRouterRef = new WeakRef(this);
         }
@@ -215,12 +218,14 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
             const sourceElement = document.querySelector(`a[href="${e.destination.url}"]`);
             routerId = sourceElement?.getAttribute('data-router-id') ?? sourceElement?.closest('.react-motion-router')?.id ?? routerId;
         }
-        const router = this.getRouterById(routerId);
-        if (router && router.shouldIntercept(e)) {
-            router.intercept(e);
-            window.navigation.transition?.finished.then(() => {
-                window.navigation.updateCurrentEntry({ state: { routerId: this.id } });
-            });
+        if (routerId) {
+            const router = this.getRouterById(routerId);
+            if (router && router.shouldIntercept(e)) {
+                router.intercept(e);
+                window.navigation.transition?.finished.then(() => {
+                    window.navigation.updateCurrentEntry({ state: { routerId: this.id } });
+                });
+            }
         }
     }
 
@@ -261,8 +266,8 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         return this.routerData.parentRouterData;
     }
 
-    protected get parentScreen() {
-        return this.parentRouterData?.nextScreen ?? this.parentRouterData?.currentScreen;
+    protected get parentRouteData() {
+        return this.routerData.parentRouteData;
     }
 
     protected get isRoot() {
@@ -270,8 +275,9 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     }
 
     get baseURL() {
-        const pathname = this.isRoot ? window.location.pathname : this.parentScreen?.routeData.resolvedPathname!;
+        const pathname = this.isRoot ? window.location.pathname : this.parentRouteData?.resolvedPathname!;
         const pattern = this.baseURLPattern.pathname;
+        if (!this.isRoot) console.log(this.parentRouteData);
 
         return resolveBaseURLFromPattern(pattern, pathname)!;
     }
@@ -281,13 +287,13 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         const defaultBasePathname = this.isRoot ? new URL(".", document.baseURI).href.replace(baseURL, '') : ".";
         let basePathname = this.props.config.basePathname || defaultBasePathname;
 
-        if (this.parentRouterData && this.parentScreen) {
-            const { resolvedPathname = window.location.pathname, path } = this.parentScreen.routeData;
-            baseURL = this.parentRouterData.baseURL.href;
-            const pattern = new URLPattern({ baseURL, pathname: path });
+        if (this.parentRouterData && this.parentRouteData) {
+            const { resolvedPathname = window.location.pathname, path } = this.parentRouteData;
+            const parentBaseURL = this.parentRouterData.baseURL?.href;
+            const pattern = new URLPattern({ baseURL: parentBaseURL, pathname: path });
             baseURL = resolveBaseURLFromPattern(
                 pattern.pathname,
-                resolvedPathname!
+                resolvedPathname
             )!.href;
         }
 

@@ -8,7 +8,7 @@ import {
     SwipeDirection,
     isValidComponentConstructor
 } from "./common/types";
-import { RouterDataContext } from "./RouterData";
+import { NestedRouterDataContext, RouterDataContext } from "./RouterData";
 import { SharedElementScene, SharedElementSceneContext } from "./SharedElement";
 import { RouteDataContext } from "./RouteData";
 import { NavigationBase } from "./NavigationBase";
@@ -201,6 +201,13 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         return this._animationProvider.current;
     }
 
+    private get nestedRouterData() {
+        return {
+            routerData: this.context!,
+            routeData: this.routeData
+        };
+    }
+
     render() {
         const routeData = this.routeData;
         const Component = this.props.component;
@@ -233,15 +240,17 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
                 >
                     <SharedElementSceneContext.Provider value={this.sharedElementScene}>
                         <RouteDataContext.Provider value={routeData}>
-                            <Suspense fallback={<ComponentWithRouteData component={routeData.config.header?.fallback} route={routeData} navigation={this.context!.navigation} />}>
-                                <ComponentWithRouteData component={HeaderComponent} route={routeData} navigation={this.context!.navigation} />
-                            </Suspense>
-                            <Suspense fallback={<ComponentWithRouteData component={this.props.fallback} route={routeData} navigation={this.context!.navigation} />}>
-                                <ComponentWithRouteData component={Component} route={routeData} navigation={this.context!.navigation} />
-                            </Suspense>
-                            <Suspense fallback={<ComponentWithRouteData component={routeData.config.footer?.fallback} route={routeData} navigation={this.context!.navigation} />}>
-                                <ComponentWithRouteData component={FooterComponent} route={routeData} navigation={this.context!.navigation} />
-                            </Suspense>
+                            <NestedRouterDataContext.Provider value={this.nestedRouterData}>
+                                <Suspense fallback={<ComponentWithRouteData component={routeData.config.header?.fallback} route={routeData} navigation={this.context!.navigation} />}>
+                                    <ComponentWithRouteData component={HeaderComponent} route={routeData} navigation={this.context!.navigation} />
+                                </Suspense>
+                                <Suspense fallback={<ComponentWithRouteData component={this.props.fallback} route={routeData} navigation={this.context!.navigation} />}>
+                                    <ComponentWithRouteData component={Component} route={routeData} navigation={this.context!.navigation} />
+                                </Suspense>
+                                <Suspense fallback={<ComponentWithRouteData component={routeData.config.footer?.fallback} route={routeData} navigation={this.context!.navigation} />}>
+                                    <ComponentWithRouteData component={FooterComponent} route={routeData} navigation={this.context!.navigation} />
+                                </Suspense>
+                            </NestedRouterDataContext.Provider>
                         </RouteDataContext.Provider>
                     </SharedElementSceneContext.Provider>
                 </div>

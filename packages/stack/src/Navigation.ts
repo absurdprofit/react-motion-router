@@ -14,7 +14,6 @@ export class Navigation extends NavigationBase {
     constructor(
         _routerData: RouterData<Navigation>,
         _disableBrowserRouting: boolean = false,
-        _defaultRoute: URL | null = null
     ) {
         super(_routerData, _disableBrowserRouting);
     }
@@ -49,6 +48,7 @@ export class Navigation extends NavigationBase {
         if (this.disableBrowserRouting) {
             // if browser routing is disabled, we need to handle history manually
         } else {
+            if (!this.baseURL) throw new Error("Base URL is not set");
             const url = new URL(route, this.baseURL);
             url.search = search;
             url.hash = hash ?? '';
@@ -143,6 +143,7 @@ export class Navigation extends NavigationBase {
     }
 
     private createBackEvent(controller: AbortController) {
+        if (!this.routerId) throw new Error("Router ID is not set");
         return new BackEvent(this.routerId, controller.signal, this._finished);
     }
 
@@ -152,6 +153,7 @@ export class Navigation extends NavigationBase {
         type: NavigateOptions["type"],
         controller: AbortController
     ) {
+        if (!this.routerId) throw new Error("Router ID is not set");
         return new NavigateEvent(this.routerId, route, props, type, controller.signal, this._finished);
     }
 

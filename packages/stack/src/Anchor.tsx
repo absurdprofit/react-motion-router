@@ -46,7 +46,7 @@ export function Anchor(props: AnchorProps) {
     useEffect(() => {
         if (goBack) {
             setHref(navigation.previous?.url?.href ?? undefined);
-        } else if (hrefProp) {
+        } else if (hrefProp && navigation.baseURL) {
             const paramsSerializer = routerData?.paramsSerializer || null;
             const search = searchParamsFromObject(params, paramsSerializer);
             const uri = new URL(hrefProp, navigation.baseURL);

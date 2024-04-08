@@ -1,24 +1,23 @@
 import { RouterBase } from '@react-motion-router/core';
 import type { NavigateEventRouterState, RouterBaseProps, RouterBaseState } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
-import { RouterDataContext } from 'packages/core/build/RouterData';
+import { NestedRouterDataContext } from 'packages/core/build/RouterData';
 
 export interface RouterProps extends RouterBaseProps { }
 
 export interface RouterState extends RouterBaseState { }
 
 export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
-    constructor(props: RouterProps, context: React.ContextType<typeof RouterDataContext>) {
+    constructor(props: RouterProps, context: React.ContextType<typeof NestedRouterDataContext>) {
         super(props, context);
 
-        const defaultRoute = new URL(props.config.defaultRoute ?? '.', this.baseURL);
         const navigation = new Navigation(
             this.routerData,
-            props.config.disableBrowserRouting,
-            defaultRoute
+            props.config.disableBrowserRouting
         );
         this.state.navigation = navigation;
         if (props.config.disableBrowserRouting) {
+            const defaultRoute = new URL(props.config.defaultRoute ?? '.', this.baseURL);
             this.state.currentPath = defaultRoute.pathname;
         } else {
             this.state.currentPath = new URL(window.navigation.currentEntry!.url!).pathname;

@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 import { preloadRoute } from './common/utils';
-import { RoutesData, SearchParamsDeserializer, SearchParamsSerializer } from './common/types';
+import { RouteData, RoutesData, SearchParamsDeserializer, SearchParamsSerializer } from './common/types';
 import { NavigationBase } from './NavigationBase';
 import { RouterBase } from './RouterBase';
 import { ScrollRestorationData } from './ScrollRestorationData';
@@ -8,7 +8,8 @@ import { HistoryEntry } from './HistoryEntry';
 
 export class RouterData<N extends NavigationBase = NavigationBase> {
     public readonly routerInstance: RouterBase;
-    private _parentRouterData: RouterData<NavigationBase> | null = null;
+    public readonly parentRouterData: RouterData<NavigationBase> | null = null;
+    public readonly parentRouteData: RouteData | null = null;
     private _childRouterData: WeakRef<RouterData<NavigationBase>> | null = null;
     public routesData: RoutesData = new Map();
     private static _scrollRestorationData = new ScrollRestorationData();
@@ -16,8 +17,17 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
     public paramsSerializer?: SearchParamsSerializer;
     public paramsDeserializer?: SearchParamsDeserializer;
 
-    constructor(routerInstance: RouterBase) {
+    constructor(
+        routerInstance: RouterBase,
+        parentRouterData?: RouterData<NavigationBase>,
+        parentRouteData?: RouteData
+    ) {
         this.routerInstance = routerInstance;
+        this.parentRouteData = parentRouteData ?? null;
+        this.parentRouterData = parentRouterData ?? null;
+        if (this.parentRouterData) {
+            this.parentRouterData.childRouterData = this;
+        }
     }
 
     public preloadRoute(path: string): Promise<boolean> {
@@ -29,13 +39,6 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
         entry.ondispose = () => {
             this._entries = this._entries.filter(e => e.key !== entry.key);
         };
-    }
-
-    set parentRouterData(parentRouterData: RouterData<NavigationBase> | null) {
-        this._parentRouterData = parentRouterData;
-        if (this._parentRouterData) {
-            this._parentRouterData.childRouterData = this;
-        }
     }
 
     set childRouterData(childRouterData: RouterData<NavigationBase> | null) {
@@ -70,9 +73,6 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
     get routes() {
         return this.routerInstance.props.children;
     }
-    get parentRouterData() {
-        return this._parentRouterData;
-    }
     get childRouterData() {
         return this._childRouterData?.deref() ?? null;
     }
@@ -100,3 +100,4 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
 }
 
 export const RouterDataContext = createContext<RouterData | null>(null);
+export const NestedRouterDataContext = createContext<{routerData: RouterData, routeData: RouteData} | null>(null);
