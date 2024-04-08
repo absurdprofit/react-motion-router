@@ -4,7 +4,7 @@ import Home from "./Home";
 import Player from "./Player";
 import Sheet from "./Sheet";
 import { useEffect } from "react";
-import { HomeAnimation, ModalAnimation } from "./animations";
+import { BackdropAnimation, HomeAnimation, ModalAnimation } from "./animations";
 import './index.css';
 import { isIOS, isPWA } from "../../common/utils";
 import { STATIC_ANIMATION } from "../../common/constants";
@@ -48,6 +48,9 @@ export default function Overlays(props: OverlaysProps) {
                     <Stack.Screen
                         component={Sheet}
                         path="sheet"
+                        config={{
+                            animation: BackdropAnimation
+                        }}
                     />
                 </Stack.Router>
             </div>

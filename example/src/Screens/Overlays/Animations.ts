@@ -1,7 +1,7 @@
 import { AnimationEffectFactoryProps, SlideInFromRight, ParallelEffect } from '@react-motion-router/core';
 import { isIOS, isPWA } from '../../common/utils';
 
-function BackdropAnimation({ref, direction, playbackRate, index}: AnimationEffectFactoryProps) {
+export function BackdropAnimation({ref, direction, playbackRate, index}: AnimationEffectFactoryProps) {
     const duration = isIOS() && !isPWA() ? 0 : 300;
     const options: KeyframeEffectOptions = {
 		duration,
@@ -26,7 +26,7 @@ function BackdropAnimation({ref, direction, playbackRate, index}: AnimationEffec
     return new KeyframeEffect(ref, keyframes[index], options);
 };
 
-export function HomeAnimation({ref, direction, playbackRate, index, ...props}: AnimationEffectFactoryProps) {
+export function HomeAnimation({ref, direction, playbackRate, index}: AnimationEffectFactoryProps) {
     const duration = isIOS() && !isPWA() ? 0 : 300;
     const options: KeyframeEffectOptions = {
 		duration,
@@ -61,13 +61,10 @@ export function HomeAnimation({ref, direction, playbackRate, index, ...props}: A
         scaleUp
     ];
 
-    return new ParallelEffect([
-        new KeyframeEffect(ref, keyframes, options),
-        BackdropAnimation({ref, direction, playbackRate, index, ...props})
-    ]);
+    return new KeyframeEffect(ref, keyframes[index], options);
 }
 
-export function ModalAnimation({ref, direction, playbackRate, index}: AnimationEffectFactoryProps) {
+export function ModalAnimation({ref, direction, playbackRate, index, ...props}: AnimationEffectFactoryProps) {
     const duration = isIOS() && !isPWA() ? 0 : 300;
     const options: KeyframeEffectOptions = {
 		duration,
@@ -86,5 +83,8 @@ export function ModalAnimation({ref, direction, playbackRate, index}: AnimationE
             {transform: 'translateY(15vh)', borderRadius: '15px 15px 0px 0px'}
         ]
     ];
-    return new KeyframeEffect(ref, keyframes[index], options);
+    return new ParallelEffect([
+        new KeyframeEffect(ref, keyframes[index], options),
+        BackdropAnimation({ref, direction, playbackRate, index, ...props})
+    ]);
 };

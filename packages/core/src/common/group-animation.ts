@@ -17,7 +17,9 @@ export class GroupAnimation extends Animation {
 	}
 
 	commitStyles() {
-		this.animations.map(animation => animation.commitStyles());
+		this.animations.map(animation => {
+			if (!animation.effect?.pseudoElement) animation.commitStyles();
+		});
 	}
 
 	get ready() {

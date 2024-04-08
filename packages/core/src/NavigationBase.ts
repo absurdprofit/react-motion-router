@@ -55,6 +55,10 @@ export abstract class NavigationBase {
         return this.routerData.baseURL;
     }
 
+    get baseURLPattern() {
+        return this.routerData.baseURLPattern;
+    }
+
     get entries() {
         return this.routerData.entries;
     }

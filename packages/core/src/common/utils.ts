@@ -1,7 +1,7 @@
 import { Children, lazy as ReactLazy, isValidElement } from "react";
 import { RouterData } from "../RouterData";
 import { ScreenBaseProps } from "../ScreenBase";
-import { Input, LazyExoticComponent, LerpRange, MatchedRoute, Output, PlainObject, ScreenChild, SearchParamsDeserializer, SearchParamsSerializer, Weights, is1DRange } from "./types";
+import { Input, LazyExoticComponent, LerpRange, MatchedRoute, Output, PathPattern, PlainObject, ScreenChild, SearchParamsDeserializer, SearchParamsSerializer, Weights, is1DRange } from "./types";
 
 export function getCSSData(styles: CSSStyleDeclaration, exclude: string[] = [], object: boolean = true): [string, PlainObject<string>] {
     let text = '';
@@ -108,8 +108,12 @@ export function matchRoute(
     return null;
 }
 
-export function includesRoute(routeString: string, routeTests: string[], baseURL: string = window.location.origin) {
-    return routeTests.some((routeTest) => matchRoute(routeTest, routeString, baseURL));
+export function includesRoute(pathnamePatterns: PathPattern[], pathname: string, baseURL: string = window.location.origin) {
+    return pathnamePatterns.some(({pattern, caseSensitive}) => {
+        console.log(pattern, pathname, baseURL, caseSensitive);
+        console.log(matchRoute(pattern, pathname, baseURL, caseSensitive));
+        return matchRoute(pattern, pathname, baseURL, caseSensitive);
+    });
 }
 
 export function dispatchEvent<T>(event: CustomEvent<T> | Event, target: HTMLElement | EventTarget = window) {

@@ -177,6 +177,7 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
                 currentScreen.animationProvider.animationEffect ?? new KeyframeEffect(null, [], {}),
                 nextScreen.animationProvider.animationEffect ?? new KeyframeEffect(null, [], {})
             ]), timeline);
+            console.log(this.animation);
 
             if (this.animation) {
                 if (!this.state.shouldAnimate) {

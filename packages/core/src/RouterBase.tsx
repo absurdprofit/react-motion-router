@@ -8,7 +8,7 @@ import {
     RouteData
 } from './common/types';
 import { NestedRouterDataContext, RouterData, RouterDataContext } from './RouterData';
-import { dispatchEvent, matchRoute, resolveBaseURLFromPattern, searchParamsToObject } from './common/utils';
+import { dispatchEvent, includesRoute, matchRoute, resolveBaseURLFromPattern, searchParamsToObject } from './common/utils';
 import { Component, RefObject, createRef } from 'react';
 import { DEFAULT_ANIMATION, DEFAULT_GESTURE_CONFIG } from './common/constants';
 import { isValidElement, Children, cloneElement } from 'react';
@@ -34,7 +34,6 @@ export interface RouterBaseState<N extends NavigationBase = NavigationBase> {
     nextScreen?: RefObject<ScreenBase>;
     backNavigating: boolean;
     children: ScreenChild | ScreenChild[];
-    paths: string[];
     defaultDocumentTitle: string;
     documentTitle: string;
     navigation: N;
@@ -44,8 +43,8 @@ function StateFromChildren(
     props: RouterBaseProps,
     state: RouterBaseState,
 ) {
-    let { paths, currentPath, nextPath } = state;
-    const baseURL = state.navigation.baseURL.toString();
+    let { currentPath, nextPath } = state;
+    const baseURLPattern = state.navigation.baseURLPattern.pathname;
     const isFirstLoad = (props.children === state.children) || Children.count(state.children) === 0;
     let nextMatched = false;
     let currentMatched = false;
@@ -64,7 +63,7 @@ function StateFromChildren(
                 if (
                     typeof nextPath === "string"
                     && typeof child.props.resolvedPathname === "string"
-                    && matchRoute(child.props.resolvedPathname, nextPath, baseURL, child.props.caseSensitive)) {
+                    && matchRoute(child.props.resolvedPathname, nextPath, baseURLPattern, child.props.caseSensitive)) {
                     // fetch kept alive key
                     // needed since elements kept alive are apart of the DOM
                     // to avoid confusing react we need to preserve this key
@@ -79,10 +78,9 @@ function StateFromChildren(
                 let matchInfo;
                 if (isFirstLoad) {
                     // first load so resolve by path instead of resolvedPathname
-                    matchInfo = matchRoute(child.props.path, currentPath, baseURL, child.props.caseSensitive);
-                    if (!state.paths.includes(child.props.path)) paths.push(child.props.path);
+                    matchInfo = matchRoute(child.props.path, currentPath, baseURLPattern, child.props.caseSensitive);
                 } else if (typeof child.props.resolvedPathname === "string") {
-                    matchInfo = matchRoute(child.props.resolvedPathname, currentPath, baseURL, child.props.caseSensitive);
+                    matchInfo = matchRoute(child.props.resolvedPathname, currentPath, baseURLPattern, child.props.caseSensitive);
                 } else {
                     return;
                 }
@@ -119,7 +117,7 @@ function StateFromChildren(
                 if (!isValidElement(child)) return;
                 if (typeof nextPath !== 'string') return;
                 if (nextMatched) return;
-                const matchInfo = matchRoute(child.props.path, nextPath, baseURL, child.props.caseSensitive);
+                const matchInfo = matchRoute(child.props.path, nextPath, baseURLPattern, child.props.caseSensitive);
                 if (matchInfo) {
                     nextMatched = true;
                     documentTitle = child.props.config?.title || state.defaultDocumentTitle;
@@ -148,7 +146,6 @@ function StateFromChildren(
     }
 
     return {
-        paths,
         children,
         documentTitle,
         currentScreen,
@@ -192,7 +189,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     state: S = {
         defaultDocumentTitle: document.title,
         documentTitle: document.title,
-        paths: new Array<string>(),
         children: this.props.children,
         backNavigating: false,
     } as S;
@@ -217,21 +213,23 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     }
 
     private handleNavigationDispatch = (e: NavigateEvent) => {
-        // for traversing existing entries routerId should be apart of the state
-        let { routerId = this.id } = (e.destination.getState() ?? {}) as NavigateEventRouterState;
-        if (e.userInitiated) {
-            // replace with e.sourceElement when available. See https://github.com/WICG/navigation-api/issues/225
-            const sourceElement = document.querySelector(`a[href="${e.destination.url}"]`);
-            routerId = sourceElement?.getAttribute('data-router-id') ?? sourceElement?.closest('.react-motion-router')?.id ?? routerId;
+        let router: RouterBase = this;
+        const pathname = new URL(e.destination.url).pathname;
+        const baseURLPattern = router.baseURLPattern.pathname;
+        // travel down router tree to find the correct router
+        while(
+            router.routerData.childRouterData
+            && router.routerData.childRouterData.routerInstance.mounted
+            && includesRoute(
+                router.routerData.childRouterData.routerInstance.pathPatterns,
+                pathname,
+                router.routerData.childRouterData.routerInstance.baseURL.href
+            )
+        ) {
+            router = router.routerData.childRouterData.routerInstance;
         }
-        if (routerId) {
-            const router = this.getRouterById(routerId);
-            if (router && router.shouldIntercept(e)) {
-                router.intercept(e);
-                window.navigation.transition?.finished.then(() => {
-                    window.navigation.updateCurrentEntry({ state: { routerId: this.id } });
-                });
-            }
+        if (router.shouldIntercept(e)) {
+            router.intercept(e);
         }
     }
 
@@ -282,7 +280,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     get baseURLPattern() {
         let baseURL = window.location.origin + "/";
         const defaultBasePathname = this.isRoot ? new URL(".", document.baseURI).href.replace(baseURL, '') : ".";
-        let basePathname = this.props.config.basePathname || defaultBasePathname;
+        let basePathname = this.props.config.basePathname ?? defaultBasePathname;
 
         if (this.parentRouterData && this.parentRouteData) {
             const { resolvedPathname = window.location.pathname, path } = this.parentRouteData;
@@ -295,6 +293,16 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         }
 
         return new URLPattern({ baseURL, pathname: basePathname });
+    }
+
+    get pathPatterns() {
+        return Children.map(this.props.children, (child) => {
+            return {pattern: child.props.path, caseSensitive: Boolean(child.props.caseSensitive)};
+        });
+    }
+
+    get mounted() {
+        return Boolean(this.ref);
     }
 
     protected abstract get navigation(): NavigationBase;

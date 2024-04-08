@@ -121,3 +121,8 @@ export interface MatchedRoute {
 export interface NavigateEventRouterState {
     routerId?: string;
 }
+
+export interface PathPattern {
+    pattern: string;
+    caseSensitive: boolean;
+}
