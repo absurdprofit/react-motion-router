@@ -235,12 +235,12 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         }
     }
 
-    protected getRouterById(routerId: string, target?: RouterBase) {
+    protected getRouterById(routerId: string, target?: RouterBase): RouterBase | null {
         const router = target ?? RouterBase.rootRouterRef?.deref();
         if (router!.id === routerId) {
-            return router;
+            return router ?? null;
         } else if (router?.routerData.childRouterData) {
-            this.getRouterById(routerId, router!.routerData.childRouterData.routerInstance);
+            return this.getRouterById(routerId, router!.routerData.childRouterData.routerInstance);
         } else {
             return null;
         }

@@ -52,7 +52,7 @@ export class Navigation extends NavigationBase {
             const url = new URL(route, this.baseURL);
             url.search = search;
             url.hash = hash ?? '';
-            window.navigation.navigate(url.href, { history: type, state: { ...props.params } })
+            window.navigation.navigate(url.href, { history: type, state: { ...props.params, routerId: this.routerId } })
         }
 
         const controller = new AbortController();
