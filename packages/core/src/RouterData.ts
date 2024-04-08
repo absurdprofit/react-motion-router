@@ -26,6 +26,7 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
         if (
             currentChildRouterData
             && childRouterData?.routerId !== currentChildRouterData?.routerId
+            && currentChildRouterData?.routerInstance.mounted
         ) {
             throw new Error("It looks like you have two navigators at the same level. Try simplifying your navigation structure by using a nested router instead.");
         }
