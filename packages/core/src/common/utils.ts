@@ -109,11 +109,7 @@ export function matchRoute(
 }
 
 export function includesRoute(pathnamePatterns: PathPattern[], pathname: string, baseURL: string = window.location.origin) {
-    return pathnamePatterns.some(({pattern, caseSensitive}) => {
-        console.log(pattern, pathname, baseURL, caseSensitive);
-        console.log(matchRoute(pattern, pathname, baseURL, caseSensitive));
-        return matchRoute(pattern, pathname, baseURL, caseSensitive);
-    });
+    return pathnamePatterns.some(({pattern, caseSensitive}) => matchRoute(pattern, pathname, baseURL, caseSensitive));
 }
 
 export function dispatchEvent<T>(event: CustomEvent<T> | Event, target: HTMLElement | EventTarget = window) {
