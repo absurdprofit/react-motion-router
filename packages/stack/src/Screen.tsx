@@ -71,9 +71,10 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
     };
 
     onExit() {
-        const currentPath = this.context?.navigation.current?.url?.pathname;
+        const navigation = this.context?.navigation as Navigation | undefined;
+        const currentPath = navigation?.current?.url?.pathname;
         if (!currentPath) return;
-        const baseURL = this.context?.navigation.baseURL?.href;
+        const baseURL = navigation?.baseURL?.href;
         if (!baseURL) return;
         const routes = Children.toArray(this.context?.routes);
         const currentRoute = routes.find(route => {

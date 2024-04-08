@@ -24,16 +24,6 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
         }
     }
 
-    componentDidMount(): void {
-        super.componentDidMount();
-
-        window.navigation.entries().forEach((entry) => {
-            if (((entry.getState() ?? {}) as NavigateEventRouterState).routerId === this.id) {
-                this.routerData.addEntry(entry);
-            }
-        });
-    }
-
     get navigation() {
         return this.routerData.navigation;
     }

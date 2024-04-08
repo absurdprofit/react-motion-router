@@ -4,7 +4,6 @@ import {
     ScreenChild,
     PlainObject,
     RouterEventMap,
-    NavigateEventRouterState,
     RouteData
 } from './common/types';
 import { NestedRouterDataContext, RouterData, RouterDataContext } from './RouterData';

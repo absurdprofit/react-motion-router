@@ -4,14 +4,12 @@ import { RouteData, RoutesData, SearchParamsDeserializer, SearchParamsSerializer
 import { NavigationBase } from './NavigationBase';
 import { RouterBase } from './RouterBase';
 import { ScrollRestorationData } from './ScrollRestorationData';
-import { HistoryEntry } from './HistoryEntry';
 
 export class RouterData<N extends NavigationBase = NavigationBase> {
     public readonly routerInstance: RouterBase;
     private _childRouterData: WeakRef<RouterData<NavigationBase>> | null = null;
     public routesData: RoutesData = new Map();
     private static _scrollRestorationData = new ScrollRestorationData();
-    private _entries = new Array<HistoryEntry>();
     public paramsSerializer?: SearchParamsSerializer;
     public paramsDeserializer?: SearchParamsDeserializer;
 
@@ -21,13 +19,6 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
 
     public preloadRoute(path: string): Promise<boolean> {
         return preloadRoute(path, this);
-    }
-
-    public addEntry(entry: NavigationHistoryEntry) {
-        this._entries.push(new HistoryEntry(entry, this.routerId, this._entries.length));
-        entry.ondispose = () => {
-            this._entries = this._entries.filter(e => e.key !== entry.key);
-        };
     }
 
     set childRouterData(childRouterData: RouterData<NavigationBase> | null) {
@@ -79,9 +70,6 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
     }
     get navigation(): N {
         return this.routerInstance.state.navigation as N;
-    }
-    get entries() {
-        return [...this._entries];
     }
     get backNavigating() {
         return this.routerInstance.state.backNavigating;

@@ -5,6 +5,7 @@ import {
 } from '@react-motion-router/core';
 import { GoBackOptions, NavigateOptions, NavigationProps } from './common/types';
 import { BackEvent, NavigateEvent } from './common/events';
+import { HistoryEntry } from './HistoryEntry';
 
 export class Navigation extends NavigationBase {
     private isInternalBack = false;
@@ -181,6 +182,10 @@ export class Navigation extends NavigationBase {
 
     get finished() {
         return this._finished;
+    }
+
+    get entries() {
+        return new Array<HistoryEntry>();
     }
 
     get previous() {

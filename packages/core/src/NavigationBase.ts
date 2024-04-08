@@ -1,5 +1,4 @@
 import { ParamsDeserializer, ParamsSerializer, PlainObject, RouterEventMap } from "./common/types";
-import { HistoryEntry } from "./HistoryEntry";
 import { MetaData } from "./MetaData";
 import { RouterData } from "./RouterData";
 import { ScreenBaseProps } from "./ScreenBase";
@@ -58,18 +57,6 @@ export abstract class NavigationBase {
     get baseURLPattern() {
         return this.routerData.baseURLPattern;
     }
-
-    get entries() {
-        return this.routerData.entries;
-    }
-
-    get length() {
-        return this.entries.length;
-    }
-
-    abstract get next(): HistoryEntry | null;
-    abstract get current(): HistoryEntry;
-    abstract get previous(): HistoryEntry | null;
 
     public getNavigatorById(routerId: string, target?: NavigationBase) {
         const navigator = target ?? NavigationBase.rootNavigatorRef?.deref();
