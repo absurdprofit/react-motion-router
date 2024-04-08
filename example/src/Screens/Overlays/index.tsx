@@ -7,13 +7,14 @@ import { useEffect } from "react";
 import { HomeAnimation, ModalAnimation } from "./animations";
 import './index.css';
 import { isIOS, isPWA } from "../../common/utils";
+import { STATIC_ANIMATION } from "../../common/constants";
 
 interface OverlaysProps extends Stack.ScreenComponentProps { }
 let isFirstLoad = false;
 export default function Overlays(props: OverlaysProps) {
     useEffect(() => {
         props.navigation.addEventListener('navigate', (e) => {
-            e.signal.addEventListener('abort', () => {
+            e.detail.signal.addEventListener('abort', () => {
                 console.log("Aborted");
             });
         }, { once: true, capture: true });

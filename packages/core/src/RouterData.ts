@@ -1,11 +1,10 @@
-import { RefObject, createContext } from 'react';
+import { createContext } from 'react';
 import { preloadRoute } from './common/utils';
 import { RoutesData, SearchParamsDeserializer, SearchParamsSerializer } from './common/types';
 import { NavigationBase } from './NavigationBase';
 import { RouterBase } from './RouterBase';
 import { ScrollRestorationData } from './ScrollRestorationData';
 import { HistoryEntry } from './HistoryEntry';
-import { ScreenBase } from './ScreenBase';
 
 export class RouterData<N extends NavigationBase = NavigationBase> {
     public readonly routerInstance: RouterBase;
@@ -54,10 +53,10 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
     }
 
     get currentScreen() {
-        return this.routerInstance.currentScreen;
+        return this.routerInstance.state.currentScreen?.current;
     }
     get nextScreen() {
-        return this.routerInstance.nextScreen;
+        return this.routerInstance.state.nextScreen?.current;
     }
     get routerId() {
         return this.routerInstance.id;
@@ -90,7 +89,7 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
         return RouterData._scrollRestorationData;
     }
     get navigation(): N {
-        return this.routerInstance.navigation as N;
+        return this.routerInstance.state.navigation as N;
     }
     get entries() {
         return [...this._entries];
