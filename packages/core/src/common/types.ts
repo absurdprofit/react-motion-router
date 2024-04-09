@@ -118,10 +118,6 @@ export interface MatchedRoute {
     params?: PlainObject<string | undefined>;
 }
 
-export interface NavigateEventRouterState {
-    routerId?: string;
-}
-
 export interface PathPattern {
     pattern: string;
     caseSensitive: boolean;
