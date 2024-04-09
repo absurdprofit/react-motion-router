@@ -34,22 +34,33 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
     }
 
     protected intercept(e: NavigateEvent): void {
+        const nextPath = new URL(e.destination.url).pathname;
         const currentIndex = window.navigation.currentEntry?.index ?? 0;
         const destinationIndex = e.destination.index;
         const backNavigating = destinationIndex >= 0 && destinationIndex < currentIndex;
         if (this.animationLayer.current)
             this.animationLayer.current.direction = backNavigating ? 'reverse' : 'normal';
         const handler = async () => {
-            this.setState({
-                nextPath: new URL(e.destination.url).pathname,
-                backNavigating
+            this.setState({ nextPath }, async () => {
+                const nextScreen = this.state.nextScreen?.current;
+                const currentScreen = this.state.currentScreen?.current;
+                if (backNavigating) {
+                    await Promise.all([
+                        nextScreen?.animationProvider?.setZIndex(0),
+                        currentScreen?.animationProvider?.setZIndex(1)
+                    ]);
+                } else {
+                    await Promise.all([
+                        nextScreen?.animationProvider?.setZIndex(1),
+                        currentScreen?.animationProvider?.setZIndex(0)
+                    ]);
+                }
             });
             await this.animationLayer.current?.finished;
             await this.state.nextScreen?.current?.load();
             this.setState({
-                currentPath: new URL(e.destination.url).pathname,
-                nextPath: undefined,
-                backNavigating
+                currentPath: nextPath,
+                nextPath: undefined
             });
         }
         if (this.props.config.disableBrowserRouting) {

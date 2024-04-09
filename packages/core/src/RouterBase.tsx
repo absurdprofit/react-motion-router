@@ -30,7 +30,6 @@ export interface RouterBaseState<N extends NavigationBase = NavigationBase> {
     nextPath: string | undefined;
     currentScreen?: RefObject<ScreenBase>;
     nextScreen?: RefObject<ScreenBase>;
-    backNavigating: boolean;
     children: ScreenChild | ScreenChild[];
     defaultDocumentTitle: string;
     documentTitle: string;
@@ -188,7 +187,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         defaultDocumentTitle: document.title,
         documentTitle: document.title,
         children: this.props.children,
-        backNavigating: false,
     } as S;
 
     static getDerivedStateFromProps(props: RouterBaseProps, state: RouterBaseState) {
@@ -321,7 +319,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
                         navigation={this.navigation}
                         currentScreen={this.state.currentScreen ?? null}
                         nextScreen={this.state.nextScreen ?? null}
-                        backNavigating={this.state.backNavigating}
                     >
                         {this.state.children}
                     </AnimationLayer>

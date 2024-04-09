@@ -17,7 +17,6 @@ interface AnimationLayerProps {
     navigation: NavigationBase;
     currentScreen: RefObject<ScreenBase> | null;
     nextScreen: RefObject<ScreenBase> | null;
-    backNavigating: boolean;
 }
 
 interface AnimationLayerState {
@@ -158,18 +157,6 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
         const nextScreen = this.props.nextScreen?.current;
 
         if (currentScreen?.animationProvider && nextScreen?.animationProvider && this.state.shouldAnimate) {
-            if (this.props.backNavigating) {
-                await Promise.all([
-                    nextScreen.animationProvider.setZIndex(0),
-                    currentScreen.animationProvider.setZIndex(1)
-                ]);
-            } else {
-                await Promise.all([
-                    nextScreen.animationProvider.setZIndex(1),
-                    currentScreen.animationProvider.setZIndex(0)
-                ]);
-            }
-
             const timeline = this.timeline;
             this.animation = new GroupAnimation(new ParallelEffect([
                 currentScreen.animationProvider.animationEffect ?? new KeyframeEffect(null, [], {}),
