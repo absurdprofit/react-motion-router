@@ -69,7 +69,6 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
 
     componentDidUpdate(prevProps: AnimationLayerProps, prevState: AnimationLayerState) {
         if (prevProps.children !== this.props.children) {
-            this.direction = this.props.backNavigating ? 'reverse' : 'normal';
             if (!this.state.gestureNavigating && prevState.shouldAnimate) {
                 this.animation?.play();
                 this.animate();
@@ -135,17 +134,17 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
             .then(() => {return;});
     }
 
-    private set timeline(timeline: AnimationTimeline) {
+    set timeline(timeline: AnimationTimeline) {
         this.animationLayerData.timeline = timeline;
         if (this.animation) this.animation.timeline = timeline;
     }
 
-    private set playbackRate(playbackRate: number) {
+    set playbackRate(playbackRate: number) {
         this.animationLayerData.playbackRate = playbackRate;
         if (this.animation) this.animation.playbackRate = playbackRate;
     }
 
-    private set direction(direction: "normal" | "reverse") {
+    set direction(direction: "normal" | "reverse") {
         this.animationLayerData.direction = direction;
         this.animation?.effect?.updateTiming({ direction: direction });
     }

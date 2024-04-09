@@ -37,6 +37,8 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
         const currentIndex = window.navigation.currentEntry?.index ?? 0;
         const destinationIndex = e.destination.index;
         const backNavigating = destinationIndex >= 0 && destinationIndex < currentIndex;
+        if (this.animationLayer.current)
+            this.animationLayer.current.direction = backNavigating ? 'reverse' : 'normal';
         const handler = async () => {
             this.setState({
                 nextPath: new URL(e.destination.url).pathname,
