@@ -18,7 +18,6 @@ interface AnimationLayerProps {
     currentScreen: RefObject<ScreenBase> | null;
     nextScreen: RefObject<ScreenBase> | null;
     backNavigating: boolean;
-    disableBrowserRouting: boolean;
 }
 
 interface AnimationLayerState {

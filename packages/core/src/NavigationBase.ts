@@ -16,14 +16,9 @@ export abstract class NavigationBase {
     protected readonly routerData: RouterData;
     private static rootNavigatorRef: WeakRef<NavigationBase> | null = null;
     public readonly metaData = new MetaData();
-    protected readonly disableBrowserRouting: boolean;
 
-    constructor(
-        _routerData: RouterData,
-        _disableBrowserRouting: boolean = false,
-    ) {
+    constructor(_routerData: RouterData) {
         this.routerData = _routerData;
-        this.disableBrowserRouting = _disableBrowserRouting;
         const rootNavigator = NavigationBase.rootNavigatorRef?.deref();
         if (!rootNavigator || !rootNavigator.isInDocument)
             NavigationBase.rootNavigatorRef = new WeakRef(this);

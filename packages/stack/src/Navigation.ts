@@ -12,13 +12,6 @@ export class Navigation extends NavigationBase {
     private _finished: Promise<void> = new Promise(() => { });
     private _currentIndex = 0;
 
-    constructor(
-        _routerData: RouterData<Navigation>,
-        _disableBrowserRouting: boolean = false,
-    ) {
-        super(_routerData, _disableBrowserRouting);
-    }
-
     onPopState = (e: Event) => {
         e.preventDefault();
         if (this.isInternalBack) {
@@ -46,15 +39,10 @@ export class Navigation extends NavigationBase {
         const { type = "push", hash } = options;
         const search = searchParamsFromObject(props?.params || {}, this.paramsSerializer || null);
 
-        if (this.disableBrowserRouting) {
-            // if browser routing is disabled, we need to handle history manually
-        } else {
-            if (!this.baseURL) throw new Error("Base URL is not set");
-            const url = new URL(route, this.baseURL);
-            url.search = search;
-            url.hash = hash ?? '';
-            window.navigation.navigate(url.href, { history: type, state: { ...props.params, routerId: this.routerId } })
-        }
+        const url = new URL(route, this.baseURL);
+        url.search = search;
+        url.hash = hash ?? '';
+        window.navigation.navigate(url.href, { history: type, state: { ...props.params, routerId: this.routerId } })
 
         const controller = new AbortController();
         controller.signal.addEventListener('abort', this.onNavigateAbort.bind(this), { once: true });

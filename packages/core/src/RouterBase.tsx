@@ -19,7 +19,6 @@ export interface RouterBaseProps {
         screenConfig?: ScreenBaseProps["config"];
         defaultRoute?: string;
         basePathname?: string;
-        disableBrowserRouting?: boolean;
         paramsSerializer?(params: PlainObject): string;
         paramsDeserializer?(queryString: string): PlainObject;
     };
@@ -323,7 +322,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
                         currentScreen={this.state.currentScreen ?? null}
                         nextScreen={this.state.nextScreen ?? null}
                         backNavigating={this.state.backNavigating}
-                        disableBrowserRouting={Boolean(this.props.config.disableBrowserRouting)}
                     >
                         {this.state.children}
                     </AnimationLayer>

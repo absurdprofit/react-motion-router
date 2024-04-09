@@ -3,7 +3,11 @@ import type { NavigateEventRouterState, RouterBaseProps, RouterBaseState } from 
 import { Navigation } from './Navigation';
 import { NestedRouterDataContext } from 'packages/core/build/RouterData';
 
-export interface RouterProps extends RouterBaseProps { }
+export interface RouterProps extends RouterBaseProps {
+    config: RouterBaseProps["config"] & {
+        disableBrowserRouting?: boolean;
+    }
+}
 
 export interface RouterState extends RouterBaseState { }
 
@@ -11,10 +15,7 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
     constructor(props: RouterProps, context: React.ContextType<typeof NestedRouterDataContext>) {
         super(props, context);
 
-        const navigation = new Navigation(
-            this.routerData,
-            props.config.disableBrowserRouting
-        );
+        const navigation = new Navigation(this.routerData);
         this.state.navigation = navigation;
         if (props.config.disableBrowserRouting) {
             const defaultRoute = new URL(props.config.defaultRoute ?? '.', this.baseURL);
@@ -50,6 +51,7 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
             });
         }
         if (this.props.config.disableBrowserRouting) {
+            e.preventDefault();
             handler();
         } else {
             e.intercept({ handler });

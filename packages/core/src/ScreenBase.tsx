@@ -216,11 +216,11 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
             <AnimationProvider
                 ref={this._animationProvider}
                 renderAs={this.elementType}
-                in={this.props.in || false}
-                out={this.props.out || false}
+                in={Boolean(this.props.in)}
+                out={Boolean(this.props.out)}
                 id={`${this.id}-animation-provider`}
                 animation={routeData.config.animation}
-                keepAlive={this.state.shouldKeepAlive ? routeData.config.keepAlive || false : false}
+                keepAlive={this.state.shouldKeepAlive ? Boolean(routeData.config.keepAlive) : false}
                 navigation={this.context!.navigation}
             >
                 <div
