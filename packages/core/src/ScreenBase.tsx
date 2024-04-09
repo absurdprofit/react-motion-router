@@ -62,14 +62,6 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     private _animationProvider = createRef<AnimationProvider>();
     protected ref: HTMLElement | null = null;
     protected elementType: ElementType | string = "div";
-    protected _routeData: RouteData<P, PlainObject> = {
-        params: {},
-        config: this.props.config ?? {},
-        path: this.props.path,
-        setParams: this.setParams.bind(this),
-        setConfig: this.setConfig.bind(this),
-        focused: false
-    };
     static readonly contextType = RouterDataContext;
     context!: React.ContextType<typeof RouterDataContext>;
 
@@ -97,18 +89,22 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     }
 
     protected setParams(params: PlainObject) {
-        this.routeData.params = {
+        params = {
             ...this.routeData.params,
             ...params
         };
+        const config = this.routeData.config;
+        this.context!.routesData.set(this.props.path, { config, params });
         this.forceUpdate();
     }
 
     protected setConfig(config: P['config']) {
-        this.routeData.config = {
+        config = {
             ...this.routeData.config,
             ...config
         };
+        const params = this.routeData.params;
+        this.context!.routesData.set(this.props.path, { config, params });
         this.forceUpdate();
     }
 
@@ -140,20 +136,23 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     get routeData() {
         const focused = Boolean(this.props.in);
         const resolvedPathname = this.props.resolvedPathname;
+        const setConfig = this.setConfig.bind(this);
+        const setParams = this.setParams.bind(this);
+        const path = this.props.path;
         return {
-            ...this._routeData,
+            path,
             params: {
                 ...this.props.defaultParams, // passed as prop
-                ...this._routeData.params, // passed by setParams
                 ...this.context!.routesData.get(this.props.path)?.params // passed by other screens using navigate
             },
             config: {
                 ...this.props.config, // passed as prop
-                ...this._routeData.config, // passed by setConfig
                 ...this.context!.routesData.get(this.props.path)?.config // passed by other screens using navigate
             },
             focused,
-            resolvedPathname
+            resolvedPathname,
+            setConfig,
+            setParams
         };
     }
 
