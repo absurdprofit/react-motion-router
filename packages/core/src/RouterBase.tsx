@@ -17,7 +17,6 @@ export interface RouterBaseProps {
     id?: string;
     config: {
         screenConfig?: ScreenBaseProps["config"];
-        defaultRoute?: string;
         basePathname?: string;
         paramsSerializer?(params: PlainObject): string;
         paramsDeserializer?(queryString: string): PlainObject;

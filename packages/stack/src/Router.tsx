@@ -8,6 +8,7 @@ import { NavigateEventRouterState } from './common/types';
 export interface RouterProps extends RouterBaseProps {
     config: RouterBaseProps["config"] & {
         disableBrowserRouting?: boolean;
+        initialRoute?: string;
     }
 }
 
@@ -24,8 +25,8 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
         const navigation = new Navigation(this.routerData);
         this.state.navigation = navigation;
         if (props.config.disableBrowserRouting) {
-            const defaultRoute = new URL(props.config.defaultRoute ?? '.', this.baseURL);
-            this.state.currentPath = defaultRoute.pathname;
+            const initialRoute = new URL(props.config.initialRoute ?? '.', this.baseURL);
+            this.state.currentPath = initialRoute.pathname;
         } else {
             this.state.currentPath = new URL(window.navigation.currentEntry!.url!).pathname;
         }
