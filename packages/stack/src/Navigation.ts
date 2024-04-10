@@ -9,24 +9,7 @@ import { Router } from './Router';
 
 export class Navigation extends NavigationBase {
     declare protected readonly routerData: RouterData<Router, Navigation>;
-    private isInternalBack = false;
-    private _finished: Promise<void> = new Promise(() => { });
     private _currentIndex = 0;
-
-    onPopState = (e: Event) => {
-        e.preventDefault();
-        if (this.isInternalBack) {
-            this.isInternalBack = false;
-            return;
-        }
-
-        // const pathname = window.location.pathname.replace(this.history.baseURL.pathname, '') || '/';
-        // if (pathname === this.history.previous) {
-        //     this.implicitBack();
-        // } else {
-        //     this.implicitNavigate(pathname);
-        // }
-    }
 
     traverseTo(key: string) {
         return window.navigation.traverseTo(key);
@@ -41,68 +24,69 @@ export class Navigation extends NavigationBase {
         const { params, config } = props;
 
         const url = new URL(route, this.baseURL);
-        const transition = window.navigation.navigate(url.href, { history, state: { params, config } })
+        const result = window.navigation.navigate(url.href, { history, state: { params, config } })
 
         const controller = new AbortController();
         controller.signal.addEventListener('abort', this.onNavigateAbort.bind(this), { once: true });
         options.signal?.addEventListener('abort', this.onNavigateAbort.bind(this), { once: true });
         
-        const event = this.createNavigateEvent(route, props, history, controller);
+        const event = this.createNavigateEvent(route, props, history, controller, result);
         this.dispatchEvent?.(event);
 
-        return transition;
+        return result;
     }
 
     goBack(options: GoBackOptions = {}) {
         if (this.canGoBack) return;
 
         const previous = this.previous!;
-        const transition = window.navigation.traverseTo(previous.key);
+        const result = window.navigation.traverseTo(previous.key);
 
         const controller = new AbortController();
         controller.signal.addEventListener('abort', this.onBackAbort.bind(this), { once: true });
         options.signal?.addEventListener('abort', this.onBackAbort.bind(this), { once: true });
         
-        const event = this.createBackEvent(controller);
+        const event = this.createBackEvent(controller, result);
         this.dispatchEvent?.(event);
 
-        return transition;
+        return result;
     }
 
     goForward(options: GoForwardOptions = {}) {
         if (this.canGoForward) return;
 
         const next = this.next!;
-        const transition = window.navigation.traverseTo(next.key);
+        const result = window.navigation.traverseTo(next.key);
 
         const controller = new AbortController();
         controller.signal.addEventListener('abort', this.onBackAbort.bind(this), { once: true });
         options.signal?.addEventListener('abort', this.onBackAbort.bind(this), { once: true });
         
-        const event = this.createForwardEvent(controller);
+        const event = this.createForwardEvent(controller, result);
         this.dispatchEvent?.(event);
 
-        return transition;
+        return result;
     }
 
-    private createBackEvent(controller: AbortController) {
+    private createBackEvent(controller: AbortController, result: NavigationResult) {
         if (!this.routerId) throw new Error("Router ID is not set");
-        return new BackEvent(this.routerId, controller.signal, this._finished);
+        return new BackEvent(this.routerId, controller.signal, result);
     }
 
-    private createForwardEvent(controller: AbortController) {
+    private createForwardEvent(controller: AbortController, result: NavigationResult) {
         if (!this.routerId) throw new Error("Router ID is not set");
-        return new ForwardEvent(this.routerId, controller.signal, this._finished);
+        return new ForwardEvent(this.routerId, controller.signal, result);
     }
 
     private createNavigateEvent(
         route: string,
         props: NavigationProps,
         type: NavigateOptions["type"],
-        controller: AbortController
+        controller: AbortController,
+        result: NavigationResult
     ) {
         if (!this.routerId) throw new Error("Router ID is not set");
-        return new NavigateEvent(this.routerId, route, props, type, controller.signal, this._finished);
+        return new NavigateEvent(this.routerId, route, props, type, controller.signal, result);
     }
 
     private onNavigateAbort() {

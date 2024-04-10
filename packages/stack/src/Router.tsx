@@ -16,7 +16,7 @@ export interface RouterState extends RouterBaseState {
     backNavigating: boolean;
     nextParams?: PlainObject;
     nextConfig?: ScreenProps["config"];
-    transition?: NavigationTransition;
+    transition: NavigationTransition | null;
 }
 
 export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
@@ -51,6 +51,7 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
         const nextPath = new URL(e.destination.url).pathname;
         const currentIndex = window.navigation.currentEntry?.index ?? 0;
         const destinationIndex = e.destination.index;
+        const transition = window.navigation.transition
         const backNavigating = destinationIndex >= 0 && destinationIndex < currentIndex;
         const { params: nextParams, config: nextConfig } = e.destination.getState() as NavigateEventRouterState ?? {};
         if (this.animationLayer.current)
@@ -61,13 +62,15 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
                     nextPath,
                     backNavigating,
                     nextParams,
-                    nextConfig
+                    nextConfig,
+                    transition
                 }, this.onNextPathChange);
                 await this.animationLayer.current?.finished;
             } else {
                 this.setState({
                     nextParams,
-                    nextConfig
+                    nextConfig,
+                    transition
                 }, this.onCurrentStateChange);
             }
 
@@ -75,7 +78,7 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
             this.setState({
                 currentPath: nextPath,
                 nextPath: undefined,
-                transition: undefined,
+                transition: null,
                 backNavigating: false
             });
         }
