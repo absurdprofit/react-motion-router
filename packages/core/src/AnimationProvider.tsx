@@ -1,5 +1,5 @@
+import { AnimationLayerContext } from './AnimationLayer';
 import { AnimationEffectFactory, CustomElementType } from './common/types';
-import { AnimationLayerDataContext } from './AnimationLayerData';
 import { NavigationBase } from './NavigationBase';
 import { Component, ElementType } from 'react';
 
@@ -20,8 +20,8 @@ interface AnimationProviderState {
 
 export class AnimationProvider extends Component<AnimationProviderProps, AnimationProviderState> {
     private _ref: HTMLElement | null = null;
-    static readonly contextType = AnimationLayerDataContext;
-    context!: React.ContextType<typeof AnimationLayerDataContext>;
+    static readonly contextType = AnimationLayerContext;
+    context!: React.ContextType<typeof AnimationLayerContext>;
 
     state: AnimationProviderState = {
         zIndex: 0

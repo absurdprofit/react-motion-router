@@ -3,7 +3,6 @@ import { SwipeEndEvent, SwipeEvent, SwipeStartEvent } from 'web-gesture-events';
 import { clamp, interpolate } from './common/utils';
 import { NavigationBase, ScreenBase, ScreenChild } from './index';
 import { GestureEndEvent, MotionProgressEndEvent, MotionProgressEvent, MotionProgressStartEvent, TransitionCancelEvent, TransitionEndEvent, TransitionStartEvent } from './common/events';
-import { AnimationLayerData, AnimationLayerDataContext } from './AnimationLayerData';
 import { SwipeDirection } from './common/types';
 import { DEFAULT_GESTURE_CONFIG, MAX_PROGRESS, MIN_PROGRESS } from './common/constants';
 import { SharedElementLayer } from './SharedElementLayer';
@@ -11,6 +10,7 @@ import { GroupAnimation } from './common/group-animation';
 import { ParallelEffect } from './common/group-effect';
 
 export const Motion = createContext(0);
+export const AnimationLayerContext = createContext<AnimationLayer>(null!);
 
 interface AnimationLayerProps {
     children: ScreenChild | ScreenChild[];
@@ -34,7 +34,6 @@ interface AnimationLayerState {
 }
 
 export class AnimationLayer extends Component<AnimationLayerProps, AnimationLayerState> {
-    protected readonly animationLayerData = new AnimationLayerData();
     protected sharedElementLayer = createRef<SharedElementLayer>();
     private ref: HTMLDivElement | null = null;
     private animation: Animation | null = null;
@@ -62,7 +61,6 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
     }
 
     componentDidMount() {
-        this.animationLayerData.onProgress = this.onProgress.bind(this);
         this.props.currentScreen?.current?.animationProvider?.setZIndex(1);
     }
 
@@ -97,10 +95,6 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
     }
 
     private async animate() {
-        // await Promise.all([
-        //     this.animationLayerData.sharedElementLayer.setupTransition(),
-        //     this.animationLayerData.setupTransition()
-        // ]);
         requestAnimationFrame(() => {
             this.sharedElementLayer.current?.transition();
             this.transition();
@@ -134,17 +128,14 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
     }
 
     set timeline(timeline: AnimationTimeline) {
-        this.animationLayerData.timeline = timeline;
         if (this.animation) this.animation.timeline = timeline;
     }
 
     set playbackRate(playbackRate: number) {
-        this.animationLayerData.playbackRate = playbackRate;
         if (this.animation) this.animation.playbackRate = playbackRate;
     }
 
     set direction(direction: "normal" | "reverse") {
-        this.animationLayerData.direction = direction;
         this.animation?.effect?.updateTiming({ direction: direction });
     }
 
@@ -182,7 +173,6 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
                 } else {
                     this.animation.play();
                 }
-                this.animationLayerData.isStarted = true;
                 this.onTransitionStart();
 
                 await this.finished;
@@ -198,8 +188,6 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
                 ]);
 
                 this.onTransitionEnd();
-
-                this.animationLayerData.isStarted = false;
             }
         } else {
             this.state.shouldAnimate = true;
@@ -244,7 +232,6 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
                 startX: ev.x,
                 startY: ev.y
             }, () => {
-                this.animationLayerData.gestureNavigating = true;
                 this.playbackRate = -1;
                 this.animation?.pause();
                 this.sharedElementLayer.current?.pause();
@@ -282,7 +269,6 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
             }
 
         }
-        this.animationLayerData.progress = progress;
     }
 
     onSwipeEnd = (ev: SwipeEndEvent) => {
@@ -338,13 +324,12 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
 
     render() {
         return (
-            <AnimationLayerDataContext.Provider value={this.animationLayerData}>
+            <AnimationLayerContext.Provider value={this}>
                 <SharedElementLayer
                     ref={this.sharedElementLayer}
                     animation={this.animation}
                     navigation={this.props.navigation}
                     paused={this.paused}
-                    animationLayerData={this.animationLayerData}
                     currentScene={this.props.currentScreen?.current?.sharedElementScene}
                     nextScene={this.props.nextScreen?.current?.sharedElementScene}
                 />
@@ -362,7 +347,7 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
                         {this.props.children}
                     </Motion.Provider>
                 </div>
-            </AnimationLayerDataContext.Provider>
+            </AnimationLayerContext.Provider>
         );
     }
 }

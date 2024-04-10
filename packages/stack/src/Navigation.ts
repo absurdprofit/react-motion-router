@@ -1,6 +1,5 @@
 import {
     NavigationBase,
-    RouterData,
 } from '@react-motion-router/core';
 import { GoBackOptions, GoForwardOptions, NavigateOptions, NavigationProps } from './common/types';
 import { BackEvent, ForwardEvent, NavigateEvent } from './common/events';
@@ -8,8 +7,13 @@ import { HistoryEntry } from './HistoryEntry';
 import { Router } from './Router';
 
 export class Navigation extends NavigationBase {
-    declare protected readonly routerData: RouterData<Router, Navigation>;
+    protected readonly router: Router;
     private _currentIndex = 0;
+
+    constructor(router: Router) {
+        super(router);
+        this.router = router;
+    }
 
     traverseTo(key: string) {
         return window.navigation.traverseTo(key);
@@ -90,17 +94,15 @@ export class Navigation extends NavigationBase {
     }
 
     private onNavigateAbort() {
-        // this._animationLayerData.cancel();
         this.goBack();
     }
 
     private onBackAbort() {
-        // this._animationLayerData.cancel();
         this.goForward();
     }
 
     get transition() {
-        return this.routerData.routerInstance.state.transition ?? null;
+        return this.router.state.transition ?? null;
     }
 
     get entries() {

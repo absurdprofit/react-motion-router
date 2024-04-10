@@ -3,8 +3,9 @@ import { Motion } from "../AnimationLayer";
 import { NavigationBase } from "../NavigationBase";
 import { ScreenBaseProps } from "../ScreenBase";
 import { RouteData, PlainObject } from './types';
-import { RouterDataContext } from "../RouterData";
+import { RouterContext } from "../RouterContext";
 import { RouteDataContext } from "../RouteData";
+import { RouterBase } from "../RouterBase";
 
 export function useReducedMotion() {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -20,12 +21,16 @@ export function useReducedMotion() {
 }
 
 export function useNavigation<T extends NavigationBase = NavigationBase>() {
-    const routerData = useContext(RouterDataContext);
-    if (routerData) {
-        return routerData.navigation as T;
+    const router = useContext(RouterContext);
+    if (router) {
+        return router.navigation as T;
     } else {
-        throw new Error("RouterData is null. You may be trying to call useNavigation outside a Router.");
+        throw new Error("Router is null. You may be trying to call useNavigation outside a Router.");
     }
+}
+
+export function useRouter<T extends RouterBase = RouterBase>() {
+    return useContext(RouterContext) as T;
 }
 
 export function useMotion() {
@@ -37,6 +42,6 @@ export function useRoute<P extends ScreenBaseProps, T extends PlainObject>(): Ro
     if (routeData) {
         return routeData as RouteData<P, T>;
     } else {
-        throw new Error("RouterData is null. You may be trying to call useRoute outside a Router.");
+        throw new Error("Router is null. You may be trying to call useRoute outside a Router.");
     }
 }

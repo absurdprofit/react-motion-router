@@ -8,10 +8,11 @@ import {
     SwipeDirection,
     isValidComponentConstructor
 } from "./common/types";
-import { NestedRouterDataContext, RouterDataContext } from "./RouterData";
+import { NestedRouterContext, RouterContext } from "./RouterContext";
 import { SharedElementScene, SharedElementSceneContext } from "./SharedElement";
 import { RouteDataContext } from "./RouteData";
 import { NavigationBase } from "./NavigationBase";
+import { RouterBase } from "./RouterBase";
 
 export interface RouteProps<P extends ScreenBaseProps, N extends NavigationBase> {
     route: RouteData<P, PlainObject>;
@@ -62,8 +63,8 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     private _animationProvider = createRef<AnimationProvider>();
     protected ref: HTMLElement | null = null;
     protected elementType: ElementType | string = "div";
-    static readonly contextType = RouterDataContext;
-    context!: React.ContextType<typeof RouterDataContext>;
+    static readonly contextType = RouterContext;
+    context!: React.ContextType<typeof RouterContext>;
 
     constructor(props: P) {
         super(props);
@@ -128,8 +129,8 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
 
         const navigation = this.context!.navigation;
         const route = this.routeData;
-        await this.props.config?.onLoad?.({navigation, route});
-        
+        await this.props.config?.onLoad?.({ navigation, route });
+
         return result;
     }
 
@@ -157,7 +158,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     }
 
     get nestedRouterData() {
-        return {routeData: this.routeData, routerData: this.context!};
+        return { parentScreen: this as ScreenBase, parentRouter: this.context! };
     }
 
     onExited() {
@@ -200,6 +201,10 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         return this.props.resolvedPathname;
     }
 
+    get path() {
+        return this.props.path;
+    }
+
     get animationProvider() {
         return this._animationProvider.current;
     }
@@ -236,7 +241,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
                 >
                     <SharedElementSceneContext.Provider value={this.sharedElementScene}>
                         <RouteDataContext.Provider value={routeData}>
-                            <NestedRouterDataContext.Provider value={this.nestedRouterData}>
+                            <NestedRouterContext.Provider value={this.nestedRouterData}>
                                 <Suspense fallback={<ComponentWithRouteData component={routeData.config.header?.fallback} route={routeData} navigation={this.context!.navigation} />}>
                                     <ComponentWithRouteData component={HeaderComponent} route={routeData} navigation={this.context!.navigation} />
                                 </Suspense>
@@ -246,7 +251,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
                                 <Suspense fallback={<ComponentWithRouteData component={routeData.config.footer?.fallback} route={routeData} navigation={this.context!.navigation} />}>
                                     <ComponentWithRouteData component={FooterComponent} route={routeData} navigation={this.context!.navigation} />
                                 </Suspense>
-                            </NestedRouterDataContext.Provider>
+                            </NestedRouterContext.Provider>
                         </RouteDataContext.Provider>
                     </SharedElementSceneContext.Provider>
                 </div>

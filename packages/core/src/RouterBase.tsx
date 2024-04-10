@@ -4,22 +4,21 @@ import {
     ScreenChild,
     PlainObject,
     RouterEventMap,
-    RouteData
+    RoutesData
 } from './common/types';
-import { NestedRouterDataContext, RouterData, RouterDataContext } from './RouterData';
+import { NestedRouterContext, RouterContext } from './RouterContext';
 import { dispatchEvent, includesRoute, matchRoute, resolveBaseURLFromPattern, searchParamsToObject } from './common/utils';
 import { Component, RefObject, createRef } from 'react';
 import { DEFAULT_ANIMATION, DEFAULT_GESTURE_CONFIG } from './common/constants';
 import { isValidElement, Children, cloneElement } from 'react';
 import { ScreenBase, ScreenBaseProps } from './ScreenBase';
+import { ScrollRestorationData } from './ScrollRestorationData';
 
 export interface RouterBaseProps {
     id?: string;
     config: {
         screenConfig?: ScreenBaseProps["config"];
         basePathname?: string;
-        paramsSerializer?(params: PlainObject): string;
-        paramsDeserializer?(queryString: string): PlainObject;
     };
     children: ScreenChild | ScreenChild[];
 }
@@ -151,22 +150,23 @@ function StateFromChildren(
 
 export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState, N extends NavigationBase = NavigationBase> extends Component<P, S> {
     protected ref: HTMLElement | null = null;
-    protected readonly routerData: RouterData<typeof this, N>;
-    public readonly parentRouterData: RouterData | null = null;
-    public readonly parentRouteData: RouteData | null = null;
+    public readonly routesData: RoutesData = new Map();
+    public readonly scrollRestorationData = new ScrollRestorationData();
+    public readonly parentRouter: RouterBase | null = null;
+    public readonly parentScreen: ScreenBase | null = null;
+    private _childRouter: WeakRef<RouterBase> | null = null;
     protected animationLayer = createRef<AnimationLayer>();
     private static rootRouterRef: WeakRef<RouterBase> | null = null;
-    static readonly contextType = NestedRouterDataContext;
-    context!: React.ContextType<typeof NestedRouterDataContext>;
+    static readonly contextType = NestedRouterContext;
+    context!: React.ContextType<typeof NestedRouterContext>;
 
-    constructor(props: P, context: React.ContextType<typeof NestedRouterDataContext>) {
+    constructor(props: P, context: React.ContextType<typeof NestedRouterContext>) {
         super(props);
 
-        this.routerData = new RouterData(this);
-        this.parentRouteData = context?.routeData ?? null;
-        this.parentRouterData = context?.routerData ?? null;
-        if (this.parentRouterData) {
-            this.parentRouterData.childRouterData = this.routerData;
+        this.parentScreen = context?.parentScreen ?? null;
+        this.parentRouter = context?.parentRouter ?? null;
+        if (this.parentRouter) {
+            this.parentRouter.childRouter = this;
         }
         if (this.isRoot) {
             RouterBase.rootRouterRef = new WeakRef(this);
@@ -193,9 +193,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     }
 
     componentDidMount() {
-        this.routerData.paramsDeserializer = this.props.config.paramsDeserializer;
-        this.routerData.paramsSerializer = this.props.config.paramsSerializer;
-
         if (this.isRoot) {
             window.navigation.addEventListener('navigate', this.handleNavigationDispatch)
         }
@@ -211,28 +208,28 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         let router: RouterBase = this;
         const pathname = new URL(e.destination.url).pathname;
         // travel down router tree to find the correct router
-        while(
-            router.routerData.childRouterData
-            && router.routerData.childRouterData.routerInstance.mounted
+        while (
+            router.childRouter
+            && router.childRouter.mounted
             && includesRoute(
-                router.routerData.childRouterData.routerInstance.pathPatterns,
+                router.childRouter.pathPatterns,
                 pathname,
-                router.routerData.childRouterData.routerInstance.baseURLPattern.pathname
+                router.childRouter.baseURLPattern.pathname
             )
         ) {
-            router = router.routerData.childRouterData.routerInstance;
+            router = router.childRouter;
         }
         if (router.shouldIntercept(e)) {
             router.intercept(e);
         }
     }
 
-    protected getRouterById(routerId: string, target?: RouterBase): RouterBase | null {
+    getRouterById(routerId: string, target?: RouterBase): RouterBase | null {
         const router = target ?? RouterBase.rootRouterRef?.deref();
         if (router!.id === routerId) {
             return router ?? null;
-        } else if (router?.routerData.childRouterData) {
-            return this.getRouterById(routerId, router!.routerData.childRouterData.routerInstance);
+        } else if (router?.childRouter) {
+            return this.getRouterById(routerId, router!.childRouter);
         } else {
             return null;
         }
@@ -251,6 +248,46 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         return this.ref?.removeEventListener(type, listener, options);
     }
 
+    public preloadRoute(pathname: string) {
+        return new Promise<boolean>((resolve, reject) => {
+            let found = false;
+            const routes = this.props.children;
+            Children.forEach<ScreenChild<ScreenBaseProps>>(routes, (route) => {
+                if (found) return; // stop after first
+                if (!isValidElement(route)) return;
+                const { path, caseSensitive } = route.props;
+                const baseURL = this.baseURL.href;
+                const matchInfo = matchRoute(path, pathname, baseURL, caseSensitive);
+                if (!matchInfo) return;
+                found = true;
+                const config = {
+                    ...this.routesData.get(path)?.config,
+                    ...route.props.config
+                };
+                queueMicrotask(async () => {
+                    const preloadTasks = [];
+                    if ('load' in route.props.component) {
+                        preloadTasks.push(route.props.component.load());
+                    }
+                    if (config?.header?.component && 'load' in config?.header?.component) {
+                        preloadTasks.push(config?.header?.component.load());
+                    }
+                    if (config?.footer?.component && 'load' in config?.footer?.component) {
+                        preloadTasks.push(config?.footer?.component.load());
+                    }
+                    try {
+                        await Promise.all(preloadTasks);
+                        resolve(found);
+                    } catch (e) {
+                        reject(e);
+                    }
+                });
+            });
+            if (!found)
+                resolve(false);
+        });
+    }
+
     get id() {
         if (this.props.id) return this.props.id;
         return this.baseURL.pathname
@@ -260,12 +297,20 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
             .replace(/^-|-$/g, ''); // Remove leading and trailing hyphens
     }
 
-    protected get isRoot() {
-        return !this.parentRouterData;
+    get currentScreen() {
+        return this.state.currentScreen?.current;
+    }
+
+    get nextScreen() {
+        return this.state.nextScreen?.current;
+    }
+
+    get isRoot() {
+        return !this.parentRouter;
     }
 
     get baseURL() {
-        const pathname = this.isRoot ? window.location.pathname : this.parentRouteData?.resolvedPathname!;
+        const pathname = this.isRoot ? window.location.pathname : this.parentScreen?.resolvedPathname!;
         const pattern = this.baseURLPattern.pathname;
 
         return resolveBaseURLFromPattern(pattern, pathname)!;
@@ -276,9 +321,9 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         const defaultBasePathname = this.isRoot ? new URL(".", document.baseURI).href.replace(baseURL, '') : ".";
         let basePathname = this.props.config.basePathname ?? defaultBasePathname;
 
-        if (this.parentRouterData && this.parentRouteData) {
-            const { resolvedPathname = window.location.pathname, path } = this.parentRouteData;
-            const parentBaseURL = this.parentRouterData.baseURL?.href;
+        if (this.parentRouter && this.parentScreen) {
+            const { resolvedPathname = window.location.pathname, path } = this.parentScreen;
+            const parentBaseURL = this.parentRouter.baseURL?.href;
             const pattern = new URLPattern({ baseURL: parentBaseURL, pathname: path });
             baseURL = resolveBaseURLFromPattern(
                 pattern.pathname,
@@ -291,7 +336,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
 
     get pathPatterns() {
         return Children.map(this.props.children, (child) => {
-            return {pattern: child.props.path, caseSensitive: Boolean(child.props.caseSensitive)};
+            return { pattern: child.props.path, caseSensitive: Boolean(child.props.caseSensitive) };
         });
     }
 
@@ -299,7 +344,24 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         return Boolean(this.ref);
     }
 
-    protected abstract get navigation(): NavigationBase;
+    get navigation() {
+        return this.state.navigation;
+    }
+
+    set childRouter(childRouter: RouterBase | null) {
+        const currentChildRouter = this._childRouter?.deref();
+        if (
+            currentChildRouter
+            && childRouter?.id !== currentChildRouter?.id
+            && currentChildRouter?.mounted
+        ) {
+            throw new Error("It looks like you have two navigators at the same level. Try simplifying your navigation structure by using a nested router instead.");
+        }
+        if (childRouter)
+            this._childRouter = new WeakRef(childRouter);
+        else
+            this._childRouter = null;
+    }
 
     protected abstract shouldIntercept(navigateEvent: NavigateEvent): boolean;
     protected abstract intercept(navigateEvent: NavigateEvent): void;
@@ -312,7 +374,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         if (!this.navigation) return;
         return (
             <div id={this.id} className="react-motion-router" style={{ width: '100%', height: '100%' }} ref={this.setRef}>
-                <RouterDataContext.Provider value={this.routerData}>
+                <RouterContext.Provider value={this}>
                     <AnimationLayer
                         ref={this.animationLayer}
                         navigation={this.navigation}
@@ -321,7 +383,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
                     >
                         {this.state.children}
                     </AnimationLayer>
-                </RouterDataContext.Provider>
+                </RouterContext.Provider>
             </div>
         );
     }

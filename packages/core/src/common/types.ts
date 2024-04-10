@@ -122,3 +122,5 @@ export interface PathPattern {
     pattern: string;
     caseSensitive: boolean;
 }
+
+export type AnimationDirection = "normal" | "reverse";

@@ -2,12 +2,10 @@ import {
     ScreenChild,
     AnimationEffectFactory,
 } from './common/types';
-import { RouterData, RouterDataContext } from './RouterData';
 import { NavigationBase, NavigationBaseProps, NavigationBaseOptions } from './NavigationBase';
 import { RouterBase, RouterBaseProps, RouterBaseState } from './RouterBase';
 import { ScreenBase, ScreenBaseProps, ScreenBaseState } from './ScreenBase';
 import { Motion } from './AnimationLayer';
-import type { AnimationLayerData } from './AnimationLayerData';
 import { GestureRegion } from './GestureRegion';
 import 'web-gesture-events';
 import { ScrollRestoration } from './ScrollRestoration';
@@ -44,10 +42,8 @@ export type {
     NavigationBaseOptions
 };
 export { SharedElement, Motion, GestureRegion, ScrollRestoration };
-export { NavigationBase, RouterBase, RouterData, RouterDataContext, ScreenBase };
-export type {
-    AnimationLayerData
-};
+export { NavigationBase, RouterBase, ScreenBase };
+export * from './RouterContext';
 export * from './common/hooks';
 export * from './common/types';
 export * from './common/events';

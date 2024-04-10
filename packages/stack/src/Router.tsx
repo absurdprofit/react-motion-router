@@ -1,7 +1,6 @@
 import { RouterBase } from '@react-motion-router/core';
-import type { PlainObject, RouterBaseProps, RouterBaseState } from '@react-motion-router/core';
+import type { NestedRouterContext, PlainObject, RouterBaseProps, RouterBaseState } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
-import { NestedRouterDataContext } from 'packages/core/build/RouterData';
 import { ScreenProps } from './Screen';
 import { NavigateEventRouterState } from './common/types';
 
@@ -9,6 +8,8 @@ export interface RouterProps extends RouterBaseProps {
     config: RouterBaseProps["config"] & {
         disableBrowserRouting?: boolean;
         initialRoute?: string;
+        paramsSerializer?(params: PlainObject): string;
+        paramsDeserializer?(queryString: string): PlainObject;
     }
 }
 
@@ -20,10 +21,12 @@ export interface RouterState extends RouterBaseState {
 }
 
 export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
-    constructor(props: RouterProps, context: React.ContextType<typeof NestedRouterDataContext>) {
+    public readonly paramsSerializer = this.props.config.paramsSerializer;
+    public readonly paramsDeserializer = this.props.config.paramsDeserializer;
+    constructor(props: RouterProps, context: React.ContextType<typeof NestedRouterContext>) {
         super(props, context);
 
-        const navigation = new Navigation(this.routerData);
+        const navigation = new Navigation(this);
         this.state.navigation = navigation;
         if (props.config.disableBrowserRouting) {
             const initialRoute = new URL(props.config.initialRoute ?? '.', this.baseURL);
@@ -32,10 +35,6 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
             this.state.currentPath = new URL(window.navigation.currentEntry!.url!).pathname;
         }
         this.state.backNavigating = false;
-    }
-
-    get navigation() {
-        return this.routerData.navigation;
     }
 
     protected shouldIntercept(e: NavigateEvent): boolean {
@@ -94,8 +93,8 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
         const currentScreen = this.state.currentScreen?.current;
         if (currentScreen) {
             const path = currentScreen.props.path;
-            const routeData = this.routerData.routesData.get(path);
-            this.routerData.routesData.set(path, {
+            const routeData = this.routesData.get(path);
+            this.routesData.set(path, {
                 params: { ...routeData?.params, ...this.state.nextParams },
                 config: { ...routeData?.config, ...this.state.nextConfig },
             });
@@ -108,8 +107,8 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
         const currentScreen = this.state.currentScreen?.current;
         if (nextScreen) {
             const path = nextScreen.props.path;
-            const routeData = this.routerData.routesData.get(path);
-            this.routerData.routesData.set(path, {
+            const routeData = this.routesData.get(path);
+            this.routesData.set(path, {
                 params: { ...routeData?.params, ...this.state.nextParams },
                 config: { ...routeData?.config, ...this.state.nextConfig },
             });

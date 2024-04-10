@@ -76,7 +76,7 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
         if (!currentPath) return;
         const baseURL = navigation?.baseURL?.href;
         if (!baseURL) return;
-        const routes = Children.toArray(this.context?.routes);
+        const routes = Children.toArray(this.context?.props.children);
         const currentRoute = routes.find(route => {
             if (!isValidElement(route)) return false;
             const path = route.props.path;

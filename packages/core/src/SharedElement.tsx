@@ -106,7 +106,7 @@ export class SharedElementScene {
     }
 }
 
-export const SharedElementSceneContext = createContext<SharedElementScene | null>(null);
+export const SharedElementSceneContext = createContext<SharedElementScene>(null!);
 
 function nodeFromRef(
     id: string,
@@ -170,7 +170,7 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
     }
 
     get canTransition() {
-        return Boolean(this.scene?.previousScene?.nodes.has(this.id)) && this.scene.canTransition;
+        return Boolean(this.scene.previousScene?.nodes.has(this.id)) && this.scene.canTransition;
     }
 
     get scene() {
@@ -248,13 +248,13 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
     private onRef = (_ref: HTMLDivElement | null) => {
         if (this._ref !== _ref) {
             if (this._ref) {
-                this.scene?.removeNode(this.id);
+                this.scene.removeNode(this.id);
                 this._computedStyle = null;
             }
             this._ref = _ref;
             
             if (_ref && !this.props.disabled) {
-                this.scene?.addNode(nodeFromRef(this.id, _ref, this));
+                this.scene.addNode(nodeFromRef(this.id, _ref, this));
                 if (_ref.firstElementChild) {
                     this._computedStyle = window.getComputedStyle(_ref.firstElementChild);
                 }
@@ -264,7 +264,7 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
     }
 
     componentDidUpdate() {
-        if (this.props.disabled && this.scene?.nodes.has(this.id)) {
+        if (this.props.disabled && this.scene.nodes.has(this.id)) {
             this.scene.removeNode(this.id);
         }
     }

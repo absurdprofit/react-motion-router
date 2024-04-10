@@ -1,6 +1,7 @@
 import { Component } from "react";
 import { Vec2 } from "./common/types";
-import { RouterData, RouterDataContext } from "./RouterData";
+import { RouterContext } from "./RouterContext";
+import { RouterBase } from "./RouterBase";
 
 interface ScrollRestorationProps extends React.HTMLAttributes<HTMLDivElement> {
     id: string;
@@ -12,7 +13,7 @@ interface ScrollRestorationProps extends React.HTMLAttributes<HTMLDivElement> {
 export class ScrollRestoration extends Component<ScrollRestorationProps> {
     private ref: HTMLElement | null = null;
     private scrollPos: Vec2 = { x: 0, y: 0 };
-    private routerData: RouterData | null = null;
+    private router: RouterBase | null = null;
     private _mounted = false;
 
     constructor(props: ScrollRestorationProps) {
@@ -20,9 +21,9 @@ export class ScrollRestoration extends Component<ScrollRestorationProps> {
 
         this.onHashChange = this.onHashChange.bind(this);
     }
-    
+
     componentDidMount() {
-        const scrollPos = this.routerData?.scrollRestorationData.get(this.props.id);
+        const scrollPos = this.router?.scrollRestorationData.get(this.props.id);
         if (scrollPos) {
             this.scrollPos = scrollPos;
         }
@@ -33,7 +34,7 @@ export class ScrollRestoration extends Component<ScrollRestorationProps> {
             });
         }
 
-        this.routerData?.navigation.addEventListener('transition-end', this.onPageAnimationEnd);
+        this.router?.navigation.addEventListener('transition-end', this.onPageAnimationEnd);
         window.addEventListener('hashchange', this.onHashChange);
     }
 
@@ -42,9 +43,9 @@ export class ScrollRestoration extends Component<ScrollRestorationProps> {
             x: this.ref?.scrollLeft || 0,
             y: this.ref?.scrollTop || 0
         }
-        this.routerData?.scrollRestorationData.set(this.props.id, scrollPos);
-    
-        this.routerData?.navigation.removeEventListener('transition-end', this.onPageAnimationEnd);
+        this.router?.scrollRestorationData.set(this.props.id, scrollPos);
+
+        this.router?.navigation.removeEventListener('transition-end', this.onPageAnimationEnd);
         window.removeEventListener('hashchange', this.onHashChange);
     }
 
@@ -58,7 +59,7 @@ export class ScrollRestoration extends Component<ScrollRestorationProps> {
             try {
                 // for when hash is invalid css selector
                 this.ref.querySelector(id)?.scrollIntoView(this.props.hashScrollConfig);
-            } catch {}
+            } catch { }
         }
     }
 
@@ -77,15 +78,15 @@ export class ScrollRestoration extends Component<ScrollRestorationProps> {
         }
     }
 
-    get scrollTop () {
+    get scrollTop() {
         return this.ref?.scrollTop ?? 0;
     }
 
-    get scrollLeft () {
+    get scrollLeft() {
         return this.ref?.scrollLeft ?? 0;
     }
 
-    get scrollWidth () {
+    get scrollWidth() {
         return this.ref?.scrollWidth ?? 0;
     }
 
@@ -94,10 +95,10 @@ export class ScrollRestoration extends Component<ScrollRestorationProps> {
     }
     render() {
         return (
-            <RouterDataContext.Consumer>
-                {(routerData) => {
-                    this.routerData = routerData;
-                    const {style, shouldRestore, hashScrollConfig, ...props} = this.props;
+            <RouterContext.Consumer>
+                {(router) => {
+                    this.router = router;
+                    const { style, shouldRestore, hashScrollConfig, ...props } = this.props;
                     return (
                         <div {...props} ref={this.setRef} style={{
                             ...style,
@@ -107,7 +108,7 @@ export class ScrollRestoration extends Component<ScrollRestorationProps> {
                         </div>
                     );
                 }}
-            </RouterDataContext.Consumer>
+            </RouterContext.Consumer>
         );
     }
 }

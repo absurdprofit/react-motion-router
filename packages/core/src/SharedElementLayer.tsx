@@ -1,19 +1,20 @@
 import { SharedElementNode, SharedElementScene } from './SharedElement';
 import { clamp, interpolate } from './common/utils';
-import { EasingFunction, PlainObject } from './common/types';
+import { AnimationDirection, EasingFunction, PlainObject } from './common/types';
 import { MotionProgressEvent } from './common/events';
-import { AnimationLayerData } from './AnimationLayerData';
 import { Component } from 'react';
 import { MAX_PROGRESS, MAX_Z_INDEX, MIN_PROGRESS } from './common/constants';
 import { NavigationBase } from './NavigationBase';
 
 interface SharedElementLayerProps {
     animation: Animation | null;
-    animationLayerData: AnimationLayerData;
     currentScene?: SharedElementScene;
     nextScene?: SharedElementScene;
     paused: boolean;
     navigation: NavigationBase;
+    playbackRate: number;
+    direction: AnimationDirection;
+    timeline: AnimationTimeline;
 }
 
 interface SharedElementLayerState {
@@ -54,20 +55,20 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
 
     pause() {
         this.animations.forEach(animation => {
-            animation.playbackRate = this.props?.animationLayerData.playbackRate;
+            animation.playbackRate = this.props?.playbackRate;
             return animation.pause();
         });
     }
 
     play() {
         this.animations.forEach(animation => {
-            animation.playbackRate = this.props?.animationLayerData.playbackRate;
+            animation.playbackRate = this.props?.playbackRate;
             return animation.play();
         });
     }
 
     finish() {
-        const playbackRate = this.props?.animationLayerData.playbackRate;
+        const playbackRate = this.props?.playbackRate;
         return Promise.all(
             this.animations.map(animation => {
                 animation.playbackRate = playbackRate;
@@ -469,7 +470,7 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
         const onEnd = async () => {
             let startInstance = start.instance;
             let endInstance = end.instance;
-            if (this.props?.animationLayerData.playbackRate < 0)
+            if (this.props?.playbackRate < 0)
                 [startInstance, endInstance] = [endInstance, startInstance];
             endInstance.hidden(false);
             if (!this.props.currentScene!.keepAlive) {

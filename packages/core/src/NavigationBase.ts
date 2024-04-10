@@ -1,6 +1,6 @@
 import { ParamsDeserializer, ParamsSerializer, PlainObject, RouterEventMap } from "./common/types";
 import { MetaData } from "./MetaData";
-import { RouterData } from "./RouterData";
+import { RouterBase } from "./RouterBase";
 import { ScreenBaseProps } from "./ScreenBase";
 
 export interface NavigationBaseProps<Params extends PlainObject = {}, Config extends ScreenBaseProps["config"] = {}> {
@@ -13,67 +13,52 @@ export interface NavigationBaseOptions {
 }
 
 export abstract class NavigationBase {
-    protected readonly routerData: RouterData;
+    protected readonly router: RouterBase;
     private static rootNavigatorRef: WeakRef<NavigationBase> | null = null;
     public readonly metaData = new MetaData();
 
-    constructor(_routerData: RouterData) {
-        this.routerData = _routerData;
+    constructor(router: RouterBase) {
+        this.router = router;
         const rootNavigator = NavigationBase.rootNavigatorRef?.deref();
         if (!rootNavigator || !rootNavigator.isInDocument)
             NavigationBase.rootNavigatorRef = new WeakRef(this);
     }
 
     addEventListener<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined) {
-        this.routerData.addEventListener?.(type, listener, options);
-        return () => this.routerData.removeEventListener?.(type, listener, options);
+        this.router.addEventListener?.(type, listener, options);
+        return () => this.router.removeEventListener?.(type, listener, options);
     }
 
     removeEventListener<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | EventListenerOptions | undefined): void {
-        return this.routerData.removeEventListener?.(type, listener, options);
+        return this.router.removeEventListener?.(type, listener, options);
     }
 
     dispatchEvent(event: Event) {
-        return this.routerData.dispatchEvent?.(event);
+        return this.router.dispatchEvent?.(event);
     }
 
     get parent(): NavigationBase | null {
-        return this.routerData.routerInstance.parentRouterData?.navigation ?? null;
+        return this.router.parentRouter?.navigation ?? null;
     }
 
     get routerId() {
-        return this.routerData.routerId;
+        return this.router.id;
     }
 
     get baseURL() {
-        return this.routerData.baseURL;
+        return this.router.baseURL;
     }
 
     get baseURLPattern() {
-        return this.routerData.baseURLPattern;
+        return this.router.baseURLPattern;
     }
 
-    public getNavigatorById(routerId: string, target?: NavigationBase) {
-        const navigator = target ?? NavigationBase.rootNavigatorRef?.deref();
-        if (navigator!.routerId === routerId) {
-            return navigator;
-        } else if (navigator!.routerData.childRouterData) {
-            this.getNavigatorById(routerId, navigator!.routerData.childRouterData.navigation);
-        } else {
-            return null;
-        }
+    public getNavigatorById(routerId: string) {
+        return this.router.getRouterById(routerId)?.navigation ?? null;
     }
 
     public preloadRoute(path: string) {
-        return this.routerData.preloadRoute(path);
-    }
-
-    get paramsDeserializer(): ParamsDeserializer | undefined {
-        return this.routerData.paramsDeserializer;
-    }
-
-    get paramsSerializer(): ParamsSerializer | undefined {
-        return this.routerData.paramsSerializer;
+        return this.router.preloadRoute(path);
     }
 
     private get isInDocument() {

@@ -1,6 +1,4 @@
 import { Children, lazy as ReactLazy, isValidElement } from "react";
-import { RouterData } from "../RouterData";
-import { ScreenBaseProps } from "../ScreenBase";
 import { Input, LazyExoticComponent, LerpRange, MatchedRoute, Output, PathPattern, PlainObject, ScreenChild, SearchParamsDeserializer, SearchParamsSerializer, Weights, is1DRange } from "./types";
 
 export function getCSSData(styles: CSSStyleDeclaration, exclude: string[] = [], object: boolean = true): [string, PlainObject<string>] {
@@ -109,7 +107,7 @@ export function matchRoute(
 }
 
 export function includesRoute(pathnamePatterns: PathPattern[], pathname: string, baseURL: string = window.location.origin) {
-    return pathnamePatterns.some(({pattern, caseSensitive}) => matchRoute(pattern, pathname, baseURL, caseSensitive));
+    return pathnamePatterns.some(({ pattern, caseSensitive }) => matchRoute(pattern, pathname, baseURL, caseSensitive));
 }
 
 export function dispatchEvent<T>(event: CustomEvent<T> | Event, target: HTMLElement | EventTarget = window) {
@@ -164,53 +162,6 @@ export function lazy<T extends React.ComponentType<any>>(
         return factory();
     };
     return Component;
-}
-
-/**
- * Searches router data tree for matching screen. Once the screen is found
- * its component is preloaded.
- * @param path 
- * @param routerData 
- * @returns 
- */
-export function preloadRoute(pathname: string, routerData: RouterData) {
-    return new Promise<boolean>((resolve, reject) => {
-        let found = false;
-        const routes = routerData.routes;
-        Children.forEach<ScreenChild<ScreenBaseProps>>(routes, (route) => {
-            if (found) return; // stop after first
-            if (!isValidElement(route)) return;
-            const { path, caseSensitive } = route.props;
-            const baseURL = routerData.baseURL.href;
-            const matchInfo = matchRoute(path, pathname, baseURL, caseSensitive);
-            if (!matchInfo) return;
-            found = true;
-            const config = {
-                ...routerData.routesData.get(path)?.config,
-                ...route.props.config
-            };
-            queueMicrotask(async () => {
-                const preloadTasks = [];
-                if ('load' in route.props.component) {
-                    preloadTasks.push(route.props.component.load());
-                }
-                if (config?.header?.component && 'load' in config?.header?.component) {
-                    preloadTasks.push(config?.header?.component.load());
-                }
-                if (config?.footer?.component && 'load' in config?.footer?.component) {
-                    preloadTasks.push(config?.footer?.component.load());
-                }
-                try {
-                    await Promise.all(preloadTasks);
-                    resolve(found);
-                } catch (e) {
-                    reject(e);
-                }
-            });
-        });
-        if (!found)
-            resolve(false);
-    });
 }
 
 export function getAnimationDuration(animation: Animation | null, defaultDuration: number = 0) {
