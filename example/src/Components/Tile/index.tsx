@@ -1,6 +1,6 @@
 import React from 'react';
-import {Hero} from '../../assets/Heroes';
-import {SharedElement} from '@react-motion-router/core';
+import { Hero } from '../../assets/Heroes';
+import { SharedElement } from '@react-motion-router/core';
 import * as Stack from '@react-motion-router/stack';
 import { getInset } from '../../common/utils';
 import './index.css';
@@ -8,16 +8,15 @@ import './index.css';
 interface TileProps {
     hero: Hero;
     onClick?: () => void;
-    navigation: Stack.Navigation;
 }
 
 let heroID = '';
-export default function Tile({hero, navigation, onClick}: TileProps) {
+export default function Tile({ hero, navigation, onClick }: Stack.ScreenComponentProps<TileProps>) {
     const [inset, setInset] = React.useState('');
     const imageRef = React.useRef<HTMLImageElement | null>(null);
 
     React.useEffect(() => {
-        navigation.finished.then(() => {
+        navigation.transition?.finished.then(() => {
             if (new URL(navigation.current).pathname === '/tiles') {
                 setInset('');
             }

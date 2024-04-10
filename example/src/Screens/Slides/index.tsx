@@ -53,7 +53,7 @@ export default function Slides(props: SlidesProps) {
             props.navigation.metaData.set('theme-color', '#fee2551');
         }, { once: true, capture: true });
 
-        props.navigation.finished.then(() => {
+        props.navigation.transition?.finished.then(() => {
             isFirstLoad = true;
         });
         window.addEventListener('swipestart', onSwipeStart);

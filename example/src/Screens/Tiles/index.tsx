@@ -18,7 +18,7 @@ export default class Tiles extends React.Component<TilesProps, TilesState> {
     }
 
     componentDidMount() {
-        this.props.navigation.finished.then(() => {
+        this.props.navigation.transition?.finished.then(() => {
             if (!Tiles.isFirstLoad) {
                 Tiles.isFirstLoad = true;
                 this.forceUpdate();

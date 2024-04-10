@@ -157,7 +157,7 @@ export default class Cards2 extends React.Component<CardsProps> {
 
     componentDidMount() {
         this.props.navigation.preloadRoute('/details');
-        this.props.navigation.finished.then(() => {
+        this.props.navigation.transition?.finished.then(() => {
             if (!Cards2.isFirstLoad) {
                 Cards2.isFirstLoad = true;
                 this.forceUpdate();

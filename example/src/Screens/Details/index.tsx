@@ -43,7 +43,7 @@ export default function Details(props: DetailsProps) {
             originalDesc = undefined;
         }, { once: true, capture: true });
 
-        props.navigation.finished.then(() => {
+        props.navigation.transition?.finished.then(() => {
             isFirstLoad = true;
         });
     }, []);

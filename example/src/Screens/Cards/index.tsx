@@ -140,7 +140,7 @@ export default class Cards extends React.Component<CardsProps> {
     }
 
     componentDidMount() {
-        this.props.navigation.finished.then(() => {
+        this.props.navigation.transition?.finished.then(() => {
             Cards.isFirstLoad = true;
             if (this.props.navigation.location.pathname === '/cards') {
                 imageInset = '';
