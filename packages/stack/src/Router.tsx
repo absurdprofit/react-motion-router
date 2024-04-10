@@ -38,7 +38,11 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
     }
 
     protected shouldIntercept(e: NavigateEvent): boolean {
-        return e.canIntercept && !e.formData && !e.hashChange && !e.downloadRequest;
+        return e.canIntercept
+            && !e.formData
+            && !e.hashChange
+            && !e.downloadRequest
+            && e.navigationType !== "reload";
     }
 
     protected intercept(e: NavigateEvent): void {
