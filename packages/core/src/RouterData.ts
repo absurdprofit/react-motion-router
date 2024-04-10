@@ -5,15 +5,15 @@ import { NavigationBase } from './NavigationBase';
 import { RouterBase } from './RouterBase';
 import { ScrollRestorationData } from './ScrollRestorationData';
 
-export class RouterData<N extends NavigationBase = NavigationBase> {
-    public readonly routerInstance: RouterBase;
-    private _childRouterData: WeakRef<RouterData<NavigationBase>> | null = null;
+export class RouterData<R extends RouterBase = RouterBase, N extends NavigationBase = NavigationBase> {
+    public readonly routerInstance: R;
+    private _childRouterData: WeakRef<RouterData> | null = null;
     public routesData: RoutesData = new Map();
     private static _scrollRestorationData = new ScrollRestorationData();
     public paramsSerializer?: SearchParamsSerializer;
     public paramsDeserializer?: SearchParamsDeserializer;
 
-    constructor(routerInstance: RouterBase) {
+    constructor(routerInstance: R) {
         this.routerInstance = routerInstance;
     }
 
@@ -21,7 +21,7 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
         return preloadRoute(path, this);
     }
 
-    set childRouterData(childRouterData: RouterData<NavigationBase> | null) {
+    set childRouterData(childRouterData: RouterData | null) {
         const currentChildRouterData = this._childRouterData?.deref();
         if (
             currentChildRouterData
@@ -71,9 +71,6 @@ export class RouterData<N extends NavigationBase = NavigationBase> {
     }
     get navigation(): N {
         return this.routerInstance.state.navigation as N;
-    }
-    get backNavigating() {
-        return this.routerInstance.state.backNavigating;
     }
 }
 

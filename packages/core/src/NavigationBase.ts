@@ -68,9 +68,6 @@ export abstract class NavigationBase {
         return this.routerData.preloadRoute(path);
     }
 
-    abstract get finished(): Promise<void>;
-    abstract get committed(): Promise<void>;
-
     get paramsDeserializer(): ParamsDeserializer | undefined {
         return this.routerData.paramsDeserializer;
     }

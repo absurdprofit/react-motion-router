@@ -33,3 +33,16 @@ export class BackEvent extends Event {
 		this.finished = finished;
 	}
 }
+
+export class ForwardEvent extends Event {
+	readonly routerId: string;
+	readonly signal: AbortSignal;
+	readonly finished: Promise<void>;
+
+	constructor(routerId: string, signal: AbortSignal, finished: Promise<void>) {
+		super('go-forward');
+		this.routerId = routerId;
+		this.signal = signal;
+		this.finished = finished;
+	}
+}

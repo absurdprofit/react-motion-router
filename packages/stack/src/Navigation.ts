@@ -1,13 +1,14 @@
 import {
     NavigationBase,
     RouterData,
-    searchParamsFromObject
 } from '@react-motion-router/core';
-import { GoBackOptions, NavigateOptions, NavigationProps } from './common/types';
-import { BackEvent, NavigateEvent } from './common/events';
+import { GoBackOptions, GoForwardOptions, NavigateOptions, NavigationProps } from './common/types';
+import { BackEvent, ForwardEvent, NavigateEvent } from './common/events';
 import { HistoryEntry } from './HistoryEntry';
+import { Router } from './Router';
 
 export class Navigation extends NavigationBase {
+    declare protected readonly routerData: RouterData<Router, Navigation>;
     private isInternalBack = false;
     private _finished: Promise<void> = new Promise(() => { });
     private _currentIndex = 0;
@@ -28,7 +29,7 @@ export class Navigation extends NavigationBase {
     }
 
     traverseTo(key: string) {
-        window.navigation.traverseTo(key);
+        return window.navigation.traverseTo(key);
     }
 
     navigate(
@@ -36,104 +37,62 @@ export class Navigation extends NavigationBase {
         props: NavigationProps = {},
         options: NavigateOptions = {}
     ) {
-        const { type = "push", hash } = options;
-        const search = searchParamsFromObject(props?.params || {}, this.paramsSerializer || null);
+        const { type: history = "push" } = options;
+        const { params, config } = props;
 
         const url = new URL(route, this.baseURL);
-        url.search = search;
-        url.hash = hash ?? '';
-        window.navigation.navigate(url.href, { history: type, state: { ...props.params, routerId: this.routerId } })
+        const transition = window.navigation.navigate(url.href, { history, state: { params, config } })
 
         const controller = new AbortController();
         controller.signal.addEventListener('abort', this.onNavigateAbort.bind(this), { once: true });
         options.signal?.addEventListener('abort', this.onNavigateAbort.bind(this), { once: true });
-        this._finished = this.createFinishedPromise(controller);
-        const event = this.createNavigateEvent(route, props, type, controller);
+        
+        const event = this.createNavigateEvent(route, props, history, controller);
+        this.dispatchEvent?.(event);
 
-        if (this.dispatchEvent) this.dispatchEvent(event);
-
-        return this._finished;
-    }
-
-    private implicitNavigate(route: string, props: NavigationProps = {}) {
-        // this._history.implicitPush(route);
-
-        const controller = new AbortController();
-        this._finished = this.createFinishedPromise(controller);
-        // const event = this.createNavigateEvent(route, props, false, controller);
-
-        // if (this.dispatchEvent) this.dispatchEvent(event);
-        return this._finished;
-    }
-
-    private implicitBack() {
-        // this._history.implicitBack();
-
-        const controller = new AbortController();
-        this._finished = this.createFinishedPromise(controller);
-        let event = this.createBackEvent(controller);
-        if (this.dispatchEvent) this.dispatchEvent(event);
-        return this._finished;
+        return transition;
     }
 
     goBack(options: GoBackOptions = {}) {
-        this.isInternalBack = true;
+        if (this.canGoBack) return;
+
+        const previous = this.previous!;
+        const transition = window.navigation.traverseTo(previous.key);
 
         const controller = new AbortController();
         controller.signal.addEventListener('abort', this.onBackAbort.bind(this), { once: true });
         options.signal?.addEventListener('abort', this.onBackAbort.bind(this), { once: true });
-        this._finished = this.createFinishedPromise(controller);
-        // if (this._history.length === 1) {
-        //     if (this.parent === null) {
-        //         // if no history in root router, fallback to browser back
-        //         window.history.back();
-        //         return;
-        //     }
-        //     this.parent.goBack();
-        // } else {
-        //     let event = this.createBackEvent(controller);
-        //     if (this._disableBrowserRouting) {
-        //         this._history.implicitBack();
-        //     } else {
-        //         if (this.history.state.get<string>("routerId") !== this.routerId) {
-        //             // handle superfluous history entries on call to go back on ancestor navigator
-        //             // delta = 1 for current navigator stack entry pop
-        //             let delta = 0;
-        //             // travel down navigator tree to find all current history entries
-        //             let navigator: Navigation | undefined = this;
-        //             while (navigator) {
-        //                 if (!navigator.disableBrowserRouting) {
-        //                     if (navigator === this) {
-        //                         delta += 1;
-        //                     } else {
-        //                         if (navigator.history.length > 1) {
-        //                             delta += navigator.history.length;
-        //                         }
-        //                     }
-        //                 }
-        //                 navigator = navigator.routerData.childRouterData?.navigation as Navigation;
-        //             }
-        //             window.history.go(-delta);
-        //             // this._history.implicitBack();
-        //         } else {
-        //             this._history.back();
-        //         }
-        //     }
-        //     if (this.dispatchEvent) this.dispatchEvent(event);
-        // } 
+        
+        const event = this.createBackEvent(controller);
+        this.dispatchEvent?.(event);
 
-
-        return this._finished;
+        return transition;
     }
 
-    goForward() {
-        if (!this.canGoForward) return;
-        this.traverseTo(this.next!.key);
+    goForward(options: GoForwardOptions = {}) {
+        if (this.canGoForward) return;
+
+        const next = this.next!;
+        const transition = window.navigation.traverseTo(next.key);
+
+        const controller = new AbortController();
+        controller.signal.addEventListener('abort', this.onBackAbort.bind(this), { once: true });
+        options.signal?.addEventListener('abort', this.onBackAbort.bind(this), { once: true });
+        
+        const event = this.createForwardEvent(controller);
+        this.dispatchEvent?.(event);
+
+        return transition;
     }
 
     private createBackEvent(controller: AbortController) {
         if (!this.routerId) throw new Error("Router ID is not set");
         return new BackEvent(this.routerId, controller.signal, this._finished);
+    }
+
+    private createForwardEvent(controller: AbortController) {
+        if (!this.routerId) throw new Error("Router ID is not set");
+        return new ForwardEvent(this.routerId, controller.signal, this._finished);
     }
 
     private createNavigateEvent(
@@ -146,18 +105,6 @@ export class Navigation extends NavigationBase {
         return new NavigateEvent(this.routerId, route, props, type, controller.signal, this._finished);
     }
 
-    private createFinishedPromise(controller: AbortController) {
-        return new Promise<void>(async (resolve, reject) => {
-            try {
-                // await this._animationLayerData.finished;
-                resolve();
-            } catch (e) {
-                controller.abort(e);
-                reject(e);
-            }
-        });
-    }
-
     private onNavigateAbort() {
         // this._animationLayerData.cancel();
         this.goBack();
@@ -168,8 +115,8 @@ export class Navigation extends NavigationBase {
         this.goForward();
     }
 
-    get finished() {
-        return this._finished;
+    get transition() {
+        return this.routerData.routerInstance.state.transition ?? null;
     }
 
     get entries() {
@@ -194,9 +141,5 @@ export class Navigation extends NavigationBase {
 
     get canGoForward() {
         return Boolean(this.next);
-    }
-
-    get committed() {
-        return Promise.resolve();
     }
 }

@@ -42,7 +42,7 @@ export default function Home(props: HomeProps) {
     ];
 
     useEffect(() => {
-        props.navigation.finished.then(() => {
+        props.navigation.transition?.finished.then(() => {
             isFirstLoad = true;
         });
     }, []);

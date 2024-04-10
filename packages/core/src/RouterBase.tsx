@@ -151,8 +151,8 @@ function StateFromChildren(
 
 export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState, N extends NavigationBase = NavigationBase> extends Component<P, S> {
     protected ref: HTMLElement | null = null;
-    protected readonly routerData: RouterData<N>;
-    public readonly parentRouterData: RouterData<NavigationBase> | null = null;
+    protected readonly routerData: RouterData<typeof this, N>;
+    public readonly parentRouterData: RouterData | null = null;
     public readonly parentRouteData: RouteData | null = null;
     protected animationLayer = createRef<AnimationLayer>();
     private static rootRouterRef: WeakRef<RouterBase> | null = null;
@@ -162,7 +162,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     constructor(props: P, context: React.ContextType<typeof NestedRouterDataContext>) {
         super(props);
 
-        this.routerData = new RouterData<N>(this);
+        this.routerData = new RouterData(this);
         this.parentRouteData = context?.routeData ?? null;
         this.parentRouterData = context?.routerData ?? null;
         if (this.parentRouterData) {

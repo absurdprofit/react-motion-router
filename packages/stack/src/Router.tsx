@@ -16,6 +16,7 @@ export interface RouterState extends RouterBaseState {
     backNavigating: boolean;
     nextParams?: PlainObject;
     nextConfig?: ScreenProps["config"];
+    transition?: NavigationTransition;
 }
 
 export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
@@ -55,7 +56,7 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
         if (this.animationLayer.current)
             this.animationLayer.current.direction = backNavigating ? 'reverse' : 'normal';
         const handler = async () => {
-            if (currentPath !== nextPath && e.navigationType === "replace") {
+            if (currentPath !== nextPath && e.navigationType !== "replace") {
                 this.setState({
                     nextPath,
                     backNavigating,
@@ -74,6 +75,7 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
             this.setState({
                 currentPath: nextPath,
                 nextPath: undefined,
+                transition: undefined,
                 backNavigating: false
             });
         }
