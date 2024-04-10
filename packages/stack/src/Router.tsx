@@ -42,6 +42,7 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
     }
 
     protected intercept(e: NavigateEvent): void {
+        const currentPath = this.state.currentPath;
         const nextPath = new URL(e.destination.url).pathname;
         const currentIndex = window.navigation.currentEntry?.index ?? 0;
         const destinationIndex = e.destination.index;
@@ -50,13 +51,21 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
         if (this.animationLayer.current)
             this.animationLayer.current.direction = backNavigating ? 'reverse' : 'normal';
         const handler = async () => {
-            this.setState({
-                nextPath,
-                backNavigating,
-                nextParams,
-                nextConfig
-            }, this.onNextPathChange);
-            await this.animationLayer.current?.finished;
+            if (currentPath !== nextPath) {
+                this.setState({
+                    nextPath,
+                    backNavigating,
+                    nextParams,
+                    nextConfig
+                }, this.onNextPathChange);
+                await this.animationLayer.current?.finished;
+            } else {
+                this.setState({
+                    nextParams,
+                    nextConfig
+                }, this.onCurrentStateChange);
+            }
+
             await this.state.nextScreen?.current?.load();
             this.setState({
                 currentPath: nextPath,
@@ -72,6 +81,19 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
         }
     }
 
+    private onCurrentStateChange = async () => {
+        const currentScreen = this.state.currentScreen?.current;
+        if (currentScreen) {
+            const path = currentScreen.props.path;
+            const routeData = this.routerData.routesData.get(path);
+            this.routerData.routesData.set(path, {
+                params: { ...routeData?.params, ...this.state.nextParams },
+                config: { ...routeData?.config, ...this.state.nextConfig },
+            });
+            this.setState({ nextParams: undefined, nextConfig: undefined });
+        }
+    }
+
     private onNextPathChange = async () => {
         const nextScreen = this.state.nextScreen?.current;
         const currentScreen = this.state.currentScreen?.current;
@@ -82,6 +104,7 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
                 params: { ...routeData?.params, ...this.state.nextParams },
                 config: { ...routeData?.config, ...this.state.nextConfig },
             });
+            this.setState({ nextParams: undefined, nextConfig: undefined });
         }
         if (this.state.backNavigating) {
             await Promise.all([
