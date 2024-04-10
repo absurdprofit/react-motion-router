@@ -1,4 +1,3 @@
-import { ScreenProps } from "../Screen";
 import { NavigateOptions, NavigationProps } from "./types";
 
 export class NavigateEvent extends Event {
@@ -8,6 +7,7 @@ export class NavigateEvent extends Event {
 	readonly navigationType: NonNullable<NavigateOptions["type"]>;
 	readonly signal: AbortSignal;
 	readonly result: NavigationResult;
+	readonly transition: NavigationTransition;
 
 	constructor(
 		routerId: string,
@@ -15,7 +15,8 @@ export class NavigateEvent extends Event {
 		props: NavigationProps,
 		type: NavigateOptions["type"],
 		signal: AbortSignal,
-		result: NavigationResult
+		result: NavigationResult,
+		transition: NavigationTransition
 	) {
 		super('navigate');
 		this.routerId = routerId;
@@ -24,6 +25,7 @@ export class NavigateEvent extends Event {
 		this.navigationType = type ?? "push";
 		this.signal = signal;
 		this.result = result;
+		this.transition = transition;
 	}
 }
 
@@ -31,12 +33,14 @@ export class BackEvent extends Event {
 	readonly routerId: string;
 	readonly signal: AbortSignal;
 	readonly result: NavigationResult;
+	readonly transition: NavigationTransition;
 
-	constructor(routerId: string, signal: AbortSignal, result: NavigationResult) {
+	constructor(routerId: string, signal: AbortSignal, result: NavigationResult, transition: NavigationTransition) {
 		super('go-back');
 		this.routerId = routerId;
 		this.signal = signal;
 		this.result = result;
+		this.transition = transition;
 	}
 }
 
@@ -44,11 +48,13 @@ export class ForwardEvent extends Event {
 	readonly routerId: string;
 	readonly signal: AbortSignal;
 	readonly result: NavigationResult;
+	readonly transition: NavigationTransition;
 
-	constructor(routerId: string, signal: AbortSignal, result: NavigationResult) {
+	constructor(routerId: string, signal: AbortSignal, result: NavigationResult, transition: NavigationTransition) {
 		super('go-forward');
 		this.routerId = routerId;
 		this.signal = signal;
 		this.result = result;
+		this.transition = transition;
 	}
 }
