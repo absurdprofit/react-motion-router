@@ -51,7 +51,7 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
         if (this.animationLayer.current)
             this.animationLayer.current.direction = backNavigating ? 'reverse' : 'normal';
         const handler = async () => {
-            if (currentPath !== nextPath) {
+            if (currentPath !== nextPath && e.navigationType === "replace") {
                 this.setState({
                     nextPath,
                     backNavigating,
@@ -118,24 +118,4 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
             ]);
         }
     }
-    // onNavigateListener = (e: NavigateEvent) => {
-    //     if (e.detail.routerId !== this.id) return;
-    //     const currentPath = e.detail.route;
-    //     const routesData = this.routerData.routesData;
-
-    //     //store per route data in object
-    //     //with pathname as key and route data as value
-    //     const routeData = this.routerData.routesData.get(currentPath);
-    //     routesData.set(currentPath, {
-    //         focused: routeData?.focused ?? false,
-    //         preloaded: routeData?.preloaded ?? false,
-    //         setParams: routeData?.setParams ?? (() => { }),
-    //         params: e.detail.props.params ?? {},
-    //         config: { ...routeData?.config, ...e.detail.props.config },
-    //         setConfig: routeData?.setConfig ?? (() => { })
-    //     });
-
-    //     this.routerData.routesData = routesData;
-    //     this.setState({ currentPath });
-    // }
 }
