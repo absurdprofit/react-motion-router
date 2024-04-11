@@ -256,8 +256,8 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
                 if (found) return; // stop after first
                 if (!isValidElement(route)) return;
                 const { path, caseSensitive } = route.props;
-                const baseURL = this.baseURL.href;
-                const matchInfo = matchRoute(path, pathname, baseURL, caseSensitive);
+                const baseURLPattern = this.baseURLPattern.pathname;
+                const matchInfo = matchRoute(path, pathname, baseURLPattern, caseSensitive);
                 if (!matchInfo) return;
                 found = true;
                 const config = {
