@@ -348,6 +348,10 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         return this.state.navigation;
     }
 
+    get childRouter() {
+        return this._childRouter?.deref() ?? null;
+    }
+
     set childRouter(childRouter: RouterBase | null) {
         const currentChildRouter = this._childRouter?.deref();
         if (

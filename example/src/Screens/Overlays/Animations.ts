@@ -1,4 +1,4 @@
-import { AnimationEffectFactoryProps, SlideInFromRight, ParallelEffect } from '@react-motion-router/core';
+import { AnimationEffectFactoryProps, ParallelEffect } from '@react-motion-router/core';
 import { isIOS, isPWA } from '../../common/utils';
 
 export function BackdropAnimation({ref, direction, playbackRate, index}: AnimationEffectFactoryProps) {
