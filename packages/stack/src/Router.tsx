@@ -72,12 +72,13 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
                 }, this.onCurrentStateChange);
             }
 
-            if (this.animationLayer.current?.running)
-                await this.animationLayer.current?.finished;
+            await this.animationLayer.current?.finished;
             await this.state.nextScreen?.current?.load();
             this.setState({
                 currentPath: nextPath,
                 nextPath: undefined,
+                nextParams: undefined,
+                nextConfig: undefined,
                 transition: null,
                 backNavigating: false
             });
@@ -99,7 +100,6 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
                 params: { ...routeData?.params, ...this.state.nextParams },
                 config: { ...routeData?.config, ...this.state.nextConfig },
             });
-            this.setState({ nextParams: undefined, nextConfig: undefined });
         }
     }
 
@@ -113,7 +113,6 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
                 params: { ...routeData?.params, ...this.state.nextParams },
                 config: { ...routeData?.config, ...this.state.nextConfig },
             });
-            this.setState({ nextParams: undefined, nextConfig: undefined });
         }
 
         if (this.state.backNavigating) {

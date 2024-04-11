@@ -4,6 +4,7 @@ const TerserPlugin = require("terser-webpack-plugin");
 
 module.exports = (env, argv) => ({
     mode: argv.mode ?? "production",
+    devtool: "source-map",
     experiments: {
         outputModule: true
     },
