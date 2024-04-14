@@ -14,21 +14,22 @@ import { isValidElement, Children, cloneElement } from 'react';
 import { ScreenBase, ScreenBaseProps } from './ScreenBase';
 import { ScrollRestorationData } from './ScrollRestorationData';
 
-export interface RouterBaseProps {
+export interface RouterBaseProps<S extends ScreenBase = ScreenBase> {
     id?: string;
     config: {
-        screenConfig?: ScreenBaseProps["config"];
+        screenConfig?: S["props"]["config"];
         basePathname?: string;
     };
-    children: ScreenChild | ScreenChild[];
+    children: ScreenChild<S["props"], S> | ScreenChild<S["props"], S>[];
 }
 
-export interface RouterBaseState<N extends NavigationBase = NavigationBase> {
+export interface RouterBaseState<S extends ScreenBase = ScreenBase, N extends NavigationBase = NavigationBase> {
     currentPath: string | undefined;
     nextPath: string | undefined;
-    currentScreen?: RefObject<ScreenBase>;
-    nextScreen?: RefObject<ScreenBase>;
-    children: ScreenChild | ScreenChild[];
+    previousScreen?: RefObject<S>;
+    currentScreen?: RefObject<S>;
+    nextScreen?: RefObject<S>;
+    children: ScreenChild<S["props"], S> | ScreenChild<S["props"], S>[];
     defaultDocumentTitle: string;
     documentTitle: string;
     navigation: N;
