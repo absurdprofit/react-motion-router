@@ -46,7 +46,7 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
             }
 
             // closed by form submit or ESC key
-            this.animationProvider?.ref.addEventListener('close', function(e) {
+            this.animationProvider?.ref.addEventListener('close', function() {
                 if (this.returnValue !== "screen-exit") {
                     this.style.display = "block";
                     navigation?.goBack();
@@ -54,8 +54,9 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
             }, {once: true});
 
             // close by backdrop click
-            this.animationProvider?.ref.addEventListener('click', function(e) {
-                const rect = this.getBoundingClientRect();
+            this.animationProvider.ref.onclick = (e) => {
+                if (!this.animationProvider?.ref) return;
+                const rect = this.animationProvider.ref.getBoundingClientRect();
                 const isInDialog = (
                     rect.top <= e.clientY
                     && e.clientY <= rect.top + rect.height
@@ -64,7 +65,7 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
                 );
                 if (!isInDialog)
                     navigation?.goBack();
-            }, {once: true});
+            };
         }
 
         return super.onEnter();
