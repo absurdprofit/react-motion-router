@@ -17,4 +17,5 @@ export type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<
 export interface NavigateEventRouterState {
 	config?: ScreenProps["config"];
 	params?: PlainObject;
+	routerId?: string;
 }

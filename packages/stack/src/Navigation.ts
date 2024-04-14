@@ -1,14 +1,13 @@
 import {
     NavigationBase,
 } from '@react-motion-router/core';
-import { GoBackOptions, GoForwardOptions, NavigateOptions, NavigationProps } from './common/types';
+import { GoBackOptions, GoForwardOptions, NavigateEventRouterState, NavigateOptions, NavigationProps } from './common/types';
 import { BackEvent, ForwardEvent, NavigateEvent } from './common/events';
 import { HistoryEntry } from './HistoryEntry';
 import { Router } from './Router';
 
 export class Navigation extends NavigationBase {
     protected readonly router: Router;
-    private _currentIndex = 0;
 
     constructor(router: Router) {
         super(router);
@@ -42,7 +41,7 @@ export class Navigation extends NavigationBase {
     }
 
     goBack(options: GoBackOptions = {}) {
-        if (this.canGoBack) return;
+        if (!this.canGoBack) return;
 
         const previous = this.previous!;
         const result = window.navigation.traverseTo(previous.key);
@@ -126,19 +125,34 @@ export class Navigation extends NavigationBase {
     }
 
     get entries() {
-        return new Array<HistoryEntry>();
+        return window.navigation.entries()
+            .filter(entry => {
+                return (entry.getState() as NavigateEventRouterState | undefined)?.routerId === this.routerId
+            })
+            .map((entry, index) => {
+                return new HistoryEntry(entry, this.routerId, index);
+            });
+    }
+
+    get index() {
+        const globalEntries = window.navigation.entries()
+        const globalCurrentIndex = globalEntries.findIndex(entry => entry === window.navigation.currentEntry);
+        const previousEntries = globalEntries.slice(0, globalCurrentIndex + 1);
+        return this.entries.findLastIndex(entry => {
+            return previousEntries.findLastIndex(globalEntry => entry.source.key === globalEntry.key) > -1;
+        });
     }
 
     get previous() {
-        return this.entries.at(this._currentIndex - 1) ?? null;
+        return this.entries[this.index - 1] ?? null;
     }
 
     get next() {
-        return this.entries.at(this._currentIndex + 1) ?? null;
+        return this.entries[this.index + 1] ?? null;
     }
 
     get current() {
-        return this.entries.at(this._currentIndex)!;
+        return this.entries[this.index]!;
     }
 
     get canGoBack() {

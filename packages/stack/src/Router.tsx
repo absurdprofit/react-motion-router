@@ -59,12 +59,13 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
         const nextPath = new URL(e.destination.url).pathname;
         const currentIndex = window.navigation.currentEntry?.index ?? 0;
         const destinationIndex = e.destination.index;
-        const transition = window.navigation.transition
         const backNavigating = destinationIndex >= 0 && destinationIndex < currentIndex;
         const { params: nextParams, config: nextConfig } = e.destination.getState() as NavigateEventRouterState ?? {};
         if (this.animationLayer.current)
             this.animationLayer.current.direction = backNavigating ? 'reverse' : 'normal';
         const handler = async () => {
+            const transition = window.navigation.transition;
+            transition?.finished.then(this.onTransitionEnd);
             if (currentPath !== nextPath && e.navigationType !== "replace") {
                 this.setState({
                     nextPath,
@@ -136,5 +137,15 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
             ]);
         }
         this.animationLayer.current?.animate();
+    }
+
+    private onTransitionEnd = () => {
+        // so we can check entries later
+        window.navigation.updateCurrentEntry({
+            state: {
+                ...window.navigation.currentEntry?.getState() ?? {},
+                routerId: this.id
+            }
+        });
     }
 }

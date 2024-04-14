@@ -20,7 +20,7 @@ export default function Overlays({ navigation }: OverlaysProps) {
     return (
         <>
             <div className="go-back">
-                <Anchor goBack>
+                <Anchor goBack navigation={navigation.parent}>
                     <IconButton disableRipple>
                         <ArrowBackIosIcon style={{ zIndex: 100 }} />
                     </IconButton>

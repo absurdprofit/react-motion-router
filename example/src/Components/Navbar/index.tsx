@@ -9,11 +9,7 @@ interface NavbarProps {
 function Navbar(props: NavbarProps) {
     const navigation = useNavigation();
     const route = useRoute();
-    const [canGoBack, setCanGoBack] = React.useState<boolean>(navigation.canGoBack && route.path !== "/");
 
-    React.useEffect(() => {
-        setCanGoBack(navigation.canGoBack && route.path !== "/");
-    }, [navigation, route.path]);
     return (
         <SharedElement id="navbar" config={{
             type: 'fade'
@@ -21,7 +17,7 @@ function Navbar(props: NavbarProps) {
             <div className="navbar">
                 <div className="back">
                     {
-                        canGoBack ?
+                        navigation.canGoBack ?
                             <BackButton />
                             :
                             undefined

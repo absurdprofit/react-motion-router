@@ -195,7 +195,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
 
     componentDidMount() {
         if (this.isRoot) {
-            window.navigation.addEventListener('navigate', this.handleNavigationDispatch)
+            window.navigation.addEventListener('navigate', this.handleNavigationDispatch);
         }
     }
 
@@ -293,6 +293,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         if (this.props.id) return this.props.id;
         return this.baseURL.pathname
             .toLowerCase()
+            .replace('/', 'root')
             .replace(/[^\w-]/g, '-') // Remove non-alphanumeric chars
             .replace(/-+/g, '-') // Replace multiple hyphens with a single one
             .replace(/^-|-$/g, ''); // Remove leading and trailing hyphens

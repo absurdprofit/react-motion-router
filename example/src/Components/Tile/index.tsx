@@ -17,7 +17,7 @@ export default function Tile({ hero, navigation, onClick }: Stack.ScreenComponen
 
     React.useEffect(() => {
         navigation.transition?.finished.then(() => {
-            if (new URL(navigation.current).pathname === '/tiles') {
+            if (navigation.current.url.pathname === '/tiles') {
                 setInset('');
             }
         });
