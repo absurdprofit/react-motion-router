@@ -6,10 +6,13 @@ import { NavigateEventRouterState } from './common/types';
 
 export interface RouterProps extends RouterBaseProps {
     config: RouterBaseProps["config"] & {
+        screenConfig?: ScreenProps["config"];
         disableBrowserRouting?: boolean;
         initialRoute?: string;
         paramsSerializer?(params: PlainObject): string;
         paramsDeserializer?(queryString: string): PlainObject;
+        shouldIntercept?(navigateEvent: NavigateEvent): boolean;
+        onIntercept?(navigateEvent: NavigateEvent): boolean;
     }
 }
 
@@ -38,6 +41,8 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
     }
 
     protected shouldIntercept(e: NavigateEvent): boolean {
+        if (this.props.config.shouldIntercept)
+            return this.props.config.shouldIntercept(e);
         return e.canIntercept
             && !e.formData
             && !e.hashChange
@@ -46,6 +51,10 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
     }
 
     protected intercept(e: NavigateEvent): void {
+        if (this.props.config.onIntercept)
+            if (this.props.config.onIntercept(e) || e.defaultPrevented)
+                return;
+
         const currentPath = this.state.currentPath;
         const nextPath = new URL(e.destination.url).pathname;
         const currentIndex = window.navigation.currentEntry?.index ?? 0;
