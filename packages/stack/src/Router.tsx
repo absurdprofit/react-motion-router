@@ -1,4 +1,4 @@
-import { RouterBase } from '@react-motion-router/core';
+import { RouterBase, includesRoute } from '@react-motion-router/core';
 import type { NestedRouterContext, PlainObject, RouterBaseProps, RouterBaseState } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { ScreenProps } from './Screen';
@@ -38,6 +38,14 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
             this.state.currentPath = new URL(window.navigation.currentEntry!.url!).pathname;
         }
         this.state.backNavigating = false;
+    }
+
+    protected canIntercept(e: NavigateEvent): boolean {
+        const pathname = new URL(e.destination.url).pathname;
+        const baseURLPattern = this.baseURLPattern.pathname;
+        return this.mounted
+            && this.shouldIntercept(e)
+            && includesRoute(this.pathPatterns, pathname, baseURLPattern);   
     }
 
     protected shouldIntercept(e: NavigateEvent): boolean {

@@ -207,22 +207,11 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
 
     private handleNavigationDispatch = (e: NavigateEvent) => {
         let router: RouterBase = this;
-        const pathname = new URL(e.destination.url).pathname;
         // travel down router tree to find the correct router
-        while (
-            router.childRouter
-            && router.childRouter.mounted
-            && includesRoute(
-                router.childRouter.pathPatterns,
-                pathname,
-                router.childRouter.baseURLPattern.pathname
-            )
-        ) {
+        while (router.childRouter?.canIntercept(e)) {
             router = router.childRouter;
         }
-        if (router.shouldIntercept(e)) {
-            router.intercept(e);
-        }
+        router.intercept(e);
     }
 
     getRouterById(routerId: string, target?: RouterBase): RouterBase | null {
@@ -369,6 +358,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
             this._childRouter = null;
     }
 
+    protected abstract canIntercept(navigateEvent: NavigateEvent): boolean;
     protected abstract shouldIntercept(navigateEvent: NavigateEvent): boolean;
     protected abstract intercept(navigateEvent: NavigateEvent): void;
 
