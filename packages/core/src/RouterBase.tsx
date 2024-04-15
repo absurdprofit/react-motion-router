@@ -35,120 +35,6 @@ export interface RouterBaseState<S extends ScreenBase = ScreenBase, N extends Na
     navigation: N;
 }
 
-function StateFromChildren(
-    props: RouterBaseProps,
-    state: RouterBaseState,
-) {
-    let { currentPath, nextPath } = state;
-    const baseURLPattern = state.navigation.baseURLPattern.pathname;
-    const isFirstLoad = (props.children === state.children) || Children.count(state.children) === 0;
-    let nextMatched = false;
-    let currentMatched = false;
-    let documentTitle: string = state.defaultDocumentTitle;
-    let currentScreen = state.currentScreen;
-    let nextScreen = state.nextScreen;
-
-    const children: ScreenChild[] = [];
-    let keptAliveKey: React.Key | undefined = undefined;
-    if (currentPath) {
-        // get current child
-        Children.forEach(
-            state.children, // match current child from state
-            (child) => {
-                if (!isValidElement(child)) return;
-                if (
-                    typeof nextPath === "string"
-                    && typeof child.props.resolvedPathname === "string"
-                    && matchRoute(child.props.resolvedPathname, nextPath, baseURLPattern, child.props.caseSensitive)) {
-                    // fetch kept alive key
-                    // needed since elements kept alive are apart of the DOM
-                    // to avoid confusing react we need to preserve this key
-                    if (child.props.config?.keepAlive) {
-                        keptAliveKey = child.key || undefined;
-                    }
-                }
-
-                if (currentMatched) return;
-                // match resolved pathname instead to avoid matching the next component first
-                // this can happen if the same component matches both current and next paths
-                let matchInfo;
-                if (isFirstLoad) {
-                    // first load so resolve by path instead of resolvedPathname
-                    matchInfo = matchRoute(child.props.path, currentPath, baseURLPattern, child.props.caseSensitive);
-                } else if (typeof child.props.resolvedPathname === "string") {
-                    matchInfo = matchRoute(child.props.resolvedPathname, currentPath, baseURLPattern, child.props.caseSensitive);
-                } else {
-                    return;
-                }
-                if (matchInfo) {
-                    currentMatched = true;
-                    currentScreen = createRef<ScreenBase>();
-                    children.push(
-                        cloneElement(child, {
-                            in: isFirstLoad,
-                            out: !isFirstLoad,
-                            config: {
-                                ...props.config.screenConfig,
-                                ...child.props.config
-                            },
-                            defaultParams: {
-                                ...child.props.defaultParams,
-                                ...matchInfo.params,
-                            },
-                            resolvedPathname: currentPath,
-                            key: child.key ?? Math.random(),
-                            ref: currentScreen
-                        })
-                    );
-                }
-            }
-        );
-    }
-
-    if (nextPath) {
-        // get next child
-        Children.forEach(
-            props.children,
-            (child) => {
-                if (!isValidElement(child)) return;
-                if (typeof nextPath !== 'string') return;
-                if (nextMatched) return;
-                const matchInfo = matchRoute(child.props.path, nextPath, baseURLPattern, child.props.caseSensitive);
-                if (matchInfo) {
-                    nextMatched = true;
-                    documentTitle = child.props.config?.title || state.defaultDocumentTitle;
-                    const key = keptAliveKey || Math.random();
-                    nextScreen = createRef<ScreenBase>();
-                    children.push(
-                        cloneElement(child, {
-                            in: true,
-                            out: false,
-                            config: {
-                                ...props.config.screenConfig,
-                                ...child.props.config
-                            },
-                            defaultParams: {
-                                ...child.props.defaultParams,
-                                ...matchInfo.params,
-                            },
-                            resolvedPathname: nextPath,
-                            key,
-                            ref: nextScreen
-                        })
-                    );
-                }
-            }
-        );
-    }
-
-    return {
-        children,
-        documentTitle,
-        currentScreen,
-        nextScreen
-    }
-}
-
 export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState, N extends NavigationBase = NavigationBase> extends Component<P, S> {
     protected ref: HTMLElement | null = null;
     public readonly routesData: RoutesData = new Map();
@@ -188,10 +74,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         documentTitle: document.title,
         children: this.props.children,
     } as S;
-
-    static getDerivedStateFromProps(props: RouterBaseProps, state: RouterBaseState) {
-        return StateFromChildren(props, state);
-    }
 
     componentDidMount() {
         if (this.isRoot) {

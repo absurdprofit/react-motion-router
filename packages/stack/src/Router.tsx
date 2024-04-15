@@ -1,8 +1,9 @@
-import { RouterBase, includesRoute } from '@react-motion-router/core';
-import type { NestedRouterContext, PlainObject, RouterBaseProps, RouterBaseState } from '@react-motion-router/core';
+import { RouterBase, includesRoute, matchRoute } from '@react-motion-router/core';
+import type { NestedRouterContext, PlainObject, RouterBaseProps, RouterBaseState, ScreenChild } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
-import { ScreenProps } from './Screen';
+import { ScreenProps, Screen } from './Screen';
 import { NavigateEventRouterState } from './common/types';
+import { Children, createRef, isValidElement, cloneElement } from 'react';
 
 export interface RouterProps extends RouterBaseProps {
     config: RouterBaseProps["config"] & {
@@ -23,6 +24,120 @@ export interface RouterState extends RouterBaseState {
     transition: NavigationTransition | null;
 }
 
+function StateFromChildren(
+    props: RouterProps,
+    state: RouterState,
+) {
+    let { currentPath, nextPath } = state;
+    const baseURLPattern = state.navigation.baseURLPattern.pathname;
+    const isFirstLoad = (props.children === state.children) || Children.count(state.children) === 0;
+    let nextMatched = false;
+    let currentMatched = false;
+    let documentTitle: string = state.defaultDocumentTitle;
+    let currentScreen = state.currentScreen;
+    let nextScreen = state.nextScreen;
+
+    const children: ScreenChild[] = [];
+    let keptAliveKey: React.Key | undefined = undefined;
+    if (currentPath) {
+        // get current child
+        Children.forEach(
+            state.children, // match current child from state
+            (child) => {
+                if (!isValidElement(child)) return;
+                if (
+                    typeof nextPath === "string"
+                    && typeof child.props.resolvedPathname === "string"
+                    && matchRoute(child.props.resolvedPathname, nextPath, baseURLPattern, child.props.caseSensitive)) {
+                    // fetch kept alive key
+                    // needed since elements kept alive are apart of the DOM
+                    // to avoid confusing react we need to preserve this key
+                    if (child.props.config?.keepAlive) {
+                        keptAliveKey = child.key || undefined;
+                    }
+                }
+
+                if (currentMatched) return;
+                // match resolved pathname instead to avoid matching the next component first
+                // this can happen if the same component matches both current and next paths
+                let matchInfo;
+                if (isFirstLoad) {
+                    // first load so resolve by path instead of resolvedPathname
+                    matchInfo = matchRoute(child.props.path, currentPath, baseURLPattern, child.props.caseSensitive);
+                } else if (typeof child.props.resolvedPathname === "string") {
+                    matchInfo = matchRoute(child.props.resolvedPathname, currentPath, baseURLPattern, child.props.caseSensitive);
+                } else {
+                    return;
+                }
+                if (matchInfo) {
+                    currentMatched = true;
+                    currentScreen = createRef<Screen>();
+                    children.push(
+                        cloneElement(child, {
+                            in: isFirstLoad,
+                            out: !isFirstLoad,
+                            config: {
+                                ...props.config.screenConfig,
+                                ...child.props.config
+                            },
+                            defaultParams: {
+                                ...child.props.defaultParams,
+                                ...matchInfo.params,
+                            },
+                            resolvedPathname: currentPath,
+                            key: child.key ?? Math.random(),
+                            ref: currentScreen
+                        })
+                    );
+                }
+            }
+        );
+    }
+
+    if (nextPath) {
+        // get next child
+        Children.forEach(
+            props.children,
+            (child) => {
+                if (!isValidElement(child)) return;
+                if (typeof nextPath !== 'string') return;
+                if (nextMatched) return;
+                const matchInfo = matchRoute(child.props.path, nextPath, baseURLPattern, child.props.caseSensitive);
+                if (matchInfo) {
+                    nextMatched = true;
+                    documentTitle = child.props.config?.title || state.defaultDocumentTitle;
+                    const key = keptAliveKey || Math.random();
+                    nextScreen = createRef<Screen>();
+                    children.push(
+                        cloneElement(child, {
+                            in: true,
+                            out: false,
+                            config: {
+                                ...props.config.screenConfig,
+                                ...child.props.config
+                            },
+                            defaultParams: {
+                                ...child.props.defaultParams,
+                                ...matchInfo.params,
+                            },
+                            resolvedPathname: nextPath,
+                            key,
+                            ref: nextScreen
+                        })
+                    );
+                }
+            }
+        );
+    }
+
+    return {
+        children,
+        documentTitle,
+        currentScreen,
+        nextScreen
+    }
+}
+
 export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
     public readonly paramsSerializer = this.props.config.paramsSerializer;
     public readonly paramsDeserializer = this.props.config.paramsDeserializer;
@@ -38,6 +153,10 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
             this.state.currentPath = new URL(window.navigation.currentEntry!.url!).pathname;
         }
         this.state.backNavigating = false;
+    }
+
+    static getDerivedStateFromProps(props: RouterProps, state: RouterState) {
+        return StateFromChildren(props, state);
     }
 
     protected canIntercept(e: NavigateEvent): boolean {
