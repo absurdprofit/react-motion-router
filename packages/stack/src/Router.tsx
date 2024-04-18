@@ -19,8 +19,6 @@ export interface RouterProps extends RouterBaseProps {
 
 export interface RouterState extends RouterBaseState {
     backNavigating: boolean;
-    nextParams?: PlainObject;
-    nextConfig?: ScreenProps["config"];
     transition: NavigationTransition | null;
 }
 
@@ -30,7 +28,7 @@ function StateFromChildren(
 ) {
     let { currentPath, nextPath } = state;
     const baseURLPattern = state.navigation.baseURLPattern.pathname;
-    const isFirstLoad = (props.children === state.children) || Children.count(state.children) === 0;
+    const isFirstLoad = Children.count(state.children) === 0;
     let nextMatched = false;
     let currentMatched = false;
     let documentTitle: string = state.defaultDocumentTitle;
@@ -42,7 +40,7 @@ function StateFromChildren(
     if (currentPath) {
         // get current child
         Children.forEach(
-            state.children, // match current child from state
+            isFirstLoad ? props.children : state.children, // match current child from state
             (child) => {
                 if (!isValidElement(child)) return;
                 if (
@@ -146,17 +144,16 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
 
         const navigation = new Navigation(this);
         this.state.navigation = navigation;
-        if (props.config.disableBrowserRouting) {
-            const initialRoute = new URL(props.config.initialRoute ?? '.', this.baseURL);
-            this.state.currentPath = initialRoute.pathname;
-        } else {
-            this.state.currentPath = new URL(window.navigation.currentEntry!.url!).pathname;
-        }
-        this.state.backNavigating = false;
     }
 
     static getDerivedStateFromProps(props: RouterProps, state: RouterState) {
         return StateFromChildren(props, state);
+    }
+
+    componentDidMount(): void {
+        super.componentDidMount();
+        if (!window.navigation.transition)
+            window.navigation.reload({ info: { firstLoad: true } });
     }
 
     protected canIntercept(e: NavigateEvent): boolean {
@@ -173,16 +170,79 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
         return e.canIntercept
             && !e.formData
             && !e.hashChange
-            && !e.downloadRequest
-            && e.navigationType !== "reload";
+            && !e.downloadRequest;
     }
 
     protected intercept(e: NavigateEvent): void {
         if (this.props.config.onIntercept)
             if (this.props.config.onIntercept(e) || e.defaultPrevented)
                 return;
+        
+        switch(e.navigationType) {
+            case "replace":
+                this.handleReplace(e);
+            break;
 
+            case "reload":
+                this.handleReload(e);
+            break;
+
+            default:
+                this.handleDefault(e);
+            break;
+        }
+    }
+
+    private handleReplace(e: NavigateEvent) {
         const currentPath = this.state.currentPath;
+        const nextPath = new URL(e.destination.url).pathname;
+        const { params: nextParams, config: nextConfig } = e.destination.getState() as NavigateEventRouterState ?? {};
+        if (currentPath === nextPath) {
+            const currentScreen = this.state.currentScreen?.current;
+            if (currentScreen) {
+                const path = currentScreen.props.path;
+                const routeData = this.routesData.get(path);
+                this.routesData.set(path, {
+                    params: { ...routeData?.params, ...nextParams },
+                    config: { ...routeData?.config, ...nextConfig },
+                });
+            }
+            e.intercept({ handler: () => Promise.resolve() });
+        } else {
+            this.handleDefault(e);
+        }
+    }
+
+    private handleReload(e: NavigateEvent) {
+        const currentPath = new URL(e.destination.url).pathname;
+        const { params: currentParams, config: currentConfig } = e.destination.getState() as NavigateEventRouterState ?? {};
+
+        const handler = async () => {
+            return new Promise<void>((resolve) => {
+                const transition = window.navigation.transition;
+                this.setState({
+                    currentPath,
+                    transition
+                }, async () => {
+                    const currentScreen = this.state.currentScreen?.current;
+                    if (!currentScreen) return;
+                    const path = currentScreen.props.path;
+                    const routeData = this.routesData.get(path);
+                    this.routesData.set(path, {
+                        params: { ...routeData?.params, ...currentParams },
+                        config: { ...routeData?.config, ...currentConfig },
+                    });
+
+                    await currentScreen.load();
+                    resolve();
+                });
+            });
+        }
+
+        e.intercept( { handler });
+    }
+
+    private handleDefault(e: NavigateEvent) {
         const nextPath = new URL(e.destination.url).pathname;
         const currentIndex = window.navigation.currentEntry?.index ?? 0;
         const destinationIndex = e.destination.index;
@@ -191,33 +251,47 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
         if (this.animationLayer.current)
             this.animationLayer.current.direction = backNavigating ? 'reverse' : 'normal';
         const handler = async () => {
-            const transition = window.navigation.transition;
-            transition?.finished.then(this.onTransitionEnd);
-            if (currentPath !== nextPath && e.navigationType !== "replace") {
+            return new Promise<void>(async (resolve) => {
+                const transition = window.navigation.transition;
+                transition?.finished.then(this.onTransitionEnd);
                 this.setState({
                     nextPath,
                     backNavigating,
-                    nextParams,
-                    nextConfig,
                     transition
-                }, this.onNextPathChange);
-            } else {
-                this.setState({
-                    nextParams,
-                    nextConfig,
-                    transition
-                }, this.onCurrentStateChange);
-            }
-
-            await this.animationLayer.current?.finished;
-            await this.state.nextScreen?.current?.load();
-            this.setState({
-                currentPath: nextPath,
-                nextPath: undefined,
-                nextParams: undefined,
-                nextConfig: undefined,
-                transition: null,
-                backNavigating: false
+                }, async () => {
+                    const nextScreen = this.state.nextScreen?.current;
+                    const currentScreen = this.state.currentScreen?.current;
+                    if (nextScreen) {
+                        const path = nextScreen.props.path;
+                        const routeData = this.routesData.get(path);
+                        this.routesData.set(path, {
+                            params: { ...routeData?.params, ...nextParams },
+                            config: { ...routeData?.config, ...nextConfig },
+                        });
+                    }
+            
+                    if (this.state.backNavigating) {
+                        await Promise.all([
+                            nextScreen?.animationProvider?.setZIndex(0),
+                            currentScreen?.animationProvider?.setZIndex(1)
+                        ]);
+                    } else {
+                        await Promise.all([
+                            nextScreen?.animationProvider?.setZIndex(1),
+                            currentScreen?.animationProvider?.setZIndex(0)
+                        ]);
+                    }
+                    this.animationLayer.current?.animate();
+                    await this.animationLayer.current?.finished;
+                    await this.state.nextScreen?.current?.load();
+                    this.setState({
+                        currentPath: nextPath,
+                        nextPath: undefined,
+                        transition: null,
+                        backNavigating: false
+                    });
+                    resolve();
+                });
             });
         }
         if (this.props.config.disableBrowserRouting) {
@@ -226,44 +300,6 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
         } else {
             e.intercept({ handler });
         }
-    }
-
-    private onCurrentStateChange = async () => {
-        const currentScreen = this.state.currentScreen?.current;
-        if (currentScreen) {
-            const path = currentScreen.props.path;
-            const routeData = this.routesData.get(path);
-            this.routesData.set(path, {
-                params: { ...routeData?.params, ...this.state.nextParams },
-                config: { ...routeData?.config, ...this.state.nextConfig },
-            });
-        }
-    }
-
-    private onNextPathChange = async () => {
-        const nextScreen = this.state.nextScreen?.current;
-        const currentScreen = this.state.currentScreen?.current;
-        if (nextScreen) {
-            const path = nextScreen.props.path;
-            const routeData = this.routesData.get(path);
-            this.routesData.set(path, {
-                params: { ...routeData?.params, ...this.state.nextParams },
-                config: { ...routeData?.config, ...this.state.nextConfig },
-            });
-        }
-
-        if (this.state.backNavigating) {
-            await Promise.all([
-                nextScreen?.animationProvider?.setZIndex(0),
-                currentScreen?.animationProvider?.setZIndex(1)
-            ]);
-        } else {
-            await Promise.all([
-                nextScreen?.animationProvider?.setZIndex(1),
-                currentScreen?.animationProvider?.setZIndex(0)
-            ]);
-        }
-        this.animationLayer.current?.animate();
     }
 
     private onTransitionEnd = () => {

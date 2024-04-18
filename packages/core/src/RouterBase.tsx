@@ -160,14 +160,18 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         });
     }
 
-    get id() {
+    get id(): string {
         if (this.props.id) return this.props.id;
-        return this.baseURL.pathname
+        const parentId = this.parentRouter?.id;
+        const sanitisedBaseURL = this.baseURL.pathname
             .toLowerCase()
-            .replace('/', 'root')
+            .replace(/^\/$/, 'root')
             .replace(/[^\w-]/g, '-') // Remove non-alphanumeric chars
             .replace(/-+/g, '-') // Replace multiple hyphens with a single one
             .replace(/^-|-$/g, ''); // Remove leading and trailing hyphens
+        if (parentId)
+            return `${parentId}-${sanitisedBaseURL}`;
+        return sanitisedBaseURL;
     }
 
     get currentScreen() {

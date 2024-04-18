@@ -1,5 +1,6 @@
 import {
     NavigationBase,
+    resolveBaseURLFromPattern,
 } from '@react-motion-router/core';
 import { GoBackOptions, GoForwardOptions, NavigateEventRouterState, NavigateOptions, NavigationProps } from './common/types';
 import { BackEvent, ForwardEvent, NavigateEvent } from './common/events';
@@ -124,10 +125,15 @@ export class Navigation extends NavigationBase {
         return this.router.state.transition ?? null;
     }
 
+    get globalEntries() {
+        return window.navigation.entries();
+    }
+
     get entries() {
-        return window.navigation.entries()
+        return this.globalEntries
             .filter(entry => {
-                return (entry.getState() as NavigateEventRouterState | undefined)?.routerId === this.routerId
+                if (!entry.url) return false;
+                return resolveBaseURLFromPattern(this.baseURLPattern.pathname, new URL(entry.url).pathname);
             })
             .map((entry, index) => {
                 return new HistoryEntry(entry, this.routerId, index);
@@ -135,7 +141,7 @@ export class Navigation extends NavigationBase {
     }
 
     get index() {
-        const globalEntries = window.navigation.entries()
+        const globalEntries = this.globalEntries;
         const globalCurrentIndex = globalEntries.findIndex(entry => entry === window.navigation.currentEntry);
         const previousEntries = globalEntries.slice(0, globalCurrentIndex + 1);
         return this.entries.findLastIndex(entry => {
