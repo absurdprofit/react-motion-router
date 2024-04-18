@@ -75,10 +75,17 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         children: this.props.children,
     } as S;
 
-    componentDidMount() {
+    async componentDidMount() {
         if (this.isRoot) {
             window.navigation.addEventListener('navigate', this.handleNavigationDispatch);
         }
+        if (window.navigation.transition?.navigationType !== "reload") {
+            // Trigger reload on first load.
+            // Gives routers ability to initialise state with the benefits of interception.
+            await window.navigation.transition?.finished;
+            window.navigation.reload({ info: { firstLoad: true } });
+        }
+            
     }
 
     componentWillUnmount() {

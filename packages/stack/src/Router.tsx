@@ -17,7 +17,7 @@ export interface RouterProps extends RouterBaseProps {
     }
 }
 
-export interface RouterState extends RouterBaseState {
+export interface RouterState extends RouterBaseState<Screen, Navigation> {
     backNavigating: boolean;
     transition: NavigationTransition | null;
 }
@@ -150,12 +150,6 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
         return StateFromChildren(props, state);
     }
 
-    componentDidMount(): void {
-        super.componentDidMount();
-        if (!window.navigation.transition)
-            window.navigation.reload({ info: { firstLoad: true } });
-    }
-
     protected canIntercept(e: NavigateEvent): boolean {
         const pathname = new URL(e.destination.url).pathname;
         const baseURLPattern = this.baseURLPattern.pathname;
@@ -233,6 +227,7 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
                         config: { ...routeData?.config, ...currentConfig },
                     });
 
+                    await currentScreen?.animationProvider?.setZIndex(1)
                     await currentScreen.load();
                     resolve();
                 });
