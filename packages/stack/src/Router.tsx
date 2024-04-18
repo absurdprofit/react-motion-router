@@ -20,41 +20,70 @@ export interface RouterProps extends RouterBaseProps {
 export interface RouterState extends RouterBaseState<Screen, Navigation> {
     backNavigating: boolean;
     transition: NavigationTransition | null;
+    previousScreenKey?: string;
+    currentScreenKey?: string;
+    nextPath?: string;
+    currentPath?: string;
+    previousPath?: string;
 }
 
 function StateFromChildren(
     props: RouterProps,
     state: RouterState,
 ) {
-    let { currentPath, nextPath } = state;
+    let { previousPath, currentPath, nextPath, currentScreenKey, previousScreenKey } = state;
     const baseURLPattern = state.navigation.baseURLPattern.pathname;
     const isFirstLoad = Children.count(state.children) === 0;
     let nextMatched = false;
     let currentMatched = false;
+    let previousMatched = false;
     let documentTitle: string = state.defaultDocumentTitle;
+    let previousScreen = state.previousScreen;
     let currentScreen = state.currentScreen;
     let nextScreen = state.nextScreen;
 
     const children: ScreenChild[] = [];
-    let keptAliveKey: React.Key | undefined = undefined;
+    if (previousPath) {
+        // get previous child
+        Children.forEach(
+            state.children, // match previous child from state
+            (child) => {
+                if (!isValidElement(child)) return;
+                if (previousMatched || !child.props.resolvedPathname) return;
+                // match resolved pathname instead to avoid matching the next component first
+                // this can happen if the same component matches both current and next paths
+                const matchInfo = matchRoute(child.props.resolvedPathname, previousPath, baseURLPattern, child.props.caseSensitive);
+                if (matchInfo && child.props.config?.keepAlive) {
+                    previousMatched = true;
+                    previousScreen = createRef<Screen>();
+                    children.push(
+                        cloneElement(child, {
+                            in: false,
+                            out: false,
+                            config: {
+                                ...props.config.screenConfig,
+                                ...child.props.config
+                            },
+                            defaultParams: {
+                                ...child.props.defaultParams,
+                                ...matchInfo.params,
+                            },
+                            resolvedPathname: previousPath,
+                            key: previousScreenKey,
+                            ref: previousScreen
+                        })
+                    );
+                }
+            }
+        );
+    }
+
     if (currentPath) {
         // get current child
         Children.forEach(
             isFirstLoad ? props.children : state.children, // match current child from state
             (child) => {
                 if (!isValidElement(child)) return;
-                if (
-                    typeof nextPath === "string"
-                    && typeof child.props.resolvedPathname === "string"
-                    && matchRoute(child.props.resolvedPathname, nextPath, baseURLPattern, child.props.caseSensitive)) {
-                    // fetch kept alive key
-                    // needed since elements kept alive are apart of the DOM
-                    // to avoid confusing react we need to preserve this key
-                    if (child.props.config?.keepAlive) {
-                        keptAliveKey = child.key || undefined;
-                    }
-                }
-
                 if (currentMatched) return;
                 // match resolved pathname instead to avoid matching the next component first
                 // this can happen if the same component matches both current and next paths
@@ -83,7 +112,7 @@ function StateFromChildren(
                                 ...matchInfo.params,
                             },
                             resolvedPathname: currentPath,
-                            key: child.key ?? Math.random(),
+                            key: currentScreenKey,
                             ref: currentScreen
                         })
                     );
@@ -104,7 +133,6 @@ function StateFromChildren(
                 if (matchInfo) {
                     nextMatched = true;
                     documentTitle = child.props.config?.title || state.defaultDocumentTitle;
-                    const key = keptAliveKey || Math.random();
                     nextScreen = createRef<Screen>();
                     children.push(
                         cloneElement(child, {
@@ -119,7 +147,7 @@ function StateFromChildren(
                                 ...matchInfo.params,
                             },
                             resolvedPathname: nextPath,
-                            key,
+                            key: Math.random(),
                             ref: nextScreen
                         })
                     );
@@ -215,6 +243,7 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
             return new Promise<void>((resolve) => {
                 const transition = window.navigation.transition;
                 this.setState({
+                    currentScreenKey: window.navigation.currentEntry?.key,
                     currentPath,
                     transition
                 }, async () => {
@@ -238,6 +267,7 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
     }
 
     private handleDefault(e: NavigateEvent) {
+        const currentPath = this.state.currentPath;
         const nextPath = new URL(e.destination.url).pathname;
         const currentIndex = window.navigation.currentEntry?.index ?? 0;
         const destinationIndex = e.destination.index;
@@ -280,7 +310,10 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
                     await this.animationLayer.current?.finished;
                     await this.state.nextScreen?.current?.load();
                     this.setState({
+                        previousPath: currentPath,
                         currentPath: nextPath,
+                        previousScreenKey: this.state.currentScreenKey,
+                        currentScreenKey: window.navigation.currentEntry?.key,
                         nextPath: undefined,
                         transition: null,
                         backNavigating: false

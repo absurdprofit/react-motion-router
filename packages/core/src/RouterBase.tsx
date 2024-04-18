@@ -24,8 +24,6 @@ export interface RouterBaseProps<S extends ScreenBase = ScreenBase> {
 }
 
 export interface RouterBaseState<S extends ScreenBase = ScreenBase, N extends NavigationBase = NavigationBase> {
-    currentPath: string | undefined;
-    nextPath: string | undefined;
     previousScreen?: RefObject<S>;
     currentScreen?: RefObject<S>;
     nextScreen?: RefObject<S>;
