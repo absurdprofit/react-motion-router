@@ -45,7 +45,7 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
             });
     }
 
-    private screenFromPathname(pathname: string) {
+    private screenChildFromPathname(pathname: string) {
         return Children.toArray(this.props.children)
             .find(child => {
                 if (!isValidScreenChild(child)) return;
@@ -108,11 +108,14 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
     }
 
     private handleReplace(e: NavigateEvent) {
-        if (e.destination.index === this.navigation.index) {
-            this.handleReload(e);
-        } else {
-            this.handleDefault(e);
-        }
+        const handler = async () => {
+            if (e.destination.url === window.navigation.transition?.from.url) {
+                return this.handleReload(e);
+            } else {
+                return this.handleDefault(e);
+            }
+        };
+        e.intercept({ handler });
     }
 
     private handleReload(e: NavigateEvent) {
@@ -121,7 +124,7 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
                 const screenStack = new Array<ScreenChild>();
                 this.navigation.entries.forEach(entry => {
                     if (!entry.url) return null;
-                    const screen = this.screenFromPathname(entry.url.pathname);
+                    const screen = this.screenChildFromPathname(entry.url.pathname);
                     if (!isValidScreenChild(screen)) return null;
                     const { params, config } = entry.getState() as HistoryEntryState ?? {};
                     screenStack.push(
@@ -144,7 +147,7 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
 
                 this.setState({ screenStack }, async () => {
                     const currentScreen = this.getScreenRefByKey(this.navigation.current.key);
-                    await currentScreen?.current?.animationProvider?.setZIndex(1)
+                    await currentScreen?.current?.animationProvider?.setZIndex(1);
                     await currentScreen?.current?.load();
                     resolve();
                 });
@@ -159,7 +162,7 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
         const currentIndex = window.navigation.currentEntry?.index ?? 0;
         const destinationIndex = e.destination.index;
         const backNavigating = destinationIndex >= 0 && destinationIndex < currentIndex;
-        const screen = this.screenFromPathname(destinationPathname);
+        const screen = this.screenChildFromPathname(destinationPathname);
         const screenStack = this.state.screenStack;
         const handler = async () => {
             const { params, config } = e.destination.getState() as HistoryEntryState ?? {};
@@ -182,7 +185,7 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
                                 ...params,
                             },
                             resolvedPathname,
-                            key: destination.key,
+                            key: window.navigation.currentEntry?.key,
                             ref: createRef<ScreenBase>()
                         })
                     );
@@ -191,33 +194,9 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
                 }
             }
 
-            transition?.finished.then(() => {
-                if (destination.key === "" && isValidScreenChild(screen)) {
-                    screenStack.splice(
-                        destinationIndex,
-                        1,
-                        cloneElement(screen, {
-                            config: {
-                                ...this.props.config.screenConfig,
-                                ...screen.props.config,
-                                ...config
-                            },
-                            defaultParams: {
-                                ...screen.props.defaultParams,
-                                ...params,
-                            },
-                            resolvedPathname,
-                            key: window.navigation.currentEntry?.key,
-                            ref: createRef<ScreenBase>()
-                        })
-                    );
-                }
-                this.setState({ screenStack, destination: null, transition: null });
-            });
-
             return new Promise<void>((resolve) => this.setState({ destination, transition, screenStack }, async () => {
                 const outgoingKey = transition?.from.key;
-                const incomingKey = destination.key;
+                const incomingKey = window.navigation.currentEntry?.key;
                 const outgoingScreen = this.getScreenRefByKey(String(outgoingKey));
                 const incomingScreen = this.getScreenRefByKey(String(incomingKey));
                 if (backNavigating) {
@@ -242,7 +221,7 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
                 }
                 await incomingScreen?.current?.load();
                 await incomingScreen?.current?.animationProvider?.setZIndex(1);
-                resolve();
+                this.setState({ destination: null, transition: null }, resolve);
             }));
         }
 
