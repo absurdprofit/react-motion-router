@@ -167,16 +167,13 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
 
     get id(): string {
         if (this.props.id) return this.props.id;
-        const parentId = this.parentRouter?.id;
-        const sanitisedBaseURL = this.baseURL.pathname
+        const prefix = this.parentRouter ? `${this.parentRouter.id}-` : '';
+        const id = (this.parentScreen?.path ?? 'root')
             .toLowerCase()
-            .replace(/^\/$/, 'root')
             .replace(/[^\w-]/g, '-') // Remove non-alphanumeric chars
             .replace(/-+/g, '-') // Replace multiple hyphens with a single one
             .replace(/^-|-$/g, ''); // Remove leading and trailing hyphens
-        if (parentId)
-            return `${parentId}-${sanitisedBaseURL}`;
-        return sanitisedBaseURL;
+        return `${prefix}${id}`;
     }
 
     get currentScreen() {
