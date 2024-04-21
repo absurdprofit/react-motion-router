@@ -249,6 +249,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     protected abstract canIntercept(navigateEvent: NavigateEvent): boolean;
     protected abstract shouldIntercept(navigateEvent: NavigateEvent): boolean;
     protected abstract intercept(navigateEvent: NavigateEvent): void;
+    protected abstract get children(): P["children"];
 
     private setRef = (ref: HTMLElement | null) => {
         this.ref = ref;
@@ -265,7 +266,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
                         currentScreen={this.state.currentScreen ?? null}
                         nextScreen={this.state.nextScreen ?? null}
                     >
-                        {this.state.children}
+                        {this.children}
                     </AnimationLayer>
                 </RouterContext.Provider>
             </div>

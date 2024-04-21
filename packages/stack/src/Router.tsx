@@ -178,6 +178,10 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
         return StateFromChildren(props, state);
     }
 
+    protected get children() {
+        return this.state.children;
+    }
+
     protected canIntercept(e: NavigateEvent): boolean {
         const pathname = new URL(e.destination.url).pathname;
         const baseURLPattern = this.baseURLPattern.pathname;
