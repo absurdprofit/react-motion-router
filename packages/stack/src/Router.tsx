@@ -269,7 +269,7 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
             });
         }
 
-        e.intercept( { handler });
+        e.intercept({ handler });
     }
 
     private handleDefault(e: NavigateEvent) {

@@ -1,20 +1,14 @@
 import { SharedElementNode, SharedElementScene } from './SharedElement';
 import { clamp, interpolate } from './common/utils';
-import { AnimationDirection, EasingFunction, PlainObject } from './common/types';
+import { AnimationDirection, EasingFunction, PlainObject, ScreenChild } from './common/types';
 import { MotionProgressEvent } from './common/events';
-import { Component } from 'react';
+import { Component, RefObject } from 'react';
 import { MAX_PROGRESS, MAX_Z_INDEX, MIN_PROGRESS } from './common/constants';
 import { NavigationBase } from './NavigationBase';
+import { ScreenBase } from './ScreenBase';
 
 interface SharedElementLayerProps {
-    animation: Animation | null;
-    currentScene?: SharedElementScene;
-    nextScene?: SharedElementScene;
-    paused: boolean;
     navigation: NavigationBase;
-    playbackRate: number;
-    direction: AnimationDirection;
-    timeline: AnimationTimeline;
 }
 
 interface SharedElementLayerState {
@@ -44,9 +38,47 @@ interface TransitionState {
 export class SharedElementLayer extends Component<SharedElementLayerProps, SharedElementLayerState> {
     private ref: HTMLDialogElement | null = null;
     private animations: Animation[] = [];
+    private _timeline: AnimationTimeline = document.timeline;
+    private _playbackRate: number = 1;
+    private _outgoingScreen: RefObject<ScreenBase> | null = null;
+    private _incomingScreen: RefObject<ScreenBase> | null = null;
     
     state: SharedElementLayerState = {
         transitioning: false
+    }
+
+    set timeline(timeline: AnimationTimeline) {
+        this._timeline = timeline;
+        // if (this.animation) this.animation.timeline = timeline;
+    }
+
+    set playbackRate(playbackRate: number) {
+        this._playbackRate = playbackRate;
+        // if (this.animation) this.animation.playbackRate = playbackRate;
+    }
+
+    set outgoingScreen(outgoingScreen: RefObject<ScreenBase> | null) {
+        this._outgoingScreen = outgoingScreen;
+    }
+
+    set incomingScreen(incomingScreen: RefObject<ScreenBase> | null) {
+        this._incomingScreen = incomingScreen;
+    }
+
+    get outgoingScreen() {
+        return this._outgoingScreen;
+    }
+
+    get incomingScreen() {
+        return this._incomingScreen;
+    }
+
+    get timeline() {
+        return this._timeline;
+    }
+
+    get playbackRate() {
+        return this._playbackRate;
     }
 
     get finished() {
@@ -55,20 +87,20 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
 
     pause() {
         this.animations.forEach(animation => {
-            animation.playbackRate = this.props?.playbackRate;
+            animation.playbackRate = this.playbackRate;
             return animation.pause();
         });
     }
 
     play() {
         this.animations.forEach(animation => {
-            animation.playbackRate = this.props?.playbackRate;
+            animation.playbackRate = this.playbackRate;
             return animation.play();
         });
     }
 
     finish() {
-        const playbackRate = this.props?.playbackRate;
+        const playbackRate = this.playbackRate;
         return Promise.all(
             this.animations.map(animation => {
                 animation.playbackRate = playbackRate;
@@ -97,7 +129,8 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
         if (!startChild || !endChild) return;
         const startRect = startInstance.rect;
         const endRect = endInstance.rect;
-        const defaultDuration = this.props.animation?.effect?.getComputedTiming().duration;
+        // const defaultDuration = this.animation?.effect?.getComputedTiming().duration;
+        const defaultDuration = 0;
 
         let startCSSText: string;
         let startCSSObject: PlainObject<string> = {};
@@ -457,28 +490,28 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
         animations.forEach((animation: Animation | undefined) => {
             if (!animation) return;
             this.animations.push(animation);
-            if (this.props.paused) {
-                const defaultDuration = this.props.animation?.effect?.getComputedTiming().duration;
-                let duration = animation.effect?.getComputedTiming().duration;
-                duration = Number(duration || defaultDuration);
+            // if (this.props.paused) {
+            //     const defaultDuration = this.props.animation?.effect?.getComputedTiming().duration;
+            //     let duration = animation.effect?.getComputedTiming().duration;
+            //     duration = Number(duration || defaultDuration);
                 
-                animation.currentTime = duration;
-                animation.pause();
-            }
+            //     animation.currentTime = duration;
+            //     animation.pause();
+            // }
         });
 
         const onEnd = async () => {
             let startInstance = start.instance;
             let endInstance = end.instance;
-            if (this.props?.playbackRate < 0)
+            if (this.playbackRate < 0)
                 [startInstance, endInstance] = [endInstance, startInstance];
             endInstance.hidden(false);
-            if (!this.props.currentScene!.keepAlive) {
-                startInstance.keepAlive(false);
-            } else {
-                startInstance.keepAlive(true);
-                startInstance.hidden(false); // if current scene is kept alive do not show start element
-            }
+            // if (!this.props.currentScene!.keepAlive) {
+            //     startInstance.keepAlive(false);
+            // } else {
+            //     startInstance.keepAlive(true);
+            //     startInstance.hidden(false); // if current scene is kept alive do not show start element
+            // }
             
             startInstance.onCloneRemove(startNode);
             if (transitionType !== "morph") {
@@ -500,10 +533,11 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
 
     transition() {
         if (!this.state.transitioning) return;
-        const currentScene = this.props.currentScene;
-        const nextScene = this.props.nextScene;
+        const currentScene = this.outgoingScreen?.current?.sharedElementScene;
+        const nextScene = this.incomingScreen?.current?.sharedElementScene;
         if (!currentScene || !nextScene) return;
-        const duration = this.props.animation?.effect?.getComputedTiming().duration;
+        // const duration = this.props.animation?.effect?.getComputedTiming().duration;
+        const duration = 0;
         currentScene.canTransition = !currentScene.isEmpty() && Boolean(duration);
         nextScene.canTransition = !nextScene.isEmpty() && Boolean(duration);
         if (!currentScene.canTransition || !nextScene.canTransition) return;
@@ -548,17 +582,18 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
     }
 
     onProgress = (e: MotionProgressEvent) => {
-        if (this.props.paused) {
-            for (const animation of this.animations) {
-                const progress = e.progress;
-                const defaultDuration = this.props.animation?.effect?.getComputedTiming().duration;
-                let duration = animation.effect?.getComputedTiming().duration;
-                duration = Number(duration || defaultDuration);
+        // if (this.props.paused) {
+        //     for (const animation of this.animations) {
+        //         const progress = e.progress;
+        //         const defaultDuration = this.props.animation?.effect?.getComputedTiming().duration;
+        //         const defaultDuration = this.props.animation?.effect?.getComputedTiming().duration;
+        //         let duration = animation.effect?.getComputedTiming().duration;
+        //         duration = Number(duration || defaultDuration);
 
-                const currentTime = interpolate(progress, [MIN_PROGRESS, MAX_PROGRESS], [0, Number(duration)]);
-                animation.currentTime = currentTime;
-            }
-        }
+        //         const currentTime = interpolate(progress, [MIN_PROGRESS, MAX_PROGRESS], [0, Number(duration)]);
+        //         animation.currentTime = currentTime;
+        //     }
+        // }
     }
 
     onProgressEnd = async () => {

@@ -13,6 +13,7 @@ import { DEFAULT_ANIMATION, DEFAULT_GESTURE_CONFIG } from './common/constants';
 import { isValidElement, Children, cloneElement } from 'react';
 import { ScreenBase, ScreenBaseProps } from './ScreenBase';
 import { ScrollRestorationData } from './ScrollRestorationData';
+import { SharedElementLayer } from './SharedElementLayer';
 
 export interface RouterBaseProps<S extends ScreenBase = ScreenBase> {
     id?: string;
@@ -41,6 +42,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     public readonly parentScreen: ScreenBase | null = null;
     private _childRouter: WeakRef<RouterBase> | null = null;
     protected animationLayer = createRef<AnimationLayer>();
+    protected sharedElementLayer = createRef<SharedElementLayer>();
     private static rootRouterRef: WeakRef<RouterBase> | null = null;
     static readonly contextType = NestedRouterContext;
     context!: React.ContextType<typeof NestedRouterContext>;
@@ -260,11 +262,13 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         return (
             <div id={this.id} className="react-motion-router" style={{ width: '100%', height: '100%' }} ref={this.setRef}>
                 <RouterContext.Provider value={this}>
+                    <SharedElementLayer
+                        ref={this.sharedElementLayer}
+                        navigation={this.navigation}
+                    />
                     <AnimationLayer
                         ref={this.animationLayer}
                         navigation={this.navigation}
-                        currentScreen={this.state.currentScreen ?? null}
-                        nextScreen={this.state.nextScreen ?? null}
                     >
                         {this.children}
                     </AnimationLayer>

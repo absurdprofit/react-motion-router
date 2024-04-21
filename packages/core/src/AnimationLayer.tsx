@@ -1,4 +1,4 @@
-import { Children, Component, RefObject, createContext, createRef } from 'react';
+import { Children, Component, Ref, RefObject, createContext, createRef } from 'react';
 import { SwipeEndEvent, SwipeEvent, SwipeStartEvent } from 'web-gesture-events';
 import { clamp, interpolate } from './common/utils';
 import { NavigationBase, ScreenBase, ScreenChild } from './index';
@@ -15,8 +15,6 @@ export const AnimationLayerContext = createContext<AnimationLayer>(null!);
 interface AnimationLayerProps {
     children: ScreenChild | ScreenChild[];
     navigation: NavigationBase;
-    currentScreen: RefObject<ScreenBase> | null;
-    nextScreen: RefObject<ScreenBase> | null;
 }
 
 interface AnimationLayerState {
@@ -34,12 +32,12 @@ interface AnimationLayerState {
 }
 
 export class AnimationLayer extends Component<AnimationLayerProps, AnimationLayerState> {
-    protected sharedElementLayer = createRef<SharedElementLayer>();
     private ref: HTMLDivElement | null = null;
     private animation: Animation | null = null;
     private _timeline: AnimationTimeline = document.timeline;
     private _playbackRate: number = 1;
     private _direction: AnimationDirection = "normal";
+    private _screens: RefObject<ScreenBase>[] = new Array();
 
     state: AnimationLayerState = {
         progress: MAX_PROGRESS,
@@ -90,9 +88,12 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
 
     public async animate() {
         requestAnimationFrame(() => {
-            this.sharedElementLayer.current?.transition();
             this.transition();
         });
+    }
+
+    get screens() {
+        return this._screens;
     }
 
     get ready() {
@@ -119,6 +120,10 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
         return this.started
             .then(() => this.animation?.finished)
             .then(() => {return;});
+    }
+
+    set screens(screens: RefObject<ScreenBase>[]) {
+        this._screens = screens;
     }
 
     set timeline(timeline: AnimationTimeline) {
@@ -153,53 +158,36 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
             // cancel playing animation
             this.animation.cancel();
         }
-        const currentScreen = this.props.currentScreen?.current;
-        const nextScreen = this.props.nextScreen?.current;
+        const timeline = this.timeline;
+        
+        this.animation = new GroupAnimation(new ParallelEffect(
+            this.screens.map(screen => {
+                return screen.current?.animationProvider?.animationEffect ?? new KeyframeEffect(null, [], {})
+            })
+        ), timeline);
 
-        if (currentScreen?.animationProvider && nextScreen?.animationProvider && this.state.shouldAnimate) {
-            const timeline = this.timeline;
-            this.animation = new GroupAnimation(new ParallelEffect([
-                currentScreen.animationProvider.animationEffect ?? new KeyframeEffect(null, [], {}),
-                nextScreen.animationProvider.animationEffect ?? new KeyframeEffect(null, [], {})
-            ]), timeline);
-
-            if (this.animation) {
-                if (!this.state.shouldAnimate) {
-                    this.animation.finish();
-                    this.setState({ shouldAnimate: true });
-                    return;
-                }
-
-                await this.ready;
-
-                await Promise.all([
-                    await nextScreen.onEnter(),
-                    await currentScreen.onExit()
-                ]);
-
-                if (this.paused) {
-                    this.animation.pause();
-                } else {
-                    this.animation.play();
-                }
-                this.onTransitionStart();
-
-                await this.finished;
-
-                this.animation.commitStyles();
-                this.animation = null;
-
-                await nextScreen.animationProvider.setZIndex(1);
-
-                await Promise.all([
-                    await nextScreen.onEntered(),
-                    await currentScreen.onExited()
-                ]);
-
-                this.onTransitionEnd();
+        if (this.animation) {
+            if (!this.state.shouldAnimate) {
+                this.animation.finish();
+                this.setState({ shouldAnimate: true });
+                return;
             }
-        } else {
-            this.state.shouldAnimate = true;
+
+            await this.ready;
+
+            if (this.paused) {
+                this.animation.pause();
+            } else {
+                this.animation.play();
+            }
+            this.onTransitionStart();
+
+            await this.finished;
+
+            this.animation.commitStyles();
+            this.animation = null;
+
+            this.onTransitionEnd();
         }
     }
 
@@ -243,7 +231,6 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
             }, () => {
                 this.playbackRate = -1;
                 this.animation?.pause();
-                this.sharedElementLayer.current?.pause();
                 this.animate();
 
                 this.props.navigation.dispatchEvent(new MotionProgressStartEvent());
@@ -309,7 +296,6 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
 
         this.setState({ startX: 0, startY: 0 });
         this.animation?.play();
-        this.sharedElementLayer.current?.play();
         this.ref?.removeEventListener('swipe', this.onSwipe);
         this.ref?.removeEventListener('swipeend', this.onSwipeEnd);
         queueMicrotask(async () => {
@@ -334,17 +320,6 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
     render() {
         return (
             <AnimationLayerContext.Provider value={this}>
-                <SharedElementLayer
-                    ref={this.sharedElementLayer}
-                    animation={this.animation}
-                    navigation={this.props.navigation}
-                    paused={this.paused}
-                    playbackRate={this.playbackRate}
-                    timeline={this.timeline}
-                    direction={this.direction}
-                    currentScene={this.props.currentScreen?.current?.sharedElementScene}
-                    nextScene={this.props.nextScreen?.current?.sharedElementScene}
-                />
                 <div
                     className="animation-layer"
                     ref={this.setRef}
