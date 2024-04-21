@@ -2,7 +2,7 @@ import {
     NavigationBase,
     resolveBaseURLFromPattern,
 } from '@react-motion-router/core';
-import { GoBackOptions, GoForwardOptions, NavigateEventRouterState, NavigateOptions, NavigationProps } from './common/types';
+import { GoBackOptions, GoForwardOptions, HistoryEntryState, NavigateOptions, NavigationProps } from './common/types';
 import { BackEvent, ForwardEvent, NavigateEvent } from './common/events';
 import { HistoryEntry } from './HistoryEntry';
 import { Router } from './Router';
@@ -132,8 +132,8 @@ export class Navigation extends NavigationBase {
     get entries() {
         return this.globalEntries
             .filter(entry => {
-                if (!entry.url) return false;
-                return resolveBaseURLFromPattern(this.baseURLPattern.pathname, new URL(entry.url).pathname);
+                const { routerIds = [] } = entry.getState() as HistoryEntryState ?? {};
+                return routerIds.includes(this.routerId);
             })
             .map((entry, index) => {
                 return new HistoryEntry(entry, this.routerId, index);

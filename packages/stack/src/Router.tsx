@@ -2,7 +2,7 @@ import { RouterBase, includesRoute, matchRoute } from '@react-motion-router/core
 import type { NestedRouterContext, PlainObject, RouterBaseProps, RouterBaseState, ScreenChild } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { ScreenProps, Screen } from './Screen';
-import { NavigateEventRouterState } from './common/types';
+import { HistoryEntryState } from './common/types';
 import { Children, createRef, isValidElement, cloneElement } from 'react';
 
 export interface RouterProps extends RouterBaseProps {
@@ -213,12 +213,14 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
                 this.handleDefault(e);
             break;
         }
+
+        window.navigation.onnavigatesuccess = this.onNavigateSuccess;
     }
 
     private handleReplace(e: NavigateEvent) {
         const currentPath = this.state.currentPath;
         const nextPath = new URL(e.destination.url).pathname;
-        const { params: nextParams, config: nextConfig } = e.destination.getState() as NavigateEventRouterState ?? {};
+        const { params: nextParams, config: nextConfig } = e.destination.getState() as HistoryEntryState ?? {};
         if (currentPath === nextPath) {
             const currentScreen = this.state.currentScreen?.current;
             if (currentScreen) {
@@ -237,7 +239,7 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
 
     private handleReload(e: NavigateEvent) {
         const currentPath = new URL(e.destination.url).pathname;
-        const { params: currentParams, config: currentConfig } = e.destination.getState() as NavigateEventRouterState ?? {};
+        const { params: currentParams, config: currentConfig } = e.destination.getState() as HistoryEntryState ?? {};
 
         const handler = async () => {
             return new Promise<void>((resolve) => {
@@ -272,17 +274,14 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
         const currentIndex = window.navigation.currentEntry?.index ?? 0;
         const destinationIndex = e.destination.index;
         const backNavigating = destinationIndex >= 0 && destinationIndex < currentIndex;
-        const { params: nextParams, config: nextConfig } = e.destination.getState() as NavigateEventRouterState ?? {};
+        const { params: nextParams, config: nextConfig } = e.destination.getState() as HistoryEntryState ?? {};
         if (this.animationLayer.current)
             this.animationLayer.current.direction = backNavigating ? 'reverse' : 'normal';
         const handler = async () => {
             return new Promise<void>(async (resolve) => {
-                const transition = window.navigation.transition;
-                transition?.finished.then(this.onTransitionEnd);
                 this.setState({
                     nextPath,
                     backNavigating,
-                    transition
                 }, async () => {
                     const nextScreen = this.state.nextScreen?.current;
                     const currentScreen = this.state.currentScreen?.current;
@@ -330,12 +329,15 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
         }
     }
 
-    private onTransitionEnd = () => {
+    private onNavigateSuccess = () => {
         // so we can check entries later
+        const { routerIds = [], ...state } = window.navigation.currentEntry?.getState() as HistoryEntryState ?? {};
+        if (!routerIds.includes(this.id))
+            routerIds.push(this.id);
         window.navigation.updateCurrentEntry({
             state: {
-                ...window.navigation.currentEntry?.getState() ?? {},
-                routerId: this.id
+                ...state,
+                routerIds
             }
         });
     }

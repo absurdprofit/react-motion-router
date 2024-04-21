@@ -14,8 +14,8 @@ export type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
 
 export type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U;
 
-export interface NavigateEventRouterState {
+export interface HistoryEntryState {
 	config?: ScreenProps["config"];
 	params?: PlainObject;
-	routerId?: string;
+	routerIds?: string[];
 }
