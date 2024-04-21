@@ -132,8 +132,10 @@ export class Navigation extends NavigationBase {
     get entries() {
         return this.globalEntries
             .filter(entry => {
-                const { routerIds = [] } = entry.getState() as HistoryEntryState ?? {};
-                return routerIds.includes(this.routerId);
+                // const { routerIds = [] } = entry.getState() as HistoryEntryState ?? {};
+                // return routerIds.includes(this.routerId);
+                const pathname = new URL(entry.url!).pathname;
+                return resolveBaseURLFromPattern(this.baseURLPattern.pathname, pathname)
             })
             .map((entry, index) => {
                 return new HistoryEntry(entry, this.routerId, index);

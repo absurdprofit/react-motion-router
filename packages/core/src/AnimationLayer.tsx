@@ -8,9 +8,9 @@ import { DEFAULT_GESTURE_CONFIG, MAX_PROGRESS, MIN_PROGRESS } from './common/con
 import { SharedElementLayer } from './SharedElementLayer';
 import { GroupAnimation } from './common/group-animation';
 import { ParallelEffect } from './common/group-effect';
+import { AnimationLayerContext } from './AnimationLayerContext';
 
 export const Motion = createContext(0);
-export const AnimationLayerContext = createContext<AnimationLayer>(null!);
 
 interface AnimationLayerProps {
     children: ScreenChild | ScreenChild[];
@@ -50,20 +50,16 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
         ...DEFAULT_GESTURE_CONFIG,
     }
 
-    static getDerivedStateFromProps(props: AnimationLayerProps, state: AnimationLayerState) {
-        const config = props.currentScreen?.current?.routeData.config;
-        return {
-            swipeDirection: config?.swipeDirection ?? state.swipeDirection,
-            swipeAreaWidth: config?.swipeAreaWidth ?? state.swipeAreaWidth,
-            minFlingVelocity: config?.minFlingVelocity ?? state.minFlingVelocity,
-            hysteresis: config?.hysteresis ?? state.hysteresis,
-            disableDiscovery: config?.disableDiscovery ?? state.disableDiscovery
-        }
-    }
-
-    componentDidMount() {
-        this.props.currentScreen?.current?.animationProvider?.setZIndex(1);
-    }
+    // static getDerivedStateFromProps(props: AnimationLayerProps, state: AnimationLayerState) {
+    //     const config = props.currentScreen?.current?.routeData.config;
+    //     return {
+    //         swipeDirection: config?.swipeDirection ?? state.swipeDirection,
+    //         swipeAreaWidth: config?.swipeAreaWidth ?? state.swipeAreaWidth,
+    //         minFlingVelocity: config?.minFlingVelocity ?? state.minFlingVelocity,
+    //         hysteresis: config?.hysteresis ?? state.hysteresis,
+    //         disableDiscovery: config?.disableDiscovery ?? state.disableDiscovery
+    //     }
+    // }
 
     private onTransitionCancel() {
         this.props.navigation.dispatchEvent(new TransitionCancelEvent());

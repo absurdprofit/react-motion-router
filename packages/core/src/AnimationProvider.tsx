@@ -1,11 +1,9 @@
-import { AnimationLayerContext } from './AnimationLayer';
+import { AnimationLayerContext } from './AnimationLayerContext';
 import { AnimationEffectFactory, CustomElementType } from './common/types';
 import { NavigationBase } from './NavigationBase';
 import { Component, ElementType } from 'react';
 
 interface AnimationProviderProps {
-    in: boolean;
-    out: boolean;
     id: string;
     animation?: AnimationEffectFactory;
     keepAlive: boolean;
@@ -62,7 +60,7 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
         return animationEffectFactory?.({
             ref: this.ref,
             index: this.state.zIndex,
-            exiting: this.props.out,
+            exiting: false,
             timeline,
             direction,
             playbackRate

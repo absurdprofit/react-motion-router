@@ -1,3 +1,4 @@
+import { isValidElement } from 'react';
 import { NavigationBase } from '../NavigationBase';
 import { ScreenBase, ScreenBaseProps } from '../ScreenBase';
 import {
@@ -82,6 +83,11 @@ export function isValidComponentConstructor(value: any): value is React.Componen
     if (value === null) return false;
     return typeof value === 'function' ||
         (typeof value === 'object' && value.$$typeof === Symbol.for('react.lazy'));
+}
+
+export function isValidScreenChild(value: any): value is ScreenChild {
+    if (!isValidElement(value)) return false;
+    return Object.getPrototypeOf(value.type) === ScreenBase;
 }
 
 export type PlainObject<T = any> = { [key: string]: T };

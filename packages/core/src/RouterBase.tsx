@@ -24,11 +24,7 @@ export interface RouterBaseProps<S extends ScreenBase = ScreenBase> {
     children: ScreenChild<S["props"], S> | ScreenChild<S["props"], S>[];
 }
 
-export interface RouterBaseState<S extends ScreenBase = ScreenBase, N extends NavigationBase = NavigationBase> {
-    previousScreen?: RefObject<S>;
-    currentScreen?: RefObject<S>;
-    nextScreen?: RefObject<S>;
-    children: ScreenChild<S["props"], S> | ScreenChild<S["props"], S>[];
+export interface RouterBaseState<N extends NavigationBase = NavigationBase> {
     defaultDocumentTitle: string;
     documentTitle: string;
     navigation: N;
@@ -72,7 +68,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     state: S = {
         defaultDocumentTitle: document.title,
         documentTitle: document.title,
-        children: this.props.children,
     } as S;
 
     async componentDidMount() {
@@ -178,14 +173,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         return `${prefix}${id}`;
     }
 
-    get currentScreen() {
-        return this.state.currentScreen?.current;
-    }
-
-    get nextScreen() {
-        return this.state.nextScreen?.current;
-    }
-
     get isRoot() {
         return !this.parentRouter;
     }
@@ -225,7 +212,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         return Boolean(this.ref);
     }
 
-    get navigation() {
+    get navigation(): S["navigation"] {
         return this.state.navigation;
     }
 

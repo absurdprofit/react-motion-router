@@ -20,8 +20,6 @@ export interface RouteProps<P extends ScreenBaseProps, N extends NavigationBase>
 }
 
 export interface ScreenBaseProps {
-    out?: boolean;
-    in?: boolean;
     component: React.JSXElementConstructor<any> | LazyExoticComponent<any>;
     fallback?: React.ReactNode;
     path: string;
@@ -73,21 +71,8 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     }
 
     state: S = {
-        shouldKeepAlive: this.props.out && this.props.config?.keepAlive,
+        shouldKeepAlive: this.props.config?.keepAlive,
     } as S;
-
-    shouldComponentUpdate(nextProps: P) {
-        if (nextProps.out && !nextProps.in) {
-            return true;
-        }
-        if (nextProps.in && !nextProps.out) {
-            return true;
-        }
-        if (nextProps.in !== this.props.in || nextProps.out !== this.props.out) {
-            return true;
-        }
-        return false;
-    }
 
     protected setParams(params: PlainObject) {
         params = {
@@ -135,7 +120,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     }
 
     get routeData() {
-        const focused = Boolean(this.props.in);
+        const focused = Boolean(this.animationProvider?.state.zIndex === 1);
         const resolvedPathname = this.props.resolvedPathname;
         const setConfig = this.setConfig.bind(this);
         const setParams = this.setParams.bind(this);
@@ -176,7 +161,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     }
 
     onEnter() {
-        this.sharedElementScene.previousScene = this.context!.currentScreen?.sharedElementScene ?? null;
+        // this.sharedElementScene.previousScene = this.context!.currentScreen?.sharedElementScene ?? null;
         return this.routeData.config.onEnter?.({
             route: this.routeData,
             navigation: this.context!.navigation
@@ -220,8 +205,6 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
             <AnimationProvider
                 ref={this._animationProvider}
                 renderAs={this.elementType}
-                in={Boolean(this.props.in)}
-                out={Boolean(this.props.out)}
                 id={`${this.id}-animation-provider`}
                 animation={routeData.config.animation}
                 keepAlive={this.state.shouldKeepAlive ? Boolean(routeData.config.keepAlive) : false}
