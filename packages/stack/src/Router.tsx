@@ -20,6 +20,7 @@ export interface RouterProps extends RouterBaseProps {
 export interface RouterState extends RouterBaseState<Navigation> {
     backNavigating: boolean;
     transition: NavigationTransition | null;
+    destination: NavigationDestination | null;
     screenStack: ScreenChild<ScreenProps, Screen>[]
 }
 
@@ -168,6 +169,7 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
 
         const navigation = new Navigation(this);
         this.state.navigation = navigation;
+        this.state.screenStack = [];
     }
 
     // static getDerivedStateFromProps(props: RouterProps, state: RouterState) {
@@ -175,7 +177,13 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
     // }
 
     protected get children() {
-        return this.state.screenStack;
+        return this.state.screenStack
+            .filter(screen => {
+                return screen.props.config?.keepAlive
+                    || screen.key === this.navigation.current.key
+                    || screen.key === this.state.transition?.from.key
+                    || screen.key === this.state.destination?.key;
+            });
     }
 
     private screenFromPathname(pathname: string) {
@@ -189,6 +197,16 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
                     child.props.caseSensitive
                 );
             });
+    }
+
+    private getScreenRefByKey(key: string) {
+        const screen = this.state.screenStack.find(screen => screen.key === key)?.ref;
+        if (
+            screen !== null
+            && typeof screen === 'object'
+            && screen.hasOwnProperty('current')
+        ) return screen;
+        return null;
     }
 
     protected canIntercept(e: NavigateEvent): boolean {
@@ -231,29 +249,16 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
     }
 
     private handleReplace(e: NavigateEvent) {
-        // const currentPath = this.state.currentPath;
-        // const nextPath = new URL(e.destination.url).pathname;
-        // const { params: nextParams, config: nextConfig } = e.destination.getState() as HistoryEntryState ?? {};
-        // if (currentPath === nextPath) {
-        //     const currentScreen = this.state.currentScreen?.current;
-        //     if (currentScreen) {
-        //         const path = currentScreen.props.path;
-        //         const routeData = this.routesData.get(path);
-        //         this.routesData.set(path, {
-        //             params: { ...routeData?.params, ...nextParams },
-        //             config: { ...routeData?.config, ...nextConfig },
-        //         });
-        //     }
-        //     e.intercept({ handler: () => Promise.resolve() });
-        // } else {
-        //     this.handleDefault(e);
-        // }
+        if (e.destination.index === this.navigation.index) {
+            this.handleReload(e);
+        } else {
+            this.handleDefault(e);
+        }
     }
 
     private handleReload(e: NavigateEvent) {
         const handler = async () => {
             return new Promise<void>((resolve) => {
-                const currentScreen = createRef<ScreenBase>();
                 const screenStack = new Array<ScreenChild>();
                 this.navigation.entries.forEach(entry => {
                     if (!entry.url) return null;
@@ -273,19 +278,15 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
                             },
                             resolvedPathname: entry.url.pathname,
                             key: entry.key,
-                            ref: currentScreen
+                            ref: createRef<ScreenBase>()
                         })
                     );
                 });
 
-                console.log({ screenStack });
-                
                 this.setState({ screenStack }, async () => {
-                    if (!currentScreen.current) return;
-                    console.log(currentScreen);
-
-                    await currentScreen.current.animationProvider?.setZIndex(1)
-                    await currentScreen.current.load();
+                    const currentScreen = this.getScreenRefByKey(this.navigation.current.key);
+                    await currentScreen?.current?.animationProvider?.setZIndex(1)
+                    await currentScreen?.current?.load();
                     resolve();
                 });
             });
@@ -295,64 +296,98 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
     }
 
     private handleDefault(e: NavigateEvent) {
-        // const currentPath = this.state.currentPath;
-        // const nextPath = new URL(e.destination.url).pathname;
-        // const currentIndex = window.navigation.currentEntry?.index ?? 0;
-        // const destinationIndex = e.destination.index;
-        // const backNavigating = destinationIndex >= 0 && destinationIndex < currentIndex;
-        // const { params: nextParams, config: nextConfig } = e.destination.getState() as HistoryEntryState ?? {};
-        // if (this.animationLayer.current)
-        //     this.animationLayer.current.direction = backNavigating ? 'reverse' : 'normal';
-        // const handler = async () => {
-        //     return new Promise<void>(async (resolve) => {
-        //         this.setState({
-        //             nextPath,
-        //             backNavigating,
-        //         }, async () => {
-        //             const nextScreen = this.state.nextScreen?.current;
-        //             const currentScreen = this.state.currentScreen?.current;
-        //             if (nextScreen) {
-        //                 const path = nextScreen.props.path;
-        //                 const routeData = this.routesData.get(path);
-        //                 this.routesData.set(path, {
-        //                     params: { ...routeData?.params, ...nextParams },
-        //                     config: { ...routeData?.config, ...nextConfig },
-        //                 });
-        //             }
-            
-        //             if (this.state.backNavigating) {
-        //                 await Promise.all([
-        //                     nextScreen?.animationProvider?.setZIndex(0),
-        //                     currentScreen?.animationProvider?.setZIndex(1)
-        //                 ]);
-        //             } else {
-        //                 await Promise.all([
-        //                     nextScreen?.animationProvider?.setZIndex(1),
-        //                     currentScreen?.animationProvider?.setZIndex(0)
-        //                 ]);
-        //             }
-        //             this.animationLayer.current?.animate();
-        //             await this.animationLayer.current?.finished;
-        //             await this.state.nextScreen?.current?.load();
-        //             this.setState({
-        //                 previousPath: currentPath,
-        //                 currentPath: nextPath,
-        //                 previousScreenKey: this.state.currentScreenKey,
-        //                 currentScreenKey: window.navigation.currentEntry?.key,
-        //                 nextPath: undefined,
-        //                 transition: null,
-        //                 backNavigating: false
-        //             });
-        //             resolve();
-        //         });
-        //     });
-        // }
-        // if (this.props.config.disableBrowserRouting) {
-        //     e.preventDefault();
-        //     handler();
-        // } else {
-        //     e.intercept({ handler });
-        // }
+        const destinationPathname = new URL(e.destination.url).pathname;
+        const currentIndex = window.navigation.currentEntry?.index ?? 0;
+        const destinationIndex = e.destination.index;
+        const backNavigating = destinationIndex >= 0 && destinationIndex < currentIndex;
+        const screen = this.screenFromPathname(destinationPathname);
+        const screenStack = this.state.screenStack;
+        const handler = async () => {
+            const { params, config } = e.destination.getState() as HistoryEntryState ?? {};
+            const transition = window.navigation.transition;
+            const destination = e.destination;
+            const resolvedPathname = new URL(e.destination.url).pathname;
+            if (e.navigationType !== "traverse") {
+                if (isValidScreenChild(screen)) {
+                    screenStack.splice(
+                        destinationIndex,
+                        screenStack.length - destinationIndex,
+                        cloneElement(screen, {
+                            config: {
+                                ...this.props.config.screenConfig,
+                                ...screen.props.config,
+                                ...config
+                            },
+                            defaultParams: {
+                                ...screen.props.defaultParams,
+                                ...params,
+                            },
+                            resolvedPathname,
+                            key: destination.key,
+                            ref: createRef<ScreenBase>()
+                        })
+                    );
+                } else {
+                    return e.preventDefault();
+                }
+            }
+
+            transition?.finished.then(() => {
+                if (destination.key === "" && isValidScreenChild(screen)) {
+                    screenStack.splice(
+                        destinationIndex,
+                        1,
+                        cloneElement(screen, {
+                            config: {
+                                ...this.props.config.screenConfig,
+                                ...screen.props.config,
+                                ...config
+                            },
+                            defaultParams: {
+                                ...screen.props.defaultParams,
+                                ...params,
+                            },
+                            resolvedPathname,
+                            key: window.navigation.currentEntry?.key,
+                            ref: createRef<ScreenBase>()
+                        })
+                    );
+                }
+                this.setState({ screenStack, destination: null, transition: null });
+            });
+
+            return new Promise<void>((resolve) => this.setState({ destination, transition, screenStack }, async () => {
+                const outgoingKey = transition?.from.key;
+                const incomingKey = destination.key;
+                const outgoingScreen = this.getScreenRefByKey(String(outgoingKey));
+                const incomingScreen = this.getScreenRefByKey(String(incomingKey));
+                if (backNavigating) {
+                    await Promise.all([
+                        incomingScreen?.current?.animationProvider?.setZIndex(0),
+                        outgoingScreen?.current?.animationProvider?.setZIndex(1)
+                    ]);
+                } else {
+                    await Promise.all([
+                        incomingScreen?.current?.animationProvider?.setZIndex(1),
+                        outgoingScreen?.current?.animationProvider?.setZIndex(0)
+                    ]);
+                }
+                if (this.animationLayer.current && incomingScreen && outgoingScreen) {
+                    this.animationLayer.current.direction = backNavigating ? 'reverse' : 'normal';
+                    this.animationLayer.current.screens = [
+                        incomingScreen,
+                        outgoingScreen
+                    ];
+                    this.animationLayer.current?.animate();
+                    await this.animationLayer.current?.finished;
+                }
+                await incomingScreen?.current?.load();
+                await incomingScreen?.current?.animationProvider?.setZIndex(1);
+                resolve();
+            }));
+        }
+
+        e.intercept({ handler });
     }
 
     private onNavigateSuccess = () => {
