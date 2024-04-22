@@ -90,6 +90,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     }
 
     private handleNavigationDispatch = (e: NavigateEvent) => {
+        if (!this.canIntercept(e)) return;
         let router: RouterBase = this;
         // travel down router tree to find the correct router
         while (router.childRouter?.canIntercept(e)) {
