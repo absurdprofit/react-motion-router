@@ -158,40 +158,38 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
     }
 
     private handleDefault(e: NavigateEvent) {
+        const screenStack = this.state.screenStack;
         const destinationPathname = new URL(e.destination.url).pathname;
         const currentIndex = window.navigation.currentEntry?.index ?? 0;
-        const destinationIndex = e.destination.index;
+        const destinationIndex = screenStack.findIndex(screen => screen.key === e.destination.key);
         const backNavigating = destinationIndex >= 0 && destinationIndex < currentIndex;
-        const screen = this.screenChildFromPathname(destinationPathname);
-        const screenStack = this.state.screenStack;
+        const destinationScreen = this.screenChildFromPathname(destinationPathname);
+        if (!isValidScreenChild(destinationScreen)) return e.preventDefault();
         const handler = async () => {
             const { params, config } = e.destination.getState() as HistoryEntryState ?? {};
             const transition = window.navigation.transition;
             const destination = e.destination;
             const resolvedPathname = new URL(e.destination.url).pathname;
-            if (e.navigationType !== "traverse") {
-                if (isValidScreenChild(screen)) {
-                    screenStack.splice(
-                        destinationIndex,
-                        screenStack.length - destinationIndex,
-                        cloneElement(screen, {
-                            config: {
-                                ...this.props.config.screenConfig,
-                                ...screen.props.config,
-                                ...config
-                            },
-                            defaultParams: {
-                                ...screen.props.defaultParams,
-                                ...params,
-                            },
-                            resolvedPathname,
-                            key: window.navigation.currentEntry?.key,
-                            ref: createRef<ScreenBase>()
-                        })
-                    );
-                } else {
-                    return e.preventDefault();
-                }
+            const fromIndex = screenStack.findIndex(screen => screen.key === transition?.from.key);
+            if (e.navigationType === "push" || e.navigationType === "replace") {
+                screenStack.splice(
+                    fromIndex + 1,
+                    Infinity,
+                    cloneElement(destinationScreen, {
+                        config: {
+                            ...this.props.config.screenConfig,
+                            ...destinationScreen.props.config,
+                            ...config
+                        },
+                        defaultParams: {
+                            ...destinationScreen.props.defaultParams,
+                            ...params,
+                        },
+                        resolvedPathname,
+                        key: window.navigation.currentEntry?.key,
+                        ref: createRef<ScreenBase>()
+                    })
+                );
             }
 
             return new Promise<void>((resolve) => this.setState({ destination, transition, screenStack }, async () => {
