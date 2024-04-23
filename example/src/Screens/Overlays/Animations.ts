@@ -32,7 +32,7 @@ export function HomeAnimation({ref, direction, playbackRate, index}: AnimationEf
 		duration,
 		direction,
 		playbackRate,
-		fill: direction === "normal" ? "forwards" : "backwards"
+		fill: "both"
 	};
     const scaleUp = [
         {
