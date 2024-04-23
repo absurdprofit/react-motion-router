@@ -82,12 +82,6 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
         this.setState({ progress });
     }
 
-    public async animate() {
-        requestAnimationFrame(() => {
-            this.transition();
-        });
-    }
-
     get screens() {
         return this._screens;
     }
@@ -149,7 +143,7 @@ export class AnimationLayer extends Component<AnimationLayerProps, AnimationLaye
         return this._direction;
     }
 
-    private async transition() {
+    public async animate() {
         if (this.animation) {
             // cancel playing animation
             this.animation.cancel();

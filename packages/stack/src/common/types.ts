@@ -1,5 +1,6 @@
 import { NavigationBaseOptions, NavigationBaseProps, PlainObject } from "@react-motion-router/core";
 import { ScreenProps } from "../Screen";
+import { RefObject } from "react";
 
 export interface NavigateOptions extends NavigationBaseOptions {
 	type?: "push" | "replace";
@@ -18,4 +19,13 @@ export interface HistoryEntryState {
 	config?: ScreenProps["config"];
 	params?: PlainObject;
 	routerIds?: string[];
+}
+
+export function isRefObject<T>(value: React.LegacyRef<T>): value is RefObject<T> {
+	if (
+		value !== null
+		&& typeof value === 'object'
+		&& value.hasOwnProperty('current')
+	) return true;
+	return false;
 }

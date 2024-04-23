@@ -20,9 +20,11 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
     private _ref: HTMLElement | null = null;
     static readonly contextType = AnimationLayerContext;
     context!: React.ContextType<typeof AnimationLayerContext>;
+    public index = 0;
+    public exiting = false;
 
     state: AnimationProviderState = {
-        zIndex: 0
+        zIndex: 0,
     }
 
     onRef = (ref: HTMLElement | null) => {
@@ -56,11 +58,12 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
     get animationEffect() {
         const animationEffectFactory = this.props.animation;
         const { timeline, direction, playbackRate } = this.context!;
+        const { index, exiting, ref } = this;
 
         return animationEffectFactory?.({
-            ref: this.ref,
-            index: this.state.zIndex,
-            exiting: false,
+            ref,
+            index,
+            exiting,
             timeline,
             direction,
             playbackRate
