@@ -9,10 +9,11 @@ import {
     isValidComponentConstructor
 } from "./common/types";
 import { NestedRouterContext, RouterContext } from "./RouterContext";
-import { SharedElementScene, SharedElementSceneContext } from "./SharedElement";
 import { RouteDataContext } from "./RouteData";
 import { NavigationBase } from "./NavigationBase";
 import { RouterBase } from "./RouterBase";
+import { SharedElementSceneContext } from "./SharedElementSceneContext";
+import { SharedElementScene } from "./SharedElementScene";
 
 export interface RouteProps<P extends ScreenBaseProps, N extends NavigationBase> {
     route: RouteData<P, PlainObject>;

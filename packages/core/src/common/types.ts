@@ -12,6 +12,7 @@ import {
     TransitionEndEvent,
     TransitionStartEvent
 } from './events';
+import { SharedElement } from '../SharedElement';
 
 export type ScreenChild<P extends ScreenBaseProps = ScreenBaseProps, E extends ScreenBase<P> = ScreenBase<P>> = React.CElement<P, E>;
 
@@ -130,3 +131,55 @@ export interface PathPattern {
 }
 
 export type AnimationDirection = "normal" | "reverse";
+
+//https://developer.mozilla.org/en-US/docs/Web/CSS/transform-origin#formal_syntax
+//https://stackoverflow.com/questions/51445767/how-to-define-a-regex-matched-string-type-in-typescript
+enum TransformOriginKeywordEnum {
+    center,
+    top,
+    bottom,
+    left,
+    right,
+};
+
+enum TransformOriginLengthUnitEnum {
+    cap, ch, em, ex, ic, lh, rem, rlh, //relative length
+    vh, vw, vi, vb, vmin, vmax,       //viewport percentage length
+    px, cm, mm, Q, in, pc, pt,       //absolute length
+    '%'
+}
+
+enum TransformOriginGlobalEnum {
+    initial,
+    inherit,
+    revert,
+    unset
+}
+
+enum TransitionAnimationEnum {
+    "morph",
+    "fade-through",
+    "fade",
+    "cross-fade"
+}
+
+export type TransitionAnimation = keyof typeof TransitionAnimationEnum;
+
+export type TransformOriginGlobal = keyof typeof TransformOriginGlobalEnum;
+
+export type TransformOriginLengthUnit = keyof typeof TransformOriginLengthUnitEnum;
+//e.g. 20px, 20%, 20rem
+export type TransformOriginLength = `${number}${TransformOriginLengthUnit}` | 0;
+
+export type TransformOriginKeyword = keyof typeof TransformOriginKeywordEnum;
+export type OneValueTransformOrigin = TransformOriginKeyword | TransformOriginLength;
+export type TwoValueTransformOrigin = `${OneValueTransformOrigin} ${OneValueTransformOrigin}`;
+export type ThreeValueTransformOrigin = `${OneValueTransformOrigin} ${OneValueTransformOrigin} ${TransformOriginLength}`;
+export type TransformOrigin = TransformOriginGlobal | OneValueTransformOrigin | TwoValueTransformOrigin | ThreeValueTransformOrigin;
+
+export interface SharedElementNode {
+    id: string;
+    instance: SharedElement;
+}
+
+export type SharedElementNodeMap = Map<string, SharedElementNode>;
