@@ -9,6 +9,7 @@ type Presentation = "default" | "dialog" | "modal";
 export interface ScreenProps extends ScreenBaseProps {
     config?: ScreenBaseProps["config"] & {
         presentation?: Presentation;
+        keepAlive?: boolean;
     }
 }
 

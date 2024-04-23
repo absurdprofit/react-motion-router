@@ -6,7 +6,6 @@ import { Component, ElementType } from 'react';
 interface AnimationProviderProps {
     id: string;
     animation?: AnimationEffectFactory;
-    keepAlive: boolean;
     children: React.ReactNode
     navigation: NavigationBase;
     renderAs: ElementType | CustomElementType;

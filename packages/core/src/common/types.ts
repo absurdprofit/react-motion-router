@@ -58,7 +58,7 @@ export interface LazyExoticComponent<T extends React.ComponentType<any>> extends
     load: () => Promise<{ default: T }>;
 }
 
-export type RoutesData<P extends ScreenBaseProps = ScreenBaseProps> = Map<string | undefined, Pick<RouteData<P, PlainObject>, "config" | "params">>;
+export type RoutesData<P extends ScreenBaseProps = ScreenBaseProps> = Map<string, Pick<RouteData<P, PlainObject>, "config" | "params">>;
 
 export interface RouteData<P extends ScreenBaseProps = ScreenBaseProps, T extends PlainObject = PlainObject> {
     path: string;

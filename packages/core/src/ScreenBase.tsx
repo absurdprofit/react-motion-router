@@ -38,7 +38,6 @@ export interface ScreenBaseProps {
             component: React.JSXElementConstructor<any> | LazyExoticComponent<any>
         };
         animation?: AnimationEffectFactory;
-        keepAlive?: boolean;
         swipeDirection?: SwipeDirection;
         swipeAreaWidth?: number;
         minFlingVelocity?: number;
@@ -52,9 +51,7 @@ export interface ScreenBaseProps {
     }
 }
 
-export interface ScreenBaseState {
-    shouldKeepAlive: boolean;
-}
+export interface ScreenBaseState {}
 
 export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState> extends Component<P, S> {
     public readonly sharedElementScene: SharedElementScene;
@@ -69,10 +66,6 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
 
         this.sharedElementScene = new SharedElementScene(`${this.id}-shared-element-scene`);
     }
-
-    state: S = {
-        shouldKeepAlive: this.props.config?.keepAlive,
-    } as S;
 
     protected setParams(params: PlainObject) {
         params = {
@@ -119,7 +112,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         return result;
     }
 
-    get routeData() {
+    get routeData(): RouteData<this["props"]> {
         const focused = Boolean(this.animationProvider?.state.zIndex === 1);
         const resolvedPathname = this.props.resolvedPathname;
         const setConfig = this.setConfig.bind(this);
@@ -128,12 +121,12 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         return {
             path,
             params: {
-                ...this.props.defaultParams, // passed as prop
-                ...this.context!.routesData.get(this.props.path)?.params // passed by other screens using navigate
+                ...this.props.defaultParams,
+                ...this.context!.routesData.get(this.props.path)?.params
             },
             config: {
-                ...this.props.config, // passed as prop
-                ...this.context!.routesData.get(this.props.path)?.config // passed by other screens using navigate
+                ...this.props.config,
+                ...this.context!.routesData.get(this.props.path)?.config as Partial<NonNullable<this["props"]["config"]>>
             },
             focused,
             resolvedPathname,
@@ -200,14 +193,12 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         const HeaderComponent = routeData.config.header?.component;
         const FooterComponent = routeData.config.footer?.component;
 
-        this.sharedElementScene.keepAlive = Boolean(routeData.config.keepAlive);
         return (
             <AnimationProvider
                 ref={this._animationProvider}
                 renderAs={this.elementType}
                 id={`${this.id}-animation-provider`}
                 animation={routeData.config.animation}
-                keepAlive={this.state.shouldKeepAlive ? Boolean(routeData.config.keepAlive) : false}
                 navigation={this.context!.navigation}
             >
                 <div
