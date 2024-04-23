@@ -208,7 +208,7 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
                 const incomingKey = window.navigation.currentEntry?.key;
                 const outgoingScreen = this.getScreenRefByKey(String(outgoingKey));
                 const incomingScreen = this.getScreenRefByKey(String(incomingKey));
-                if (e.navigationType === "push" || e.navigationType === "replace") {
+                if (!backNavigating) {
                     await this.setZIndices();
                 }
                 
