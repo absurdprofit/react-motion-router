@@ -1,8 +1,9 @@
-import { SharedElementNode, SharedElementNodeMap, Vec2 } from "./common/types";
+import { SharedElement } from "./SharedElement";
+import { Vec2 } from "./common/types";
 
 export class SharedElementScene {
 	public readonly id: string;
-	public readonly nodes: SharedElementNodeMap = new Map<string, SharedElementNode>();
+	public readonly nodes = new Map<string, SharedElement>();
 	public scrollPos: Vec2 | null = {
 		x: 0,
 		y: 0
@@ -16,7 +17,7 @@ export class SharedElementScene {
 		this.id = id;
 	}
 
-	addNode(node: SharedElementNode | null) {
+	addNode(node: SharedElement | null) {
 		if (!node) return;
 		console.assert(!this.nodes.has(node.id), `Duplicate Shared Element ID: ${node.id} in ${this.id}`);
 		this.nodes.set(node.id, node);

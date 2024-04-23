@@ -1,45 +1,16 @@
-import { Component, createContext } from 'react';
+import { Component, createContext, createRef } from 'react';
 import { getCSSData } from './common/utils';
 import { EasingFunction, PlainObject, SharedElementNode, SharedElementNodeMap, TransformOrigin, TransitionAnimation, Vec2 } from './common/types';
 import { SharedElementSceneContext } from './SharedElementSceneContext';
 import { createPortal } from 'react-dom';
-
-
-function nodeFromRef(
-    id: string,
-    _ref: Element,
-    instance: SharedElement
-): SharedElementNode | null {
-    const firstChild = _ref.firstElementChild as HTMLElement;
-
-    if (!firstChild) return null;
-
-    if (instance.props.config && instance.props.config.transformOrigin) {
-        firstChild.style.transformOrigin = instance.props.config.transformOrigin;
-    }
-
-    return {
-        id: id,
-        instance: instance
-    };
-}
+import { ParallelEffect } from './common/group-effect';
 
 interface SharedElementConfig {
     type?: TransitionAnimation;
-    transformOrigin?: TransformOrigin;
-    easingFunction?: EasingFunction;
+    transformOrigin?: React.CSSProperties["transformOrigin"];
+    easing?: React.CSSProperties["animationTimingFunction"];
     duration?: number;
     delay?: number;
-    x?: {
-        delay?: number;
-        duration?: number;
-        easingFunction?: EasingFunction
-    };
-    y?: {
-        delay?: number;
-        duration?: number;
-        easingFunction?: EasingFunction
-    };
 }
 
 interface SharedElementProps {
@@ -57,41 +28,27 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
     static readonly contextType = SharedElementSceneContext;
     context!: React.ContextType<typeof SharedElementSceneContext>;
 
+    componentDidMount(): void {
+        this.scene.addNode(this);
+    }
+
+    componentDidUpdate(prevProps: SharedElementProps) {
+        if (this.props.id !== prevProps.id) {
+            this.scene.removeNode(prevProps.id.toString());
+            this.scene.addNode(this);
+        }
+    }
+
+    componentWillUnmount(): void {
+        this.scene.removeNode(this.id);
+    }
+
     get canTransition() {
-        return Boolean(this.scene.previousScene?.nodes.has(this.id)) && this.scene.canTransition;
+        return Boolean(this.scene.previousScene?.nodes.has(this.id)) && !this.props.disabled && this.scene.canTransition;
     }
 
     get scene() {
         return this.context!;
-    }
-
-    get node() {
-        if (this.ref) {
-            if (
-                this.ref.firstElementChild instanceof HTMLVideoElement
-                && (this.transitionType ?? "morph") === "morph"
-            ) {
-                return this.ref;
-            }
-            return this.ref.cloneNode(true) as HTMLElement;
-        }
-        else return null;
-    }
-
-    get rect() {
-        if (this.ref && this.ref.firstElementChild) {
-            const clientRect = this.ref.firstElementChild.getBoundingClientRect();
-            return clientRect;
-        }
-        return new DOMRect();
-    }
-
-    get CSSData(): [string, PlainObject<string>] {
-        return ['', {}];
-    }
-
-    get CSSText(): string {
-        return '';
     }
 
     get id() {
@@ -103,59 +60,23 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
     }
 
     get animationEffect() {
-        return null;
+        const startNode = this.scene.previousScene?.nodes.get(this.id)?.ref?.firstElementChild;
+        const endNode = this.ref?.firstElementChild;
+        console.log({ startNode, endNode });
+        return new ParallelEffect([]);
     }
 
-    onCloneAppended = (e: HTMLElement) => { }
-
-    onCloneRemove = (e: HTMLElement) => {
-        if (this.ref?.firstElementChild instanceof HTMLVideoElement) {
-            const node = e.firstElementChild as HTMLVideoElement;
-            this.ref.firstElementChild.currentTime = node.currentTime;
-            if (!node.paused) {
-                node.pause();
-            }
-        }
-    }
-
-    keepAlive(keepAlive: boolean): Promise<void> {
-        return new Promise((resolve) => {
-            this.setState({ keepAlive }, resolve);
-        });
-    }
-
-    hidden(hidden: boolean): Promise<void> {
-        return new Promise((resolve) => {
-            this.setState({ hidden }, resolve);
-        });
-    }
-
-    private onRef = (ref: HTMLDivElement | null) => {
+    setRef = (ref: HTMLDivElement | null) => {
         if (this.ref !== ref) {
-            if (this.ref) {
-                this.scene.removeNode(this.id);
-            }
             this.ref = ref;
-
-            if (ref && !this.props.disabled) {
-                this.scene.addNode(nodeFromRef(this.id, ref, this));
-            }
-
             this.forceUpdate();
         }
-
     }
-
-    componentDidUpdate() {
-        if (this.props.disabled && this.scene.nodes.has(this.id)) {
-            this.scene.removeNode(this.id);
-        }
-    }
-
+    
     render() {
         return (
             <div
-                ref={this.onRef}
+                ref={this.setRef}
                 id={`shared-element-${this.id}`}
             >
                 {this.ref && createPortal(this.props.children, this.ref, this.id)}

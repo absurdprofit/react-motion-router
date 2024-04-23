@@ -1,7 +1,7 @@
 import { clamp, interpolate } from './common/utils';
 import { AnimationDirection, EasingFunction, PlainObject, ScreenChild, SharedElementNode } from './common/types';
 import { MotionProgressEvent } from './common/events';
-import { Component, RefObject } from 'react';
+import { Component, RefObject, createRef } from 'react';
 import { MAX_PROGRESS, MAX_Z_INDEX, MIN_PROGRESS } from './common/constants';
 import { NavigationBase } from './NavigationBase';
 import { ScreenBase } from './ScreenBase';
@@ -10,33 +10,19 @@ interface SharedElementLayerProps {
     navigation: NavigationBase;
 }
 
-interface SharedElementLayerState {
-    transitioning: boolean;
-}
+interface SharedElementLayerState {}
 
-interface TransitionXYState {
+interface TransitionState {
     delay: number;
     duration: string | CSSNumberish | undefined;
-    easingFunction: EasingFunction;
+    easing: EasingFunction;
     position: number;
     node: HTMLElement;
 }
 
-interface TransitionState {
-    id: string;
-    start: {
-        x: TransitionXYState;
-        y: TransitionXYState;
-    };
-    end: {
-        x: TransitionXYState;
-        y: TransitionXYState;
-    }
-}
-
 export class SharedElementLayer extends Component<SharedElementLayerProps, SharedElementLayerState> {
-    private ref: HTMLDialogElement | null = null;
-    private animations: Animation[] = [];
+    private readonly ref = createRef<HTMLDialogElement>();
+    private animation: Animation | null = null;
     private _timeline: AnimationTimeline = document.timeline;
     private _playbackRate: number = 1;
     private _outgoingScreen: RefObject<ScreenBase> | null = null;
@@ -48,12 +34,12 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
 
     set timeline(timeline: AnimationTimeline) {
         this._timeline = timeline;
-        // if (this.animation) this.animation.timeline = timeline;
+        if (this.animation) this.animation.timeline = timeline;
     }
 
     set playbackRate(playbackRate: number) {
         this._playbackRate = playbackRate;
-        // if (this.animation) this.animation.playbackRate = playbackRate;
+        if (this.animation) this.animation.playbackRate = playbackRate;
     }
 
     set outgoingScreen(outgoingScreen: RefObject<ScreenBase> | null) {
@@ -80,284 +66,42 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
         return this._playbackRate;
     }
 
-    get finished() {
-        return Promise.all(this.animations.map(animation => animation.finished));
+    get ready() {
+        return this.animation?.ready.then(() => {return;}) ?? Promise.resolve();
     }
 
-    pause() {
-        this.animations.forEach(animation => {
-            animation.playbackRate = this.playbackRate;
-            return animation.pause();
-        });
-    }
-
-    play() {
-        this.animations.forEach(animation => {
-            animation.playbackRate = this.playbackRate;
-            return animation.play();
-        });
-    }
-
-    finish() {
-        const playbackRate = this.playbackRate;
-        return Promise.all(
-            this.animations.map(animation => {
-                animation.playbackRate = playbackRate;
-                animation.finish();
-                return animation.finished;
-            })
-        );
-    }
-
-    setupTransition() {
+    get started() {
         return new Promise<void>((resolve) => {
-            this.setState({transitioning: true}, resolve);
+            this.props.navigation.addEventListener('transition-start', () => {
+                resolve()
+            }, { once: true });
         });
     }
 
-    setupNode(start: SharedElementNode, end: SharedElementNode) {
-        const id = start.id;
-        const endInstance = end.instance;
-        const startInstance = start.instance;
-        const transitionType = endInstance.transitionType || startInstance.transitionType || 'morph';
-        const startNode = start.instance.node;
-        const endNode = end.instance.node;
-        if (!startNode || !endNode) return;
-        const startChild = startNode.firstElementChild as HTMLElement | undefined;
-        const endChild = endNode.firstElementChild as HTMLElement | undefined;
-        if (!startChild || !endChild) return;
-        const startRect = startInstance.rect;
-        const endRect = endInstance.rect;
-        // const defaultDuration = this.animation?.effect?.getComputedTiming().duration;
-        const defaultDuration = 0;
+    get paused() {
+        return this.animation?.playState === "paused";
+    }
 
-        let startCSSText: string;
-        let startCSSObject: PlainObject<string> = {};
-        let endCSSText: string;
-        let endCSSObject: PlainObject<string> = {};
+    get running() {
+        return this.animation?.playState === "running";
+    }
 
-        // only get css object when transition type is morph
-        if (transitionType === "morph") {
-            [startCSSText, startCSSObject] = startInstance.CSSData;
-            [endCSSText, endCSSObject] = endInstance.CSSData;
-        } else {
-            startCSSText = startInstance.CSSText;
-            endCSSText = endInstance.CSSText;
-        }
-        
-        startChild.style.cssText = startCSSText;
-        if (transitionType !== "morph") {
-            endChild.style.cssText = endCSSText;
-
-            endNode.style.position = 'absolute';
-            endChild.style.position = 'absolute';
-            endNode.style.zIndex = endChild.style.zIndex;
-            endNode.style.top = '0';
-            endNode.style.left = '0';
-        }
-        
-        startNode.style.position = 'absolute';
-        startChild.style.position = 'absolute';
-        startNode.style.zIndex = startChild.style.zIndex;
-        startNode.style.top = '0';
-        startNode.style.left = '0';
-        
-        const transitionState: TransitionState = {
-            id: startInstance.id,
-            start: {
-                x: {
-                    node: startNode,
-                    delay: startInstance.props.config?.x?.delay ?? endInstance.props.config?.delay ?? 0,
-                    duration: startInstance.props.config?.x?.duration || endInstance.props.config?.duration || defaultDuration,
-                    easingFunction: startInstance.props.config?.x?.easingFunction || startInstance.props.config?.easingFunction ||'ease',
-                    position: startRect.x
-                    
-                },
-                y: {
-                    node: startChild,
-                    delay: startInstance.props.config?.y?.delay ?? endInstance.props.config?.delay ?? 0,
-                    duration: startInstance.props.config?.y?.duration || endInstance.props.config?.duration || defaultDuration,
-                    easingFunction: startInstance.props.config?.y?.easingFunction || startInstance.props.config?.easingFunction || 'ease',
-                    position: startRect.y
-                }
-            },
-            end: {
-                x: {
-                    node: endNode,
-                    delay: endInstance.props.config?.x?.delay ?? endInstance.props.config?.delay ?? 0,
-                    duration: endInstance.props.config?.x?.duration || endInstance.props.config?.duration || defaultDuration,
-                    easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
-                    position: endRect.x
-                },
-                y: {
-                    node: endChild,
-                    delay: endInstance.props.config?.y?.delay ?? endInstance.props.config?.delay ?? 0,
-                    duration: endInstance.props.config?.y?.duration || endInstance.props.config?.duration || defaultDuration,
-                    easingFunction: endInstance.props.config?.x?.easingFunction || endInstance.props.config?.easingFunction || 'ease',
-                    position: endRect.y
-                }
-            }
-        };
-
-        startNode.style.transform = `translate(${transitionState.start.x.position}px, 0px)`;
-        startChild.style.transform = `translate(0px, ${transitionState.start.y.position}px)`;
-        endNode.style.transform = `translate(${transitionState.end.x.position}px, 0px)`;
-        endChild.style.transform = `translate(0px, ${transitionState.end.y.position}px)`;
-
-        startNode.style.display = 'unset';
-
-        this.ref?.appendChild(startNode);
-        startInstance.onCloneAppended(startNode);
-
-        if (transitionType !== "morph") {
-            const startZIndex = parseInt(startNode.style.zIndex) || 0;
-            const endZIndex = parseInt(endNode.style.zIndex) || 0;
-            endNode.style.zIndex = `${clamp(endZIndex, 0, startZIndex - 1)}`;
-            endNode.style.display = 'unset';
-            this.ref?.appendChild(endNode);
-            endInstance.onCloneAppended(endNode);
-        } else {
-            endInstance.onCloneAppended(startNode);
-        }
-
-        startInstance.hidden(true);
-        endInstance.hidden(true);
-        
-        let startXAnimation;
-        let startYAnimation;
-        let endXAnimation;
-        let endYAnimation;
-
-        startNode.style.willChange = 'contents, transform, opacity';
-        if (transitionType !== "morph")
-            endNode.style.willChange = 'contents, transform, opacity';
-
-        
-        const animations = [startXAnimation, startYAnimation, endXAnimation, endYAnimation];
-        
-        animations.forEach((animation: Animation | undefined) => {
-            if (!animation) return;
-            this.animations.push(animation);
-            // if (this.props.paused) {
-            //     const defaultDuration = this.props.animation?.effect?.getComputedTiming().duration;
-            //     let duration = animation.effect?.getComputedTiming().duration;
-            //     duration = Number(duration || defaultDuration);
-                
-            //     animation.currentTime = duration;
-            //     animation.pause();
-            // }
-        });
-
-        const onEnd = async () => {
-            let startInstance = start.instance;
-            let endInstance = end.instance;
-            if (this.playbackRate < 0)
-                [startInstance, endInstance] = [endInstance, startInstance];
-            endInstance.hidden(false);
-            // if (!this.props.currentScene!.keepAlive) {
-            //     startInstance.keepAlive(false);
-            // } else {
-            //     startInstance.keepAlive(true);
-            //     startInstance.hidden(false); // if current scene is kept alive do not show start element
-            // }
-            
-            startInstance.onCloneRemove(startNode);
-            if (transitionType !== "morph") {
-                endInstance.onCloneRemove(endNode);
-            } else {
-                endInstance.onCloneRemove(startNode);
-            }
-        };
-        const onCancel = async () => {
-            Promise.all([
-                startInstance.hidden(false),
-                endInstance.hidden(false)
-            ]);
-        };
-        Promise.all(
-            animations.map(anim => anim?.finished)
-        ).then(onEnd).catch(onCancel);
+    get finished() {
+        return this.started
+            .then(() => this.animation?.finished)
+            .then(() => {return;});
     }
 
     transition() {
-        if (!this.state.transitioning) return;
         const currentScene = this.outgoingScreen?.current?.sharedElementScene;
         const nextScene = this.incomingScreen?.current?.sharedElementScene;
         if (!currentScene || !nextScene) return;
-        // const duration = this.props.animation?.effect?.getComputedTiming().duration;
-        const duration = 0;
-        currentScene.canTransition = !currentScene.isEmpty() && Boolean(duration);
-        nextScene.canTransition = !nextScene.isEmpty() && Boolean(duration);
-        if (!currentScene.canTransition || !nextScene.canTransition) return;
-        if (this.animations.length) {
-            this.finish(); // finish playing animation
-        }
-
-        const onEnd = () => {
-            this.setState({transitioning: false});
-            this.animations = [];
-        };
-
-        const onCancel = () => {
-            for (const animation of this.animations)
-                animation.cancel();
-            onEnd();
-        }
-        
-        this.ref?.showModal(); // render shared element layer in top layer
-        for (const startNode of currentScene.nodes.values()) {
-            const endNode = nextScene.nodes.get(startNode.id);
-            if (!endNode) continue;
-            this.setupNode(startNode, endNode);
-        }
-        
-        this.finished.then(onEnd).catch(onCancel);
-
-        this.props.navigation.addEventListener('transition-cancel' , onCancel, {once: true});
-    }
-    
-    componentDidMount() {
-        this.props.navigation.addEventListener('motion-progress-start', this.onProgressStart);
-    }
-
-    componentWillUnmount() {
-        this.props.navigation.removeEventListener('motion-progress-start', this.onProgressStart);
-    }
-
-    onProgressStart = () => {
-        this.props.navigation.addEventListener('motion-progress', this.onProgress);
-        this.props.navigation.addEventListener('motion-progress-end', this.onProgressEnd);
-    }
-
-    onProgress = (e: MotionProgressEvent) => {
-        // if (this.props.paused) {
-        //     for (const animation of this.animations) {
-        //         const progress = e.progress;
-        //         const defaultDuration = this.props.animation?.effect?.getComputedTiming().duration;
-        //         const defaultDuration = this.props.animation?.effect?.getComputedTiming().duration;
-        //         let duration = animation.effect?.getComputedTiming().duration;
-        //         duration = Number(duration || defaultDuration);
-
-        //         const currentTime = interpolate(progress, [MIN_PROGRESS, MAX_PROGRESS], [0, Number(duration)]);
-        //         animation.currentTime = currentTime;
-        //     }
-        // }
-    }
-
-    onProgressEnd = async () => {
-        await this.finish();
-        this.setState({transitioning: false});
-        this.animations = [];
-        this.props.navigation.removeEventListener('motion-progress', this.onProgress);
-        this.props.navigation.removeEventListener('motion-progress-end', this.onProgressEnd);
     }
 
     render() {
-        if (!this.state.transitioning) return <></>
         return (
-            <dialog className="shared-element-layer" ref={c => this.ref = c} style={{
+            <dialog className="shared-element-layer" ref={this.ref} style={{
                 position: 'absolute',
-                zIndex: MAX_Z_INDEX,
                 maxWidth: 'unset',
                 maxHeight: 'unset',
                 width: '100vw',
