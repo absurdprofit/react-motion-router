@@ -133,6 +133,8 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
     private handleReload(e: NavigateEvent) {
         const handler = async () => {
             return new Promise<void>((resolve) => {
+                const transition = window.navigation.transition;
+                const destination = e.destination;
                 const screenStack = new Array<ScreenChild>();
                 this.navigation.entries.forEach(entry => {
                     if (!entry.url) return null;
@@ -157,11 +159,11 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
                     );
                 });
 
-                this.setState({ screenStack }, async () => {
+                this.setState({ screenStack, transition, destination }, async () => {
                     const currentScreen = this.getScreenRefByKey(this.navigation.current.key);
                     await this.setZIndices();
                     await currentScreen?.current?.load();
-                    resolve();
+                    this.setState({ destination: null, transition: null }, resolve);
                 });
             });
         }
