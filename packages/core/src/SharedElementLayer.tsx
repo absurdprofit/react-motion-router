@@ -5,6 +5,9 @@ import { Component, RefObject, createRef } from 'react';
 import { MAX_PROGRESS, MAX_Z_INDEX, MIN_PROGRESS } from './common/constants';
 import { NavigationBase } from './NavigationBase';
 import { ScreenBase } from './ScreenBase';
+import { ParallelEffect } from './common/group-effect';
+import { GroupAnimation } from './common/group-animation';
+import { SharedElement } from './SharedElement';
 
 interface SharedElementLayerProps {
     navigation: NavigationBase;
@@ -92,10 +95,143 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
             .then(() => {return;});
     }
 
-    transition() {
+    getAnimationEffect<T extends { instance: SharedElement, clone: Element }>(start: T, end: T) {
+        const keyframeEffects = new Array<KeyframeEffect>();
+        const startRect = start.instance.getBoundingClientRect();
+        const endRect = end.instance.getBoundingClientRect();
+        const config = {
+            fill: "forwards" as const,
+            duration: 300,
+            ...start.instance.props.config,
+            ...end.instance.props.config
+        };
+        if (end.instance.transitionType === "fade") {
+            keyframeEffects.push(
+                new KeyframeEffect(
+                    start.clone,
+                    [
+                        { transform: `translate(${startRect.x}px, ${startRect.y}px)`, opacity: 1 },
+                        { transform: `translate(${endRect.x}px, ${endRect.y}px)`, opacity: 0 }
+                    ],
+                    config
+                ),
+                
+            );
+            keyframeEffects.push(
+                new KeyframeEffect(
+                    end.clone,
+                    [
+                        { transform: `translate(${startRect.x}px, ${startRect.y}px)` },
+                        { transform: `translate(${endRect.x}px, ${endRect.y}px)` }
+                    ],
+                    config
+                ),
+                
+            );
+        } else if (end.instance.transitionType === "fade-through") {
+            keyframeEffects.push(
+                new KeyframeEffect(
+                    start.clone,
+                    [
+                        { transform: `translate(${startRect.x}px, ${startRect.y}px)`, opacity: 1 },
+                        { transform: `translate(${endRect.x}px, ${endRect.y}px)`, opacity: 0 }
+                    ],
+                    config
+                ),
+                
+            );
+            keyframeEffects.push(
+                new KeyframeEffect(
+                    end.clone,
+                    [
+                        { transform: `translate(${startRect.x}px, ${startRect.y}px)`, opacity: 0 },
+                        { transform: `translate(${endRect.x}px, ${endRect.y}px)`, opacity: 1 }
+                    ],
+                    config
+                ),
+                
+            );
+        } else if (end.instance.transitionType === "cross-fade") {
+            keyframeEffects.push(
+                new KeyframeEffect(
+                    start.clone,
+                    [
+                        { transform: `translate(${startRect.x}px, ${startRect.y}px)`, opacity: 1 },
+                        { transform: `translate(${endRect.x}px, ${endRect.y}px)`, opacity: 0 }
+                    ],
+                    config
+                ),
+                
+            );
+            keyframeEffects.push(
+                new KeyframeEffect(
+                    end.clone,
+                    [
+                        { transform: `translate(${startRect.x}px, ${startRect.y}px)` },
+                        { transform: `translate(${endRect.x}px, ${endRect.y}px)` }
+                    ],
+                    config
+                ),
+                
+            );
+        } else { // morph
+            keyframeEffects.push(
+                new KeyframeEffect(
+                    end.clone,
+                    [
+                        { transform: `translate(${startRect.x}px, ${startRect.y}px)` },
+                        { transform: `translate(${endRect.x}px, ${endRect.y}px)` }
+                    ],
+                    config
+                )
+            );
+        }
+        return new ParallelEffect(keyframeEffects);
+    }
+
+    async transition() {
         const currentScene = this.outgoingScreen?.current?.sharedElementScene;
         const nextScene = this.incomingScreen?.current?.sharedElementScene;
         if (!currentScene || !nextScene) return;
+        nextScene.previousScene = currentScene;
+        const parallelEffects = new Array<ParallelEffect>();
+        for (const [id, end] of Array.from(nextScene.nodes.entries())) {
+            if (end.canTransition) {
+                const endClone = end.clone();
+                end.hide();
+                let start = null;
+                let startClone = null;
+                start = currentScene.nodes.get(id)!;
+                if (end.transitionType !== "morph") {
+                    startClone = start.clone();
+                    if (!startClone) continue;
+                    startClone.id = `${id}-start`;
+                    this.ref.current?.prepend(startClone);
+                    start.hide();
+                }
+
+                if (!endClone) continue;
+                endClone.id = `${id}-end`;
+                this.ref.current?.prepend(endClone);
+                this.finished.then(() => {
+                    end.unhide();
+                    start?.unhide();
+                    this.ref.current?.removeChild(endClone);
+                    if (startClone) this.ref.current?.removeChild(startClone);
+                });
+
+                parallelEffects.push(this.getAnimationEffect(
+                    { instance: start, clone: startClone! },
+                    { instance: end, clone: endClone }
+                ));
+            }
+        }
+
+        this.ref.current?.showModal();
+        this.animation = new GroupAnimation(new ParallelEffect(parallelEffects), this.timeline);
+        this.animation.play();
+        await this.finished;
+        this.ref.current?.close();
     }
 
     render() {
@@ -109,9 +245,9 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
                 contain: 'strict',
                 padding: 0,
                 border: 'none',
-                backgroundColor: 'transparent'
+                backgroundColor: 'transparent',
             }}>
-                <style dangerouslySetInnerHTML={{__html: ".shared-element-layer::backdrop {display: none}"}}></style>
+                <style dangerouslySetInnerHTML={{__html: ".shared-element-layer::backdrop {display: none} .shared-element-layer > * { position: absolute; }"}}></style>
             </dialog>
         );
     }

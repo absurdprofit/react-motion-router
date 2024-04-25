@@ -1,5 +1,5 @@
 import { Component, ElementType, Suspense, cloneElement, createRef, isValidElement } from "react";
-import { AnimationProvider } from "./AnimationProvider";
+import { ScreenAnimationProvider } from "./ScreenAnimationProvider";
 import {
     AnimationEffectFactory,
     LazyExoticComponent,
@@ -52,11 +52,11 @@ export interface ScreenBaseProps {
     }
 }
 
-export interface ScreenBaseState {}
+export interface ScreenBaseState { }
 
 export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState> extends Component<P, S> {
     public readonly sharedElementScene: SharedElementScene;
-    private _animationProvider = createRef<AnimationProvider>();
+    private _screenAnimationProvider = createRef<ScreenAnimationProvider>();
     protected ref: HTMLElement | null = null;
     protected elementType: ElementType | string = "div";
     static readonly contextType = RouterContext;
@@ -114,7 +114,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     }
 
     get routeData(): RouteData<this["props"]> {
-        const focused = Boolean(this.animationProvider?.state.zIndex === 1);
+        const focused = Boolean(this.screenAnimationProvider?.state.zIndex === 1);
         const resolvedPathname = this.props.resolvedPathname;
         const setConfig = this.setConfig.bind(this);
         const setParams = this.setParams.bind(this);
@@ -155,7 +155,6 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     }
 
     onEnter() {
-        // this.sharedElementScene.previousScene = this.context!.currentScreen?.sharedElementScene ?? null;
         return this.routeData.config.onEnter?.({
             route: this.routeData,
             navigation: this.context!.navigation
@@ -184,8 +183,8 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         return this.props.path;
     }
 
-    get animationProvider() {
-        return this._animationProvider.current;
+    get screenAnimationProvider() {
+        return this._screenAnimationProvider.current;
     }
 
     render() {
@@ -195,8 +194,8 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         const FooterComponent = routeData.config.footer?.component;
 
         return (
-            <AnimationProvider
-                ref={this._animationProvider}
+            <ScreenAnimationProvider
+                ref={this._screenAnimationProvider}
                 renderAs={this.elementType}
                 id={`${this.id}-animation-provider`}
                 animation={routeData.config.animation}
@@ -230,7 +229,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
                         </RouteDataContext.Provider>
                     </SharedElementSceneContext.Provider>
                 </div>
-            </AnimationProvider>
+            </ScreenAnimationProvider>
         );
     }
 }

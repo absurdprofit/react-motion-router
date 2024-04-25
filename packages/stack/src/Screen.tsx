@@ -3,7 +3,7 @@ import type { ScreenBaseProps, ScreenBaseState, ScreenComponentBaseProps } from 
 import { Navigation } from './Navigation';
 import { Children, isValidElement } from 'react';
 
-export interface ScreenComponentProps<T extends { [key: string]: any; } = {}> extends ScreenComponentBaseProps<ScreenProps, T, Navigation> {}
+export interface ScreenComponentProps<T extends { [key: string]: any; } = {}> extends ScreenComponentBaseProps<ScreenProps, T, Navigation> { }
 
 type Presentation = "default" | "dialog" | "modal";
 export interface ScreenProps extends ScreenBaseProps {
@@ -13,7 +13,7 @@ export interface ScreenProps extends ScreenBaseProps {
     }
 }
 
-export interface ScreenState extends ScreenBaseState {}
+export interface ScreenState extends ScreenBaseState { }
 
 export class Screen extends ScreenBase<ScreenProps, ScreenState> {
     constructor(props: ScreenProps) {
@@ -28,36 +28,36 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
 
     onEnter() {
         if (
-            this.animationProvider?.ref instanceof HTMLDialogElement
-            && this.animationProvider.ref.open === false
+            this.screenAnimationProvider?.ref instanceof HTMLDialogElement
+            && this.screenAnimationProvider.ref.open === false
         ) {
             const navigation = this.context?.navigation as Navigation | undefined;
             if (this.props.config?.presentation === "modal") {
-                this.animationProvider.ref.showModal();
+                this.screenAnimationProvider.ref.showModal();
             } else {
-                this.animationProvider.ref.show();
+                this.screenAnimationProvider.ref.show();
             }
-            this.animationProvider.ref.style.maxHeight = 'unset';
-            this.animationProvider.ref.style.maxWidth = 'unset';
-            this.animationProvider.ref.style.width = 'max-content';
-            this.animationProvider.ref.style.height = 'max-content';
+            this.screenAnimationProvider.ref.style.maxHeight = 'unset';
+            this.screenAnimationProvider.ref.style.maxWidth = 'unset';
+            this.screenAnimationProvider.ref.style.width = 'max-content';
+            this.screenAnimationProvider.ref.style.height = 'max-content';
             if (this.ref) {
                 this.ref.style.width = 'max-content';
                 this.ref.style.height = 'max-content';
             }
 
             // closed by form submit or ESC key
-            this.animationProvider?.ref.addEventListener('close', function() {
+            this.screenAnimationProvider?.ref.addEventListener('close', function () {
                 if (this.returnValue !== "screen-exit") {
                     this.style.display = "block";
                     navigation?.goBack();
                 }
-            }, {once: true});
+            }, { once: true });
 
             // close by backdrop click
-            this.animationProvider.ref.onclick = (e) => {
-                if (!this.animationProvider?.ref) return;
-                const rect = this.animationProvider.ref.getBoundingClientRect();
+            this.screenAnimationProvider.ref.onclick = (e) => {
+                if (!this.screenAnimationProvider?.ref) return;
+                const rect = this.screenAnimationProvider.ref.getBoundingClientRect();
                 const isInDialog = (
                     rect.top <= e.clientY
                     && e.clientY <= rect.top + rect.height
@@ -87,17 +87,17 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
         }) as ScreenBase<ScreenProps, ScreenState> | undefined;
         if (currentRoute?.props.config?.presentation === "modal"
             || currentRoute?.props.config?.presentation === "dialog") {
-                // if next screen is modal or dialog, keep current screen alive
-                this.setState({shouldKeepAlive: true});
-                this.setConfig({keepAlive: true});
+            // if next screen is modal or dialog, keep current screen alive
+            this.setState({ shouldKeepAlive: true });
+            this.setConfig({ keepAlive: true });
         }
 
         return super.onExit();
     }
 
     onExited() {
-        if (this.animationProvider?.ref instanceof HTMLDialogElement) {
-            this.animationProvider.ref.close("screen-exit");
+        if (this.screenAnimationProvider?.ref instanceof HTMLDialogElement) {
+            this.screenAnimationProvider.ref.close("screen-exit");
         }
 
         return super.onExited();

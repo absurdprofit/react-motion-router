@@ -20,13 +20,20 @@ interface SharedElementProps {
     config?: SharedElementConfig;
 }
 
-interface SharedElementState {}
+interface SharedElementState {
+    clone: React.ReactPortal | null;
+}
 
 const transformKeys = ["transform", "top", "left", "right", "bottom"];
 export class SharedElement extends Component<SharedElementProps, SharedElementState> {
     private ref: HTMLDivElement | null = null;
+    private cloneContainer = createRef<HTMLDivElement>();
     static readonly contextType = SharedElementSceneContext;
     context!: React.ContextType<typeof SharedElementSceneContext>;
+
+    state = {
+        clone: null
+    }
 
     componentDidMount(): void {
         this.scene.addNode(this);
@@ -44,7 +51,7 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
     }
 
     get canTransition() {
-        return Boolean(this.scene.previousScene?.nodes.has(this.id)) && !this.props.disabled && this.scene.canTransition;
+        return this.scene.previousScene?.nodes.has(this.id) && !this.props.disabled && this.scene.canTransition;
     }
 
     get scene() {
@@ -52,18 +59,30 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
     }
 
     get id() {
-        return this.props.id.toString();
+        return `shared-element-${this.props.id.toString()}`;
     }
 
     get transitionType() {
-        return this.props.config?.type;
+        return this.props.config?.type ?? "morph";
     }
 
-    get animationEffect() {
-        const startNode = this.scene.previousScene?.nodes.get(this.id)?.ref?.firstElementChild;
-        const endNode = this.ref?.firstElementChild;
-        console.log({ startNode, endNode });
-        return new ParallelEffect([]);
+    getBoundingClientRect() {
+        return this.ref?.getBoundingClientRect() ?? new DOMRect();
+    }
+
+    public clone() {
+        if (!this.ref) return null;
+        return this.ref.cloneNode(true) as HTMLDivElement;
+    }
+
+    public hide() {
+        if (!this.ref) return;
+        this.ref.style.visibility = 'hidden';
+    }
+
+    public unhide() {
+        if (!this.ref) return;
+        this.ref.style.visibility = 'visible';
     }
 
     setRef = (ref: HTMLDivElement | null) => {
@@ -77,9 +96,10 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
         return (
             <div
                 ref={this.setRef}
-                id={`shared-element-${this.id}`}
+                id={this.id}
             >
-                {this.ref && createPortal(this.props.children, this.ref, this.id)}
+                {this.state.clone}
+                {this.props.children}
             </div>
         );
     }

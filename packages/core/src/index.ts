@@ -5,7 +5,7 @@ import {
 import { NavigationBase, NavigationBaseProps, NavigationBaseOptions } from './NavigationBase';
 import { RouterBase, RouterBaseProps, RouterBaseState } from './RouterBase';
 import { ScreenBase, ScreenBaseProps, ScreenBaseState } from './ScreenBase';
-import { Motion } from './AnimationLayer';
+import { Motion } from './ScreenAnimationLayer';
 import { GestureRegion } from './GestureRegion';
 import 'web-gesture-events';
 import { ScrollRestoration } from './ScrollRestoration';

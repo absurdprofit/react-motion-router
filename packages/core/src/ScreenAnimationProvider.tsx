@@ -1,9 +1,9 @@
-import { AnimationLayerContext } from './AnimationLayerContext';
+import { ScreenAnimationLayerContext } from './ScreenAnimationLayerContext';
 import { AnimationEffectFactory, CustomElementType } from './common/types';
 import { NavigationBase } from './NavigationBase';
 import { Component, ElementType } from 'react';
 
-interface AnimationProviderProps {
+interface ScreenAnimationProviderProps {
     id: string;
     animation?: AnimationEffectFactory;
     children: React.ReactNode
@@ -11,18 +11,18 @@ interface AnimationProviderProps {
     renderAs: ElementType | CustomElementType;
 }
 
-interface AnimationProviderState {
+interface ScreenAnimationProviderState {
     zIndex: number;
 }
 
-export class AnimationProvider extends Component<AnimationProviderProps, AnimationProviderState> {
+export class ScreenAnimationProvider extends Component<ScreenAnimationProviderProps, ScreenAnimationProviderState> {
     private _ref: HTMLElement | null = null;
-    static readonly contextType = AnimationLayerContext;
-    context!: React.ContextType<typeof AnimationLayerContext>;
+    static readonly contextType = ScreenAnimationLayerContext;
+    context!: React.ContextType<typeof ScreenAnimationLayerContext>;
     public index = 0;
     public exiting = false;
 
-    state: AnimationProviderState = {
+    state: ScreenAnimationProviderState = {
         zIndex: 0,
     }
 
@@ -83,7 +83,7 @@ export class AnimationProvider extends Component<AnimationProviderProps, Animati
         return (
             <Element
                 id={this.props.id}
-                className="animation-provider"
+                className="screen-animation-provider"
                 ref={this.onRef}
                 {...{ inert }}
                 tabIndex={this.state.zIndex - 1}

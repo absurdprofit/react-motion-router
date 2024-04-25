@@ -53,8 +53,8 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
             screens.map((screen, index) => {
                 const zIndex = (index + 1) - currentIndex;
                 const ref = screen.ref;
-                if (ref && isRefObject(ref) && ref.current?.animationProvider) {
-                    return ref.current.animationProvider.setZIndex(zIndex);
+                if (ref && isRefObject(ref) && ref.current?.screenAnimationProvider) {
+                    return ref.current.screenAnimationProvider.setZIndex(zIndex);
                 }
                 return Promise.resolve();
             })
@@ -85,7 +85,7 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
         const baseURLPattern = this.baseURLPattern.pathname;
         return this.mounted
             && this.shouldIntercept(e)
-            && includesRoute(this.pathPatterns, pathname, baseURLPattern);   
+            && includesRoute(this.pathPatterns, pathname, baseURLPattern);
     }
 
     protected shouldIntercept(e: NavigateEvent): boolean {
@@ -101,19 +101,19 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
         if (this.props.config.onIntercept)
             if (this.props.config.onIntercept(e) || e.defaultPrevented)
                 return;
-        
-        switch(e.navigationType) {
+
+        switch (e.navigationType) {
             case "replace":
                 this.handleReplace(e);
-            break;
+                break;
 
             case "reload":
                 this.handleReload(e);
-            break;
+                break;
 
             default:
                 this.handleDefault(e);
-            break;
+                break;
         }
 
         window.navigation.onnavigatesuccess = this.onNavigateSuccess;
@@ -211,9 +211,20 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
                 const outgoingScreen = this.getScreenRefByKey(String(outgoingKey));
                 const incomingScreen = this.getScreenRefByKey(String(incomingKey));
                 if (!backNavigating) await this.setZIndices();
-                await this.animate(incomingScreen, outgoingScreen, backNavigating);
+                await Promise.all([
+                    outgoingScreen?.current?.onExit(),
+                    incomingScreen?.current?.onEnter()
+                ]);
+                await Promise.all([
+                    this.animate(incomingScreen, outgoingScreen, backNavigating),
+                    this.sharedElementTransition(incomingScreen, outgoingScreen)
+                ]);
                 await incomingScreen?.current?.load();
                 if (backNavigating) await this.setZIndices();
+                await Promise.all([
+                    outgoingScreen?.current?.onExited(),
+                    incomingScreen?.current?.onEntered()
+                ]);
                 this.setState({ destination: null, transition: null }, resolve);
             }));
         }
@@ -221,26 +232,37 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
         e.intercept({ handler });
     }
 
+    private async sharedElementTransition(
+        incomingScreen: React.RefObject<Screen> | null,
+        outgoingScreen: React.RefObject<Screen> | null
+    ) {
+        if (this.sharedElementLayer.current && incomingScreen && outgoingScreen) {
+            this.sharedElementLayer.current.outgoingScreen = outgoingScreen;
+            this.sharedElementLayer.current.incomingScreen = incomingScreen;
+            this.sharedElementLayer.current.transition();
+        }
+    }
+
     private async animate(
         incomingScreen: React.RefObject<Screen> | null,
         outgoingScreen: React.RefObject<Screen> | null,
         backNavigating: boolean
     ) {
-        if (this.animationLayer.current && incomingScreen && outgoingScreen) {
-            this.animationLayer.current.direction = backNavigating ? 'reverse' : 'normal';
-            if (incomingScreen.current?.animationProvider) {
-                incomingScreen.current.animationProvider.index = clamp(incomingScreen.current.animationProvider.state.zIndex, 0, 1);
-                incomingScreen.current.animationProvider.exiting = false;
+        if (this.screenAnimationLayer.current && incomingScreen && outgoingScreen) {
+            this.screenAnimationLayer.current.direction = backNavigating ? 'reverse' : 'normal';
+            if (incomingScreen.current?.screenAnimationProvider) {
+                incomingScreen.current.screenAnimationProvider.index = clamp(incomingScreen.current.screenAnimationProvider.state.zIndex, 0, 1);
+                incomingScreen.current.screenAnimationProvider.exiting = false;
             }
-            if (outgoingScreen.current?.animationProvider) {
-                outgoingScreen.current.animationProvider.index = clamp(outgoingScreen.current.animationProvider.state.zIndex, 0, 1);
-                outgoingScreen.current.animationProvider.exiting = true;
+            if (outgoingScreen.current?.screenAnimationProvider) {
+                outgoingScreen.current.screenAnimationProvider.index = clamp(outgoingScreen.current.screenAnimationProvider.state.zIndex, 0, 1);
+                outgoingScreen.current.screenAnimationProvider.exiting = true;
             }
-            this.animationLayer.current.screens = [
+            this.screenAnimationLayer.current.screens = [
                 incomingScreen,
                 outgoingScreen
             ];
-            await this.animationLayer.current?.animate();
+            await this.screenAnimationLayer.current.animate();
         }
     }
 
