@@ -1,21 +1,20 @@
 import { Component, createContext, createRef } from 'react';
 import { getCSSData } from './common/utils';
-import { EasingFunction, PlainObject, SharedElementNode, SharedElementNodeMap, TransformOrigin, TransitionAnimation, Vec2 } from './common/types';
+import { EasingFunction, PlainObject, SharedElementNode, SharedElementNodeMap, SharedElementTransitionType, TransformOrigin, Vec2 } from './common/types';
 import { SharedElementSceneContext } from './SharedElementSceneContext';
 import { createPortal } from 'react-dom';
-import { ParallelEffect } from './common/group-effect';
 
 interface SharedElementConfig {
-    type?: TransitionAnimation;
+    type?: SharedElementTransitionType;
     transformOrigin?: React.CSSProperties["transformOrigin"];
     easing?: React.CSSProperties["animationTimingFunction"];
     duration?: number;
     delay?: number;
 }
 
-interface SharedElementProps {
-    id: string | number;
-    children: React.ReactChild;
+interface SharedElementProps extends React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement> {
+    id: string;
+    children: React.ReactNode;
     disabled?: boolean;
     config?: SharedElementConfig;
 }
@@ -62,8 +61,8 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
         return `shared-element-${this.props.id.toString()}`;
     }
 
-    get transitionType() {
-        return this.props.config?.type ?? "morph";
+    get transitionType(): SharedElementTransitionType {
+        return this.props.config?.type ?? this.scene.previousScene?.nodes.get(this.id)?.transitionType ?? "morph";
     }
 
     getBoundingClientRect() {
@@ -95,6 +94,7 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
     render() {
         return (
             <div
+                {...this.props}
                 ref={this.setRef}
                 id={this.id}
             >

@@ -156,14 +156,14 @@ enum TransformOriginGlobalEnum {
     unset
 }
 
-enum TransitionAnimationEnum {
+enum SharedElementTransitionTypeEnum {
     "morph",
     "fade-through",
     "fade",
     "cross-fade"
 }
 
-export type TransitionAnimation = keyof typeof TransitionAnimationEnum;
+export type SharedElementTransitionType = keyof typeof SharedElementTransitionTypeEnum;
 
 export type TransformOriginGlobal = keyof typeof TransformOriginGlobalEnum;
 

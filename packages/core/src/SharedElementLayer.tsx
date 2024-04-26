@@ -179,7 +179,7 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
                 new KeyframeEffect(
                     end.clone,
                     [
-                        { transform: `translate(${startRect.x}px, ${startRect.y}px)` },
+                        { transform: `translate(${startRect.x}px, ${startRect.y}px)`or },
                         { transform: `translate(${endRect.x}px, ${endRect.y}px)` }
                     ],
                     config
@@ -193,6 +193,7 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
         const currentScene = this.outgoingScreen?.current?.sharedElementScene;
         const nextScene = this.incomingScreen?.current?.sharedElementScene;
         if (!currentScene || !nextScene) return;
+        currentScene.previousScene = null;
         nextScene.previousScene = currentScene;
         const parallelEffects = new Array<ParallelEffect>();
         for (const [id, end] of Array.from(nextScene.nodes.entries())) {
@@ -247,7 +248,7 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
                 border: 'none',
                 backgroundColor: 'transparent',
             }}>
-                <style dangerouslySetInnerHTML={{__html: ".shared-element-layer::backdrop {display: none} .shared-element-layer > * { position: absolute; }"}}></style>
+                <style>{".shared-element-layer::backdrop {display: none}"}</style>
             </dialog>
         );
     }
