@@ -20,7 +20,6 @@ export default function Details(props: DetailsProps) {
     const scrollAreaRef = React.useRef<ScrollRestoration>(null);
     const [gestureDisabled, setGestureDisabled] = React.useState(false);
     const { noBg, ...hero } = props.route.params;
-    isFirstLoad = props.route.preloaded;
 
     useEffect(() => {
         setGestureDisabled(scrollAreaRef.current?.scrollTop !== 0);
@@ -38,7 +37,7 @@ export default function Details(props: DetailsProps) {
         }
 
 
-        props.navigation.addEventListener('go-back', () => {
+        props.navigation.addEventListener('back', () => {
             props.navigation.metaData.set('description', originalDesc);
             originalDesc = undefined;
         }, { once: true, capture: true });

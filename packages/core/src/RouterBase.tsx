@@ -3,8 +3,9 @@ import { ScreenAnimationLayer } from './ScreenAnimationLayer';
 import {
     ScreenChild,
     PlainObject,
-    RouterEventMap,
-    RoutesData
+    RouterBaseEventMap,
+    RoutesData,
+    HTMLRouterBaseElement
 } from './common/types';
 import { NestedRouterContext, RouterContext } from './RouterContext';
 import { dispatchEvent, includesRoute, matchRoute, resolveBaseURLFromPattern, searchParamsToObject } from './common/utils';
@@ -30,8 +31,8 @@ export interface RouterBaseState<N extends NavigationBase = NavigationBase> {
     navigation: N;
 }
 
-export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState, N extends NavigationBase = NavigationBase> extends Component<P, S> {
-    protected ref: HTMLElement | null = null;
+export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState, E extends RouterBaseEventMap = RouterBaseEventMap> extends Component<P, S> {
+    protected ref: HTMLRouterBaseElement | null = null;
     public readonly routesData: RoutesData = new Map();
     public readonly scrollRestorationData = new ScrollRestorationData();
     public readonly parentRouter: RouterBase | null = null;
@@ -115,11 +116,13 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         return dispatchEvent(event, ref);
     }
 
-    public addEventListener = <K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined) => {
+    public addEventListener<K extends keyof E>(type: K, listener: (this: HTMLElement, ev: E[K]) => any, options?: boolean | AddEventListenerOptions | undefined) {
+        // @ts-ignore
         return this.ref?.addEventListener(type, listener, options);
     }
 
-    public removeEventListener = <K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | EventListenerOptions | undefined) => {
+    public removeEventListener<K extends keyof E>(type: K, listener: (this: HTMLElement, ev: E[K]) => any, options?: boolean | EventListenerOptions | undefined) {
+        // @ts-ignore
         return this.ref?.removeEventListener(type, listener, options);
     }
 

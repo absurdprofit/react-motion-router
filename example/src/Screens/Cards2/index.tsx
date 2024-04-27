@@ -162,7 +162,7 @@ export default class Cards2 extends React.Component<CardsProps> {
                 Cards2.isFirstLoad = true;
                 this.forceUpdate();
             }
-            if (this.props.navigation.location.pathname === '/cards-2') {
+            if (this.props.navigation.current.url?.pathname === '/cards-2') {
                 imageInset = '';
                 textInset = '';
                 titleInset = '';

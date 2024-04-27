@@ -60,7 +60,7 @@ const CardComponent = ({ observer, navigation, hero }: CardProps) => {
     };
     return (
         <li role="menuitem">
-            <Anchor href='/details' params={{ ...hero }} hash='title' onClick={onClick}>
+            <Anchor href='/details' params={{ ...hero }} onClick={onClick}>
                 <ButtonBase aria-label={`Character profile: ${hero.name}`} disableRipple>
                     <SharedElement id={`${hero.id}-card-bg`}>
                         <div
@@ -142,7 +142,7 @@ export default class Cards extends React.Component<CardsProps> {
     componentDidMount() {
         this.props.navigation.transition?.finished.then(() => {
             Cards.isFirstLoad = true;
-            if (this.props.navigation.location.pathname === '/cards') {
+            if (this.props.navigation.current.url?.pathname === '/cards') {
                 imageInset = '';
                 textInset = '';
                 titleInset = '';

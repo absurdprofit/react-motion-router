@@ -93,7 +93,8 @@ export function isValidScreenChild(value: any): value is ScreenChild {
 
 export type PlainObject<T = any> = { [key: string]: T };
 
-export interface RouterEventMap {
+export interface RouterBaseEventMap extends HTMLElementEventMap {
+    [key: string]: Event;
     "transition-start": TransitionStartEvent;
     "transition-cancel": TransitionCancelEvent;
     "transition-end": TransitionEndEvent;
@@ -105,9 +106,14 @@ export interface RouterEventMap {
     "motion-progress-end": MotionProgressEndEvent;
 }
 
-declare global {
-    interface HTMLElementEventMap extends RouterEventMap {}
+export interface HTMLRouterBaseElement extends HTMLElement {
+    addEventListener<K extends keyof RouterBaseEventMap>(type: K, listener: (this: HTMLDivElement, ev: RouterBaseEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+    addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+    removeEventListener<K extends keyof RouterBaseEventMap>(type: K, listener: (this: HTMLDivElement, ev: RouterBaseEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+    removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
 }
+
+export type KeyOf = Pick<RouterBaseEventMap, "motion-progress-end">;
 
 export type CustomElementType = string;
 

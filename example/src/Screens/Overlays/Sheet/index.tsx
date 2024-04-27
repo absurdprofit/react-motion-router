@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@mui/material';
-import { ScreenComponentProps, Anchor } from '@react-motion-router/stack';
+import { ScreenComponentProps, Anchor, Navigation } from '@react-motion-router/stack';
 import { motion } from 'framer-motion';
 import { lerp } from '../../../common/utils';
 import './index.css';
@@ -48,7 +48,7 @@ export default function Sheet({ navigation, route }: SheetProps) {
                 <p>
                     You can swipe from the top to dismiss or press the button below.
                 </p>
-                <Anchor goBack navigation={navigation.parent!}>
+                <Anchor goBack navigation={navigation.parent! as Navigation}>
                     <Button variant="contained" className="close" fullWidth>
                         Go Home
                     </Button>

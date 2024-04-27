@@ -1,7 +1,7 @@
 import { Button, IconButton } from '@mui/material';
 import React, { useRef } from 'react';
 import { SharedElement } from '@react-motion-router/core';
-import { ScreenComponentProps, Anchor } from '@react-motion-router/stack';
+import { ScreenComponentProps, Anchor, Navigation } from '@react-motion-router/stack';
 import King from "../../../assets/king.webp";
 import SkipNextIcon from '@mui/icons-material/SkipNext';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -20,7 +20,7 @@ export default function Overlays({ navigation }: OverlaysProps) {
     return (
         <>
             <div className="go-back">
-                <Anchor goBack navigation={navigation.parent}>
+                <Anchor goBack navigation={navigation.parent as Navigation}>
                     <IconButton disableRipple>
                         <ArrowBackIosIcon style={{ zIndex: 100 }} />
                     </IconButton>
@@ -35,7 +35,7 @@ export default function Overlays({ navigation }: OverlaysProps) {
                 <div className="info">
                     <div className="cover-art">
                         <SharedElement id="cover-art" config={{
-                            easingFunction: 'ease-out'
+                            easing: 'ease-out'
                         }}>
                             <img src={King} alt="" />
                         </SharedElement>
@@ -51,7 +51,7 @@ export default function Overlays({ navigation }: OverlaysProps) {
                 <div className="play-controls">
                     <div className="play">
                         <SharedElement id="play" config={{
-                            easingFunction: 'ease-out'
+                            easing: 'ease-out'
                         }}>
                             <PlayArrowIcon />
                         </SharedElement>

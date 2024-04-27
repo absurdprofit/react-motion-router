@@ -24,7 +24,7 @@ export interface RouterState extends RouterBaseState<Navigation> {
     screenStack: ScreenChild<ScreenProps, Screen>[]
 }
 
-export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
+export class Router extends RouterBase<RouterProps, RouterState> {
     public readonly paramsSerializer = this.props.config.paramsSerializer;
     public readonly paramsDeserializer = this.props.config.paramsDeserializer;
     constructor(props: RouterProps, context: React.ContextType<typeof NestedRouterContext>) {

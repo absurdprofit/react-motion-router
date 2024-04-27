@@ -1,4 +1,4 @@
-import { ParamsDeserializer, ParamsSerializer, PlainObject, RouterEventMap } from "./common/types";
+import { ParamsDeserializer, ParamsSerializer, PlainObject, RouterBaseEventMap } from "./common/types";
 import { MetaData } from "./MetaData";
 import { RouterBase } from "./RouterBase";
 import { ScreenBaseProps } from "./ScreenBase";
@@ -12,7 +12,7 @@ export interface NavigationBaseOptions {
     signal?: AbortSignal;
 }
 
-export abstract class NavigationBase {
+export abstract class NavigationBase<E extends RouterBaseEventMap = RouterBaseEventMap> {
     protected readonly router: RouterBase;
     private static rootNavigatorRef: WeakRef<NavigationBase> | null = null;
     public readonly metaData = new MetaData();
@@ -24,13 +24,16 @@ export abstract class NavigationBase {
             NavigationBase.rootNavigatorRef = new WeakRef(this);
     }
 
-    addEventListener<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined) {
-        this.router.addEventListener?.(type, listener, options);
-        return () => this.router.removeEventListener?.(type, listener, options);
+    addEventListener<K extends keyof E>(type: K, listener: (this: HTMLElement, ev: E[K]) => any, options?: boolean | AddEventListenerOptions | undefined) {
+        // @ts-ignore
+        this.router.addEventListener(type, listener, options);
+        // @ts-ignore
+        return () => this.router.removeEventListener(type, listener, options);
     }
 
-    removeEventListener<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | EventListenerOptions | undefined): void {
-        return this.router.removeEventListener?.(type, listener, options);
+    removeEventListener<K extends keyof E>(type: K, listener: (this: HTMLElement, ev: E[K]) => any, options?: boolean | EventListenerOptions | undefined): void {
+        // @ts-ignore
+        return this.router.removeEventListener(type, listener, options);
     }
 
     dispatchEvent(event: Event) {

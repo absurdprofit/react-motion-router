@@ -2,12 +2,13 @@ import React, { memo } from 'react';
 import { SharedElement, useNavigation, useRoute } from '@react-motion-router/core';
 import './index.css';
 import BackButton from '../BackButton';
+import { Navigation } from '@react-motion-router/stack';
 
 interface NavbarProps {
     title: string;
 }
 function Navbar(props: NavbarProps) {
-    const navigation = useNavigation();
+    const navigation = useNavigation<Navigation>();
     const route = useRoute();
 
     return (

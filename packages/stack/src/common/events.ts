@@ -36,7 +36,7 @@ export class BackEvent extends Event {
 	readonly transition: NavigationTransition;
 
 	constructor(routerId: string, signal: AbortSignal, result: NavigationResult, transition: NavigationTransition) {
-		super('go-back');
+		super('back');
 		this.routerId = routerId;
 		this.signal = signal;
 		this.result = result;
@@ -51,7 +51,7 @@ export class ForwardEvent extends Event {
 	readonly transition: NavigationTransition;
 
 	constructor(routerId: string, signal: AbortSignal, result: NavigationResult, transition: NavigationTransition) {
-		super('go-forward');
+		super('forward');
 		this.routerId = routerId;
 		this.signal = signal;
 		this.result = result;

@@ -51,14 +51,14 @@ export default function Player({ navigation, route }: PlayerProps) {
             <div className="player">
                 <div className="cover-art">
                     <SharedElement id="cover-art" config={{
-                        easingFunction: 'ease-in'
+                        easing: 'ease-in'
                     }}>
                         <img src={King} alt="cover-art" />
                     </SharedElement>
                 </div>
                 <div className="song-info">
                     <SharedElement id="title" config={{
-                        easingFunction: 'ease-in'
+                        easing: 'ease-in'
                     }}>
                         <h3 className="title">Modal Sheet Example</h3>
                     </SharedElement>

@@ -6,18 +6,19 @@ import { getInset } from '../../common/utils';
 import './index.css';
 
 interface TileProps {
+    navigation: Stack.Navigation;
     hero: Hero;
     onClick?: () => void;
 }
 
 let heroID = '';
-export default function Tile({ hero, navigation, onClick }: Stack.ScreenComponentProps<TileProps>) {
+export default function Tile({ hero, navigation, onClick }: TileProps) {
     const [inset, setInset] = React.useState('');
     const imageRef = React.useRef<HTMLImageElement | null>(null);
 
     React.useEffect(() => {
         navigation.transition?.finished.then(() => {
-            if (navigation.current.url.pathname === '/tiles') {
+            if (navigation.current.url?.pathname === '/tiles') {
                 setInset('');
             }
         });

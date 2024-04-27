@@ -1,6 +1,7 @@
-import { NavigationBaseOptions, NavigationBaseProps, PlainObject } from "@react-motion-router/core";
+import { NavigationBaseOptions, NavigationBaseProps, PlainObject, RouterBaseEventMap } from "@react-motion-router/core";
 import { ScreenProps } from "../Screen";
 import { RefObject } from "react";
+import { BackEvent, ForwardEvent, NavigateEvent } from "./events";
 
 export interface NavigateOptions extends NavigationBaseOptions {
 	type?: "push" | "replace";
@@ -28,4 +29,10 @@ export function isRefObject<T>(value: React.LegacyRef<T>): value is RefObject<T>
 		&& value.hasOwnProperty('current')
 	) return true;
 	return false;
+}
+
+export interface StackRouterEventMap extends RouterBaseEventMap {
+	"navigate": NavigateEvent;
+	"back": BackEvent;
+	"forward": ForwardEvent;
 }
