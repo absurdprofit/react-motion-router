@@ -26,7 +26,7 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
             this.elementType = "dialog";
     }
 
-    onEnter() {
+    onEnter(signal: AbortSignal) {
         if (
             this.screenAnimationProvider?.ref instanceof HTMLDialogElement
             && this.screenAnimationProvider.ref.open === false
@@ -69,10 +69,10 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
             };
         }
 
-        return super.onEnter();
+        return super.onEnter(signal);
     };
 
-    onExit() {
+    onExit(signal: AbortSignal) {
         const navigation = this.context?.navigation as Navigation | undefined;
         const currentPath = navigation?.current?.url?.pathname;
         if (!currentPath) return;
@@ -88,18 +88,17 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
         if (currentRoute?.props.config?.presentation === "modal"
             || currentRoute?.props.config?.presentation === "dialog") {
             // if next screen is modal or dialog, keep current screen alive
-            this.setState({ shouldKeepAlive: true });
             this.setConfig({ keepAlive: true });
         }
 
-        return super.onExit();
+        return super.onExit(signal);
     }
 
-    onExited() {
+    onExited(signal: AbortSignal) {
         if (this.screenAnimationProvider?.ref instanceof HTMLDialogElement) {
             this.screenAnimationProvider.ref.close("screen-exit");
         }
 
-        return super.onExited();
+        return super.onExited(signal);
     }
 }

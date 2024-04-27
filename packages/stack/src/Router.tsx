@@ -160,12 +160,13 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
 
             return new Promise<void>((resolve) => startTransition(() => {
                 this.setState({ screenStack, transition, destination }, async () => {
+                    const signal = e.signal;
                     const currentScreen = this.getScreenRefByKey(this.navigation.current.key);
                     await this.setZIndices();
                     await currentScreen?.current?.focus();
-                    await currentScreen?.current?.onEnter();
-                    await currentScreen?.current?.load();
-                    await currentScreen?.current?.onEntered();
+                    await currentScreen?.current?.onEnter(signal);
+                    await currentScreen?.current?.load(signal);
+                    await currentScreen?.current?.onEntered(signal);
                     this.setState({ destination: null, transition: null }, resolve);
                 });
             }));
@@ -210,6 +211,7 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
 
             return new Promise<void>((resolve) => startTransition(() => {
                 this.setState({ destination, transition, screenStack }, async () => {
+                    const signal = e.signal;
                     const outgoingKey = transition?.from.key;
                     const incomingKey = window.navigation.currentEntry?.key;
                     const outgoingScreen = this.getScreenRefByKey(String(outgoingKey));
@@ -220,18 +222,18 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
                         incomingScreen?.current?.focus()
                     ]);
                     await Promise.all([
-                        outgoingScreen?.current?.onExit(),
-                        incomingScreen?.current?.onEnter()
+                        outgoingScreen?.current?.onExit(signal),
+                        incomingScreen?.current?.onEnter(signal)
                     ]);
                     await Promise.all([
                         this.animate(incomingScreen, outgoingScreen, backNavigating),
                         this.sharedElementTransition(incomingScreen, outgoingScreen)
                     ]);
-                    await incomingScreen?.current?.load();
+                    await incomingScreen?.current?.load(signal);
                     if (backNavigating) await this.setZIndices();
                     await Promise.all([
-                        outgoingScreen?.current?.onExited(),
-                        incomingScreen?.current?.onEntered()
+                        outgoingScreen?.current?.onExited(signal),
+                        incomingScreen?.current?.onEntered(signal)
                     ]);
                     this.setState({ destination: null, transition: null }, resolve);
                 });
