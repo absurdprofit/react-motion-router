@@ -250,6 +250,8 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
         if (this.sharedElementLayer.current && incomingScreen && outgoingScreen) {
             this.sharedElementLayer.current.outgoingScreen = outgoingScreen;
             this.sharedElementLayer.current.incomingScreen = incomingScreen;
+            if (this.sharedElementLayer.current.running)
+                this.sharedElementLayer.current.finish();
             this.sharedElementLayer.current.transition();
         }
     }
@@ -273,6 +275,8 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
                 incomingScreen,
                 outgoingScreen
             ];
+            if (this.screenAnimationLayer.current.running)
+                this.screenAnimationLayer.current.cancel();
             await this.screenAnimationLayer.current.animate();
         }
     }

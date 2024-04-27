@@ -143,6 +143,20 @@ export class ScreenAnimationLayer extends Component<ScreenAnimationLayerProps, S
         return this._direction;
     }
 
+    get playState() {
+        return this.animation?.playState;
+    }
+
+    public finish() {
+        this.animation?.finish();
+    }
+
+    public cancel() {
+        this.animation?.pause(); // prevent animation from finishing
+        this.animation?.cancel();
+        this.onTransitionCancel();
+    }
+
     public async animate() {
         if (this.animation) {
             // cancel playing animation

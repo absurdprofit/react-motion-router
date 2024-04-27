@@ -95,6 +95,15 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
             .then(() => {return;});
     }
 
+    public finish() {
+        this.animation?.finish();
+    }
+
+    public cancel() {
+        this.animation?.pause(); // prevent animation from finishing
+        this.animation?.cancel();
+    }
+
     getAnimationEffect<T extends { instance: SharedElement, clone: Element }>(start: T, end: T) {
         const keyframeEffects = new Array<KeyframeEffect>();
         const startRect = start.instance.getBoundingClientRect();
@@ -179,7 +188,7 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
                 new KeyframeEffect(
                     end.clone,
                     [
-                        { transform: `translate(${startRect.x}px, ${startRect.y}px)`or },
+                        { transform: `translate(${startRect.x}px, ${startRect.y}px)` },
                         { transform: `translate(${endRect.x}px, ${endRect.y}px)` }
                     ],
                     config

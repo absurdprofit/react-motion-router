@@ -29,4 +29,8 @@ export class GroupAnimation extends Animation {
 	get finished() {
 		return Promise.all(this.animations.map(animation => animation.finished)).then(() => this);
 	}
+
+	get playState() {
+		return this.animations.at(0)?.playState ?? "idle";
+	}
 }
