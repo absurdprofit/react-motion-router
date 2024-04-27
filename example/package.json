@@ -48,16 +48,18 @@
   },
   "browserslist": {
     "production": [
-      "Chrome >= 60",
-      "Safari >= 10.1",
-      "iOS >= 10.3",
-      "Firefox >= 54",
-      "Edge >= 15"
+      "Chrome >= 89",
+      "Safari >= 17.4",
+      "iOS >= 17.4",
+      "Firefox >= 89",
+      "Edge >= 89"
     ],
     "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
+      "Chrome >= 89",
+      "Safari >= 17.4",
+      "iOS >= 17.4",
+      "Firefox >= 89",
+      "Edge >= 89"
     ]
   },
   "devDependencies": {

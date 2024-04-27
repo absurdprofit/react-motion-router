@@ -2,6 +2,13 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { isNavigationSupported, isURLPatternSupported, polyfillNavigation, polyfillURLPattern } from "@react-motion-router/core";
+
+if (!isNavigationSupported())
+  await polyfillNavigation();
+
+if (!isURLPatternSupported())
+  await polyfillURLPattern();
 
 const container = document.getElementById('root');
 

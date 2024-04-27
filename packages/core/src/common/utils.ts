@@ -225,3 +225,29 @@ export function cssNumberishToNumber(value: CSSNumberish, unit: string) {
         return value.to(unit).value;
     return value;
 }
+
+export function isNavigationSupported() {
+    return Boolean(window.navigation);
+}
+
+export function isURLPatternSupported() {
+    // @ts-ignore: Property 'UrlPattern' does not exist 
+    return Boolean(globalThis.URLPattern);
+}
+
+export async function polyfillURLPattern() {
+    const { URLPattern } = await import(/*webpackIgnore: true*/ "urlpattern-polyfill");
+    // @ts-ignore: Property 'UrlPattern' does not exist 
+    globalThis.URLPattern = URLPattern;
+}
+
+export async function polyfillNavigation() {
+    const { applyPolyfill } = await import(/*webpackIgnore: true*/ "@virtualstate/navigation");
+    applyPolyfill({
+        history: true,
+        interceptEvents: true,
+        patch: true,
+        persist: true,
+        persistState: true
+    });
+}

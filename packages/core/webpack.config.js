@@ -43,6 +43,8 @@ module.exports = (env, argv) => ({
     },
     externals: {
         react: 'module react',
-        'react-dom': 'module react-dom'
+        'react-dom': 'module react-dom',
+        '@virtualstate/navigation': 'module @virtualstate/navigation',
+        'urlpattern-polyfill': 'module urlpattern-polyfill'
     }
 });

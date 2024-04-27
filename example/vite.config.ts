@@ -39,13 +39,15 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
-    include: ["@react-motion-router/core"]
+    include: ["@react-motion-router/core"],
+    esbuildOptions: { target: "ES2022" }
   },
   server: {
     open: true,
     port: 3000,
   },
   build: {
+    target: 'ES2022',
     outDir: 'build',
     rollupOptions: {
       plugins: [

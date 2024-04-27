@@ -9,14 +9,7 @@ import { Motion } from './ScreenAnimationLayer';
 import { GestureRegion } from './GestureRegion';
 import 'web-gesture-events';
 import { ScrollRestoration } from './ScrollRestoration';
-import { URLPattern } from "urlpattern-polyfill";
 import { SharedElement } from './SharedElement';
-
-// @ts-ignore: Property 'UrlPattern' does not exist 
-if (!globalThis.URLPattern) {
-    // @ts-ignore: Property 'UrlPattern' does not exist 
-    globalThis.URLPattern = URLPattern;
-}
 
 document.body.style.position = 'fixed';
 document.body.style.inset = '0';
