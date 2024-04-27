@@ -3,7 +3,7 @@ import type { NestedRouterContext, PlainObject, RouterBaseProps, RouterBaseState
 import { Navigation } from './Navigation';
 import { ScreenProps, Screen } from './Screen';
 import { HistoryEntryState, isRefObject } from './common/types';
-import { Children, createRef, cloneElement } from 'react';
+import { Children, createRef, cloneElement, startTransition } from 'react';
 
 export interface RouterProps extends RouterBaseProps {
     config: RouterBaseProps["config"] & {
@@ -132,40 +132,43 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
 
     private handleReload(e: NavigateEvent) {
         const handler = async () => {
-            return new Promise<void>((resolve) => {
                 const transition = window.navigation.transition;
                 const destination = e.destination;
                 const screenStack = new Array<ScreenChild>();
                 this.navigation.entries.forEach(entry => {
-                    if (!entry.url) return null;
-                    const screen = this.screenChildFromPathname(entry.url.pathname);
-                    if (!isValidScreenChild(screen)) return null;
-                    const { params, config } = entry.getState() as HistoryEntryState ?? {};
-                    screenStack.push(
-                        cloneElement(screen, {
-                            config: {
-                                ...this.props.config.screenConfig,
-                                ...screen.props.config,
-                                ...config
-                            },
-                            defaultParams: {
-                                ...screen.props.defaultParams,
-                                ...params,
-                            },
-                            resolvedPathname: entry.url.pathname,
-                            key: entry.key,
-                            ref: createRef<ScreenBase>()
-                        })
-                    );
-                });
+                if (!entry.url) return null;
+                const screen = this.screenChildFromPathname(entry.url.pathname);
+                if (!isValidScreenChild(screen)) return null;
+                const { params, config } = entry.getState() as HistoryEntryState ?? {};
+                screenStack.push(
+                    cloneElement(screen, {
+                        config: {
+                            ...this.props.config.screenConfig,
+                            ...screen.props.config,
+                            ...config
+                        },
+                        defaultParams: {
+                            ...screen.props.defaultParams,
+                            ...params,
+                        },
+                        resolvedPathname: entry.url.pathname,
+                        key: entry.key,
+                        ref: createRef<ScreenBase>()
+                    })
+                );
+            });
 
+            return new Promise<void>((resolve) => startTransition(() => {
                 this.setState({ screenStack, transition, destination }, async () => {
                     const currentScreen = this.getScreenRefByKey(this.navigation.current.key);
                     await this.setZIndices();
+                    await currentScreen?.current?.focus();
+                    await currentScreen?.current?.onEnter();
                     await currentScreen?.current?.load();
+                    await currentScreen?.current?.onEntered();
                     this.setState({ destination: null, transition: null }, resolve);
                 });
-            });
+            }));
         }
 
         e.intercept({ handler });
@@ -205,27 +208,33 @@ export class Router extends RouterBase<RouterProps, RouterState, Navigation> {
                 );
             }
 
-            return new Promise<void>((resolve) => this.setState({ destination, transition, screenStack }, async () => {
-                const outgoingKey = transition?.from.key;
-                const incomingKey = window.navigation.currentEntry?.key;
-                const outgoingScreen = this.getScreenRefByKey(String(outgoingKey));
-                const incomingScreen = this.getScreenRefByKey(String(incomingKey));
-                if (!backNavigating) await this.setZIndices();
-                await Promise.all([
-                    outgoingScreen?.current?.onExit(),
-                    incomingScreen?.current?.onEnter()
-                ]);
-                await Promise.all([
-                    this.animate(incomingScreen, outgoingScreen, backNavigating),
-                    this.sharedElementTransition(incomingScreen, outgoingScreen)
-                ]);
-                await incomingScreen?.current?.load();
-                if (backNavigating) await this.setZIndices();
-                await Promise.all([
-                    outgoingScreen?.current?.onExited(),
-                    incomingScreen?.current?.onEntered()
-                ]);
-                this.setState({ destination: null, transition: null }, resolve);
+            return new Promise<void>((resolve) => startTransition(() => {
+                this.setState({ destination, transition, screenStack }, async () => {
+                    const outgoingKey = transition?.from.key;
+                    const incomingKey = window.navigation.currentEntry?.key;
+                    const outgoingScreen = this.getScreenRefByKey(String(outgoingKey));
+                    const incomingScreen = this.getScreenRefByKey(String(incomingKey));
+                    if (!backNavigating) await this.setZIndices();
+                    await Promise.all([
+                        outgoingScreen?.current?.blur(),
+                        incomingScreen?.current?.focus()
+                    ]);
+                    await Promise.all([
+                        outgoingScreen?.current?.onExit(),
+                        incomingScreen?.current?.onEnter()
+                    ]);
+                    await Promise.all([
+                        this.animate(incomingScreen, outgoingScreen, backNavigating),
+                        this.sharedElementTransition(incomingScreen, outgoingScreen)
+                    ]);
+                    await incomingScreen?.current?.load();
+                    if (backNavigating) await this.setZIndices();
+                    await Promise.all([
+                        outgoingScreen?.current?.onExited(),
+                        incomingScreen?.current?.onEntered()
+                    ]);
+                    this.setState({ destination: null, transition: null }, resolve);
+                });
             }));
         }
 

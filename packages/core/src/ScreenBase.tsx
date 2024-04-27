@@ -52,7 +52,9 @@ export interface ScreenBaseProps {
     }
 }
 
-export interface ScreenBaseState { }
+export interface ScreenBaseState {
+    focused: boolean;
+}
 
 export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState> extends Component<P, S> {
     public readonly sharedElementScene: SharedElementScene;
@@ -61,6 +63,10 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     protected elementType: ElementType | string = "div";
     static readonly contextType = RouterContext;
     context!: React.ContextType<typeof RouterContext>;
+
+    state = {
+        focused: false
+    };
 
     constructor(props: P) {
         super(props);
@@ -97,6 +103,14 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
             .replace(/^-|-$/g, ''); // Remove leading and trailing hyphens;
     }
 
+    blur() {
+        return new Promise<void>(resolve => this.setState({ focused: false }, resolve));
+    }
+
+    focus() {
+        return new Promise<void>(resolve => this.setState({ focused: true }, resolve));
+    }
+
     async load() {
         let Component = this.props.component;
         let result;
@@ -114,7 +128,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     }
 
     get routeData(): RouteData<this["props"]> {
-        const focused = Boolean(this.screenAnimationProvider?.state.zIndex === 1);
+        const focused = this.state.focused;
         const resolvedPathname = this.props.resolvedPathname;
         const setConfig = this.setConfig.bind(this);
         const setParams = this.setParams.bind(this);
