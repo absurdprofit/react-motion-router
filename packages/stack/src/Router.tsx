@@ -53,8 +53,8 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             screens.map((screen, index) => {
                 const zIndex = (index + 1) - currentIndex;
                 const ref = screen.ref;
-                if (ref && isRefObject(ref) && ref.current?.screenAnimationProvider) {
-                    return ref.current.screenAnimationProvider.setZIndex(zIndex);
+                if (ref && isRefObject(ref) && ref.current?.screenTransitionProvider) {
+                    return ref.current.screenTransitionProvider.setZIndex(zIndex);
                 }
                 return Promise.resolve();
             })
@@ -132,10 +132,10 @@ export class Router extends RouterBase<RouterProps, RouterState> {
 
     private handleReload(e: NavigateEvent) {
         const handler = async () => {
-                const transition = window.navigation.transition;
-                const destination = e.destination;
-                const screenStack = new Array<ScreenChild>();
-                this.navigation.entries.forEach(entry => {
+            const transition = window.navigation.transition;
+            const destination = e.destination;
+            const screenStack = new Array<ScreenChild>();
+            this.navigation.entries.forEach(entry => {
                 if (!entry.url) return null;
                 const screen = this.screenChildFromPathname(entry.url.pathname);
                 if (!isValidScreenChild(screen)) return null;
@@ -226,7 +226,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                         incomingScreen?.current?.onEnter(signal)
                     ]);
                     await Promise.all([
-                        this.animate(incomingScreen, outgoingScreen, backNavigating),
+                        this.screenTransition(incomingScreen, outgoingScreen, backNavigating),
                         this.sharedElementTransition(incomingScreen, outgoingScreen)
                     ]);
                     await incomingScreen?.current?.load(signal);
@@ -256,28 +256,28 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         }
     }
 
-    private async animate(
+    private async screenTransition(
         incomingScreen: React.RefObject<Screen> | null,
         outgoingScreen: React.RefObject<Screen> | null,
         backNavigating: boolean
     ) {
-        if (this.screenAnimationLayer.current && incomingScreen && outgoingScreen) {
-            this.screenAnimationLayer.current.direction = backNavigating ? 'reverse' : 'normal';
-            if (incomingScreen.current?.screenAnimationProvider) {
-                incomingScreen.current.screenAnimationProvider.index = clamp(incomingScreen.current.screenAnimationProvider.state.zIndex, 0, 1);
-                incomingScreen.current.screenAnimationProvider.exiting = false;
+        if (this.screenTransitionLayer.current && incomingScreen && outgoingScreen) {
+            this.screenTransitionLayer.current.direction = backNavigating ? 'reverse' : 'normal';
+            if (incomingScreen.current?.screenTransitionProvider) {
+                incomingScreen.current.screenTransitionProvider.index = clamp(incomingScreen.current.screenTransitionProvider.state.zIndex, 0, 1);
+                incomingScreen.current.screenTransitionProvider.exiting = false;
             }
-            if (outgoingScreen.current?.screenAnimationProvider) {
-                outgoingScreen.current.screenAnimationProvider.index = clamp(outgoingScreen.current.screenAnimationProvider.state.zIndex, 0, 1);
-                outgoingScreen.current.screenAnimationProvider.exiting = true;
+            if (outgoingScreen.current?.screenTransitionProvider) {
+                outgoingScreen.current.screenTransitionProvider.index = clamp(outgoingScreen.current.screenTransitionProvider.state.zIndex, 0, 1);
+                outgoingScreen.current.screenTransitionProvider.exiting = true;
             }
-            this.screenAnimationLayer.current.screens = [
+            this.screenTransitionLayer.current.screens = [
                 incomingScreen,
                 outgoingScreen
             ];
-            if (this.screenAnimationLayer.current.running)
-                this.screenAnimationLayer.current.cancel();
-            await this.screenAnimationLayer.current.animate();
+            if (this.screenTransitionLayer.current.running)
+                this.screenTransitionLayer.current.cancel();
+            await this.screenTransitionLayer.current.transition();
         }
     }
 

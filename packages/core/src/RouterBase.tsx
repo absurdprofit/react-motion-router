@@ -1,5 +1,5 @@
 import { NavigationBase } from './NavigationBase';
-import { ScreenAnimationLayer } from './ScreenAnimationLayer';
+import { ScreenTransitionLayer } from './ScreenTransitionLayer';
 import {
     ScreenChild,
     PlainObject,
@@ -38,7 +38,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     public readonly parentRouter: RouterBase | null = null;
     public readonly parentScreen: ScreenBase | null = null;
     private _childRouter: WeakRef<RouterBase> | null = null;
-    protected screenAnimationLayer = createRef<ScreenAnimationLayer>();
+    protected screenTransitionLayer = createRef<ScreenTransitionLayer>();
     protected sharedElementLayer = createRef<SharedElementLayer>();
     private static rootRouterRef: WeakRef<RouterBase> | null = null;
     static readonly contextType = NestedRouterContext;
@@ -257,12 +257,12 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
                         ref={this.sharedElementLayer}
                         navigation={this.navigation}
                     />
-                    <ScreenAnimationLayer
-                        ref={this.screenAnimationLayer}
+                    <ScreenTransitionLayer
+                        ref={this.screenTransitionLayer}
                         navigation={this.navigation}
                     >
                         {this.screens}
-                    </ScreenAnimationLayer>
+                    </ScreenTransitionLayer>
                 </RouterContext.Provider>
             </div>
         );

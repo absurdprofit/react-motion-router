@@ -1,5 +1,5 @@
 import { Component, ElementType, Suspense, cloneElement, createRef, isValidElement } from "react";
-import { ScreenAnimationProvider } from "./ScreenAnimationProvider";
+import { ScreenTransitionProvider } from "./ScreenTransitionProvider";
 import {
     AnimationEffectFactory,
     LazyExoticComponent,
@@ -62,7 +62,7 @@ export interface ScreenBaseState {
 
 export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState> extends Component<P, S> {
     public readonly sharedElementScene: SharedElementScene;
-    private _screenAnimationProvider = createRef<ScreenAnimationProvider>();
+    private _screenTransitionProvider = createRef<ScreenTransitionProvider>();
     protected ref: HTMLElement | null = null;
     protected elementType: ElementType | string = "div";
     static readonly contextType = RouterContext;
@@ -205,8 +205,8 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         return this.props.path;
     }
 
-    get screenAnimationProvider() {
-        return this._screenAnimationProvider.current;
+    get screenTransitionProvider() {
+        return this._screenTransitionProvider.current;
     }
 
     render() {
@@ -216,8 +216,8 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         const FooterComponent = routeData.config.footer?.component;
 
         return (
-            <ScreenAnimationProvider
-                ref={this._screenAnimationProvider}
+            <ScreenTransitionProvider
+                ref={this._screenTransitionProvider}
                 renderAs={this.elementType}
                 id={`${this.id}-animation-provider`}
                 animation={routeData.config.animation}
@@ -251,7 +251,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
                         </RouteDataContext.Provider>
                     </SharedElementSceneContext.Provider>
                 </div>
-            </ScreenAnimationProvider>
+            </ScreenTransitionProvider>
         );
     }
 }

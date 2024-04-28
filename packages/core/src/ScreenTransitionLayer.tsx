@@ -8,16 +8,16 @@ import { DEFAULT_GESTURE_CONFIG, MAX_PROGRESS, MIN_PROGRESS } from './common/con
 import { SharedElementLayer } from './SharedElementLayer';
 import { GroupAnimation } from './common/group-animation';
 import { ParallelEffect } from './common/group-effect';
-import { ScreenAnimationLayerContext } from './ScreenAnimationLayerContext';
+import { ScreenTransitionLayerContext } from './ScreenTransitionLayerContext';
 
 export const Motion = createContext(0);
 
-interface ScreenAnimationLayerProps {
+interface ScreenTransitionLayerProps {
     children: ScreenChild | ScreenChild[];
     navigation: NavigationBase;
 }
 
-interface ScreenAnimationLayerState {
+interface ScreenTransitionLayerState {
     progress: number;
     shouldPlay: boolean;
     gestureNavigating: boolean;
@@ -31,7 +31,7 @@ interface ScreenAnimationLayerState {
     disableDiscovery: boolean;
 }
 
-export class ScreenAnimationLayer extends Component<ScreenAnimationLayerProps, ScreenAnimationLayerState> {
+export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps, ScreenTransitionLayerState> {
     private ref: HTMLDivElement | null = null;
     private animation: Animation | null = null;
     private _timeline: AnimationTimeline = document.timeline;
@@ -39,7 +39,7 @@ export class ScreenAnimationLayer extends Component<ScreenAnimationLayerProps, S
     private _direction: AnimationDirection = "normal";
     private _screens: RefObject<ScreenBase>[] = new Array();
 
-    state: ScreenAnimationLayerState = {
+    state: ScreenTransitionLayerState = {
         progress: MAX_PROGRESS,
         shouldPlay: true,
         gestureNavigating: false,
@@ -50,7 +50,7 @@ export class ScreenAnimationLayer extends Component<ScreenAnimationLayerProps, S
         ...DEFAULT_GESTURE_CONFIG,
     }
 
-    // static getDerivedStateFromProps(props: ScreenAnimationLayerProps, state: ScreenAnimationLayerState) {
+    // static getDerivedStateFromProps(props: ScreenTransitionLayerProps, state: ScreenTransitionLayerState) {
     //     const config = props.currentScreen?.current?.routeData.config;
     //     return {
     //         swipeDirection: config?.swipeDirection ?? state.swipeDirection,
@@ -157,7 +157,7 @@ export class ScreenAnimationLayer extends Component<ScreenAnimationLayerProps, S
         this.onTransitionCancel();
     }
 
-    public async animate() {
+    public async transition() {
         if (this.animation) {
             // cancel playing animation
             this.animation.cancel();
@@ -166,7 +166,7 @@ export class ScreenAnimationLayer extends Component<ScreenAnimationLayerProps, S
 
         this.animation = new GroupAnimation(new ParallelEffect(
             this.screens.map(screen => {
-                return screen.current?.screenAnimationProvider?.animationEffect ?? new KeyframeEffect(null, [], {})
+                return screen.current?.screenTransitionProvider?.animationEffect ?? new KeyframeEffect(null, [], {})
             })
         ), timeline);
 
@@ -229,7 +229,7 @@ export class ScreenAnimationLayer extends Component<ScreenAnimationLayerProps, S
             }, () => {
                 this.playbackRate = -1;
                 this.animation?.pause();
-                this.animate();
+                this.transition();
 
                 this.props.navigation.dispatchEvent(new MotionProgressStartEvent());
                 this.ref?.addEventListener('swipe', this.onSwipe);
@@ -317,7 +317,7 @@ export class ScreenAnimationLayer extends Component<ScreenAnimationLayerProps, S
 
     render() {
         return (
-            <ScreenAnimationLayerContext.Provider value={this}>
+            <ScreenTransitionLayerContext.Provider value={this}>
                 <div
                     className="screen-animation-layer"
                     ref={this.setRef}
@@ -332,7 +332,7 @@ export class ScreenAnimationLayer extends Component<ScreenAnimationLayerProps, S
                         {this.props.children}
                     </Motion.Provider>
                 </div>
-            </ScreenAnimationLayerContext.Provider>
+            </ScreenTransitionLayerContext.Provider>
         );
     }
 }

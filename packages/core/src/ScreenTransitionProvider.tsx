@@ -1,9 +1,9 @@
-import { ScreenAnimationLayerContext } from './ScreenAnimationLayerContext';
+import { ScreenTransitionLayerContext } from './ScreenTransitionLayerContext';
 import { AnimationEffectFactory, CustomElementType } from './common/types';
 import { NavigationBase } from './NavigationBase';
 import { Component, ElementType } from 'react';
 
-interface ScreenAnimationProviderProps {
+interface ScreenTransitionProviderProps {
     id: string;
     animation?: AnimationEffectFactory;
     children: React.ReactNode
@@ -11,18 +11,18 @@ interface ScreenAnimationProviderProps {
     renderAs: ElementType | CustomElementType;
 }
 
-interface ScreenAnimationProviderState {
+interface ScreenTransitionProviderState {
     zIndex: number;
 }
 
-export class ScreenAnimationProvider extends Component<ScreenAnimationProviderProps, ScreenAnimationProviderState> {
+export class ScreenTransitionProvider extends Component<ScreenTransitionProviderProps, ScreenTransitionProviderState> {
     private _ref: HTMLElement | null = null;
-    static readonly contextType = ScreenAnimationLayerContext;
-    context!: React.ContextType<typeof ScreenAnimationLayerContext>;
+    static readonly contextType = ScreenTransitionLayerContext;
+    context!: React.ContextType<typeof ScreenTransitionLayerContext>;
     public index = 0;
     public exiting = false;
 
-    state: ScreenAnimationProviderState = {
+    state: ScreenTransitionProviderState = {
         zIndex: 0,
     }
 

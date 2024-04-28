@@ -1,5 +1,5 @@
 import { useContext, useState } from "react";
-import { Motion } from "../ScreenAnimationLayer";
+import { Motion } from "../ScreenTransitionLayer";
 import { NavigationBase } from "../NavigationBase";
 import { ScreenBaseProps } from "../ScreenBase";
 import { RouteData, PlainObject } from './types';

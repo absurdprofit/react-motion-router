@@ -114,7 +114,7 @@ export class Navigation extends NavigationBase<StackRouterEventMap> {
     }
 
     get transition() {
-        return this.router.state.transition ?? null;
+        return this.router.state.transition;
     }
 
     get globalEntries() {
