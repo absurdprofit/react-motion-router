@@ -1,16 +1,6 @@
-import { ParamsDeserializer, ParamsSerializer, PlainObject, RouterBaseEventMap } from "./common/types";
+import { RouterBaseEventMap } from "./common/types";
 import { MetaData } from "./MetaData";
 import { RouterBase } from "./RouterBase";
-import { ScreenBaseProps } from "./ScreenBase";
-
-export interface NavigationBaseProps<Params extends PlainObject = {}, Config extends ScreenBaseProps["config"] = {}> {
-    params?: Params;
-    config?: Config;
-}
-
-export interface NavigationBaseOptions {
-    signal?: AbortSignal;
-}
 
 export abstract class NavigationBase<E extends RouterBaseEventMap = RouterBaseEventMap> {
     protected readonly router: RouterBase;

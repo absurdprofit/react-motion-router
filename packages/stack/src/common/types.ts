@@ -1,7 +1,11 @@
-import { NavigationBaseOptions, NavigationBaseProps, PlainObject, RouterBaseEventMap } from "@react-motion-router/core";
+import { PlainObject, RouterBaseEventMap } from "@react-motion-router/core";
 import { ScreenProps } from "../Screen";
 import { RefObject } from "react";
 import { BackEvent, ForwardEvent, NavigateEvent } from "./events";
+
+interface NavigationBaseOptions {
+	signal?: AbortSignal;
+}
 
 export interface NavigateOptions extends NavigationBaseOptions {
 	type?: "push" | "replace";
@@ -10,7 +14,10 @@ export interface NavigateOptions extends NavigationBaseOptions {
 export interface GoBackOptions extends NavigationBaseOptions { }
 export interface GoForwardOptions extends NavigationBaseOptions { }
 
-export interface NavigationProps extends NavigationBaseProps<PlainObject, ScreenProps["config"]> {}
+export interface NavigationProps {
+	params?: Record<any, any>;
+	config?: ScreenProps["config"]
+}
 
 export type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
 
