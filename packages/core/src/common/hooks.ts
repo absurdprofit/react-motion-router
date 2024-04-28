@@ -3,9 +3,9 @@ import { Motion } from "../ScreenTransitionLayer";
 import { NavigationBase } from "../NavigationBase";
 import { ScreenBaseProps } from "../ScreenBase";
 import { RouterContext } from "../RouterContext";
-import { RoutePropContext } from "../RouteProp";
+import { RoutePropContext } from "../RoutePropContext";
 import { RouterBase } from "../RouterBase";
-import { RouteProp } from "..";
+import { RoutePropBase } from "./types";
 
 export function useNavigationBase<T extends NavigationBase = NavigationBase>() {
     const router = useContext(RouterContext);
@@ -25,7 +25,7 @@ export function useMotion() {
     return useContext(Motion);
 }
 
-export function useRouteBase<R extends RouteProp>() {
+export function useRouteBase<R extends RoutePropBase>() {
     const routeProp = useContext(RoutePropContext);
     if (routeProp) {
         return routeProp as R;

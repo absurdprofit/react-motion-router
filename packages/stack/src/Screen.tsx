@@ -1,9 +1,10 @@
 import { ScreenBase, matchRoute } from '@react-motion-router/core';
-import type { RouteProp, ScreenBaseProps, ScreenBaseState, ScreenComponentBaseProps } from '@react-motion-router/core';
+import type { ScreenBaseProps, ScreenBaseState, ScreenComponentBaseProps } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { Children, isValidElement } from 'react';
+import { RouteProp } from './common/types';
 
-export interface ScreenComponentProps extends ScreenComponentBaseProps<RouteProp<ScreenProps>, Navigation> { }
+export interface ScreenComponentProps extends ScreenComponentBaseProps<RouteProp, Navigation> { }
 
 type Presentation = "default" | "dialog" | "modal";
 export interface ScreenProps extends ScreenBaseProps {
@@ -24,6 +25,29 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
             || props.config?.presentation === "modal"
         )
             this.elementType = "dialog";
+    }
+
+    get routeProp() {
+        const focused = this.state.focused;
+        const resolvedPathname = this.props.resolvedPathname;
+        const setConfig = this.setConfig.bind(this);
+        const setParams = this.setParams.bind(this);
+        const path = this.props.path;
+        return {
+            path,
+            params: {
+                ...this.props.defaultParams,
+                ...this.context!.screenState.get(this.props.path)?.params
+            },
+            config: {
+                ...this.props.config,
+                ...this.context!.screenState.get(this.props.path)?.config
+            },
+            focused,
+            resolvedPathname,
+            setConfig,
+            setParams
+        };
     }
 
     onEnter(signal: AbortSignal) {

@@ -59,20 +59,20 @@ export interface LazyExoticComponent<T extends React.ComponentType<any>> extends
     load: () => Promise<{ default: T }>;
 }
 
-export type ScreenState<P extends ScreenBaseProps = ScreenBaseProps> = Map<string, Pick<RouteProp<P, PlainObject>, "config" | "params">>;
+export type ScreenState<P extends ScreenBaseProps = ScreenBaseProps> = Map<string, Pick<RoutePropBase<P["config"], PlainObject>, "config" | "params">>;
 
-export interface RouteProp<P extends ScreenBaseProps = ScreenBaseProps, T extends PlainObject = PlainObject> {
+export interface RoutePropBase<C extends ScreenBaseProps["config"] = {}, P extends PlainObject = PlainObject> {
     path: string;
     resolvedPathname?: string;
-    config: Partial<NonNullable<P["config"]>>;
+    config: Partial<NonNullable<C>>;
     focused: boolean;
-    params: T;
-    setParams(params: Partial<T>): void;
-    setConfig(config: Partial<P["config"]>): void;
+    params: P;
+    setParams(params: Partial<P>): void;
+    setConfig(config: Partial<NonNullable<C>>): void;
 }
 
 export interface ScreenComponentBaseProps<
-    R extends RouteProp = RouteProp,
+    R extends RoutePropBase = RoutePropBase,
     N extends NavigationBase = NavigationBase
 > {
     route: R;
@@ -85,7 +85,7 @@ export function isValidComponentConstructor(value: any): value is React.Componen
         (typeof value === 'object' && value.$$typeof === Symbol.for('react.lazy'));
 }
 
-export function isValidScreenChild(value: any): value is ScreenChild {
+export function isValidScreenChild<S extends ScreenBase>(value: any): value is ScreenChild<S["props"], S> {
     if (!isValidElement(value)) return false;
     return Object.getPrototypeOf(value.type) === ScreenBase;
 }

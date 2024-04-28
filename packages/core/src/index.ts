@@ -2,7 +2,7 @@ import {
     ScreenChild,
     AnimationEffectFactory,
 } from './common/types';
-import { NavigationBase, NavigationBaseProps, NavigationBaseOptions } from './NavigationBase';
+import { NavigationBase } from './NavigationBase';
 import { RouterBase, RouterBaseProps, RouterBaseState } from './RouterBase';
 import { ScreenBase, ScreenBaseProps, ScreenBaseState } from './ScreenBase';
 import { Motion } from './ScreenTransitionLayer';
@@ -30,9 +30,7 @@ export type {
     RouterBaseProps,
     RouterBaseState,
     ScreenBaseProps,
-    ScreenBaseState,
-    NavigationBaseProps,
-    NavigationBaseOptions
+    ScreenBaseState
 };
 export { SharedElement, Motion, GestureRegion, ScrollRestoration };
 export { NavigationBase, RouterBase, ScreenBase };

@@ -1,7 +1,7 @@
-import { RouteProp, useNavigationBase, useRouteBase, useRouterBase } from "@react-motion-router/core";
+import { useNavigationBase, useRouteBase, useRouterBase } from "@react-motion-router/core";
 import { Navigation } from "../Navigation";
 import { Router } from "../Router";
-import { ScreenProps } from "../Screen";
+import { RouteProp } from "./types";
 import { useDebugValue } from "react";
 
 export function useNavigation() {
@@ -16,5 +16,5 @@ export function useRouter() {
 
 export function useRoute() {
 	useDebugValue("StackRoute");
-	return useRouteBase<RouteProp<ScreenProps>>();
+	return useRouteBase<RouteProp>();
 }

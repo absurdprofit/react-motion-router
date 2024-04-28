@@ -5,7 +5,7 @@ import { ScreenProps, Screen } from './Screen';
 import { HistoryEntryState, isRefObject } from './common/types';
 import { Children, createRef, cloneElement, startTransition } from 'react';
 
-export interface RouterProps extends RouterBaseProps {
+export interface RouterProps extends RouterBaseProps<Screen> {
     config: RouterBaseProps["config"] & {
         screenConfig?: ScreenProps["config"];
         disableBrowserRouting?: boolean;
@@ -134,11 +134,11 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         const handler = async () => {
             const transition = window.navigation.transition;
             const destination = e.destination;
-            const screenStack = new Array<ScreenChild>();
+            const screenStack = new Array<ScreenChild<ScreenProps, Screen>>();
             this.navigation.entries.forEach(entry => {
                 if (!entry.url) return null;
                 const screen = this.screenChildFromPathname(entry.url.pathname);
-                if (!isValidScreenChild(screen)) return null;
+                if (!isValidScreenChild<Screen>(screen)) return null;
                 const { params, config } = entry.getState() as HistoryEntryState ?? {};
                 screenStack.push(
                     cloneElement(screen, {
@@ -153,7 +153,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                         },
                         resolvedPathname: entry.url.pathname,
                         key: entry.key,
-                        ref: createRef<ScreenBase>()
+                        ref: createRef<Screen>()
                     })
                 );
             });
@@ -179,7 +179,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         const screenStack = this.state.screenStack;
         const destinationPathname = new URL(e.destination.url).pathname;
         const destinationScreen = this.screenChildFromPathname(destinationPathname);
-        if (!isValidScreenChild(destinationScreen)) return e.preventDefault();
+        if (!isValidScreenChild<Screen>(destinationScreen)) return e.preventDefault();
         const handler = async () => {
             const { params, config } = e.destination.getState() as HistoryEntryState ?? {};
             const transition = window.navigation.transition;
@@ -204,7 +204,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                         },
                         resolvedPathname,
                         key: window.navigation.currentEntry?.key,
-                        ref: createRef<ScreenBase>()
+                        ref: createRef<Screen>()
                     })
                 );
             }

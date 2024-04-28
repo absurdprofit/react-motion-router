@@ -1,4 +1,4 @@
-import { PlainObject, RouterBaseEventMap } from "@react-motion-router/core";
+import { PlainObject, RoutePropBase, RouterBaseEventMap } from "@react-motion-router/core";
 import { ScreenProps } from "../Screen";
 import { RefObject } from "react";
 import { BackEvent, ForwardEvent, NavigateEvent } from "./events";
@@ -43,3 +43,5 @@ export interface StackRouterEventMap extends RouterBaseEventMap {
 	"back": BackEvent;
 	"forward": ForwardEvent;
 }
+
+export interface RouteProp extends RoutePropBase<ScreenProps["config"]> {}
