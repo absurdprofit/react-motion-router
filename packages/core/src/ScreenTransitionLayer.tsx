@@ -151,13 +151,11 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
     public transition() {
         const timeline = this.timeline;
 
-        const screenAnimationEffects = this.screens.map(screen => {
+        const animationEffects = this.screens.map(screen => {
             return screen.current?.screenTransitionProvider?.animationEffect ?? new KeyframeEffect(null, [], {})
         });
-        this._animation = new GroupAnimation(new ParallelEffect([
-            ...screenAnimationEffects,
-            this.sharedElementLayer.current?.animationEffect ?? new KeyframeEffect(null, [], {})
-        ]), timeline);
+        animationEffects.push(this.sharedElementLayer.current?.animationEffect ?? new KeyframeEffect(null, [], {}));
+        this._animation = new GroupAnimation(new ParallelEffect(animationEffects), timeline);
 
         this.ready.then(() => {
             this.sharedElementLayer.current?.ref.current?.showModal();
@@ -168,11 +166,10 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
         this.animation?.addEventListener('cancel', this.onTransitionCancel.bind(this), { once: true });
 
         this.finished.then(() => {
-            this.sharedElementLayer.current?.ref.current?.close();
             this.animation?.commitStyles();
-            this._animation = null;
-
             this.onTransitionEnd();
+            this.sharedElementLayer.current?.ref.current?.close();
+            this._animation = null;
         });
 
         return this.animation;
