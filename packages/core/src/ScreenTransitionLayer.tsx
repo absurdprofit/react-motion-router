@@ -33,7 +33,8 @@ interface ScreenTransitionLayerState {
 
 export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps, ScreenTransitionLayerState> {
     private ref: HTMLDivElement | null = null;
-    private animation: Animation | null = null;
+    public readonly sharedElementLayer = createRef<SharedElementLayer>();
+    private _animation: Animation | null = null;
     private _timeline: AnimationTimeline = document.timeline;
     private _playbackRate: number = 1;
     private _direction: AnimationDirection = "normal";
@@ -90,6 +91,10 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
         return this.animation?.ready.then(() => { return; }) ?? Promise.resolve();
     }
 
+    get animation() {
+        return this._animation;
+    }
+
     get started() {
         return new Promise<void>((resolve) => {
             this.props.navigation.addEventListener('transition-start', () => {
@@ -143,50 +148,34 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
         return this._direction;
     }
 
-    get playState() {
-        return this.animation?.playState;
-    }
-
-    public finish() {
-        this.animation?.finish();
-    }
-
-    public cancel() {
-        this.animation?.pause(); // prevent animation from finishing
-        this.animation?.cancel();
-        this.onTransitionCancel();
-    }
-
-    public async transition() {
-        if (this.animation) {
-            // cancel playing animation
-            this.animation.cancel();
-        }
+    public transition() {
         const timeline = this.timeline;
 
-        this.animation = new GroupAnimation(new ParallelEffect(
-            this.screens.map(screen => {
-                return screen.current?.screenTransitionProvider?.animationEffect ?? new KeyframeEffect(null, [], {})
-            })
-        ), timeline);
+        const screenAnimationEffects = this.screens.map(screen => {
+            return screen.current?.screenTransitionProvider?.animationEffect ?? new KeyframeEffect(null, [], {})
+        });
+        this._animation = new GroupAnimation(new ParallelEffect([
+            ...screenAnimationEffects,
+            this.sharedElementLayer.current?.animationEffect ?? new KeyframeEffect(null, [], {})
+        ]), timeline);
 
-        if (!this.state.shouldAnimate) {
-            this.animation.finish();
-            this.setState({ shouldAnimate: true });
-            return;
-        }
+        this.ready.then(() => {
+            this.sharedElementLayer.current?.ref.current?.showModal();
+            this.animation?.play();
+            this.onTransitionStart();
+        });
 
-        await this.ready;
+        this.animation?.addEventListener('cancel', this.onTransitionCancel.bind(this), { once: true });
 
-        this.animation.play();
-        this.onTransitionStart();
+        this.finished.then(() => {
+            this.sharedElementLayer.current?.ref.current?.close();
+            this.animation?.commitStyles();
+            this._animation = null;
 
-        await this.finished;
+            this.onTransitionEnd();
+        });
 
-        this.animation.commitStyles();
-        this.animation = null;
-
-        this.onTransitionEnd();
+        return this.animation;
     }
 
     onSwipeStart = (ev: SwipeStartEvent) => {
@@ -318,6 +307,10 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
     render() {
         return (
             <ScreenTransitionLayerContext.Provider value={this}>
+                <SharedElementLayer
+                    ref={this.sharedElementLayer}
+                    navigation={this.props.navigation}
+                />
                 <div
                     className="screen-animation-layer"
                     ref={this.setRef}

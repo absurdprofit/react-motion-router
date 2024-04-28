@@ -24,8 +24,7 @@ interface TransitionState {
 }
 
 export class SharedElementLayer extends Component<SharedElementLayerProps, SharedElementLayerState> {
-    private readonly ref = createRef<HTMLDialogElement>();
-    private animation: Animation | null = null;
+    public readonly ref = createRef<HTMLDialogElement>();
     private _timeline: AnimationTimeline = document.timeline;
     private _playbackRate: number = 1;
     private _outgoingScreen: RefObject<ScreenBase> | null = null;
@@ -34,17 +33,7 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
     state: SharedElementLayerState = {
         transitioning: false
     }
-
-    set timeline(timeline: AnimationTimeline) {
-        this._timeline = timeline;
-        if (this.animation) this.animation.timeline = timeline;
-    }
-
-    set playbackRate(playbackRate: number) {
-        this._playbackRate = playbackRate;
-        if (this.animation) this.animation.playbackRate = playbackRate;
-    }
-
+ 
     set outgoingScreen(outgoingScreen: RefObject<ScreenBase> | null) {
         this._outgoingScreen = outgoingScreen;
     }
@@ -69,39 +58,12 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
         return this._playbackRate;
     }
 
-    get ready() {
-        return this.animation?.ready.then(() => {return;}) ?? Promise.resolve();
-    }
-
     get started() {
         return new Promise<void>((resolve) => {
             this.props.navigation.addEventListener('transition-start', () => {
                 resolve()
             }, { once: true });
         });
-    }
-
-    get paused() {
-        return this.animation?.playState === "paused";
-    }
-
-    get running() {
-        return this.animation?.playState === "running";
-    }
-
-    get finished() {
-        return this.started
-            .then(() => this.animation?.finished)
-            .then(() => {return;});
-    }
-
-    public finish() {
-        this.animation?.finish();
-    }
-
-    public cancel() {
-        this.animation?.pause(); // prevent animation from finishing
-        this.animation?.cancel();
     }
 
     getAnimationEffect<T extends { instance: SharedElement, clone: Element }>(start: T, end: T) {
@@ -198,7 +160,7 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
         return new ParallelEffect(keyframeEffects);
     }
 
-    async transition() {
+    get animationEffect() {
         const currentScene = this.outgoingScreen?.current?.sharedElementScene;
         const nextScene = this.incomingScreen?.current?.sharedElementScene;
         if (!currentScene || !nextScene) return;
@@ -223,12 +185,14 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
                 if (!endClone) continue;
                 endClone.id = `${id}-end`;
                 this.ref.current?.prepend(endClone);
-                this.finished.then(() => {
+                const onFinish = () => {
                     end.unhide();
                     start?.unhide();
                     this.ref.current?.removeChild(endClone);
                     if (startClone) this.ref.current?.removeChild(startClone);
-                });
+                };
+                this.props.navigation.addEventListener('transition-end', onFinish, { once: true });
+                this.props.navigation.addEventListener('transition-cancel', onFinish, { once: true });
 
                 parallelEffects.push(this.getAnimationEffect(
                     { instance: start, clone: startClone! },
@@ -237,11 +201,7 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
             }
         }
 
-        this.ref.current?.showModal();
-        this.animation = new GroupAnimation(new ParallelEffect(parallelEffects), this.timeline);
-        this.animation.play();
-        await this.finished;
-        this.ref.current?.close();
+        return new ParallelEffect(parallelEffects);
     }
 
     render() {

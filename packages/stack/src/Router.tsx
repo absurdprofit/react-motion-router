@@ -225,11 +225,10 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                         outgoingScreen?.current?.onExit(signal),
                         incomingScreen?.current?.onEnter(signal)
                     ]);
-                    await Promise.all([
-                        this.screenTransition(incomingScreen, outgoingScreen, backNavigating),
-                        this.sharedElementTransition(incomingScreen, outgoingScreen)
-                    ]);
                     await incomingScreen?.current?.load(signal);
+                    const animation = this.screenTransition(incomingScreen, outgoingScreen, backNavigating);
+                    signal.addEventListener('abort', () => animation?.cancel());
+                    await animation?.finished;
                     if (backNavigating) await this.setZIndices();
                     await Promise.all([
                         outgoingScreen?.current?.onExited(signal),
@@ -243,20 +242,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         e.intercept({ handler });
     }
 
-    private async sharedElementTransition(
-        incomingScreen: React.RefObject<Screen> | null,
-        outgoingScreen: React.RefObject<Screen> | null
-    ) {
-        if (this.sharedElementLayer.current && incomingScreen && outgoingScreen) {
-            this.sharedElementLayer.current.outgoingScreen = outgoingScreen;
-            this.sharedElementLayer.current.incomingScreen = incomingScreen;
-            if (this.sharedElementLayer.current.running)
-                this.sharedElementLayer.current.finish();
-            this.sharedElementLayer.current.transition();
-        }
-    }
-
-    private async screenTransition(
+    private screenTransition(
         incomingScreen: React.RefObject<Screen> | null,
         outgoingScreen: React.RefObject<Screen> | null,
         backNavigating: boolean
@@ -271,13 +257,16 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                 outgoingScreen.current.screenTransitionProvider.index = clamp(outgoingScreen.current.screenTransitionProvider.state.zIndex, 0, 1);
                 outgoingScreen.current.screenTransitionProvider.exiting = true;
             }
+            if (this.screenTransitionLayer.current.sharedElementLayer.current) {
+                this.screenTransitionLayer.current.sharedElementLayer.current.outgoingScreen = outgoingScreen;
+                this.screenTransitionLayer.current.sharedElementLayer.current.incomingScreen = incomingScreen;
+            }
             this.screenTransitionLayer.current.screens = [
                 incomingScreen,
                 outgoingScreen
             ];
-            if (this.screenTransitionLayer.current.running)
-                this.screenTransitionLayer.current.cancel();
-            await this.screenTransitionLayer.current.transition();
+
+            return this.screenTransitionLayer.current.transition();
         }
     }
 

@@ -17,9 +17,11 @@ export class GroupAnimation extends Animation {
 	}
 
 	commitStyles() {
-		this.animations.map(animation => {
-			animation.commitStyles();
-		});
+		this.animations.map(animation => animation.commitStyles());
+	}
+
+	cancel() {
+		this.animations.map(animation => animation.cancel());
 	}
 
 	get ready() {
