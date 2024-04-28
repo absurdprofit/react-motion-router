@@ -4,27 +4,27 @@ import {
     AnimationEffectFactory,
     LazyExoticComponent,
     PlainObject,
-    RouteData,
+    RouteProp,
     SwipeDirection,
     isValidComponentConstructor
 } from "./common/types";
 import { NestedRouterContext, RouterContext } from "./RouterContext";
-import { RouteDataContext } from "./RouteData";
+import { RoutePropContext } from "./RouteProp";
 import { NavigationBase } from "./NavigationBase";
 import { RouterBase } from "./RouterBase";
 import { SharedElementSceneContext } from "./SharedElementSceneContext";
 import { SharedElementScene } from "./SharedElementScene";
 
-interface LifecycleProps extends RouteProps<ScreenBaseProps, NavigationBase> {
-    signal: AbortSignal;
-}
-
-export interface RouteProps<P extends ScreenBaseProps, N extends NavigationBase> {
-    route: RouteData<P, PlainObject>;
+export interface RouteProps<R extends RouteProp, N extends NavigationBase> {
+    route: R;
     navigation: N;
 }
 
-export interface ScreenBaseProps {
+interface LifecycleProps<R extends RouteProp> extends RouteProps<R, NavigationBase> {
+    signal: AbortSignal;
+}
+
+export interface ScreenBaseProps<R extends RouteProp = RouteProp> {
     component: React.JSXElementConstructor<any> | LazyExoticComponent<any>;
     fallback?: React.ReactNode;
     path: string;
@@ -48,11 +48,11 @@ export interface ScreenBaseProps {
         minFlingVelocity?: number;
         hysteresis?: number;
         disableDiscovery?: boolean;
-        onEnter?: (props: LifecycleProps) => void | Promise<void>;
-        onExit?: (props: LifecycleProps) => void | Promise<void>;
-        onEntered?: (props: LifecycleProps) => void | Promise<void>;
-        onExited?: (props: LifecycleProps) => void | Promise<void>;
-        onLoad?: (props: LifecycleProps) => void | Promise<void>;
+        onEnter?: (props: LifecycleProps<R>) => void | Promise<void>;
+        onExit?: (props: LifecycleProps<R>) => void | Promise<void>;
+        onEntered?: (props: LifecycleProps<R>) => void | Promise<void>;
+        onExited?: (props: LifecycleProps<R>) => void | Promise<void>;
+        onLoad?: (props: LifecycleProps<R>) => void | Promise<void>;
     }
 }
 
@@ -80,21 +80,21 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
 
     protected setParams(params: PlainObject) {
         params = {
-            ...this.routeData.params,
+            ...this.routeProp.params,
             ...params
         };
-        const config = this.routeData.config;
-        this.context!.routesData.set(this.props.path, { config, params });
+        const config = this.routeProp.config;
+        this.context!.screenState.set(this.props.path, { config, params });
         this.forceUpdate();
     }
 
     protected setConfig(config: P['config']) {
         config = {
-            ...this.routeData.config,
+            ...this.routeProp.config,
             ...config
         };
-        const params = this.routeData.params;
-        this.context!.routesData.set(this.props.path, { config, params });
+        const params = this.routeProp.params;
+        this.context!.screenState.set(this.props.path, { config, params });
         this.forceUpdate();
     }
 
@@ -125,13 +125,13 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         }
 
         const navigation = this.context!.navigation;
-        const route = this.routeData;
+        const route = this.routeProp;
         await this.props.config?.onLoad?.({ navigation, route, signal });
 
         return result;
     }
 
-    get routeData(): RouteData<this["props"]> {
+    get routeProp(): RouteProp<this["props"]> {
         const focused = this.state.focused;
         const resolvedPathname = this.props.resolvedPathname;
         const setConfig = this.setConfig.bind(this);
@@ -141,11 +141,11 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
             path,
             params: {
                 ...this.props.defaultParams,
-                ...this.context!.routesData.get(this.props.path)?.params
+                ...this.context!.screenState.get(this.props.path)?.params
             },
             config: {
                 ...this.props.config,
-                ...this.context!.routesData.get(this.props.path)?.config as Partial<NonNullable<this["props"]["config"]>>
+                ...this.context!.screenState.get(this.props.path)?.config as Partial<NonNullable<this["props"]["config"]>>
             },
             focused,
             resolvedPathname,
@@ -159,32 +159,32 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     }
 
     onExited(signal: AbortSignal) {
-        return this.routeData.config.onExited?.({
-            route: this.routeData,
+        return this.routeProp.config.onExited?.({
+            route: this.routeProp,
             navigation: this.context!.navigation,
             signal
         });
     }
 
     onExit(signal: AbortSignal) {
-        return this.routeData.config.onExit?.({
-            route: this.routeData,
+        return this.routeProp.config.onExit?.({
+            route: this.routeProp,
             navigation: this.context!.navigation,
             signal
         });
     }
 
     onEnter(signal: AbortSignal) {
-        return this.routeData.config.onEnter?.({
-            route: this.routeData,
+        return this.routeProp.config.onEnter?.({
+            route: this.routeProp,
             navigation: this.context!.navigation,
             signal
         });
     }
 
     onEntered(signal: AbortSignal) {
-        return this.routeData.config.onEntered?.({
-            route: this.routeData,
+        return this.routeProp.config.onEntered?.({
+            route: this.routeProp,
             navigation: this.context!.navigation,
             signal
         });
@@ -210,17 +210,17 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     }
 
     render() {
-        const routeData = this.routeData;
+        const routeProp = this.routeProp;
         const Component = this.props.component;
-        const HeaderComponent = routeData.config.header?.component;
-        const FooterComponent = routeData.config.footer?.component;
+        const HeaderComponent = routeProp.config.header?.component;
+        const FooterComponent = routeProp.config.footer?.component;
 
         return (
             <ScreenTransitionProvider
                 ref={this._screenTransitionProvider}
                 renderAs={this.elementType}
                 id={`${this.id}-animation-provider`}
-                animation={routeData.config.animation}
+                animation={routeProp.config.animation}
                 navigation={this.context!.navigation}
             >
                 <div
@@ -236,19 +236,19 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
                     }}
                 >
                     <SharedElementSceneContext.Provider value={this.sharedElementScene}>
-                        <RouteDataContext.Provider value={routeData}>
+                        <RoutePropContext.Provider value={routeProp}>
                             <NestedRouterContext.Provider value={this.nestedRouterData}>
-                                <Suspense fallback={<ComponentWithRouteProps component={routeData.config.header?.fallback} route={routeData} navigation={this.context!.navigation} />}>
-                                    <ComponentWithRouteProps component={HeaderComponent} route={routeData} navigation={this.context!.navigation} />
+                                <Suspense fallback={<ComponentWithRouteProps component={routeProp.config.header?.fallback} route={routeProp} navigation={this.context!.navigation} />}>
+                                    <ComponentWithRouteProps component={HeaderComponent} route={routeProp} navigation={this.context!.navigation} />
                                 </Suspense>
-                                <Suspense fallback={<ComponentWithRouteProps component={this.props.fallback} route={routeData} navigation={this.context!.navigation} />}>
-                                    <ComponentWithRouteProps component={Component} route={routeData} navigation={this.context!.navigation} />
+                                <Suspense fallback={<ComponentWithRouteProps component={this.props.fallback} route={routeProp} navigation={this.context!.navigation} />}>
+                                    <ComponentWithRouteProps component={Component} route={routeProp} navigation={this.context!.navigation} />
                                 </Suspense>
-                                <Suspense fallback={<ComponentWithRouteProps component={routeData.config.footer?.fallback} route={routeData} navigation={this.context!.navigation} />}>
-                                    <ComponentWithRouteProps component={FooterComponent} route={routeData} navigation={this.context!.navigation} />
+                                <Suspense fallback={<ComponentWithRouteProps component={routeProp.config.footer?.fallback} route={routeProp} navigation={this.context!.navigation} />}>
+                                    <ComponentWithRouteProps component={FooterComponent} route={routeProp} navigation={this.context!.navigation} />
                                 </Suspense>
                             </NestedRouterContext.Provider>
-                        </RouteDataContext.Provider>
+                        </RoutePropContext.Provider>
                     </SharedElementSceneContext.Provider>
                 </div>
             </ScreenTransitionProvider>
@@ -256,10 +256,10 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     }
 }
 
-interface ComponentWithRoutePropsProps<P extends ScreenBaseProps> extends RouteProps<P, NavigationBase> {
+interface ComponentWithRoutePropsProps extends RouteProps<RouteProp, NavigationBase> {
     component: React.JSXElementConstructor<any> | LazyExoticComponent<any> | React.ReactNode;
 }
-function ComponentWithRouteProps<P extends ScreenBaseProps>({ component, route, navigation }: ComponentWithRoutePropsProps<P>) {
+function ComponentWithRouteProps({ component, route, navigation }: ComponentWithRoutePropsProps) {
     const Component = component ?? null;
     if (isValidElement(Component)) {
         return cloneElement<any>(Component, {

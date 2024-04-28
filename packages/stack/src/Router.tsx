@@ -39,7 +39,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         return this.state.screenStack
             .filter(screen => {
                 const ref = screen.ref ?? null;
-                return isRefObject(ref) && ref.current?.routeData.config.keepAlive
+                return isRefObject(ref) && ref.current?.routeProp.config.keepAlive
                     || screen.key === this.navigation.current.key
                     || screen.key === this.state.transition?.from.key
                     || screen.key === this.state.destination?.key;

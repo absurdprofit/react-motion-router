@@ -1,7 +1,7 @@
 import { createContext } from "react";
-import { RouteData } from "./common/types";
+import { RouteProp } from "./common/types";
 
-export const RouteDataContext = createContext<RouteData>({
+export const RoutePropContext = createContext<RouteProp>({
     focused: false,
     config: {},
     params: {},

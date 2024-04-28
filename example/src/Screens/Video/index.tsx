@@ -1,8 +1,8 @@
 import React from 'react';
 import VideoSrc from '../../assets/video.mp4';
 import Thumbnail from "../../assets/thumbnail.png";
-import { SharedElement, useNavigation } from '@react-motion-router/core';
-import { Anchor } from "@react-motion-router/stack";
+import { SharedElement } from '@react-motion-router/core';
+import { Anchor, useNavigation } from "@react-motion-router/stack";
 import BackButton from '../../Components/BackButton';
 import './index.css';
 

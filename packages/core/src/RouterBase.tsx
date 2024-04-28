@@ -4,8 +4,8 @@ import {
     ScreenChild,
     PlainObject,
     RouterBaseEventMap,
-    RoutesData,
-    HTMLRouterBaseElement
+    HTMLRouterBaseElement,
+    ScreenState
 } from './common/types';
 import { NestedRouterContext, RouterContext } from './RouterContext';
 import { dispatchEvent, includesRoute, matchRoute, resolveBaseURLFromPattern, searchParamsToObject } from './common/utils';
@@ -33,7 +33,7 @@ export interface RouterBaseState<N extends NavigationBase = NavigationBase> {
 
 export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState, E extends RouterBaseEventMap = RouterBaseEventMap> extends Component<P, S> {
     protected ref: HTMLRouterBaseElement | null = null;
-    public readonly routesData: RoutesData = new Map();
+    public readonly screenState: ScreenState = new Map();
     public readonly scrollRestorationData = new ScrollRestorationData();
     public readonly parentRouter: RouterBase | null = null;
     public readonly parentScreen: ScreenBase | null = null;
@@ -138,7 +138,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
                 if (!matchInfo) return;
                 found = true;
                 const config = {
-                    ...this.routesData.get(path)?.config,
+                    ...this.screenState.get(path)?.config,
                     ...route.props.config
                 };
                 queueMicrotask(async () => {

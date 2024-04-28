@@ -1,8 +1,9 @@
-import { searchParamsFromObject, useNavigation, PlainObject, useRouter } from "@react-motion-router/core";
+import { searchParamsFromObject, PlainObject } from "@react-motion-router/core";
 import { Navigation } from "./Navigation";
 import { NavigateOptions, XOR } from "./common/types";
 import { useState, useEffect } from "react";
 import { Router } from "./Router";
+import { useNavigation, useRouter } from "./common/hooks";
 
 interface BaseAnchorProps extends React.DetailedHTMLProps<React.AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
     onClick?: React.MouseEventHandler<HTMLAnchorElement>;
@@ -24,7 +25,7 @@ type AnchorProps = XOR<ForwardAnchorProps, BackAnchorProps>;
 
 export function Anchor(props: AnchorProps) {
     const {
-        navigation = useNavigation<Navigation>(),
+        navigation = useNavigation(),
         preload,
         goBack,
         params = {},
@@ -33,7 +34,7 @@ export function Anchor(props: AnchorProps) {
         onClick: onClickProp,
         ...aProps
     } = props;
-    const router = useRouter<Router>();
+    const router = useRouter();
     const [href, setHref] = useState<string | undefined>(undefined);
     const routerId = navigation?.routerId;
     const isExternal = !href?.includes(window.location.origin);

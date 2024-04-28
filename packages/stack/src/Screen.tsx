@@ -1,9 +1,9 @@
 import { ScreenBase, matchRoute } from '@react-motion-router/core';
-import type { ScreenBaseProps, ScreenBaseState, ScreenComponentBaseProps } from '@react-motion-router/core';
+import type { RouteProp, ScreenBaseProps, ScreenBaseState, ScreenComponentBaseProps } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { Children, isValidElement } from 'react';
 
-export interface ScreenComponentProps<T extends { [key: string]: any; } = {}> extends ScreenComponentBaseProps<ScreenProps, T, Navigation> { }
+export interface ScreenComponentProps extends ScreenComponentBaseProps<RouteProp<ScreenProps>, Navigation> { }
 
 type Presentation = "default" | "dialog" | "modal";
 export interface ScreenProps extends ScreenBaseProps {

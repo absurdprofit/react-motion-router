@@ -52,7 +52,7 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
     }
 
     // static getDerivedStateFromProps(props: ScreenTransitionLayerProps, state: ScreenTransitionLayerState) {
-    //     const config = props.currentScreen?.current?.routeData.config;
+    //     const config = props.currentScreen?.current?.routeProp.config;
     //     return {
     //         swipeDirection: config?.swipeDirection ?? state.swipeDirection,
     //         swipeAreaWidth: config?.swipeAreaWidth ?? state.swipeAreaWidth,
