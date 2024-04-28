@@ -43,4 +43,3 @@ export * from './common/events';
 export * from './common/utils';
 export * from './common/group-effect';
 export * from './common/constants';
-export * from './animation-configs/keyframe-presets';

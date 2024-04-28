@@ -1,4 +1,5 @@
-import { AnimationEffectFactoryProps, SlideInFromRight, SlideOutToLeft } from "@react-motion-router/core";
+import { AnimationEffectFactoryProps } from "@react-motion-router/core";
+import { SlideInFromRight, SlideOutToLeft } from '@react-motion-router/stack';
 import { isIOS, isPWA } from "./common/utils";
 
 export function animation({ref, direction, playbackRate, index}: AnimationEffectFactoryProps) {
