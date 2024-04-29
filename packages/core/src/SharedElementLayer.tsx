@@ -1,19 +1,15 @@
-import { clamp, interpolate } from './common/utils';
-import { AnimationDirection, EasingFunction, PlainObject, ScreenChild, SharedElementNode } from './common/types';
-import { MotionProgressEvent } from './common/events';
+import { EasingFunction } from './common/types';
 import { Component, RefObject, createRef } from 'react';
-import { MAX_PROGRESS, MAX_Z_INDEX, MIN_PROGRESS } from './common/constants';
 import { NavigationBase } from './NavigationBase';
 import { ScreenBase } from './ScreenBase';
-import { ParallelEffect } from './common/group-effect';
-import { GroupAnimation } from './common/group-animation';
+import { ParallelEffect } from 'web-animations-extension';
 import { SharedElement } from './SharedElement';
 
 interface SharedElementLayerProps {
     navigation: NavigationBase;
 }
 
-interface SharedElementLayerState {}
+interface SharedElementLayerState { }
 
 interface TransitionState {
     delay: number;
@@ -29,11 +25,11 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
     private _playbackRate: number = 1;
     private _outgoingScreen: RefObject<ScreenBase> | null = null;
     private _incomingScreen: RefObject<ScreenBase> | null = null;
-    
+
     state: SharedElementLayerState = {
         transitioning: false
     }
- 
+
     set outgoingScreen(outgoingScreen: RefObject<ScreenBase> | null) {
         this._outgoingScreen = outgoingScreen;
     }
@@ -86,7 +82,7 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
                     ],
                     config
                 ),
-                
+
             );
             keyframeEffects.push(
                 new KeyframeEffect(
@@ -97,7 +93,7 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
                     ],
                     config
                 ),
-                
+
             );
         } else if (end.instance.transitionType === "fade-through") {
             keyframeEffects.push(
@@ -109,7 +105,7 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
                     ],
                     config
                 ),
-                
+
             );
             keyframeEffects.push(
                 new KeyframeEffect(
@@ -120,7 +116,7 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
                     ],
                     config
                 ),
-                
+
             );
         } else if (end.instance.transitionType === "cross-fade") {
             keyframeEffects.push(
@@ -132,7 +128,7 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
                     ],
                     config
                 ),
-                
+
             );
             keyframeEffects.push(
                 new KeyframeEffect(
@@ -143,7 +139,7 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
                     ],
                     config
                 ),
-                
+
             );
         } else { // morph
             keyframeEffects.push(

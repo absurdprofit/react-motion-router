@@ -39,5 +39,4 @@ export * from './common/hooks';
 export * from './common/types';
 export * from './common/events';
 export * from './common/utils';
-export * from './common/group-effect';
 export * from './common/constants';

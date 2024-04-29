@@ -6,8 +6,7 @@ import { GestureEndEvent, MotionProgressEndEvent, MotionProgressEvent, MotionPro
 import { AnimationDirection, SwipeDirection } from './common/types';
 import { DEFAULT_GESTURE_CONFIG, MAX_PROGRESS, MIN_PROGRESS } from './common/constants';
 import { SharedElementLayer } from './SharedElementLayer';
-import { GroupAnimation } from './common/group-animation';
-import { ParallelEffect } from './common/group-effect';
+import { ParallelEffect, GroupAnimation } from 'web-animations-extension';
 import { ScreenTransitionLayerContext } from './ScreenTransitionLayerContext';
 
 export const Motion = createContext(0);

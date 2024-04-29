@@ -1,5 +1,4 @@
 const path = require('path');
-const webpack = require('webpack');
 const TerserPlugin = require("terser-webpack-plugin");
 
 module.exports = (env, argv) => ({
@@ -15,7 +14,7 @@ module.exports = (env, argv) => ({
     module: {
         rules: [
             {
-                test: /\.tsx?$/,
+                test: /\.ts$/,
                 use: 'ts-loader',
                 exclude: [
                     /node_modules/
@@ -24,7 +23,7 @@ module.exports = (env, argv) => ({
         ],
     },
     resolve: {
-        extensions: ['.tsx', '.ts', '.js'],
+        extensions: ['.ts', '.js'],
     },
     output: {
         filename: '[name].js',
@@ -32,20 +31,8 @@ module.exports = (env, argv) => ({
         clean: true,
         libraryTarget: 'module'
     },
-    plugins: [
-        new webpack.ProvidePlugin({
-            process: 'process/browser'
-        })
-    ],
     optimization: {
         minimize: this.mode === "production",
         minimizer: [new TerserPlugin()]
-    },
-    externals: {
-        react: 'module react',
-        'react-dom': 'module react-dom',
-        '@virtualstate/navigation': 'module @virtualstate/navigation',
-        'urlpattern-polyfill': 'module urlpattern-polyfill',
-        'web-animations-extension': 'module web-animations-extension'
     }
 });
