@@ -12,16 +12,14 @@ interface SharedElementConfig {
     delay?: number;
 }
 
-interface SharedElementProps extends React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement> {
+interface SharedElementProps {
     id: string;
     children: React.ReactNode;
     disabled?: boolean;
     config?: SharedElementConfig;
 }
 
-interface SharedElementState {
-    clone: React.ReactPortal | null;
-}
+interface SharedElementState {}
 
 const transformKeys = ["transform", "top", "left", "right", "bottom"];
 export class SharedElement extends Component<SharedElementProps, SharedElementState> {
@@ -29,10 +27,6 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
     private cloneContainer = createRef<HTMLDivElement>();
     static readonly contextType = SharedElementSceneContext;
     context!: React.ContextType<typeof SharedElementSceneContext>;
-
-    state = {
-        clone: null
-    }
 
     componentDidMount(): void {
         this.scene.addNode(this);
@@ -94,11 +88,10 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
     render() {
         return (
             <div
-                {...this.props}
                 ref={this.setRef}
                 id={this.id}
+                style={{display: "contents"}}
             >
-                {this.state.clone}
                 {this.props.children}
             </div>
         );

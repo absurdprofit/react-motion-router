@@ -170,28 +170,32 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
                 let start = null;
                 let startClone = null;
                 start = currentScene.nodes.get(id)!;
+                startClone = start.clone();
+                if (!startClone) continue;
                 if (end.transitionType !== "morph") {
-                    startClone = start.clone();
-                    if (!startClone) continue;
                     startClone.id = `${id}-start`;
+                    startClone.style.position = "absolute";
+                    startClone.style.display = "unset";
                     this.ref.current?.prepend(startClone);
                     start.hide();
                 }
 
                 if (!endClone) continue;
-                endClone.id = `${id}-end`;
+                endClone.id = `${id}${end.transitionType === "morph" ? '' : '-end'}`;
+                endClone.style.position = "absolute";
+                endClone.style.display = "unset";
                 this.ref.current?.prepend(endClone);
                 const onFinish = () => {
                     end.unhide();
                     start?.unhide();
-                    this.ref.current?.removeChild(endClone);
-                    if (startClone) this.ref.current?.removeChild(startClone);
+                    endClone.remove();
+                    startClone.remove();
                 };
                 this.props.navigation.addEventListener('transition-end', onFinish, { once: true });
                 this.props.navigation.addEventListener('transition-cancel', onFinish, { once: true });
 
                 parallelEffects.push(this.getAnimationEffect(
-                    { instance: start, clone: startClone! },
+                    { instance: start, clone: startClone },
                     { instance: end, clone: endClone }
                 ));
             }

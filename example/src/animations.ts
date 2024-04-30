@@ -8,7 +8,7 @@ export function animation({ref, direction, playbackRate, index}: AnimationEffect
 		duration,
 		direction,
 		playbackRate,
-		fill: direction === "normal" ? "forwards" : "backwards"
+		fill: "forwards"
 	};
 	const keyframes = [
 		SlideOutToLeft,
@@ -23,7 +23,7 @@ export function slideToStatic({ref, direction, playbackRate, index}: AnimationEf
 		duration,
 		direction,
 		playbackRate,
-		fill: direction === "normal" ? "forwards" : "backwards"
+		fill: "forwards"
 	};
 	const keyframes = [
 		[],

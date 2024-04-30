@@ -1,7 +1,5 @@
 export abstract class GroupEffect implements AnimationEffect {
 	readonly children: AnimationEffect[];
-	// TODO: ctor should take an optional timing
-	// TODO: Constructing GroupEffect via base class should be forbidden.
 	constructor(effects: AnimationEffect[]) {
 		this.children = effects;
 	}
