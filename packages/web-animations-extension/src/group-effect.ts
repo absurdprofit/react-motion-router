@@ -1,15 +1,7 @@
 export abstract class GroupEffect implements AnimationEffect {
 	readonly children: AnimationEffect[];
-	constructor(effects: AnimationEffect[]) {
-		this.children = effects;
-	}
-
-	get effects(): AnimationEffect[] {
-		return this.children.map(effect => {
-			if (effect instanceof GroupEffect)
-				return effect.effects;
-			return effect;
-		}).flat();
+	constructor(children: AnimationEffect[]) {
+		this.children = children;
 	}
 
 	abstract getComputedTiming(): ComputedEffectTiming;

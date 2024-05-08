@@ -150,11 +150,20 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
     public transition() {
         const timeline = this.timeline;
 
-        const animationEffects = this.screens.map(screen => {
+        const screenEffect = new ParallelEffect(this.screens.map(screen => {
             return screen.current?.screenTransitionProvider?.animationEffect ?? new KeyframeEffect(null, [], {})
-        });
-        animationEffects.push(this.sharedElementLayer.current?.animationEffect ?? new KeyframeEffect(null, [], {}));
-        this._animation = new GroupAnimation(new ParallelEffect(animationEffects), timeline);
+        }));
+
+        console.log(screenEffect.getComputedTiming())
+
+        if (this.sharedElementLayer.current)
+            this.sharedElementLayer.current.duration = screenEffect.getComputedTiming().duration;
+        const sharedElementEffect = this.sharedElementLayer.current?.animationEffect ?? new KeyframeEffect(null, [], {});
+
+        this._animation = new GroupAnimation(new ParallelEffect([
+            screenEffect,
+            sharedElementEffect
+        ]), timeline);
 
         this.ready.then(() => {
             this.sharedElementLayer.current?.ref.current?.showModal();

@@ -25,6 +25,7 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
     private _playbackRate: number = 1;
     private _outgoingScreen: RefObject<ScreenBase> | null = null;
     private _incomingScreen: RefObject<ScreenBase> | null = null;
+    public duration?: string | CSSNumberish = 0;
 
     state: SharedElementLayerState = {
         transitioning: false
@@ -63,12 +64,13 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
     }
 
     getAnimationEffect<T extends { instance: SharedElement, clone: Element }>(start: T, end: T) {
+        const duration = this.duration;
         const keyframeEffects = new Array<KeyframeEffect>();
         const startRect = start.instance.getBoundingClientRect();
         const endRect = end.instance.getBoundingClientRect();
         const config = {
             fill: "forwards" as const,
-            duration: 300,
+            duration,
             ...start.instance.props.config,
             ...end.instance.props.config
         };
