@@ -4,8 +4,6 @@ import { GroupEffect } from "./group-effect";
 export class ParallelEffect extends GroupEffect {
 	constructor(effects: AnimationEffect[]) {
 		super(effects);
-		if (effects.length == 0)
-			return;
 	}
 
 	getTiming(): EffectTiming {

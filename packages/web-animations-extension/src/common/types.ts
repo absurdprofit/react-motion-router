@@ -8,3 +8,6 @@ enum EasingFunctionKeywordEnum {
 
 export type EasingFunctionKeyword = keyof typeof EasingFunctionKeywordEnum;
 export type EasingFunction = EasingFunctionKeyword | `cubic-bezier(${number},${' ' | ''}${number},${' ' | ''}${number},${' ' | ''}${number})`;
+
+export type NativeAnimation = globalThis.Animation;
+export const NativeAnimation = window.Animation;

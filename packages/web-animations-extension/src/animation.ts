@@ -1,23 +1,35 @@
-export class Animation extends EventTarget implements globalThis.Animation {
-	readonly animations: Animation[] = [];
-	private _playState: AnimationPlayState = "idle";
+import { NativeAnimation } from "./common/types";
+import { GroupEffect } from "./group-effect";
+
+export class Animation extends EventTarget implements NativeAnimation {
+	public id: string = '';
 	public effect: AnimationEffect | null = null;
 	public timeline: AnimationTimeline | null;
+	private readonly children: NativeAnimation[] = [];
 	public _playbackRate = 1;
-	public id: string = '';
-	private _replaceState: AnimationReplaceState = 'active';
 	private _pending = false;
-	private _currentTime: CSSNumberish | null = null;
+	private _playState: AnimationPlayState = "idle";
 	private _startTime: CSSNumberish | null = null;
-	oncancel: ((this: globalThis.Animation, ev: AnimationPlaybackEvent) => any) | null = null;
-	onfinish: ((this: globalThis.Animation, ev: AnimationPlaybackEvent) => any) | null = null;
-	onremove: ((this: globalThis.Animation, ev: Event) => any) | null = null;
+	private _currentTime: CSSNumberish | null = null;
+	private _replaceState: AnimationReplaceState = 'active';
+
+	public oncancel: ((this: NativeAnimation, ev: AnimationPlaybackEvent) => any) | null = null;
+	public onfinish: ((this: NativeAnimation, ev: AnimationPlaybackEvent) => any) | null = null;
+	public onremove: ((this: NativeAnimation, ev: Event) => any) | null = null;
 	
 	constructor(effect?: AnimationEffect | null, timeline?: AnimationTimeline | null) {
 		super();
 		this.effect = effect ?? null;
 		this.timeline = timeline ?? null;
-		// this.animations = effect?.effects.map(effect => new Animation(effect, timeline)) ?? new Array();
+		if (effect instanceof GroupEffect) {
+			this.children = effect.children.map(effect => new Animation(effect, timeline));
+		} else {
+			this.children = [new NativeAnimation(effect, timeline)];
+		}
+
+		this.finished.then(this.dispatchFinishedEvent.bind(this));
+		this.cancelled.then(this.dispatchCancelledEvent.bind(this));
+		this.removed.then(this.dispatchRemovedEvent.bind(this));
 	}
 
 	reverse(): void {
@@ -25,30 +37,71 @@ export class Animation extends EventTarget implements globalThis.Animation {
 	}
 
 	play() {
-		this.animations.map(animation => animation.play());
+		this.children.forEach(animation => animation.play());
 	}
 
 	pause() {
-		this.animations.map(animation => animation.pause());
+		this.children.forEach(animation => animation.pause());
 	}
 
 	persist(): void {
-			
+		this.children.forEach(animation => animation.persist());
 	}
 
 	finish(): void {
-			
+		this.children.forEach(animation => animation.finish());
 	}
 
 	commitStyles() {
-		this.animations.map(animation => animation.commitStyles());
+		this.children.forEach(animation => animation.commitStyles());
 	}
 
 	cancel() {
-		this.animations.map(animation => animation.cancel());
+		this.children.forEach(animation => animation.cancel());
 	}
 
 	updatePlaybackRate(playbackRate: number): void {
+		this.children.forEach(animation => animation.updatePlaybackRate(playbackRate));
+	}
+
+	addEventListener<K extends keyof AnimationEventMap>(type: K, listener: (this: Animation, ev: AnimationEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+	addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void {
+		super.addEventListener(type, listener, options);
+	}
+
+	removeEventListener<K extends keyof AnimationEventMap>(type: K, listener: (this: Animation, ev: AnimationEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+	removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void {
+		super.removeEventListener(type, listener, options);
+	}
+
+	private dispatchFinishedEvent() {
+		const event = new AnimationPlaybackEvent(
+			'finish',
+			{
+				currentTime: this.currentTime,
+				timelineTime: this.timeline?.currentTime
+			}
+		);
+		this.dispatchEvent(event);
+		this.onfinish?.call(this, event);
+	}
+
+	private dispatchCancelledEvent() {
+		const event = new AnimationPlaybackEvent(
+			'cancel',
+			{
+				currentTime: this.currentTime,
+				timelineTime: this.timeline?.currentTime
+			}
+		);
+		this.dispatchEvent(event);
+		this.oncancel?.call(this, event);
+	}
+
+	private dispatchRemovedEvent() {
+		const event = new Event('remove');
+		this.dispatchEvent(event);
+		this.onremove?.call(this, event);
 	}
 
 	set playbackRate(_playbackRate: number) {
@@ -64,11 +117,19 @@ export class Animation extends EventTarget implements globalThis.Animation {
 	}
 
 	get ready(): Promise<Animation> {
-		return Promise.all(this.animations.map(animation => animation.ready)).then(() => this);
+		return Promise.all(this.children.map(animation => animation.ready)).then(() => this);
 	}
 
 	get finished(): Promise<Animation> {
-		return Promise.all(this.animations.map(animation => animation.finished)).then(() => this);
+		return Promise.all(this.children.map(animation => animation.finished)).then(() => this);
+	}
+
+	private get cancelled(): Promise<Animation> {
+		return Promise.all(this.children.map(animation => new Promise(resolve => animation.oncancel = resolve))).then(() => this);
+	}
+
+	private get removed(): Promise<Animation> {
+		return Promise.all(this.children.map(animation => new Promise(resolve => animation.onremove = resolve))).then(() => this);
 	}
 
 	get playState() {

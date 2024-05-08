@@ -6,7 +6,7 @@ import { GestureEndEvent, MotionProgressEndEvent, MotionProgressEvent, MotionPro
 import { AnimationDirection, SwipeDirection } from './common/types';
 import { DEFAULT_GESTURE_CONFIG, MAX_PROGRESS, MIN_PROGRESS } from './common/constants';
 import { SharedElementLayer } from './SharedElementLayer';
-import { ParallelEffect, GroupAnimation } from 'web-animations-extension';
+import { ParallelEffect, Animation } from 'web-animations-extension';
 import { ScreenTransitionLayerContext } from './ScreenTransitionLayerContext';
 
 export const Motion = createContext(0);
@@ -160,7 +160,7 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
             this.sharedElementLayer.current.duration = screenEffect.getComputedTiming().duration;
         const sharedElementEffect = this.sharedElementLayer.current?.animationEffect ?? new KeyframeEffect(null, [], {});
 
-        this._animation = new GroupAnimation(new ParallelEffect([
+        this._animation = new Animation(new ParallelEffect([
             screenEffect,
             sharedElementEffect
         ]), timeline);
