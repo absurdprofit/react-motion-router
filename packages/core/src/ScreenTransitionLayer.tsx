@@ -150,20 +150,25 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
     public transition() {
         const timeline = this.timeline;
 
-        const screenEffect = new ParallelEffect(this.screens.map(screen => {
-            return screen.current?.screenTransitionProvider?.animationEffect ?? new KeyframeEffect(null, [], {})
-        }));
+        const effect = new ParallelEffect([]);
+        this.screens.forEach(screen => {
+            if (!screen.current?.screenTransitionProvider) return;
+            const screenEffect = screen.current.screenTransitionProvider.animationEffect;
+            if (screenEffect) effect.append(screenEffect);
+        })
 
-        console.log(screenEffect.getComputedTiming())
+        if (this.sharedElementLayer.current) {
+            const sharedElementEffect = this.sharedElementLayer.current.animationEffect;
+            const duration = effect.getComputedTiming().duration;
+            if (sharedElementEffect) {
+                sharedElementEffect.updateTiming({
+                    duration: duration instanceof CSSNumericValue ? duration.to('ms').value : duration
+                });
+                effect.append(sharedElementEffect);
+            }
+        }
 
-        if (this.sharedElementLayer.current)
-            this.sharedElementLayer.current.duration = screenEffect.getComputedTiming().duration;
-        const sharedElementEffect = this.sharedElementLayer.current?.animationEffect ?? new KeyframeEffect(null, [], {});
-
-        this._animation = new Animation(new ParallelEffect([
-            screenEffect,
-            sharedElementEffect
-        ]), timeline);
+        this._animation = new Animation(effect, timeline);
 
         this.ready.then(() => {
             this.sharedElementLayer.current?.ref.current?.showModal();

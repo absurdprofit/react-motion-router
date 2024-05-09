@@ -11,21 +11,12 @@ interface SharedElementLayerProps {
 
 interface SharedElementLayerState { }
 
-interface TransitionState {
-    delay: number;
-    duration: string | CSSNumberish | undefined;
-    easing: EasingFunction;
-    position: number;
-    node: HTMLElement;
-}
-
 export class SharedElementLayer extends Component<SharedElementLayerProps, SharedElementLayerState> {
     public readonly ref = createRef<HTMLDialogElement>();
     private _timeline: AnimationTimeline = document.timeline;
     private _playbackRate: number = 1;
     private _outgoingScreen: RefObject<ScreenBase> | null = null;
     private _incomingScreen: RefObject<ScreenBase> | null = null;
-    public duration?: string | CSSNumberish = 0;
 
     state: SharedElementLayerState = {
         transitioning: false
@@ -64,13 +55,11 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
     }
 
     getAnimationEffect<T extends { instance: SharedElement, clone: Element }>(start: T, end: T) {
-        const duration = this.duration;
         const keyframeEffects = new Array<KeyframeEffect>();
         const startRect = start.instance.getBoundingClientRect();
         const endRect = end.instance.getBoundingClientRect();
         const config = {
             fill: "forwards" as const,
-            duration,
             ...start.instance.props.config,
             ...end.instance.props.config
         };
@@ -161,7 +150,7 @@ export class SharedElementLayer extends Component<SharedElementLayerProps, Share
     get animationEffect() {
         const currentScene = this.outgoingScreen?.current?.sharedElementScene;
         const nextScene = this.incomingScreen?.current?.sharedElementScene;
-        if (!currentScene || !nextScene) return;
+        if (!currentScene || !nextScene) return null;
         currentScene.previousScene = null;
         nextScene.previousScene = currentScene;
         const parallelEffects = new Array<ParallelEffect>();

@@ -1,27 +1,48 @@
 export abstract class GroupEffect implements AnimationEffect {
-	private readonly _children: AnimationEffect[];
+	protected readonly _children: AnimationEffect[];
 
 	constructor(children: AnimationEffect[]) {
 		this._children = children;
 	}
 
 	get children() {
-		return [...this._children];
+		const _children = this._children;
+		return {
+			length: _children.length,
+			item(index: number) {
+				return _children.at(index) ?? null;
+			}
+		};
+	}
+
+	get firstChild() {
+		return this._children.at(0);
+	}
+
+	get lastChild() {
+		return this._children.at(-1);
 	}
 
 	abstract getComputedTiming(): ComputedEffectTiming;
 	abstract getTiming(): EffectTiming;
 	abstract updateTiming(timing?: OptionalEffectTiming): void;
 
-	appendChild(child: AnimationEffect): void {
-		if (!this._children.includes(child))
-			this._children.push(child);
+	clone() {
+		return structuredClone(this);
 	}
 
-	removeChild(child: AnimationEffect): void {
-		const index = this._children.indexOf(child);
-		if (index >= 0)
-			this._children.splice(index, 1);
+	append(...children: AnimationEffect[]): void {
+		children.forEach(child => {
+			if (!this._children.includes(child))
+				this._children.push(child);
+		});
+	}
+
+	prepend(...children: AnimationEffect[]): void {
+		children.forEach(child => {
+			if (!this._children.includes(child))
+				this._children.unshift(child);
+		});
 	}
 }
 

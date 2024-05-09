@@ -22,7 +22,9 @@ export class Animation extends EventTarget implements NativeAnimation {
 		this.effect = effect ?? null;
 		this.timeline = timeline ?? null;
 		if (effect instanceof GroupEffect) {
-			this.children = effect.children.map(effect => new Animation(effect, timeline));
+			for (let i = 0; i < effect.children.length; i++) {
+				this.children.push(new Animation(effect.children.item(i), timeline));
+			}
 		} else {
 			this.children = [new NativeAnimation(effect, timeline)];
 		}
