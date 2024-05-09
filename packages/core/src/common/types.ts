@@ -116,15 +116,6 @@ export type KeyOf = Pick<RouterBaseEventMap, "motion-progress-end">;
 
 export type CustomElementType = string;
 
-export type Input = Record<string, number>;
-export type Output = Record<string, number>;
-export type Weights = Record<string, number>;
-export type LerpRange = { min: Input, max: Input };
-
-export function is1DRange(range: number[] | LerpRange): range is number[] {
-    return Array.isArray(range);
-}
-
 export interface MatchedRoute {
     exact: boolean;
     params?: PlainObject<string | undefined>;

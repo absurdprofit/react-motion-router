@@ -1,6 +1,6 @@
 import { Children, Component, Ref, RefObject, createContext, createRef } from 'react';
 import { SwipeEndEvent, SwipeEvent, SwipeStartEvent } from 'web-gesture-events';
-import { clamp, interpolate } from './common/utils';
+import { clamp } from './common/utils';
 import { NavigationBase, ScreenBase, ScreenChild } from './index';
 import { GestureEndEvent, MotionProgressEndEvent, MotionProgressEvent, MotionProgressStartEvent, TransitionCancelEvent, TransitionEndEvent, TransitionStartEvent } from './common/events';
 import { AnimationDirection, SwipeDirection } from './common/types';
@@ -188,132 +188,6 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
         return this.animation;
     }
 
-    onSwipeStart = (ev: SwipeStartEvent) => {
-        if (ev.touches.length > 1) return; // disable if more than one finger engaged
-        if (this.state.disableDiscovery) return;
-        if (this.running) return;
-        let swipePos: number; // 1D
-        switch (this.state.swipeDirection) {
-            case "left":
-            case "right":
-                swipePos = ev.x;
-                break;
-
-            case "up":
-            case "down":
-                swipePos = ev.y; // x or y depending on if swipe direction is horizontal or vertical
-                break;
-        }
-        if (ev.direction === this.state.swipeDirection && swipePos < this.state.swipeAreaWidth) {
-            // if only one child return
-            if (!Children.count(this.props.children)) return;
-            ev.stopPropagation();
-            // if gesture region in touch path return
-            for (let target of ev.composedPath().reverse()) {
-                if ('classList' in target && (target as HTMLElement).classList.length) {
-                    if (
-                        (target as HTMLElement).classList.contains('gesture-region')
-                        && (target as HTMLElement).dataset.disabled !== "true"
-                    ) return;
-                    if (target === ev.gestureTarget) break;
-                }
-            }
-
-            this.props.navigation.dispatchEvent(new CustomEvent('gesture-start', { detail: { source: ev } }));
-            this.setState({
-                shouldPlay: false,
-                gestureNavigating: true,
-                startX: ev.x,
-                startY: ev.y
-            }, () => {
-                this.playbackRate = -1;
-                this.animation?.pause();
-                this.transition();
-
-                this.props.navigation.dispatchEvent(new MotionProgressStartEvent());
-                this.ref?.addEventListener('swipe', this.onSwipe);
-                this.ref?.addEventListener('swipeend', this.onSwipeEnd);
-            });
-        }
-    }
-
-    onSwipe = (ev: SwipeEvent) => {
-        if (this.state.shouldPlay) return;
-        let progress: number;
-        switch (this.state.swipeDirection) {
-            case "left":
-            case "right": {
-                // left or right
-                const x = clamp(ev.x, this.state.startX, this.state.startX + window.innerWidth);
-                progress = interpolate(x, [this.state.startX, this.state.startX + window.innerWidth], [MAX_PROGRESS, MIN_PROGRESS]);
-                if (this.state.swipeDirection === "left")
-                    progress = interpolate(progress, [MAX_PROGRESS, MIN_PROGRESS], [MIN_PROGRESS, MAX_PROGRESS]);
-                break;
-            }
-
-            case "up":
-            case "down": {
-                // up or down
-                const y = clamp(ev.y, this.state.startY, this.state.startY + window.innerHeight);
-                progress = interpolate(y, [this.state.startY, this.state.startY + window.innerHeight], [MAX_PROGRESS, MIN_PROGRESS]);
-                if (this.state.swipeDirection === "up")
-                    progress = interpolate(progress, [MAX_PROGRESS, MIN_PROGRESS], [MIN_PROGRESS, MAX_PROGRESS]);
-                break;
-            }
-
-        }
-    }
-
-    onSwipeEnd = (ev: SwipeEndEvent) => {
-        if (this.state.shouldPlay) return;
-
-        let onEnd: Function | null = null;
-        const motionEndEvent = new CustomEvent('motion-progress-end');
-        if ((100 - this.state.progress) > this.state.hysteresis || ev.velocity > this.state.minFlingVelocity) {
-            if (ev.velocity >= this.state.minFlingVelocity) {
-                this.playbackRate = -5;
-            } else {
-                this.playbackRate = -1;
-            }
-            onEnd = () => {
-                this.props.navigation.dispatchEvent(new GestureEndEvent(ev));
-
-                this.setState({ gestureNavigating: false });
-
-                this.props.navigation.dispatchEvent(new MotionProgressEndEvent());
-            }
-            this.setState({ shouldPlay: true, shouldAnimate: false });
-        } else {
-            this.playbackRate = 0.5;
-            onEnd = () => {
-                this.props.navigation.dispatchEvent(new MotionProgressEndEvent());
-            }
-            this.setState({ shouldPlay: true, gestureNavigating: false });
-        }
-
-        this.setState({ startX: 0, startY: 0 });
-        this.animation?.play();
-        this.ref?.removeEventListener('swipe', this.onSwipe);
-        this.ref?.removeEventListener('swipeend', this.onSwipeEnd);
-        queueMicrotask(async () => {
-            await this.finished;
-            onEnd?.();
-        });
-
-    }
-
-    setRef = (ref: HTMLDivElement | null) => {
-        if (this.ref) {
-            this.ref.removeEventListener('swipestart', this.onSwipeStart);
-        }
-
-        this.ref = ref;
-
-        if (ref) {
-            ref.addEventListener('swipestart', this.onSwipeStart);
-        }
-    }
-
     render() {
         return (
             <ScreenTransitionLayerContext.Provider value={this}>
@@ -323,7 +197,6 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
                 />
                 <div
                     className="screen-animation-layer"
-                    ref={this.setRef}
                     style={{
                         width: '100%',
                         height: '100%',
