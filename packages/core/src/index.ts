@@ -6,7 +6,7 @@ import { NavigationBase } from './NavigationBase';
 import { RouterBase, RouterBaseProps, RouterBaseState } from './RouterBase';
 import { ScreenBase, ScreenBaseProps, ScreenBaseState } from './ScreenBase';
 import { Motion } from './ScreenTransitionLayer';
-import { GestureRegion } from './GestureRegion';
+import { GestureRegion } from '../../stack/src/GestureRegion';
 import 'web-gesture-events';
 import { ScrollRestoration } from './ScrollRestoration';
 import { SharedElement } from './SharedElement';

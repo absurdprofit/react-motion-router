@@ -50,17 +50,6 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
         ...DEFAULT_GESTURE_CONFIG,
     }
 
-    // static getDerivedStateFromProps(props: ScreenTransitionLayerProps, state: ScreenTransitionLayerState) {
-    //     const config = props.currentScreen?.current?.routeProp.config;
-    //     return {
-    //         swipeDirection: config?.swipeDirection ?? state.swipeDirection,
-    //         swipeAreaWidth: config?.swipeAreaWidth ?? state.swipeAreaWidth,
-    //         minFlingVelocity: config?.minFlingVelocity ?? state.minFlingVelocity,
-    //         hysteresis: config?.hysteresis ?? state.hysteresis,
-    //         disableDiscovery: config?.disableDiscovery ?? state.disableDiscovery
-    //     }
-    // }
-
     private onTransitionCancel() {
         this.props.navigation.dispatchEvent(new TransitionCancelEvent());
     }

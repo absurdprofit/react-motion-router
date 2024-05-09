@@ -113,7 +113,6 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	private onGestureTimelineUpdate = ({currentTime}: GestureTimelineUpdateEvent) => {
-		
 		this.children.forEach(child => {
 			if (child instanceof NativeAnimation) {
 				const { endTime = 0 } = child.effect?.getComputedTiming() ?? {};
@@ -138,7 +137,6 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	set currentTime(_currentTime: CSSNumberish | null) {
-		// TODO: figure out how to set the current time of a group effect
 		this.children.forEach(animation => animation.currentTime = _currentTime);
 	}
 

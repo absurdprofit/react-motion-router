@@ -45,3 +45,5 @@ export interface StackRouterEventMap extends RouterBaseEventMap {
 }
 
 export interface RouteProp extends RoutePropBase<ScreenProps["config"]> {}
+
+export type SwipeDirection = 'up' | 'down' | 'left' | 'right' | 'horizontal' | 'vertical';

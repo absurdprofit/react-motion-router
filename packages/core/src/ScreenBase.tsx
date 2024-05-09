@@ -43,11 +43,6 @@ export interface ScreenBaseProps<R extends RoutePropBase = RoutePropBase> {
             component: React.JSXElementConstructor<any> | LazyExoticComponent<any>
         };
         animation?: AnimationEffectFactory;
-        swipeDirection?: SwipeDirection;
-        swipeAreaWidth?: number;
-        minFlingVelocity?: number;
-        hysteresis?: number;
-        disableDiscovery?: boolean;
         onEnter?: (props: LifecycleProps<R>) => void | Promise<void>;
         onExit?: (props: LifecycleProps<R>) => void | Promise<void>;
         onEntered?: (props: LifecycleProps<R>) => void | Promise<void>;

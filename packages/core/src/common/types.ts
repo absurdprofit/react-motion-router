@@ -46,8 +46,6 @@ export interface Vec2 {
     y: number;
 }
 
-export type SwipeDirection = 'up' | 'down' | 'left' | 'right';
-
 export type MetaTypeKey = 'http-equiv' | 'name' | 'itemprop' | 'property' | 'charset';
 export type MetaType = [MetaTypeKey, string];
 export type MetaKey = `${MetaTypeKey}=${string}`;

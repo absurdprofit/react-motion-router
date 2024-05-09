@@ -2,7 +2,7 @@ import { ScreenBase, matchRoute } from '@react-motion-router/core';
 import type { ScreenBaseProps, ScreenBaseState, ScreenComponentBaseProps } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { Children, isValidElement } from 'react';
-import { RouteProp } from './common/types';
+import { RouteProp, SwipeDirection } from './common/types';
 
 export interface ScreenComponentProps extends ScreenComponentBaseProps<RouteProp, Navigation> { }
 
@@ -11,6 +11,11 @@ export interface ScreenProps extends ScreenBaseProps {
     config?: ScreenBaseProps["config"] & {
         presentation?: Presentation;
         keepAlive?: boolean;
+        gestureDirection?: SwipeDirection;
+        gestureAreaWidth?: number;
+        gestureMinFlingVelocity?: number;
+        gestureHysteresis?: number;
+        disableGesture?: boolean;
     }
 }
 
