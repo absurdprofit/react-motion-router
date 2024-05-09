@@ -6,11 +6,6 @@ export class Animation extends EventTarget implements NativeAnimation {
 	public effect: AnimationEffect | null = null;
 	public timeline: AnimationTimeline | null;
 	private readonly children: NativeAnimation[] = [];
-	public _playbackRate = 1;
-	private _pending = false;
-	private _playState: AnimationPlayState = "idle";
-	private _startTime: CSSNumberish | null = null;
-	private _currentTime: CSSNumberish | null = null;
 	private _replaceState: AnimationReplaceState = 'active';
 
 	public oncancel: ((this: NativeAnimation, ev: AnimationPlaybackEvent) => any) | null = null;
@@ -31,11 +26,14 @@ export class Animation extends EventTarget implements NativeAnimation {
 
 		this.finished.then(this.dispatchFinishedEvent.bind(this));
 		this.cancelled.then(this.dispatchCancelledEvent.bind(this));
-		this.removed.then(this.dispatchRemovedEvent.bind(this));
+		this.removed.then(() => {
+			this.dispatchRemovedEvent();
+			this._replaceState = 'removed';
+		});
 	}
 
 	reverse(): void {
-		this.updatePlaybackRate(-this._playbackRate);
+		this.updatePlaybackRate(-this.playbackRate);
 	}
 
 	play() {
@@ -48,6 +46,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 
 	persist(): void {
 		this.children.forEach(animation => animation.persist());
+		this._replaceState = 'persisted';
 	}
 
 	finish(): void {
@@ -107,15 +106,16 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	set playbackRate(_playbackRate: number) {
-		this._playbackRate = _playbackRate;
+		this.children.forEach(animation => animation.playbackRate = _playbackRate);
 	}
 
 	set startTime(_startTime: CSSNumberish | null) {
-		this._startTime = _startTime;
+		this.children.forEach(animation => animation.startTime = _startTime);
 	}
 
 	set currentTime(_currentTime: CSSNumberish | null) {
-		this._currentTime = _currentTime;
+		// TODO: figure out how to set the current time of a group effect
+		this.children.forEach(animation => animation.currentTime = _currentTime);
 	}
 
 	get ready(): Promise<Animation> {
@@ -135,11 +135,22 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	get playState() {
-		return this._playState;
+		const { playbackRate = 0, endTime = 0 } = this.effect?.getComputedTiming() ?? {};
+		const end = endTime instanceof CSSNumericValue ? endTime.to('ms').value : endTime;
+		const startTime = this.startTime
+		let currentTime = this.currentTime;
+		currentTime = currentTime instanceof CSSNumericValue ? currentTime.to('ms').value : currentTime;
+		if (currentTime === null && startTime === null)
+			return 'idle';
+		else if (this.children.every(child => child.playState === 'paused') || (startTime === null && this.pending))
+			return 'paused';
+		else if (currentTime !== null && ((playbackRate > 0 && currentTime >= end) || (playbackRate < 0 && currentTime <= 0)))
+			return 'finished';
+		return 'running';
 	}
 
 	get playbackRate() {
-		return this._playbackRate;
+		return this.effect?.getComputedTiming().playbackRate ?? 1;
 	}
 
 	get replaceState() {
@@ -147,14 +158,14 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	get pending() {
-		return this._pending;
+		return this.children.some(animation => animation.pending);
 	}
 
 	get currentTime() {
-		return this._currentTime;
+		return this.effect?.getComputedTiming().localTime ?? null;
 	}
 
 	get startTime() {
-		return this._startTime;
+		return this.effect?.getComputedTiming().startTime ?? null;
 	}
 }

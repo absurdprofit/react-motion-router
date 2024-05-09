@@ -42,14 +42,16 @@ export class ParallelEffect extends GroupEffect {
 		const timing = this.getTiming();
 		const computedTiming: ComputedEffectTiming = {...timing};
 		this._children.forEach(child => {
-			const {startTime = 0, endTime = 0, progress = 0, currentIteration = 1, activeDuration = 0, localTime = 0} = child.getComputedTiming();
+			const {startTime = 0, endTime = 0, currentIteration = 1, activeDuration = 0, localTime = 0} = child.getComputedTiming();
 			computedTiming.endTime = computedTiming.endTime ? Math.max(cssNumberishToNumber(computedTiming.endTime, 'ms'), cssNumberishToNumber(endTime, 'ms')) : endTime;
 			computedTiming.startTime = computedTiming.startTime ? Math.min(cssNumberishToNumber(computedTiming.startTime, 'ms'), cssNumberishToNumber(startTime, 'ms')) : startTime;
-			computedTiming.progress = computedTiming.progress ? Math.min(computedTiming.progress, progress!) : progress;
 			computedTiming.currentIteration = computedTiming.currentIteration ? Math.max(computedTiming.currentIteration, currentIteration!) : currentIteration;
 			computedTiming.activeDuration = computedTiming.activeDuration ? Math.max(cssNumberishToNumber(computedTiming.activeDuration, 'ms'), cssNumberishToNumber(activeDuration, 'ms')) : activeDuration;
 			computedTiming.localTime = computedTiming.localTime ? Math.max(cssNumberishToNumber(computedTiming.localTime, 'ms'), cssNumberishToNumber(localTime!, 'ms')) : localTime;
 		});
+		const { activeDuration, localTime } = computedTiming;
+		if (localTime && activeDuration)
+			computedTiming.progress = cssNumberishToNumber(localTime, 'ms') / cssNumberishToNumber(activeDuration, 'ms');
 		return computedTiming;
 	}
 
