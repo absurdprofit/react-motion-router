@@ -1,11 +1,14 @@
+import { MAX_DURATION_PERCENTAGE, MIN_DURATION_PERCENTAGE } from "./common/constants";
 import { NativeAnimation } from "./common/types";
+import { cssNumberishToNumber, interpolate } from "./common/utils";
+import { GestureTimeline, GestureTimelineUpdateEvent } from "./gesture-timeline";
 import { GroupEffect } from "./group-effect";
 
 export class Animation extends EventTarget implements NativeAnimation {
 	public id: string = '';
 	public effect: AnimationEffect | null = null;
-	public timeline: AnimationTimeline | null;
-	private readonly children: NativeAnimation[] = [];
+	public _timeline: AnimationTimeline | null;
+	private readonly children: (NativeAnimation | Animation)[] = [];
 	private _replaceState: AnimationReplaceState = 'active';
 
 	public oncancel: ((this: NativeAnimation, ev: AnimationPlaybackEvent) => any) | null = null;
@@ -15,13 +18,17 @@ export class Animation extends EventTarget implements NativeAnimation {
 	constructor(effect?: AnimationEffect | null, timeline?: AnimationTimeline | null) {
 		super();
 		this.effect = effect ?? null;
-		this.timeline = timeline ?? null;
+		this._timeline = timeline ?? null;
 		if (effect instanceof GroupEffect) {
 			for (let i = 0; i < effect.children.length; i++) {
 				this.children.push(new Animation(effect.children.item(i), timeline));
 			}
 		} else {
-			this.children = [new NativeAnimation(effect, timeline)];
+			this.children = [new NativeAnimation(effect)];
+		}
+
+		if (timeline instanceof GestureTimeline) {
+			timeline.addEventListener('update', this.onGestureTimelineUpdate);
 		}
 
 		this.finished.then(this.dispatchFinishedEvent.bind(this));
@@ -105,6 +112,23 @@ export class Animation extends EventTarget implements NativeAnimation {
 		this.onremove?.call(this, event);
 	}
 
+	private onGestureTimelineUpdate = ({currentTime}: GestureTimelineUpdateEvent) => {
+		
+		this.children.forEach(child => {
+			if (child instanceof NativeAnimation) {
+				const { endTime = 0 } = child.effect?.getComputedTiming() ?? {};
+				const localTime = interpolate(
+					cssNumberishToNumber(currentTime, 'percent'),
+					[MIN_DURATION_PERCENTAGE, MAX_DURATION_PERCENTAGE],
+					[0, cssNumberishToNumber(endTime, 'ms')]
+				);
+				child.currentTime = localTime;
+			} else {
+				child.currentTime = currentTime
+			}
+		});
+	}
+
 	set playbackRate(_playbackRate: number) {
 		this.children.forEach(animation => animation.playbackRate = _playbackRate);
 	}
@@ -116,6 +140,17 @@ export class Animation extends EventTarget implements NativeAnimation {
 	set currentTime(_currentTime: CSSNumberish | null) {
 		// TODO: figure out how to set the current time of a group effect
 		this.children.forEach(animation => animation.currentTime = _currentTime);
+	}
+
+	set timeline(_timeline: AnimationTimeline | null) {
+		if (this._timeline instanceof GestureTimeline) {
+			this._timeline.removeEventListener('update', this.onGestureTimelineUpdate);
+		}
+		this._timeline = _timeline;
+		if (_timeline instanceof GestureTimeline) {
+			_timeline.addEventListener('update', this.onGestureTimelineUpdate);
+			this.children.forEach(child => child.pause());
+		}
 	}
 
 	get ready(): Promise<Animation> {
@@ -157,7 +192,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 		return this._replaceState;
 	}
 
-	get pending() {
+	get pending(): boolean {
 		return this.children.some(animation => animation.pending);
 	}
 
@@ -167,5 +202,9 @@ export class Animation extends EventTarget implements NativeAnimation {
 
 	get startTime() {
 		return this.effect?.getComputedTiming().startTime ?? null;
+	}
+
+	get timeline() {
+		return this._timeline;
 	}
 }

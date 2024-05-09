@@ -22,5 +22,8 @@
   },
   "bugs": {
     "url": "https://github.com/nxtexe/react-motion-router/issues"
+  },
+  "dependencies": {
+    "web-gesture-events": "^0.1.0"
   }
 }
