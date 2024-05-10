@@ -70,15 +70,17 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         documentTitle: document.title,
     } as S;
 
-    async componentDidMount() {
+    componentDidMount() {
         if (this.isRoot) {
             window.navigation.addEventListener('navigate', this.handleNavigationDispatch);
         }
         if (window.navigation.transition?.navigationType !== "reload") {
             // Trigger reload on first load.
             // Gives routers ability to initialise state with the benefits of interception.
-            await window.navigation.transition?.finished;
-            window.navigation.reload({ info: { firstLoad: true } });
+            const transitionFinished = window.navigation.transition?.finished ?? Promise.resolve();
+            transitionFinished.then(() => {
+                window.navigation.reload({ info: { firstLoad: true } });
+            });
         }
 
     }
@@ -243,14 +245,19 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     protected abstract intercept(navigateEvent: NavigateEvent): void;
     protected abstract get screens(): P["children"];
 
-    private setRef = (ref: HTMLElement | null) => {
+    protected onRef = (ref: HTMLElement | null) => {
         this.ref = ref;
     }
 
     render() {
         if (!this.navigation) return;
         return (
-            <div id={this.id} className="react-motion-router" style={{ width: '100%', height: '100%' }} ref={this.setRef}>
+            <div
+                id={this.id}
+                className="react-motion-router"
+                style={{ width: '100%', height: '100%' }}
+                ref={this.onRef}
+            >
                 <RouterContext.Provider value={this}>
                     <ScreenTransitionLayer
                         ref={this.screenTransitionLayer}

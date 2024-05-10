@@ -1,10 +1,7 @@
-import { Children, Component, Ref, RefObject, createContext, createRef } from 'react';
-import { SwipeEndEvent, SwipeEvent, SwipeStartEvent } from 'web-gesture-events';
-import { clamp } from './common/utils';
+import { Component, RefObject, createContext, createRef } from 'react';
 import { NavigationBase, ScreenBase, ScreenChild } from './index';
-import { GestureEndEvent, MotionProgressEndEvent, MotionProgressEvent, MotionProgressStartEvent, TransitionCancelEvent, TransitionEndEvent, TransitionStartEvent } from './common/events';
-import { AnimationDirection, SwipeDirection } from './common/types';
-import { DEFAULT_GESTURE_CONFIG, MAX_PROGRESS, MIN_PROGRESS } from './common/constants';
+import { MotionProgressEvent, TransitionCancelEvent, TransitionEndEvent, TransitionStartEvent } from './common/events';
+import { AnimationDirection } from './common/types';
 import { SharedElementLayer } from './SharedElementLayer';
 import { ParallelEffect, Animation } from 'web-animations-extension';
 import { ScreenTransitionLayerContext } from './ScreenTransitionLayerContext';
@@ -17,17 +14,7 @@ interface ScreenTransitionLayerProps {
 }
 
 interface ScreenTransitionLayerState {
-    progress: number;
-    shouldPlay: boolean;
     gestureNavigating: boolean;
-    shouldAnimate: boolean;
-    startX: number;
-    startY: number;
-    swipeDirection: SwipeDirection;
-    swipeAreaWidth: number;
-    minFlingVelocity: number;
-    hysteresis: number;
-    disableDiscovery: boolean;
 }
 
 export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps, ScreenTransitionLayerState> {
@@ -40,14 +27,7 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
     private _screens: RefObject<ScreenBase>[] = new Array();
 
     state: ScreenTransitionLayerState = {
-        progress: MAX_PROGRESS,
-        shouldPlay: true,
         gestureNavigating: false,
-        shouldAnimate: true,
-        startX: 0,
-        startY: 0,
-        disableDiscovery: false,
-        ...DEFAULT_GESTURE_CONFIG,
     }
 
     private onTransitionCancel() {
@@ -65,10 +45,7 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
     private onProgress(_progress: number) {
         let progress = _progress;
 
-        if (progress === this.state.progress) return;
-
         this.props.navigation.dispatchEvent(new MotionProgressEvent(progress));
-        this.setState({ progress });
     }
 
     get screens() {
@@ -190,10 +167,10 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
                         width: '100%',
                         height: '100%',
                         display: 'grid',
-                        '--motion-progress': this.state.progress
+                        '--motion-progress': 0
                     } as React.CSSProperties}
                 >
-                    <Motion.Provider value={this.state.progress}>
+                    <Motion.Provider value={0}>
                         {this.props.children}
                     </Motion.Provider>
                 </div>

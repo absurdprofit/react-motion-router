@@ -5,8 +5,7 @@
   },
   "include": [
     "src/**/*.tsx",
-    "src/**/*.ts",
-    "../core/build/index.d.ts"
+    "src/**/*.ts"
   ],
   "exclude": [
     "node_modules",

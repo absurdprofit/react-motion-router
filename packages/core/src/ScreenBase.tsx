@@ -5,13 +5,11 @@ import {
     LazyExoticComponent,
     PlainObject,
     RoutePropBase,
-    SwipeDirection,
     isValidComponentConstructor
 } from "./common/types";
 import { NestedRouterContext, RouterContext } from "./RouterContext";
 import { RoutePropContext } from "./RoutePropContext";
 import { NavigationBase } from "./NavigationBase";
-import { RouterBase } from "./RouterBase";
 import { SharedElementSceneContext } from "./SharedElementSceneContext";
 import { SharedElementScene } from "./SharedElementScene";
 

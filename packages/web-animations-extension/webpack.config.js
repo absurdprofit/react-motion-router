@@ -28,7 +28,7 @@ module.exports = (env, argv) => ({
     output: {
         filename: '[name].js',
         path: path.resolve(__dirname, 'build'),
-        clean: true,
+        // clean: true,
         libraryTarget: 'module'
     },
     optimization: {

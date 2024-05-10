@@ -25,9 +25,9 @@ function Routes() {
   return (
     <Stack.Router config={{
       screenConfig: {
-        disableDiscovery: false,
-        animation: animation,
-        minFlingVelocity: 1000
+        disableGesture: false,
+        gestureMinFlingVelocity: 1000,
+        animation
       },
       disableBrowserRouting: isPWA() && isIOS(),
     }}>

@@ -6,7 +6,7 @@
   "include": [
     "src/**/*.tsx",
     "src/**/*.ts"
-, "../stack/src/GestureRegion.tsx"  ],
+  ],
   "exclude": [
     "node_modules",
     "build"

@@ -44,6 +44,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	play() {
+		if (!(this.timeline instanceof DocumentTimeline)) return; // TODO: properly handle playback of gesture animation
 		this.children.forEach(animation => animation.play());
 	}
 
@@ -121,6 +122,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 					[MIN_DURATION_PERCENTAGE, MAX_DURATION_PERCENTAGE],
 					[0, cssNumberishToNumber(endTime, 'ms')]
 				);
+				console.log({localTime});
 				child.currentTime = localTime;
 			} else {
 				child.currentTime = currentTime

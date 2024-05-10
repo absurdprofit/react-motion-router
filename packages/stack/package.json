@@ -25,7 +25,8 @@
   },
   "homepage": "https://github.com/nxtexe/react-motion-router#readme",
   "peerDependencies": {
-    "@react-motion-router/core": "*"
+    "@react-motion-router/core": "*",
+    "web-animations-extension": "*"
   },
   "gitHead": "38a495e365799d870713ad00fcffd26af293582f"
 }

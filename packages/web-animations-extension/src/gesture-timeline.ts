@@ -60,13 +60,18 @@ export class GestureTimeline extends EventTarget implements AnimationTimeline {
 	}
 
 	private onGesture(event: PinchEvent	| RotateEvent | SwipeEvent | PanEvent) {
+		const sourceRect = this.options.source.getBoundingClientRect();
 		let percent = 0;
+		const position = {
+			x: event.x - sourceRect.left,
+			y: event.y - sourceRect.top
+		};
 		switch(this.options.type) {
 			case "swipe": {
 				const { rangeStart, rangeEnd } = this.options;
 				const axis = this.options.axis;
 				percent = interpolate(
-					event[axis],
+					position[axis],
 					[cssNumberishToNumber(rangeStart, 'px'), cssNumberishToNumber(rangeEnd, 'px')],
 					[MIN_DURATION_PERCENTAGE, MAX_DURATION_PERCENTAGE]
 				);
@@ -74,7 +79,7 @@ export class GestureTimeline extends EventTarget implements AnimationTimeline {
 			}
 			case "pan": {
 				const { rangeStart, rangeEnd } = this.options;
-				const { x, y } = event;
+				const { x, y } = position;
 				percent = interpolate(
 					{ x, y },
 					{

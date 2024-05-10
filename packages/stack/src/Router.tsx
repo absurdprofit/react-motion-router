@@ -1,10 +1,11 @@
-import { RouterBase, ScreenBase, clamp, includesRoute, isValidScreenChild, matchRoute } from '@react-motion-router/core';
+import { RouterBase, clamp, includesRoute, isValidScreenChild, matchRoute } from '@react-motion-router/core';
 import type { NestedRouterContext, PlainObject, RouterBaseProps, RouterBaseState, ScreenChild } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { ScreenProps, Screen } from './Screen';
-import { HistoryEntryState, isRefObject, SwipeDirection } from './common/types';
+import { HistoryEntryState, isHorizontalDirection, isRefObject, SwipeDirection } from './common/types';
 import { Children, createRef, cloneElement, startTransition } from 'react';
 import { SwipeStartEvent, SwipeEndEvent } from 'web-gesture-events';
+import { GestureTimeline } from 'web-animations-extension';
 
 export interface RouterProps extends RouterBaseProps<Screen> {
     config: RouterBaseProps["config"] & {
@@ -36,20 +37,23 @@ export class Router extends RouterBase<RouterProps, RouterState> {
     constructor(props: RouterProps, context: React.ContextType<typeof NestedRouterContext>) {
         super(props, context);
 
-        const navigation = new Navigation(this);
-        this.state.navigation = navigation;
-        this.state.screenStack = [];
+        this.state = {
+            navigation: new Navigation(this),
+            screenStack: [],
+            gestureDirection: "horizontal",
+            gestureAreaWidth: 30,
+            gestureHysteresis: 0.5,
+            disableGesture: true,
+            gestureMinFlingVelocity: 500,
+            transition: null,
+            destination: null,
+            backNavigating: false,
+            defaultDocumentTitle: document.title,
+            documentTitle: ''
+        };
     }
 
-    state = {
-        gestureDirection: "horizontal",
-        gestureAreaWidth: 30,
-        gestureHysteresis: 0.5,
-        disableGesture: true,
-        gestureMinFlingVelocity: 500,
-    }
-
-    static getDerivedStateFromProps(props: RouterProps, state: RouterState) {
+    static getDerivedStateFromProps(_: RouterProps, state: RouterState) {
         const config = state.screenStack.find(screen => screen.key === state.navigation.current.key)?.props.config;
         return {
             gestureDirection: config?.gestureDirection ?? state.gestureDirection,
@@ -60,21 +64,37 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         }
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         super.componentDidMount();
-        this.ref.addEventListener('swipestart', this.onSwipeStart);
-        this.ref.addEventListener('swipestart', this.onSwipeEnd);
+        this.ref?.addEventListener('swipestart', this.onSwipeStart);
+        this.ref?.addEventListener('swipeend', this.onSwipeEnd);
     }
 
-    componentWillUnmount() {
+    componentWillUnmount(): void {
         super.componentWillUnmount();
-        this.ref.removeEventListener('swipestart', this.onSwipeStart);
-        this.ref.removeEventListener('swipestart', this.onSwipeEnd);
+        this.ref?.removeEventListener('swipestart', this.onSwipeStart);
+        this.ref?.removeEventListener('swipeend', this.onSwipeEnd);
+    }
+
+    private canGestureNavigate(e: SwipeStartEvent) {
+        if (this.state.disableGesture) return false;
+        const { direction } = e;
+        if ((direction === "down" || direction === "right") && !this.navigation.canGoBack) return false;
+        if ((direction === "up" || direction === "left") && !this.navigation.canGoForward) return false;
+        if (
+            this.state.gestureDirection !== direction
+            && isHorizontalDirection(direction) !== isHorizontalDirection(this.state.gestureDirection)
+        ) return false;
+        return true;
     }
 
     private onSwipeStart = (e: SwipeStartEvent) => {
         // TODO: factor in gesture region
-        let axis = "x";
+        if (!this.canGestureNavigate(e)) return;
+        if (!this.ref || !this.screenTransitionLayer.current) return;
+        const { direction } = e;
+
+        let axis: "x" | "y" = "x";
         switch (this.state.gestureDirection) {
             case "up":
             case "down":
@@ -82,17 +102,42 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                 axis = "y";
                 break;
         }
-        const timeline = new GestureTimeline({
+        let rangeStart;
+        let rangeEnd;
+        switch (direction) {
+            case "right":
+                rangeStart = 0;
+                rangeEnd = this.ref.clientWidth;
+            break;
+            case "left":
+                rangeStart = this.ref.clientWidth;
+                rangeEnd = 0;
+            break;
+            case "down":
+                rangeStart = 0;
+                rangeEnd = this.ref.clientHeight;
+            break;
+            case "up":
+                rangeStart = this.ref.clientHeight;
+                rangeEnd = 0;
+            break;
+        }
+        this.screenTransitionLayer.current.timeline = new GestureTimeline({
             source: this.ref,
             type: "swipe",
             axis,
-            rangeStart: 0,
-            rangeEnd: this.ref.clientWidth
+            rangeStart,
+            rangeEnd
         });
+        if (direction === "down" || direction === "right")
+            this.navigation.goBack();
+        else
+            this.navigation.goForward();
     }
 
     private onSwipeEnd = (e: SwipeEndEvent) => {
-
+        if (!this.screenTransitionLayer.current) return;
+        this.screenTransitionLayer.current.timeline = document.timeline;
     }
 
     protected get screens() {

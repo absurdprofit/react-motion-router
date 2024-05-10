@@ -1,3 +1,4 @@
+export * from './gesture-timeline';
 export * from './group-effect';
 export * from './animation';
 export * from './parallel-effect';

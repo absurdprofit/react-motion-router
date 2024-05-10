@@ -47,3 +47,11 @@ export interface StackRouterEventMap extends RouterBaseEventMap {
 export interface RouteProp extends RoutePropBase<ScreenProps["config"]> {}
 
 export type SwipeDirection = 'up' | 'down' | 'left' | 'right' | 'horizontal' | 'vertical';
+
+export function isVerticalDirection(direction: SwipeDirection): direction is 'up' | 'down' | 'vertical' {
+	return direction === 'up' || direction === 'down' || direction === 'vertical';
+}
+
+export function isHorizontalDirection(direction: SwipeDirection): direction is 'left' | 'right' | 'horizontal' {
+	return direction === 'left' || direction === 'right' || direction === 'horizontal';
+}
