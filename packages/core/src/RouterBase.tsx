@@ -14,7 +14,6 @@ import { DEFAULT_ANIMATION, DEFAULT_GESTURE_CONFIG } from './common/constants';
 import { isValidElement, Children, cloneElement } from 'react';
 import { ScreenBase, ScreenBaseProps } from './ScreenBase';
 import { ScrollRestorationData } from './ScrollRestorationData';
-import { SharedElementLayer } from './SharedElementLayer';
 
 export interface RouterBaseProps<S extends ScreenBase = ScreenBase> {
     id?: string;

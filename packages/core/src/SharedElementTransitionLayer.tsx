@@ -5,20 +5,20 @@ import { ScreenBase } from './ScreenBase';
 import { ParallelEffect } from 'web-animations-extension';
 import { SharedElement } from './SharedElement';
 
-interface SharedElementLayerProps {
+interface SharedElementTransitionLayerProps {
     navigation: NavigationBase;
 }
 
-interface SharedElementLayerState { }
+interface SharedElementTransitionLayerState { }
 
-export class SharedElementLayer extends Component<SharedElementLayerProps, SharedElementLayerState> {
+export class SharedElementTransitionLayer extends Component<SharedElementTransitionLayerProps, SharedElementTransitionLayerState> {
     public readonly ref = createRef<HTMLDialogElement>();
     private _timeline: AnimationTimeline = document.timeline;
     private _playbackRate: number = 1;
     private _outgoingScreen: RefObject<ScreenBase> | null = null;
     private _incomingScreen: RefObject<ScreenBase> | null = null;
 
-    state: SharedElementLayerState = {
+    state: SharedElementTransitionLayerState = {
         transitioning: false
     }
 

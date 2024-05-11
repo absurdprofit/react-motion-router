@@ -372,9 +372,9 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                 outgoingScreen.current.screenTransitionProvider.index = clamp(outgoingScreen.current.screenTransitionProvider.state.zIndex, 0, 1);
                 outgoingScreen.current.screenTransitionProvider.exiting = true;
             }
-            if (this.screenTransitionLayer.current.sharedElementLayer.current) {
-                this.screenTransitionLayer.current.sharedElementLayer.current.outgoingScreen = outgoingScreen;
-                this.screenTransitionLayer.current.sharedElementLayer.current.incomingScreen = incomingScreen;
+            if (this.screenTransitionLayer.current.sharedElementTransitionLayer.current) {
+                this.screenTransitionLayer.current.sharedElementTransitionLayer.current.outgoingScreen = outgoingScreen;
+                this.screenTransitionLayer.current.sharedElementTransitionLayer.current.incomingScreen = incomingScreen;
             }
             this.screenTransitionLayer.current.screens = [
                 incomingScreen,

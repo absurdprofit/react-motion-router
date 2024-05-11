@@ -1,8 +1,7 @@
 import { Component, RefObject, createContext, createRef } from 'react';
 import { NavigationBase, ScreenBase, ScreenChild } from './index';
 import { MotionProgressEvent, TransitionCancelEvent, TransitionEndEvent, TransitionStartEvent } from './common/events';
-import { AnimationDirection } from './common/types';
-import { SharedElementLayer } from './SharedElementLayer';
+import { SharedElementTransitionLayer } from './SharedElementTransitionLayer';
 import { ParallelEffect, Animation } from 'web-animations-extension';
 import { ScreenTransitionLayerContext } from './ScreenTransitionLayerContext';
 
@@ -19,7 +18,7 @@ interface ScreenTransitionLayerState {
 
 export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps, ScreenTransitionLayerState> {
     private ref: HTMLDivElement | null = null;
-    public readonly sharedElementLayer = createRef<SharedElementLayer>();
+    public readonly sharedElementTransitionLayer = createRef<SharedElementTransitionLayer>();
     public readonly animation: Animation = new Animation();
     private _direction: PlaybackDirection = "normal";
     private _screens: RefObject<ScreenBase>[] = new Array();
@@ -71,8 +70,8 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
             if (screenEffect) effect.append(screenEffect);
         })
 
-        if (this.sharedElementLayer.current) {
-            const sharedElementEffect = this.sharedElementLayer.current.animationEffect;
+        if (this.sharedElementTransitionLayer.current) {
+            const sharedElementEffect = this.sharedElementTransitionLayer.current.animationEffect;
             const duration = effect.getComputedTiming().duration;
             if (sharedElementEffect) {
                 sharedElementEffect.updateTiming({
@@ -85,7 +84,7 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
         this.animation.effect = effect;
 
         this.animation.ready.then(() => {
-            this.sharedElementLayer.current?.ref.current?.showModal();
+            this.sharedElementTransitionLayer.current?.ref.current?.showModal();
             this.animation?.play();
             this.onTransitionStart();
         });
@@ -95,7 +94,7 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
         this.animation.finished.then(() => {
             this.animation?.commitStyles();
             this.onTransitionEnd();
-            this.sharedElementLayer.current?.ref.current?.close();
+            this.sharedElementTransitionLayer.current?.ref.current?.close();
             this.animation.effect = null;
         });
 
@@ -105,8 +104,8 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
     render() {
         return (
             <ScreenTransitionLayerContext.Provider value={this}>
-                <SharedElementLayer
-                    ref={this.sharedElementLayer}
+                <SharedElementTransitionLayer
+                    ref={this.sharedElementTransitionLayer}
                     navigation={this.props.navigation}
                 />
                 <div
