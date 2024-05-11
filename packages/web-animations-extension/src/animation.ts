@@ -50,7 +50,6 @@ export class Animation extends NativeAnimation {
 	}
 
 	play() {
-		console.log(this.timeline);
 		if (!(this.timeline instanceof DocumentTimeline)) return; // TODO: properly handle playback of gesture animation
 		this.children.forEach(animation => animation.play());
 	}

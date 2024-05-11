@@ -43,6 +43,7 @@ module.exports = (env, argv) => ({
     externals: {
         react: 'module react',
         'react-dom': 'module react-dom',
-        '@react-motion-router/core': 'module @react-motion-router/core'
+        '@react-motion-router/core': 'module @react-motion-router/core',
+        'web-animations-extension': 'module web-animations-extension'
     }
 });

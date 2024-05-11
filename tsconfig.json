@@ -2,7 +2,8 @@
     "compilerOptions": {
         "baseUrl": ".",
         "paths": {
-            "@react-motion-router/*": ["./packages/*/build"]
+            "@react-motion-router/*": ["./packages/*/build"],
+            "web-animations-extension": ["./packages/web-animations-extension/build"]
         },
         "declaration": true,
         "sourceMap": true,
