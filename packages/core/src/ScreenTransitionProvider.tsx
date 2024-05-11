@@ -56,7 +56,8 @@ export class ScreenTransitionProvider extends Component<ScreenTransitionProvider
 
     get animationEffect() {
         const animationEffectFactory = this.props.animation;
-        const { timeline, direction, playbackRate } = this.context!;
+        const { animation, direction } = this.context!;
+        const { timeline, playbackRate } = animation;
         const { index, exiting, ref } = this;
 
         return animationEffectFactory?.({

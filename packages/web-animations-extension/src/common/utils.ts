@@ -119,3 +119,16 @@ export function springToLinear({ mass = 1, stiffness = 10, damping = 10, velocit
 
 	return { duration, easing } as const;
 }
+
+export function easingToLinear(easing: (t: number) => number, steps = 100) {
+	let easingPoints = [];
+
+	for (let i = 0; i <= steps; i++) {
+		const t = i / steps; // normalize time from 0 to 1
+		const easedValue = easing(t);
+		easingPoints.push(easedValue);
+	}
+
+	// Construct the CSS linear() function string
+	return `linear(${easingPoints.join(', ')})`;
+}

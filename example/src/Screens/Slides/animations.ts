@@ -1,5 +1,5 @@
 import { AnimationEffectFactoryProps } from "@react-motion-router/core";
-import { FadeOut, FadeIn } from "@react-motion-router/stack";
+import { FadeOutKeyframes, FadeInKeyframes } from "@react-motion-router/stack";
 import { isIOS, isPWA } from "example/src/common/utils";
 
 export function SlidesAnimation({ref, direction, playbackRate, index}: AnimationEffectFactoryProps) {
@@ -11,8 +11,8 @@ export function SlidesAnimation({ref, direction, playbackRate, index}: Animation
 		fill: direction === "normal" ? "forwards" : "backwards"
 	};
     const keyframes = [
-        FadeOut,
-        FadeIn
+        FadeOutKeyframes,
+        FadeInKeyframes
     ];
 
     return new KeyframeEffect(ref, keyframes[index], options);

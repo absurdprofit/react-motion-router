@@ -223,7 +223,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 		return this.effect?.getComputedTiming().startTime ?? null;
 	}
 
-	get timeline() {
+	get timeline(): AnimationTimeline {
 		return this._timeline;
 	}
 

@@ -44,7 +44,7 @@ function Routes() {
         defaultParams={{ hero: 0 }}
         fallback={<div className='screen-fallback slides'></div>}
         config={{
-          disableDiscovery: true,
+          disableGesture: true,
           animation: SlidesAnimation,
         }}
       />
@@ -74,9 +74,9 @@ function Routes() {
         component={Details}
         config={{
           animation: STATIC_ANIMATION,
-          swipeDirection: "down",
-          swipeAreaWidth: window.innerHeight,
-          hysteresis: .3
+          gestureDirection: "down",
+          gestureAreaWidth: window.innerHeight,
+          gestureHysteresis: .3
         }}
         defaultParams={{ data: "Default" }}
         fallback={<div className='screen-fallback details'></div>}

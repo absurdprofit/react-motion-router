@@ -1,5 +1,5 @@
 import { AnimationEffectFactoryProps } from "@react-motion-router/core";
-import { SlideInFromRight, SlideOutToLeft } from '@react-motion-router/stack';
+import { SlideInFromRightKeyframes, SlideOutToLeftKeyframes } from '@react-motion-router/stack';
 import { isIOS, isPWA } from "./common/utils";
 
 export function animation({ref, direction, playbackRate, index}: AnimationEffectFactoryProps) {
@@ -11,8 +11,8 @@ export function animation({ref, direction, playbackRate, index}: AnimationEffect
 		fill: "forwards"
 	};
 	const keyframes = [
-		SlideOutToLeft,
-		SlideInFromRight
+		SlideOutToLeftKeyframes,
+		SlideInFromRightKeyframes
 	];
 	return new KeyframeEffect(ref, keyframes[index], options);
 }
@@ -27,7 +27,7 @@ export function slideToStatic({ref, direction, playbackRate, index}: AnimationEf
 	};
 	const keyframes = [
 		[],
-		SlideInFromRight
+		SlideInFromRightKeyframes
 	];
 	return new KeyframeEffect(ref, keyframes[index], options);
 }
