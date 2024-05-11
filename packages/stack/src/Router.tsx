@@ -85,6 +85,14 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             this.state.gestureDirection !== direction
             && isHorizontalDirection(direction) !== isHorizontalDirection(this.state.gestureDirection)
         ) return false;
+        for (let target of e.composedPath().reverse()) {
+            if (
+                target instanceof HTMLElement
+                && target.classList.contains('gesture-region')
+                && target.dataset.disabled === "false"
+            ) return false;
+            if (target === e.gestureTarget) break;
+        }
         return true;
     }
 
