@@ -3,6 +3,9 @@ import { percentToTime } from "./common/utils";
 import { GestureTimeline, GestureTimelineUpdateEvent } from "./gesture-timeline";
 import { GroupEffect } from "./group-effect";
 
+// TODO: properly handle updating playbackRate
+// TODO: properly handle playback. We need to manage pending states properly.
+
 export class Animation extends EventTarget implements NativeAnimation {
 	public id: string = '';
 	public _effect: AnimationEffect | null = null;
@@ -45,7 +48,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	reverse(): void {
-		this.updatePlaybackRate(-this.playbackRate);
+		this.children.forEach(animation => animation.reverse());
 	}
 
 	play() {
@@ -153,6 +156,11 @@ export class Animation extends EventTarget implements NativeAnimation {
 			this._timeline.removeEventListener('update', this.onGestureTimelineUpdate);
 		}
 		this._timeline = _timeline ?? document.timeline;
+		this.children.forEach(child => {
+			if ('children' in child) {
+				child.timeline = _timeline;
+			}
+		});
 		if (_timeline instanceof GestureTimeline) {
 			_timeline.addEventListener('update', this.onGestureTimelineUpdate);
 			this.children.forEach(child => child.pause());

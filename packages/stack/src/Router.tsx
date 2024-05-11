@@ -122,7 +122,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                 rangeEnd = 0;
             break;
         }
-        this.screenTransitionLayer.current.timeline = new GestureTimeline({
+        this.screenTransitionLayer.current.animation.timeline = new GestureTimeline({
             source: this.ref,
             type: "swipe",
             axis,
@@ -137,8 +137,12 @@ export class Router extends RouterBase<RouterProps, RouterState> {
 
     private onSwipeEnd = (e: SwipeEndEvent) => {
         if (!this.screenTransitionLayer.current) return;
-        this.screenTransitionLayer.current.timeline = document.timeline;
-        this.screenTransitionLayer.current.play();
+        this.screenTransitionLayer.current.animation.timeline = document.timeline;
+        const progress = this.screenTransitionLayer.current.animation.effect?.getComputedTiming().progress ?? 0;
+        if (e.velocity < this.state.gestureMinFlingVelocity && progress < this.state.gestureHysteresis) {
+            this.screenTransitionLayer.current.animation.reverse();
+        }
+        this.screenTransitionLayer.current.animation.play();
     }
 
     protected get screens() {

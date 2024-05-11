@@ -20,7 +20,7 @@ interface ScreenTransitionLayerState {
 export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps, ScreenTransitionLayerState> {
     private ref: HTMLDivElement | null = null;
     public readonly sharedElementLayer = createRef<SharedElementLayer>();
-    private readonly animation: Animation = new Animation();
+    public readonly animation: Animation = new Animation();
     private _direction: PlaybackDirection = "normal";
     private _screens: RefObject<ScreenBase>[] = new Array();
 
@@ -50,42 +50,8 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
         return this._screens;
     }
 
-    get ready() {
-        return this.animation?.ready.then(() => { return; }) ?? Promise.resolve();
-    }
-
-    get started() {
-        return new Promise<void>((resolve) => {
-            this.props.navigation.addEventListener('transition-start', () => {
-                resolve()
-            }, { once: true });
-        });
-    }
-
-    get paused() {
-        return this.animation?.playState === "paused";
-    }
-
-    get running() {
-        return this.animation?.playState === "running";
-    }
-
-    get finished() {
-        return this.started
-            .then(() => this.animation?.finished)
-            .then(() => { return; });
-    }
-
     set screens(screens: RefObject<ScreenBase>[]) {
         this._screens = screens;
-    }
-
-    set timeline(timeline: AnimationTimeline) {
-        this.animation.timeline = timeline;
-    }
-
-    set playbackRate(playbackRate: number) {
-        this.animation.playbackRate = playbackRate;
     }
 
     set direction(direction: PlaybackDirection) {
@@ -93,20 +59,8 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
         this.animation.effect?.updateTiming({ direction: direction });
     }
 
-    get playbackRate() {
-        return this.animation.playbackRate;
-    }
-
     get direction() {
         return this._direction;
-    }
-
-    public play() {
-        return this.animation.play();
-    }
-
-    public pause() {
-        return this.animation.pause();
     }
 
     public transition() {
@@ -130,7 +84,7 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
 
         this.animation.effect = effect;
 
-        this.ready.then(() => {
+        this.animation.ready.then(() => {
             this.sharedElementLayer.current?.ref.current?.showModal();
             this.animation?.play();
             this.onTransitionStart();
@@ -138,7 +92,7 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
 
         this.animation?.addEventListener('cancel', this.onTransitionCancel.bind(this), { once: true });
 
-        this.finished.then(() => {
+        this.animation.finished.then(() => {
             this.animation?.commitStyles();
             this.onTransitionEnd();
             this.sharedElementLayer.current?.ref.current?.close();
