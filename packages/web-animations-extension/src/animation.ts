@@ -7,7 +7,7 @@ import { GroupEffect } from "./group-effect";
 export class Animation extends NativeAnimation {
 	public id: string = '';
 	public _effect: AnimationEffect | null = null;
-	public _timeline: AnimationTimeline | null;
+	public _timeline: AnimationTimeline;
 	private readonly children: (NativeAnimation | Animation)[] = [];
 	private _replaceState: AnimationReplaceState = 'active';
 
@@ -18,14 +18,8 @@ export class Animation extends NativeAnimation {
 	constructor(effect?: AnimationEffect | null, timeline?: AnimationTimeline | null) {
 		super();
 		this._effect = effect ?? null;
-		this._timeline = timeline ?? null;
-		if (effect instanceof GroupEffect) {
-			for (let i = 0; i < effect.children.length; i++) {
-				this.children.push(new Animation(effect.children.item(i), timeline));
-			}
-		} else {
-			this.children = [new NativeAnimation(effect)];
-		}
+		this._timeline = timeline ?? document.timeline;
+		this.updateChildren(this._effect);
 
 		if (timeline instanceof GestureTimeline) {
 			timeline.addEventListener('update', this.onGestureTimelineUpdate);
@@ -39,11 +33,24 @@ export class Animation extends NativeAnimation {
 		});
 	}
 
+	private updateChildren(effect: AnimationEffect | null) {
+		// clear children
+		this.children.splice(0, this.children.length);
+		if (effect instanceof GroupEffect) {
+			for (let i = 0; i < effect.children.length; i++) {
+				this.children.push(new Animation(effect.children.item(i), this.timeline));
+			}
+		} else {
+			this.children.push(new NativeAnimation(effect));
+		}
+	}
+
 	reverse(): void {
 		this.updatePlaybackRate(-this.playbackRate);
 	}
 
 	play() {
+		console.log(this.timeline);
 		if (!(this.timeline instanceof DocumentTimeline)) return; // TODO: properly handle playback of gesture animation
 		this.children.forEach(animation => animation.play());
 	}
@@ -146,7 +153,7 @@ export class Animation extends NativeAnimation {
 		if (this._timeline instanceof GestureTimeline) {
 			this._timeline.removeEventListener('update', this.onGestureTimelineUpdate);
 		}
-		this._timeline = _timeline;
+		this._timeline = _timeline ?? document.timeline;
 		if (_timeline instanceof GestureTimeline) {
 			_timeline.addEventListener('update', this.onGestureTimelineUpdate);
 			this.children.forEach(child => child.pause());
@@ -155,6 +162,7 @@ export class Animation extends NativeAnimation {
 
 	set effect(_effect: AnimationEffect | null) {
 		this._effect = _effect;
+		this.updateChildren(_effect);
 	}
 
 	get ready(): Promise<Animation> {

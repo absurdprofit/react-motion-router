@@ -36,7 +36,7 @@ export interface AnimationEffectFactoryProps<R extends HTMLElement = HTMLElement
     exiting: boolean;
     timeline: AnimationTimeline;
     playbackRate: number;
-    direction: "normal" | "reverse";
+    direction: PlaybackDirection;
 }
 
 export type AnimationEffectFactory<R extends HTMLElement = HTMLElement> = (props: AnimationEffectFactoryProps<R>) => AnimationEffect;

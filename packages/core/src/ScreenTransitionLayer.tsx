@@ -20,10 +20,8 @@ interface ScreenTransitionLayerState {
 export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps, ScreenTransitionLayerState> {
     private ref: HTMLDivElement | null = null;
     public readonly sharedElementLayer = createRef<SharedElementLayer>();
-    private _animation: Animation | null = null;
-    private _timeline: AnimationTimeline = document.timeline;
-    private _playbackRate: number = 1;
-    private _direction: AnimationDirection = "normal";
+    private readonly animation: Animation = new Animation();
+    private _direction: PlaybackDirection = "normal";
     private _screens: RefObject<ScreenBase>[] = new Array();
 
     state: ScreenTransitionLayerState = {
@@ -56,10 +54,6 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
         return this.animation?.ready.then(() => { return; }) ?? Promise.resolve();
     }
 
-    get animation() {
-        return this._animation;
-    }
-
     get started() {
         return new Promise<void>((resolve) => {
             this.props.navigation.addEventListener('transition-start', () => {
@@ -87,26 +81,20 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
     }
 
     set timeline(timeline: AnimationTimeline) {
-        this._timeline = timeline;
-        if (this.animation) this.animation.timeline = timeline;
+        this.animation.timeline = timeline;
     }
 
     set playbackRate(playbackRate: number) {
-        this._playbackRate = playbackRate;
-        if (this.animation) this.animation.playbackRate = playbackRate;
+        this.animation.playbackRate = playbackRate;
     }
 
-    set direction(direction: AnimationDirection) {
+    set direction(direction: PlaybackDirection) {
         this._direction = direction;
-        this.animation?.effect?.updateTiming({ direction: direction });
-    }
-
-    get timeline() {
-        return this._timeline;
+        this.animation.effect?.updateTiming({ direction: direction });
     }
 
     get playbackRate() {
-        return this._playbackRate;
+        return this.animation.playbackRate;
     }
 
     get direction() {
@@ -114,8 +102,6 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
     }
 
     public transition() {
-        const timeline = this.timeline;
-
         const effect = new ParallelEffect([]);
         this.screens.forEach(screen => {
             if (!screen.current?.screenTransitionProvider) return;
@@ -134,7 +120,7 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
             }
         }
 
-        this._animation = new Animation(effect, timeline);
+        this.animation.effect = effect;
 
         this.ready.then(() => {
             this.sharedElementLayer.current?.ref.current?.showModal();
@@ -148,7 +134,7 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
             this.animation?.commitStyles();
             this.onTransitionEnd();
             this.sharedElementLayer.current?.ref.current?.close();
-            this._animation = null;
+            this.animation.effect = null;
         });
 
         return this.animation;
