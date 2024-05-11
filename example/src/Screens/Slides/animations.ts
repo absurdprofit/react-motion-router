@@ -8,7 +8,7 @@ export function SlidesAnimation({ref, direction, playbackRate, index}: Animation
 		duration,
 		direction,
 		playbackRate,
-		fill: direction === "normal" ? "forwards" : "backwards"
+		fill: "forwards"
 	};
     const keyframes = [
         FadeOutKeyframes,

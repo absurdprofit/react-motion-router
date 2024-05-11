@@ -58,7 +58,7 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
     }
 
     getBoundingClientRect() {
-        return this.ref?.getBoundingClientRect() ?? new DOMRect();
+        return this.ref?.firstElementChild?.getBoundingClientRect() ?? new DOMRect();
     }
 
     public clone() {
@@ -77,10 +77,7 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
     }
 
     setRef = (ref: HTMLDivElement | null) => {
-        if (this.ref !== ref) {
-            this.ref = ref;
-            this.forceUpdate();
-        }
+        this.ref = ref;
     }
     
     render() {
