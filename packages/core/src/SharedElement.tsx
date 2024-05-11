@@ -1,8 +1,6 @@
-import { Component, createContext, createRef } from 'react';
-import { getCSSData } from './common/utils';
-import { EasingFunction, PlainObject, SharedElementNode, SharedElementNodeMap, SharedElementTransitionType, TransformOrigin, Vec2 } from './common/types';
+import { Component, createRef } from 'react';
+import { SharedElementTransitionType } from './common/types';
 import { SharedElementSceneContext } from './SharedElementSceneContext';
-import { createPortal } from 'react-dom';
 
 interface SharedElementConfig {
     type?: SharedElementTransitionType;
@@ -14,17 +12,15 @@ interface SharedElementConfig {
 
 interface SharedElementProps {
     id: string;
-    children: React.ReactNode;
+    children: React.ReactElement;
     disabled?: boolean;
     config?: SharedElementConfig;
 }
 
 interface SharedElementState {}
 
-const transformKeys = ["transform", "top", "left", "right", "bottom"];
 export class SharedElement extends Component<SharedElementProps, SharedElementState> {
     private ref: HTMLDivElement | null = null;
-    private cloneContainer = createRef<HTMLDivElement>();
     static readonly contextType = SharedElementSceneContext;
     context!: React.ContextType<typeof SharedElementSceneContext>;
 
