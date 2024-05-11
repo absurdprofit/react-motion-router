@@ -1,10 +1,9 @@
-import { MAX_DURATION_PERCENTAGE, MIN_DURATION_PERCENTAGE } from "./common/constants";
 import { NativeAnimation } from "./common/types";
-import { cssNumberishToNumber, interpolate } from "./common/utils";
+import { percentToTime } from "./common/utils";
 import { GestureTimeline, GestureTimelineUpdateEvent } from "./gesture-timeline";
 import { GroupEffect } from "./group-effect";
 
-export class Animation extends NativeAnimation {
+export class Animation extends EventTarget implements NativeAnimation {
 	public id: string = '';
 	public _effect: AnimationEffect | null = null;
 	public _timeline: AnimationTimeline;
@@ -79,12 +78,12 @@ export class Animation extends NativeAnimation {
 		this.children.forEach(animation => animation.updatePlaybackRate(playbackRate));
 	}
 
-	addEventListener<K extends keyof AnimationEventMap>(type: K, listener: (this: Animation, ev: AnimationEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+	addEventListener<K extends keyof AnimationEventMap>(type: K, listener: (ev: AnimationEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
 	addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void {
 		super.addEventListener(type, listener, options);
 	}
 
-	removeEventListener<K extends keyof AnimationEventMap>(type: K, listener: (this: Animation, ev: AnimationEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+	removeEventListener<K extends keyof AnimationEventMap>(type: K, listener: (ev: AnimationEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
 	removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void {
 		super.removeEventListener(type, listener, options);
 	}
@@ -122,16 +121,10 @@ export class Animation extends NativeAnimation {
 	private onGestureTimelineUpdate = ({currentTime}: GestureTimelineUpdateEvent) => {
 		this.children.forEach(child => {
 			if ('children' in child) {
-				child.currentTime = currentTime
+				child.currentTime = currentTime;
 			} else {
 				const { endTime = 0 } = child.effect?.getComputedTiming() ?? {};
-				const localTime = interpolate(
-					cssNumberishToNumber(currentTime, 'percent'),
-					[MIN_DURATION_PERCENTAGE, MAX_DURATION_PERCENTAGE],
-					[0, cssNumberishToNumber(endTime, 'ms')]
-				);
-				console.log({localTime});
-				child.currentTime = localTime;
+				child.currentTime = percentToTime(currentTime, endTime);
 			}
 		});
 	}
@@ -145,7 +138,14 @@ export class Animation extends NativeAnimation {
 	}
 
 	set currentTime(_currentTime: CSSNumberish | null) {
-		this.children.forEach(animation => animation.currentTime = _currentTime);
+		this.children.forEach(child => {
+			if ('children' in child) {
+				child.currentTime = _currentTime;
+			} else {
+				const { endTime = 0 } = child.effect?.getComputedTiming() ?? {};
+				child.currentTime = percentToTime(_currentTime ?? 0, endTime);
+			}
+		});
 	}
 
 	set timeline(_timeline: AnimationTimeline | null) {

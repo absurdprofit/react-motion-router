@@ -138,6 +138,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
     private onSwipeEnd = (e: SwipeEndEvent) => {
         if (!this.screenTransitionLayer.current) return;
         this.screenTransitionLayer.current.timeline = document.timeline;
+        this.screenTransitionLayer.current.play();
     }
 
     protected get screens() {

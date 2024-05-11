@@ -1,9 +1,19 @@
+import { MAX_DURATION_PERCENTAGE, MIN_DURATION_PERCENTAGE } from "./constants";
 import { Input, LerpRange, Output, SpringToLinearProps, Weights, is1DRange } from "./types";
 
 export function cssNumberishToNumber(value: CSSNumberish, unit: string) {
 	if (value instanceof CSSNumericValue)
 		return value.to(unit).value;
 	return value;
+}
+
+export function percentToTime(value: CSSNumberish, endTime: CSSNumberish) {
+	const time = interpolate(
+		cssNumberishToNumber(value, 'percent'),
+		[MIN_DURATION_PERCENTAGE, MAX_DURATION_PERCENTAGE],
+		[0, cssNumberishToNumber(endTime, 'ms')]
+	);
+	return time;
 }
 
 function mapRange(input: number, outputRange: number[]): number {

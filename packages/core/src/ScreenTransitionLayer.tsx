@@ -101,6 +101,14 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
         return this._direction;
     }
 
+    public play() {
+        return this.animation.play();
+    }
+
+    public pause() {
+        return this.animation.pause();
+    }
+
     public transition() {
         const effect = new ParallelEffect([]);
         this.screens.forEach(screen => {
