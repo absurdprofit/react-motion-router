@@ -116,12 +116,12 @@ export class GestureTimeline extends EventTarget implements AnimationTimeline {
 		this.dispatchEvent(new GestureTimelineUpdateEvent(this._currentTime));
 	}
 
-	addEventListener<K extends keyof GestureTimelineEventMap>(type: K, listener: (this: Animation, ev: GestureTimelineEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+	addEventListener<K extends keyof GestureTimelineEventMap>(type: K, listener: (ev: GestureTimelineEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
 	addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void {
 		super.addEventListener(type, listener, options);
 	}
 
-	removeEventListener<K extends keyof GestureTimelineEventMap>(type: K, listener: (this: Animation, ev: GestureTimelineEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+	removeEventListener<K extends keyof GestureTimelineEventMap>(type: K, listener: (ev: GestureTimelineEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
 	removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void {
 		super.removeEventListener(type, listener, options);
 	}

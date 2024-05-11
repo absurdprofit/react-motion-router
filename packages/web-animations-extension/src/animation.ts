@@ -4,9 +4,9 @@ import { cssNumberishToNumber, interpolate } from "./common/utils";
 import { GestureTimeline, GestureTimelineUpdateEvent } from "./gesture-timeline";
 import { GroupEffect } from "./group-effect";
 
-export class Animation extends EventTarget implements NativeAnimation {
+export class Animation extends NativeAnimation {
 	public id: string = '';
-	public effect: AnimationEffect | null = null;
+	public _effect: AnimationEffect | null = null;
 	public _timeline: AnimationTimeline | null;
 	private readonly children: (NativeAnimation | Animation)[] = [];
 	private _replaceState: AnimationReplaceState = 'active';
@@ -17,7 +17,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 	
 	constructor(effect?: AnimationEffect | null, timeline?: AnimationTimeline | null) {
 		super();
-		this.effect = effect ?? null;
+		this._effect = effect ?? null;
 		this._timeline = timeline ?? null;
 		if (effect instanceof GroupEffect) {
 			for (let i = 0; i < effect.children.length; i++) {
@@ -115,7 +115,9 @@ export class Animation extends EventTarget implements NativeAnimation {
 
 	private onGestureTimelineUpdate = ({currentTime}: GestureTimelineUpdateEvent) => {
 		this.children.forEach(child => {
-			if (child instanceof NativeAnimation) {
+			if ('children' in child) {
+				child.currentTime = currentTime
+			} else {
 				const { endTime = 0 } = child.effect?.getComputedTiming() ?? {};
 				const localTime = interpolate(
 					cssNumberishToNumber(currentTime, 'percent'),
@@ -124,8 +126,6 @@ export class Animation extends EventTarget implements NativeAnimation {
 				);
 				console.log({localTime});
 				child.currentTime = localTime;
-			} else {
-				child.currentTime = currentTime
 			}
 		});
 	}
@@ -151,6 +151,10 @@ export class Animation extends EventTarget implements NativeAnimation {
 			_timeline.addEventListener('update', this.onGestureTimelineUpdate);
 			this.children.forEach(child => child.pause());
 		}
+	}
+
+	set effect(_effect: AnimationEffect | null) {
+		this._effect = _effect;
 	}
 
 	get ready(): Promise<Animation> {
@@ -206,5 +210,9 @@ export class Animation extends EventTarget implements NativeAnimation {
 
 	get timeline() {
 		return this._timeline;
+	}
+
+	get effect() {
+		return this._effect;
 	}
 }
