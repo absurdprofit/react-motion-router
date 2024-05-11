@@ -41,7 +41,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             navigation: new Navigation(this),
             screenStack: [],
             gestureDirection: "horizontal",
-            gestureAreaWidth: 30,
+            gestureAreaWidth: 50,
             gestureHysteresis: 0.5,
             disableGesture: true,
             gestureMinFlingVelocity: 500,
@@ -77,14 +77,17 @@ export class Router extends RouterBase<RouterProps, RouterState> {
     }
 
     private canGestureNavigate(e: SwipeStartEvent) {
+        if (!this.ref) return false;
         if (this.state.disableGesture) return false;
+        const clientRect = this.ref.getBoundingClientRect();
         const { direction } = e;
         if ((direction === "down" || direction === "right") && !this.navigation.canGoBack) return false;
         if ((direction === "up" || direction === "left") && !this.navigation.canGoForward) return false;
-        if (
-            this.state.gestureDirection !== direction
-            && isHorizontalDirection(direction) !== isHorizontalDirection(this.state.gestureDirection)
-        ) return false;
+        if (isHorizontalDirection(direction) !== isHorizontalDirection(this.state.gestureDirection)) return false;
+        if (direction === "right" && Math.abs(e.x - clientRect.left) >= this.state.gestureAreaWidth) return false;
+        if (direction === "left" && Math.abs(e.x - clientRect.right) >= this.state.gestureAreaWidth) return false;
+        if (direction === "down" && Math.abs(e.y - clientRect.top) >= this.state.gestureAreaWidth) return false;
+        if (direction === "up" && Math.abs(e.y - clientRect.bottom) >= this.state.gestureAreaWidth) return false;
         for (let target of e.composedPath().reverse()) {
             if (
                 target instanceof HTMLElement
@@ -102,14 +105,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         if (!this.ref || !this.screenTransitionLayer.current) return;
         const { direction } = e;
 
-        let axis: "x" | "y" = "x";
-        switch (this.state.gestureDirection) {
-            case "up":
-            case "down":
-            case "vertical":
-                axis = "y";
-                break;
-        }
+        let axis: "x" | "y" = isHorizontalDirection(direction) ? "x" : "y";
         let rangeStart;
         let rangeEnd;
         switch (direction) {
