@@ -59,7 +59,7 @@ export class Navigation extends NavigationBase<StackRouterEventMap> {
     }
 
     goForward(options: GoForwardOptions = {}) {
-        if (this.canGoForward) return;
+        if (!this.canGoForward) return;
 
         const next = this.next!;
         const result = window.navigation.traverseTo(next.key);

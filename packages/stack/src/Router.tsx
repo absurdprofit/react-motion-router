@@ -147,7 +147,8 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         if (!this.screenTransitionLayer.current) return;
         this.screenTransitionLayer.current.animation.timeline = document.timeline;
         const progress = this.screenTransitionLayer.current.animation.effect?.getComputedTiming().progress ?? 0;
-        if (e.velocity < this.state.gestureMinFlingVelocity && progress < this.state.gestureHysteresis) {
+        const hysteresisReached = this.state.backNavigating ? progress > this.state.gestureHysteresis : progress < this.state.gestureHysteresis;
+        if (e.velocity < this.state.gestureMinFlingVelocity && hysteresisReached) {
             this.screenTransitionLayer.current.animation.reverse();
         }
         this.screenTransitionLayer.current.animation.play();
