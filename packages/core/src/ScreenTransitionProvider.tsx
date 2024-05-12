@@ -9,10 +9,11 @@ interface ScreenTransitionProviderProps {
     children: React.ReactNode
     navigation: NavigationBase;
     renderAs: ElementType | CustomElementType;
+    focused: boolean;
 }
 
 interface ScreenTransitionProviderState {
-    zIndex: number;
+    zIndex: React.CSSProperties["zIndex"];
 }
 
 export class ScreenTransitionProvider extends Component<ScreenTransitionProviderProps, ScreenTransitionProviderState> {
@@ -23,7 +24,7 @@ export class ScreenTransitionProvider extends Component<ScreenTransitionProvider
     public exiting = false;
 
     state: ScreenTransitionProviderState = {
-        zIndex: 0,
+        zIndex: 'unset',
     }
 
     private onAnimationEnd = () => {
@@ -66,20 +67,19 @@ export class ScreenTransitionProvider extends Component<ScreenTransitionProvider
         }) ?? null;
     }
 
-    setZIndex(zIndex: number) {
+    setZIndex(zIndex: React.CSSProperties["zIndex"]) {
         return new Promise<void>(resolve => this.setState({ zIndex }, resolve));
     }
 
     render() {
         const Element = this.props.renderAs;
-        const inert = this.state.zIndex === 0 ? '' : undefined;
+        const inert = !this.props.focused ? '' : undefined;
         return (
             <Element
                 id={this.props.id}
                 className="screen-animation-provider"
                 ref={this.ref}
                 {...{ inert }}
-                tabIndex={this.state.zIndex - 1}
                 style={{
                     gridArea: '1 / 1',
                     width: '100%',

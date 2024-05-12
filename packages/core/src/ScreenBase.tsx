@@ -189,6 +189,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
                 id={`${this.id}-animation-provider`}
                 animation={routeProp.config.animation}
                 navigation={navigation}
+                focused={this.state.focused}
             >
                 <div
                     id={this.id}

@@ -6,7 +6,7 @@ import { HistoryEntryState, isHorizontalDirection, isRefObject, SwipeDirection }
 import { Children, createRef, cloneElement, startTransition } from 'react';
 import { SwipeStartEvent, SwipeEndEvent } from 'web-gesture-events';
 import { GestureTimeline } from 'web-animations-extension';
-import { searchParamsToObject } from './common/utils';
+import { isRollback, searchParamsToObject } from './common/utils';
 
 export interface RouterProps extends RouterBaseProps<Screen> {
     config: RouterBaseProps["config"] & {
@@ -141,10 +141,19 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         this.screenTransitionLayer.current.animation.timeline = document.timeline;
         const progress = this.screenTransitionLayer.current.animation.effect?.getComputedTiming().progress ?? 0;
         const hysteresisReached = this.state.backNavigating ? progress > this.state.gestureHysteresis : progress < this.state.gestureHysteresis;
+        let rollback = false;
         if (e.velocity < this.state.gestureMinFlingVelocity && hysteresisReached) {
             this.screenTransitionLayer.current.animation.reverse();
+            rollback = true;
         }
         this.screenTransitionLayer.current.animation.play();
+        const transition = this.state.transition;
+        transition?.finished.then(() => {
+            const from = transition?.from;
+            if (rollback && from) {
+                window.navigation.traverseTo(from.key, { info: { rollback }});
+            }
+        });
     }
 
     protected get screens() {
@@ -156,21 +165,6 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                     || screen.key === this.state.transition?.from.key
                     || screen.key === this.state.destination?.key;
             });
-    }
-
-    private setZIndices() {
-        const screens = this.screens;
-        const currentIndex = screens.findIndex(screen => screen.key === this.navigation.current.key);
-        return Promise.all(
-            screens.map((screen, index) => {
-                const zIndex = (index + 1) - currentIndex;
-                const ref = screen.ref;
-                if (ref && isRefObject(ref) && ref.current?.screenTransitionProvider.current) {
-                    return ref.current.screenTransitionProvider.current.setZIndex(zIndex);
-                }
-                return Promise.resolve();
-            })
-        );
     }
 
     private screenChildFromPathname(pathname: string) {
@@ -267,7 +261,6 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                 this.setState({ destination, transition, screenStack }, async () => {
                     const signal = e.signal;
                     const currentScreen = this.getScreenRefByKey(this.navigation.current.key);
-                    await this.setZIndices();
                     await currentScreen?.current?.focus();
                     await currentScreen?.current?.onEnter(signal);
                     await currentScreen?.current?.load(signal);
@@ -332,7 +325,6 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                     }
                     const signal = e.signal;
                     const currentScreen = this.getScreenRefByKey(this.navigation.current.key);
-                    await this.setZIndices();
                     await currentScreen?.current?.focus();
                     await currentScreen?.current?.onEnter(signal);
                     await currentScreen?.current?.load(signal);
@@ -388,7 +380,6 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                     const incomingKey = window.navigation.currentEntry?.key;
                     const outgoingScreen = this.getScreenRefByKey(String(outgoingKey));
                     const incomingScreen = this.getScreenRefByKey(String(incomingKey));
-                    if (!backNavigating) await this.setZIndices();
                     await Promise.all([
                         outgoingScreen?.current?.blur(),
                         incomingScreen?.current?.focus()
@@ -398,10 +389,11 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                         incomingScreen?.current?.onEnter(signal)
                     ]);
                     await incomingScreen?.current?.load(signal);
-                    const animation = this.screenTransition(incomingScreen, outgoingScreen, backNavigating);
-                    signal.addEventListener('abort', () => animation?.cancel());
-                    await animation?.finished;
-                    if (backNavigating) await this.setZIndices();
+                    if (!isRollback(e.info)) {
+                        const animation = this.screenTransition(incomingScreen, outgoingScreen, backNavigating);
+                        signal.addEventListener('abort', () => animation?.cancel());
+                        await animation?.finished;
+                    }
                     await Promise.all([
                         outgoingScreen?.current?.onExited(signal),
                         incomingScreen?.current?.onEntered(signal)
@@ -421,12 +413,14 @@ export class Router extends RouterBase<RouterProps, RouterState> {
     ) {
         if (this.screenTransitionLayer.current && incomingScreen && outgoingScreen) {
             this.screenTransitionLayer.current.direction = backNavigating ? 'reverse' : 'normal';
+            const incomingScreenIndex = this.screens.findIndex(screen => screen.ref === incomingScreen);
+            const outgoingScreenIndex = this.screens.findIndex(screen => screen.ref === outgoingScreen);
             if (incomingScreen.current?.screenTransitionProvider.current) {
-                incomingScreen.current.screenTransitionProvider.current.index = clamp(incomingScreen.current.screenTransitionProvider.current?.state.zIndex, 0, 1);
+                incomingScreen.current.screenTransitionProvider.current.index = incomingScreenIndex > outgoingScreenIndex ? 1 : 0;
                 incomingScreen.current.screenTransitionProvider.current.exiting = false;
             }
             if (outgoingScreen.current?.screenTransitionProvider.current) {
-                outgoingScreen.current.screenTransitionProvider.current.index = clamp(outgoingScreen.current.screenTransitionProvider.current.state.zIndex, 0, 1);
+                outgoingScreen.current.screenTransitionProvider.current.index = outgoingScreenIndex > incomingScreenIndex ? 1 : 0;
                 outgoingScreen.current.screenTransitionProvider.current.exiting = true;
             }
             if (this.screenTransitionLayer.current.sharedElementTransitionLayer.current) {
