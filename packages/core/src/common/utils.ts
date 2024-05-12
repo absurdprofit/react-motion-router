@@ -158,3 +158,9 @@ export async function polyfillNavigation() {
         persistState: true
     });
 }
+
+export function isFirstLoad(info?: unknown) {
+	if (info && typeof info === 'object' && 'firstLoad' in info)
+        return Boolean(info.firstLoad);
+    return false;
+}

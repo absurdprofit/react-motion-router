@@ -1,4 +1,4 @@
-import { RouterBase, clamp, includesRoute, isValidScreenChild, matchRoute } from '@react-motion-router/core';
+import { RouterBase, clamp, includesRoute, isFirstLoad, isValidScreenChild, matchRoute } from '@react-motion-router/core';
 import type { NestedRouterContext, RouterBaseProps, RouterBaseState, ScreenChild } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { ScreenProps, Screen } from './Screen';
@@ -12,7 +12,7 @@ export interface RouterProps extends RouterBaseProps<Screen> {
     config: RouterBaseProps["config"] & {
         screenConfig?: ScreenProps["config"];
         disableBrowserRouting?: boolean;
-        initialRoute?: string;
+        initialPath?: string;
         shouldIntercept?(navigateEvent: NavigateEvent): boolean;
         onIntercept?(navigateEvent: NavigateEvent): boolean;
     }
@@ -243,6 +243,16 @@ export class Router extends RouterBase<RouterProps, RouterState> {
     }
 
     private handleReload(e: NavigateEvent) {
+        const pathname = new URL(e.destination.url).pathname;
+        if (isFirstLoad(e.info) && !matchRoute(this.props.config.initialPath ?? '', pathname, this.baseURLPattern.pathname)) {
+            e.preventDefault();
+            this.navigation.navigate(this.props.config.initialPath ?? '', {}, { type: "replace" }).finished.then(() => {
+                console.log("Here");
+                const state = e.destination.getState() as HistoryEntryState ?? {};
+                this.navigation.navigate(pathname, state, { type: "push" });
+            });
+            return;
+        }
         const handler = async () => {
             const transition = window.navigation.transition;
             const destination = e.destination;
