@@ -1,11 +1,10 @@
 import { ScreenBase, matchRoute } from '@react-motion-router/core';
-import type { AnimationEffectFactory, LazyExoticComponent, PlainObject, RoutePropBase, ScreenBaseProps, ScreenBaseState, ScreenComponentBaseProps } from '@react-motion-router/core';
+import type { PlainObject, ScreenBaseProps, ScreenBaseState, ScreenComponentBaseProps } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
-import { Children, JSXElementConstructor, ReactNode, isValidElement } from 'react';
+import { Children, isValidElement } from 'react';
 import { RouteProp, SwipeDirection } from './common/types';
-import { LifecycleProps } from 'packages/core/build/ScreenBase';
 
-export interface ScreenComponentProps extends ScreenComponentBaseProps<RouteProp, Navigation> { }
+export interface ScreenComponentProps<T extends PlainObject = {}> extends ScreenComponentBaseProps<RouteProp<T>, Navigation> { }
 
 type Presentation = "default" | "dialog" | "modal";
 export interface ScreenProps extends ScreenBaseProps {

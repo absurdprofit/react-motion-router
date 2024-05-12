@@ -3,6 +3,7 @@
   "description": "Example React Motion Router app",
   "private": true,
   "type": "module",
+  "homepage": "https://nxtexe.github.io/react-motion-router",
   "dependencies": {
     "@emotion/react": "^11.7.1",
     "@emotion/styled": "^11.6.0",
@@ -38,7 +39,9 @@
     "dev": "vite --host",
     "build": "tsc && vite build --base=/react-motion-router",
     "preview": "vite preview",
-    "test": "vite test"
+    "test": "vite test",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
@@ -68,6 +71,7 @@
     "@types/react-transition-group": "^4.4.4",
     "@types/styled-components": "^5.1.15",
     "autoprefixer": "^10.4.16",
+    "gh-pages": "^6.1.1",
     "postcss-nesting": "^12.0.1",
     "rollup-plugin-license": "^3.2.0",
     "vitest": "^0.34.6"

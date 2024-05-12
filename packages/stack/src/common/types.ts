@@ -44,7 +44,7 @@ export interface StackRouterEventMap extends RouterBaseEventMap {
 	"forward": ForwardEvent;
 }
 
-export interface RouteProp extends RoutePropBase<ScreenProps["config"]> {}
+export interface RouteProp<T extends PlainObject = {}> extends RoutePropBase<ScreenProps["config"], T> {}
 
 export type SwipeDirection = 'up' | 'down' | 'left' | 'right' | 'horizontal' | 'vertical';
 
