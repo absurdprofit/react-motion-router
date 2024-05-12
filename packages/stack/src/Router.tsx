@@ -243,22 +243,20 @@ export class Router extends RouterBase<RouterProps, RouterState> {
     }
 
     private handleReload(e: NavigateEvent) {
-        const pathname = new URL(e.destination.url).pathname;
-        if (isFirstLoad(e.info) && !matchRoute(this.props.config.initialPath ?? '', pathname, this.baseURLPattern.pathname)) {
-            e.preventDefault();
-            this.navigation.navigate(this.props.config.initialPath ?? '', {}, { type: "replace" }).finished.then(() => {
-                console.log("Here");
-                const state = e.destination.getState() as HistoryEntryState ?? {};
-                this.navigation.navigate(pathname, state, { type: "push" });
-            });
-            return;
-        }
         const handler = async () => {
             const transition = window.navigation.transition;
             const destination = e.destination;
             const screenStack = new Array<ScreenChild<ScreenProps, Screen>>();
+            let initialPathMatched = false;
             this.navigation.entries.forEach(entry => {
                 if (!entry.url) return null;
+                if (this.props.config.initialPath) {
+                    initialPathMatched = Boolean(matchRoute(
+                        this.props.config.initialPath,
+                        entry.url.pathname,
+                        this.baseURLPattern.pathname
+                    )) || initialPathMatched;
+                }
                 const screen = this.screenChildFromPathname(entry.url.pathname);
                 if (!isValidScreenChild<Screen>(screen)) return null;
                 const { params, config } = entry.getState() as HistoryEntryState ?? {};
@@ -284,6 +282,16 @@ export class Router extends RouterBase<RouterProps, RouterState> {
 
             return new Promise<void>((resolve) => startTransition(() => {
                 this.setState({ screenStack, transition, destination }, async () => {
+                    if (isFirstLoad(e.info) && !initialPathMatched) {
+                        this.state.transition?.finished.then(() => {
+                            if (!this.props.config.initialPath) return;
+                            this.navigation.navigate(this.props.config.initialPath, {}, { type: "replace" }).finished.then(() => {
+                                const state = e.destination.getState() as HistoryEntryState ?? {};
+                                this.navigation.navigate(e.destination.url, state, { type: "push" });
+                            });
+                        });
+                        return resolve();
+                    }
                     const signal = e.signal;
                     const currentScreen = this.getScreenRefByKey(this.navigation.current.key);
                     await this.setZIndices();
