@@ -100,6 +100,7 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
 
             );
         } else if (end.instance.transitionType === "cross-fade") {
+            (end.clone.firstElementChild as HTMLElement).style.mixBlendMode = "plus-lighter";
             keyframeEffects.push(
                 new KeyframeEffect(
                     start.clone.firstElementChild,
@@ -212,6 +213,7 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
                 padding: 0,
                 border: 'none',
                 backgroundColor: 'transparent',
+                isolation: 'isolate'
             }}>
                 <style>{".shared-element-layer::backdrop {display: none}"}</style>
             </dialog>
