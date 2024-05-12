@@ -56,7 +56,7 @@ export interface ScreenBaseState {
 export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState, R extends RoutePropBase<ScreenBaseProps["config"]> = RoutePropBase<ScreenBaseProps["config"]>> extends Component<P, S> {
     public readonly sharedElementScene: SharedElementScene;
     private _screenTransitionProvider = createRef<ScreenTransitionProvider>();
-    protected ref: HTMLElement | null = null;
+    protected readonly ref = createRef<HTMLDivElement>();
     protected elementType: ElementType | string = "div";
     static readonly contextType = RouterContext;
     context!: React.ContextType<typeof RouterContext>;
@@ -69,6 +69,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         super(props);
 
         this.sharedElementScene = new SharedElementScene(`${this.id}-shared-element-scene`);
+        this.sharedElementScene.getScreenRect = () => this.ref.current?.getBoundingClientRect() || new DOMRect()
     }
 
     protected setParams(params: PlainObject) {
@@ -162,13 +163,6 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         });
     }
 
-    private onRef = (ref: HTMLElement | null) => {
-        if (this.ref !== ref) {
-            this.ref = ref;
-        }
-        this.sharedElementScene.getScreenRect = () => this.ref?.getBoundingClientRect() || new DOMRect();
-    }
-
     get resolvedPathname() {
         return this.props.resolvedPathname;
     }
@@ -178,7 +172,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     }
 
     get screenTransitionProvider() {
-        return this._screenTransitionProvider.current;
+        return this._screenTransitionProvider;
     }
 
     render() {
@@ -198,7 +192,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
             >
                 <div
                     id={this.id}
-                    ref={this.onRef}
+                    ref={this.ref}
                     className="screen"
                     style={{
                         height: '100%',

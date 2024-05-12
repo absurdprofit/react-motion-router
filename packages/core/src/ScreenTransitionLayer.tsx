@@ -17,7 +17,6 @@ interface ScreenTransitionLayerState {
 }
 
 export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps, ScreenTransitionLayerState> {
-    private ref: HTMLDivElement | null = null;
     public readonly sharedElementTransitionLayer = createRef<SharedElementTransitionLayer>();
     public readonly animation: Animation = new Animation();
     private _direction: PlaybackDirection = "normal";
@@ -66,7 +65,7 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
         const effect = new ParallelEffect([]);
         this.screens.forEach(screen => {
             if (!screen.current?.screenTransitionProvider) return;
-            const screenEffect = screen.current.screenTransitionProvider.animationEffect;
+            const screenEffect = screen.current.screenTransitionProvider.current?.animationEffect;
             if (screenEffect) effect.append(screenEffect);
         })
 

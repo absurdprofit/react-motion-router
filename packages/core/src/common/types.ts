@@ -97,7 +97,7 @@ export interface RouterBaseEventMap extends HTMLElementEventMap {
     "motion-progress-end": MotionProgressEndEvent;
 }
 
-export interface HTMLRouterBaseElement extends HTMLElement {
+export interface HTMLRouterBaseElement extends HTMLDivElement {
     addEventListener<K extends keyof RouterBaseEventMap>(type: K, listener: (this: HTMLDivElement, ev: RouterBaseEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
     removeEventListener<K extends keyof RouterBaseEventMap>(type: K, listener: (this: HTMLDivElement, ev: RouterBaseEventMap[K]) => any, options?: boolean | EventListenerOptions): void;

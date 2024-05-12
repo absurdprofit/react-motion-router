@@ -63,20 +63,20 @@ export class Router extends RouterBase<RouterProps, RouterState> {
 
     componentDidMount(): void {
         super.componentDidMount();
-        this.ref?.addEventListener('swipestart', this.onSwipeStart);
-        this.ref?.addEventListener('swipeend', this.onSwipeEnd);
+        this.ref.current?.addEventListener('swipestart', this.onSwipeStart);
+        this.ref.current?.addEventListener('swipeend', this.onSwipeEnd);
     }
 
     componentWillUnmount(): void {
         super.componentWillUnmount();
-        this.ref?.removeEventListener('swipestart', this.onSwipeStart);
-        this.ref?.removeEventListener('swipeend', this.onSwipeEnd);
+        this.ref.current?.removeEventListener('swipestart', this.onSwipeStart);
+        this.ref.current?.removeEventListener('swipeend', this.onSwipeEnd);
     }
 
     private canGestureNavigate(e: SwipeStartEvent) {
-        if (!this.ref) return false;
+        if (!this.ref.current) return false;
         if (this.state.disableGesture) return false;
-        const clientRect = this.ref.getBoundingClientRect();
+        const clientRect = this.ref.current.getBoundingClientRect();
         const { direction } = e;
         if ((direction === "down" || direction === "right") && !this.navigation.canGoBack) return false;
         if ((direction === "up" || direction === "left") && !this.navigation.canGoForward) return false;
@@ -99,7 +99,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
     private onSwipeStart = (e: SwipeStartEvent) => {
         // TODO: factor in gesture region
         if (!this.canGestureNavigate(e)) return;
-        if (!this.ref || !this.screenTransitionLayer.current) return;
+        if (!this.ref.current || !this.screenTransitionLayer.current) return;
         const { direction } = e;
 
         let axis: "x" | "y" = isHorizontalDirection(direction) ? "x" : "y";
@@ -108,23 +108,23 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         switch (direction) {
             case "right":
                 rangeStart = 0;
-                rangeEnd = this.ref.clientWidth;
+                rangeEnd = this.ref.current.clientWidth;
             break;
             case "left":
-                rangeStart = this.ref.clientWidth;
+                rangeStart = this.ref.current.clientWidth;
                 rangeEnd = 0;
             break;
             case "down":
                 rangeStart = 0;
-                rangeEnd = this.ref.clientHeight;
+                rangeEnd = this.ref.current.clientHeight;
             break;
             case "up":
-                rangeStart = this.ref.clientHeight;
+                rangeStart = this.ref.current.clientHeight;
                 rangeEnd = 0;
             break;
         }
         this.screenTransitionLayer.current.animation.timeline = new GestureTimeline({
-            source: this.ref,
+            source: this.ref.current,
             type: "swipe",
             axis,
             rangeStart,
@@ -165,8 +165,8 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             screens.map((screen, index) => {
                 const zIndex = (index + 1) - currentIndex;
                 const ref = screen.ref;
-                if (ref && isRefObject(ref) && ref.current?.screenTransitionProvider) {
-                    return ref.current.screenTransitionProvider.setZIndex(zIndex);
+                if (ref && isRefObject(ref) && ref.current?.screenTransitionProvider.current) {
+                    return ref.current.screenTransitionProvider.current.setZIndex(zIndex);
                 }
                 return Promise.resolve();
             })
@@ -421,13 +421,13 @@ export class Router extends RouterBase<RouterProps, RouterState> {
     ) {
         if (this.screenTransitionLayer.current && incomingScreen && outgoingScreen) {
             this.screenTransitionLayer.current.direction = backNavigating ? 'reverse' : 'normal';
-            if (incomingScreen.current?.screenTransitionProvider) {
-                incomingScreen.current.screenTransitionProvider.index = clamp(incomingScreen.current.screenTransitionProvider.state.zIndex, 0, 1);
-                incomingScreen.current.screenTransitionProvider.exiting = false;
+            if (incomingScreen.current?.screenTransitionProvider.current) {
+                incomingScreen.current.screenTransitionProvider.current.index = clamp(incomingScreen.current.screenTransitionProvider.current?.state.zIndex, 0, 1);
+                incomingScreen.current.screenTransitionProvider.current.exiting = false;
             }
-            if (outgoingScreen.current?.screenTransitionProvider) {
-                outgoingScreen.current.screenTransitionProvider.index = clamp(outgoingScreen.current.screenTransitionProvider.state.zIndex, 0, 1);
-                outgoingScreen.current.screenTransitionProvider.exiting = true;
+            if (outgoingScreen.current?.screenTransitionProvider.current) {
+                outgoingScreen.current.screenTransitionProvider.current.index = clamp(outgoingScreen.current.screenTransitionProvider.current.state.zIndex, 0, 1);
+                outgoingScreen.current.screenTransitionProvider.current.exiting = true;
             }
             if (this.screenTransitionLayer.current.sharedElementTransitionLayer.current) {
                 this.screenTransitionLayer.current.sharedElementTransitionLayer.current.outgoingScreen = outgoingScreen;

@@ -1,7 +1,7 @@
 import { ScreenTransitionLayerContext } from './ScreenTransitionLayerContext';
 import { AnimationEffectFactory, CustomElementType } from './common/types';
 import { NavigationBase } from './NavigationBase';
-import { Component, ElementType } from 'react';
+import { Component, ElementType, createRef } from 'react';
 
 interface ScreenTransitionProviderProps {
     id: string;
@@ -16,7 +16,7 @@ interface ScreenTransitionProviderState {
 }
 
 export class ScreenTransitionProvider extends Component<ScreenTransitionProviderProps, ScreenTransitionProviderState> {
-    private _ref: HTMLElement | null = null;
+    public readonly ref = createRef<HTMLDivElement>();
     static readonly contextType = ScreenTransitionLayerContext;
     context!: React.ContextType<typeof ScreenTransitionLayerContext>;
     public index = 0;
@@ -26,21 +26,17 @@ export class ScreenTransitionProvider extends Component<ScreenTransitionProvider
         zIndex: 0,
     }
 
-    onRef = (ref: HTMLElement | null) => {
-        this._ref = ref;
-    }
-
     private onAnimationEnd = () => {
-        if (this.ref) {
-            this.ref.style.willChange = 'auto';
-            this.ref.style.pointerEvents = 'auto';
+        if (this.ref.current) {
+            this.ref.current.style.willChange = 'auto';
+            this.ref.current.style.pointerEvents = 'auto';
         }
     }
 
     private onAnimationStart = () => {
-        if (this.ref) {
-            this.ref.style.willChange = 'transform, opacity';
-            this.ref.style.pointerEvents = 'none';
+        if (this.ref.current) {
+            this.ref.current.style.willChange = 'transform, opacity';
+            this.ref.current.style.pointerEvents = 'none';
         }
     }
 
@@ -61,17 +57,13 @@ export class ScreenTransitionProvider extends Component<ScreenTransitionProvider
         const { index, exiting, ref } = this;
 
         return animationEffectFactory?.({
-            ref,
+            ref: ref.current,
             index,
             exiting,
             timeline,
             direction,
             playbackRate
         }) ?? null;
-    }
-
-    get ref() {
-        return this._ref;
     }
 
     setZIndex(zIndex: number) {
@@ -85,7 +77,7 @@ export class ScreenTransitionProvider extends Component<ScreenTransitionProvider
             <Element
                 id={this.props.id}
                 className="screen-animation-provider"
-                ref={this.onRef}
+                ref={this.ref}
                 {...{ inert }}
                 tabIndex={this.state.zIndex - 1}
                 style={{

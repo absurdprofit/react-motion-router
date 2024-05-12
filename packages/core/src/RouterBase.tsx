@@ -31,13 +31,13 @@ export interface RouterBaseState<N extends NavigationBase = NavigationBase> {
 }
 
 export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState, E extends RouterBaseEventMap = RouterBaseEventMap> extends Component<P, S> {
-    protected ref: HTMLRouterBaseElement | null = null;
+    protected readonly ref = createRef<HTMLRouterBaseElement>();
+    protected screenTransitionLayer = createRef<ScreenTransitionLayer>();
     public readonly screenState: ScreenState = new Map();
     public readonly scrollRestorationData = new ScrollRestorationData();
     public readonly parentRouter: RouterBase | null = null;
     public readonly parentScreen: ScreenBase | null = null;
     private _childRouter: WeakRef<RouterBase> | null = null;
-    protected screenTransitionLayer = createRef<ScreenTransitionLayer>();
     private static rootRouterRef: WeakRef<RouterBase> | null = null;
     static readonly contextType = NestedRouterContext;
     context!: React.ContextType<typeof NestedRouterContext>;
@@ -114,7 +114,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     }
 
     public dispatchEvent = (event: Event) => {
-        const ref = this.ref ?? undefined;
+        const ref = this.ref.current ?? undefined;
         return dispatchEvent(event, ref);
     }
 
@@ -246,10 +246,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     protected abstract intercept(navigateEvent: NavigateEvent): void;
     protected abstract get screens(): P["children"];
 
-    protected onRef = (ref: HTMLElement | null) => {
-        this.ref = ref;
-    }
-
     render() {
         if (!this.navigation) return;
         return (
@@ -257,7 +253,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
                 id={this.id}
                 className="react-motion-router"
                 style={{ width: '100%', height: '100%' }}
-                ref={this.onRef}
+                ref={this.ref}
             >
                 <RouterContext.Provider value={this}>
                     <ScreenTransitionLayer
