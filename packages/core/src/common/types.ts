@@ -177,3 +177,5 @@ export interface SharedElementNode {
 }
 
 export type SharedElementNodeMap = Map<string, SharedElementNode>;
+
+export type WillChange = keyof React.CSSProperties;

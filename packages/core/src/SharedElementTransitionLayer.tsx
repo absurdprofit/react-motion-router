@@ -1,5 +1,5 @@
-import { EasingFunction } from './common/types';
-import { Component, RefObject, createRef } from 'react';
+import { EasingFunction, WillChange } from './common/types';
+import { CSSProperties, Component, RefObject, createRef } from 'react';
 import { NavigationBase } from './NavigationBase';
 import { ScreenBase } from './ScreenBase';
 import { ParallelEffect } from 'web-animations-extension';
@@ -13,8 +13,6 @@ interface SharedElementTransitionLayerState { }
 
 export class SharedElementTransitionLayer extends Component<SharedElementTransitionLayerProps, SharedElementTransitionLayerState> {
     public readonly ref = createRef<HTMLDialogElement>();
-    private _timeline: AnimationTimeline = document.timeline;
-    private _playbackRate: number = 1;
     private _outgoingScreen: RefObject<ScreenBase> | null = null;
     private _incomingScreen: RefObject<ScreenBase> | null = null;
 
@@ -38,20 +36,13 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
         return this._incomingScreen;
     }
 
-    get timeline() {
-        return this._timeline;
-    }
-
-    get playbackRate() {
-        return this._playbackRate;
-    }
-
-    get started() {
-        return new Promise<void>((resolve) => {
-            this.props.navigation.addEventListener('transition-start', () => {
-                resolve()
-            }, { once: true });
-        });
+    getComputedStyles(element: HTMLElement, styles: WillChange[]) {
+        const computedStyles: Record<string, string> = {};
+        const computedStyle = window.getComputedStyle(element);
+        for (const style of styles) {
+            computedStyles[style] = computedStyle.getPropertyValue(style);
+        }
+        return computedStyles;
     }
 
     getAnimationEffect<T extends { instance: SharedElement, clone: Element }>(start: T, end: T) {
@@ -132,16 +123,21 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
 
             );
         } else { // morph
+            const willChange = Array.from(new Set([...start.instance.willChange, ...end.instance.willChange]));
             keyframeEffects.push(
                 new KeyframeEffect(
                     end.clone.firstElementChild,
                     [
-                        { 
+                        {
+                            ...Object.fromEntries((start.clone.firstElementChild as HTMLElement).attributeStyleMap),
+                            ...this.getComputedStyles(start.clone.firstElementChild as HTMLElement, willChange),
                             transform: `translate(${startRect.x}px, ${startRect.y}px)`,
                             width: `${startRect.width}px`,
                             height: `${startRect.height}px`,
                         },
                         {
+                            ...Object.fromEntries((end.clone.firstElementChild as HTMLElement).attributeStyleMap),
+                            ...this.getComputedStyles(end.clone.firstElementChild as HTMLElement, willChange),
                             transform: `translate(${endRect.x}px, ${endRect.y}px)`,
                             width: `${endRect.width}px`,
                             height: `${endRect.height}px`,

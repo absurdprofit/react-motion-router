@@ -1,5 +1,5 @@
 import { Component, createRef } from 'react';
-import { SharedElementTransitionType } from './common/types';
+import { SharedElementTransitionType, WillChange } from './common/types';
 import { SharedElementSceneContext } from './SharedElementSceneContext';
 
 interface SharedElementConfig {
@@ -8,6 +8,7 @@ interface SharedElementConfig {
     easing?: React.CSSProperties["animationTimingFunction"];
     duration?: number;
     delay?: number;
+    willChange?: WillChange[];
 }
 
 interface SharedElementProps {
@@ -37,6 +38,13 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
 
     componentWillUnmount(): void {
         this.scene.removeNode(this.id);
+    }
+
+    get willChange(): WillChange[] {
+        if (this.props.config?.willChange) {
+            return this.props.config.willChange;
+        }
+        return [];
     }
 
     get canTransition() {

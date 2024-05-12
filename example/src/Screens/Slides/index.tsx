@@ -68,11 +68,11 @@ export default function Slides(props: SlidesProps) {
         <div className={`slides ${isFirstLoad ? 'loaded' : 'suspense'}`}>
             <div className="back">
                 <Anchor goBack>
-                    <IconButton style={{ color: 'white' }} disableRipple>
+                    <IconButton disableRipple>
                         <SharedElement id="back" config={{
                             type: 'fade-through'
                         }}>
-                            <ClearIcon />
+                            <ClearIcon style={{ color: 'white' }} />
                         </SharedElement>
                     </IconButton>
                 </Anchor>
@@ -88,7 +88,7 @@ export default function Slides(props: SlidesProps) {
                         return (
                             <div className="slide" key={_index}>
                                 {
-                                    <SharedElement id={`${_index !== index ? 'no-transition-' : ''}${hero.id}`}>
+                                    <SharedElement id={`${_index !== index ? 'no-transition-' : ''}${hero.id}`} config={{willChange: ["objectFit", "aspectRatio"]}}>
                                         <img
                                             src={hero.photoUrl}
                                             alt={hero.name}
