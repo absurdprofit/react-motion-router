@@ -232,13 +232,51 @@ export class Router extends RouterBase<RouterProps, RouterState> {
     }
 
     private handleReplace(e: NavigateEvent) {
+        const screenStack = this.state.screenStack;
+        const destinationPathname = new URL(e.destination.url).pathname;
+        const destinationScreen = this.screenChildFromPathname(destinationPathname);
+        if (!isValidScreenChild<Screen>(destinationScreen)) return e.preventDefault();
         const handler = async () => {
-            if (e.destination.url === window.navigation.transition?.from.url) {
-                return this.handleReload(e);
-            } else {
-                return this.handleDefault(e);
-            }
+            const { params, config } = e.destination.getState() as HistoryEntryState ?? {};
+            const transition = window.navigation.transition;
+            const destination = e.destination;
+            const resolvedPathname = new URL(e.destination.url).pathname;
+            const queryParams = searchParamsToObject(new URL(destination.url).search);
+            const currentIndex = screenStack.findIndex(screen => screen.key === this.navigation.current.key);
+            screenStack.splice(
+                currentIndex,
+                1, // Remove all screens after current
+                cloneElement(destinationScreen, {
+                    config: {
+                        ...this.props.config.screenConfig,
+                        ...destinationScreen.props.config,
+                        ...config
+                    },
+                    defaultParams: {
+                        ...destinationScreen.props.defaultParams,
+                        ...queryParams,
+                        ...params,
+                    },
+                    resolvedPathname,
+                    key: window.navigation.currentEntry?.key,
+                    ref: createRef<Screen>()
+                })
+            );
+
+            return new Promise<void>((resolve) => startTransition(() => {
+                this.setState({ destination, transition, screenStack }, async () => {
+                    const signal = e.signal;
+                    const currentScreen = this.getScreenRefByKey(this.navigation.current.key);
+                    await this.setZIndices();
+                    await currentScreen?.current?.focus();
+                    await currentScreen?.current?.onEnter(signal);
+                    await currentScreen?.current?.load(signal);
+                    await currentScreen?.current?.onEntered(signal);
+                    this.setState({ destination: null, transition: null }, resolve);
+                });
+            }));
         };
+
         e.intercept({ handler });
     }
 
@@ -283,7 +321,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             return new Promise<void>((resolve) => startTransition(() => {
                 this.setState({ screenStack, transition, destination }, async () => {
                     if (isFirstLoad(e.info) && !initialPathMatched) {
-                        this.state.transition?.finished.then(() => {
+                        transition?.finished.then(() => {
                             if (!this.props.config.initialPath) return;
                             this.navigation.replace(this.props.config.initialPath).finished.then(() => {
                                 const state = e.destination.getState() as HistoryEntryState ?? {};
@@ -320,7 +358,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             const fromIndex = screenStack.findIndex(screen => screen.key === transition?.from.key);
             const destinationIndex = screenStack.findIndex(screen => screen.key === e.destination.key);
             const backNavigating = destinationIndex >= 0 && destinationIndex < fromIndex;
-            if (e.navigationType === "push" || e.navigationType === "replace") {
+            if (e.navigationType === "push") {
                 const queryParams = searchParamsToObject(new URL(destination.url).search);
                 screenStack.splice(
                     fromIndex + 1,

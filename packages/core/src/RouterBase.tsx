@@ -8,7 +8,7 @@ import {
     ScreenState
 } from './common/types';
 import { NestedRouterContext, RouterContext } from './RouterContext';
-import { dispatchEvent, includesRoute, matchRoute, resolveBaseURLFromPattern, searchParamsToObject } from './common/utils';
+import { dispatchEvent, includesRoute, matchRoute, resolveBaseURLFromPattern } from './common/utils';
 import { Component, RefObject, createRef } from 'react';
 import { DEFAULT_ANIMATION, DEFAULT_GESTURE_CONFIG } from './common/constants';
 import { isValidElement, Children, cloneElement } from 'react';
@@ -41,6 +41,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     private static rootRouterRef: WeakRef<RouterBase> | null = null;
     static readonly contextType = NestedRouterContext;
     context!: React.ContextType<typeof NestedRouterContext>;
+    private firstLoadResult: NavigationResult | null = null;
 
     constructor(props: P, context: React.ContextType<typeof NestedRouterContext>) {
         super(props);
@@ -73,14 +74,15 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         if (this.isRoot) {
             window.navigation.addEventListener('navigate', this.handleNavigationDispatch);
         }
-        if (window.navigation.transition?.navigationType !== "reload") {
-            // Trigger reload on first load.
-            // Gives routers ability to initialise state with the benefits of interception.
-            const transitionFinished = window.navigation.transition?.finished ?? Promise.resolve();
-            transitionFinished.then(() => {
-                window.navigation.reload({ info: { firstLoad: true } });
-            });
-        }
+        
+        // Trigger reload on first load.
+        // Gives routers ability to initialise state with the benefits of interception.
+        const transitionFinished = window.navigation.transition?.finished ?? Promise.resolve();
+        transitionFinished.then(() => {
+            if (!this.firstLoadResult) {
+                this.firstLoadResult = window.navigation.reload({ info: { firstLoad: true } });
+            }
+        });
 
     }
 
