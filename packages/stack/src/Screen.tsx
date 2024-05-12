@@ -1,8 +1,9 @@
 import { ScreenBase, matchRoute } from '@react-motion-router/core';
-import type { ScreenBaseProps, ScreenBaseState, ScreenComponentBaseProps } from '@react-motion-router/core';
+import type { AnimationEffectFactory, LazyExoticComponent, PlainObject, RoutePropBase, ScreenBaseProps, ScreenBaseState, ScreenComponentBaseProps } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
-import { Children, isValidElement } from 'react';
+import { Children, JSXElementConstructor, ReactNode, isValidElement } from 'react';
 import { RouteProp, SwipeDirection } from './common/types';
+import { LifecycleProps } from 'packages/core/build/ScreenBase';
 
 export interface ScreenComponentProps extends ScreenComponentBaseProps<RouteProp, Navigation> { }
 
@@ -53,6 +54,18 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
             setConfig,
             setParams
         };
+    }
+
+    protected setParams(params: PlainObject): void {
+        super.setParams(params);
+        if (this.state.focused)
+            window.navigation.updateCurrentEntry({ state: { params } });
+    }
+
+    protected setConfig(config: ScreenProps["config"]): void {
+        super.setConfig(config);
+        if (this.state.focused)
+            window.navigation.updateCurrentEntry({ state: { config } });
     }
 
     onEnter(signal: AbortSignal) {
