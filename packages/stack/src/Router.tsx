@@ -285,9 +285,9 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                     if (isFirstLoad(e.info) && !initialPathMatched) {
                         this.state.transition?.finished.then(() => {
                             if (!this.props.config.initialPath) return;
-                            this.navigation.navigate(this.props.config.initialPath, {}, { type: "replace" }).finished.then(() => {
+                            this.navigation.replace(this.props.config.initialPath).finished.then(() => {
                                 const state = e.destination.getState() as HistoryEntryState ?? {};
-                                this.navigation.navigate(e.destination.url, state, { type: "push" });
+                                this.navigation.push(e.destination.url, state);
                             });
                         });
                         return resolve();

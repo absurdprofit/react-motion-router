@@ -3,7 +3,7 @@ import { ScreenProps } from "../Screen";
 import { RefObject } from "react";
 import { BackEvent, ForwardEvent, NavigateEvent } from "./events";
 
-interface NavigationBaseOptions {
+export interface NavigationBaseOptions {
 	signal?: AbortSignal;
 }
 

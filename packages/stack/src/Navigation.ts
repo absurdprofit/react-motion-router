@@ -2,7 +2,7 @@ import {
     NavigationBase,
     resolveBaseURLFromPattern,
 } from '@react-motion-router/core';
-import { GoBackOptions, GoForwardOptions, HistoryEntryState, NavigateOptions, NavigationProps, StackRouterEventMap } from './common/types';
+import { GoBackOptions, GoForwardOptions, HistoryEntryState, NavigateOptions, NavigationBaseOptions, NavigationProps, StackRouterEventMap } from './common/types';
 import { BackEvent, ForwardEvent, NavigateEvent } from './common/events';
 import { HistoryEntry } from './HistoryEntry';
 import { Router } from './Router';
@@ -19,16 +19,27 @@ export class Navigation extends NavigationBase<StackRouterEventMap> {
         return window.navigation.traverseTo(key);
     }
 
+    replace(route: string, props: NavigationProps = {}, options: NavigationBaseOptions = {}) {
+        return this.navigate(route, props, { ...options, type: "replace" });
+    }
+
+    push(route: string, props: NavigationProps = {}, options: NavigationBaseOptions = {}) {
+        return this.navigate(route, props, { ...options, type: "push" });
+    }
+
+    reload(props: NavigationProps = {}) {
+        return window.navigation.reload({ state: props });
+    }
+
     navigate(
         route: string,
         props: NavigationProps = {},
         options: NavigateOptions = {}
     ) {
         const { type: history = "push" } = options;
-        const { params, config } = props;
 
         const url = new URL(route, this.baseURL);
-        const result = window.navigation.navigate(url.href, { history, state: { params, config } });
+        const result = window.navigation.navigate(url.href, { history, state: props });
         const transition = window.navigation.transition!;
 
         const controller = new AbortController();
