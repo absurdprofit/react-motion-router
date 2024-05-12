@@ -7,7 +7,6 @@ import { RouterBase, RouterBaseProps, RouterBaseState } from './RouterBase';
 import { ScreenBase, ScreenBaseProps, ScreenBaseState } from './ScreenBase';
 import { Motion } from './ScreenTransitionLayer';
 import 'web-gesture-events';
-import { ScrollRestoration } from './ScrollRestoration';
 import { SharedElement } from './SharedElement';
 
 document.body.style.position = 'fixed';
@@ -31,7 +30,7 @@ export type {
     ScreenBaseProps,
     ScreenBaseState
 };
-export { SharedElement, Motion, ScrollRestoration };
+export { SharedElement, Motion };
 export { NavigationBase, RouterBase, ScreenBase };
 export * from './RouterContext';
 export * from './common/hooks';

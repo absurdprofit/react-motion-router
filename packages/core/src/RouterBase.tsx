@@ -13,7 +13,6 @@ import { Component, RefObject, createRef } from 'react';
 import { DEFAULT_ANIMATION, DEFAULT_GESTURE_CONFIG } from './common/constants';
 import { isValidElement, Children, cloneElement } from 'react';
 import { ScreenBase, ScreenBaseProps } from './ScreenBase';
-import { ScrollRestorationData } from './ScrollRestorationData';
 
 export interface RouterBaseProps<S extends ScreenBase = ScreenBase> {
     id?: string;
@@ -34,7 +33,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     protected readonly ref = createRef<HTMLRouterBaseElement>();
     protected screenTransitionLayer = createRef<ScreenTransitionLayer>();
     public readonly screenState: ScreenState = new Map();
-    public readonly scrollRestorationData = new ScrollRestorationData();
     public readonly parentRouter: RouterBase | null = null;
     public readonly parentScreen: ScreenBase | null = null;
     private _childRouter: WeakRef<RouterBase> | null = null;
