@@ -413,24 +413,28 @@ export class Router extends RouterBase<RouterProps, RouterState> {
     ) {
         if (this.screenTransitionLayer.current && incomingScreen && outgoingScreen) {
             this.screenTransitionLayer.current.direction = backNavigating ? 'reverse' : 'normal';
-            const incomingScreenIndex = this.screens.findIndex(screen => screen.ref === incomingScreen);
-            const outgoingScreenIndex = this.screens.findIndex(screen => screen.ref === outgoingScreen);
             if (incomingScreen.current?.screenTransitionProvider.current) {
-                incomingScreen.current.screenTransitionProvider.current.index = incomingScreenIndex > outgoingScreenIndex ? 1 : 0;
                 incomingScreen.current.screenTransitionProvider.current.exiting = false;
             }
             if (outgoingScreen.current?.screenTransitionProvider.current) {
-                outgoingScreen.current.screenTransitionProvider.current.index = outgoingScreenIndex > incomingScreenIndex ? 1 : 0;
                 outgoingScreen.current.screenTransitionProvider.current.exiting = true;
             }
             if (this.screenTransitionLayer.current.sharedElementTransitionLayer.current) {
                 this.screenTransitionLayer.current.sharedElementTransitionLayer.current.outgoingScreen = outgoingScreen;
                 this.screenTransitionLayer.current.sharedElementTransitionLayer.current.incomingScreen = incomingScreen;
             }
-            this.screenTransitionLayer.current.screens = [
-                incomingScreen,
-                outgoingScreen
-            ];
+            const topScreenIndex = this.screens.findIndex(screen => screen.ref === (backNavigating ? outgoingScreen : incomingScreen));
+            this.screenTransitionLayer.current.screens = this.screens
+            .map((screen, index) => {
+                // normalise indices making incoming screen index 1 and preceding screens index 0...-n
+                index = (index - topScreenIndex) + 1;
+                if (screen.ref && isRefObject(screen.ref) && screen.ref.current?.screenTransitionProvider.current) {
+                    screen.ref.current.screenTransitionProvider.current.index = index;
+                    return screen.ref;
+                }
+                return null;
+            })
+            .filter(isRefObject);
 
             return this.screenTransitionLayer.current.transition();
         }
