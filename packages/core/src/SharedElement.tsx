@@ -20,7 +20,7 @@ interface SharedElementProps {
 interface SharedElementState {}
 
 export class SharedElement extends Component<SharedElementProps, SharedElementState> {
-    private ref: HTMLDivElement | null = null;
+    public readonly ref = createRef<HTMLDivElement>();
     static readonly contextType = SharedElementSceneContext;
     context!: React.ContextType<typeof SharedElementSceneContext>;
 
@@ -58,32 +58,28 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
     }
 
     getBoundingClientRect() {
-        return this.ref?.firstElementChild?.getBoundingClientRect() ?? new DOMRect();
+        return this.ref.current?.firstElementChild?.getBoundingClientRect() ?? new DOMRect();
     }
 
     public clone() {
-        if (!this.ref) return null;
-        return this.ref.cloneNode(true) as HTMLDivElement;
+        if (!this.ref.current) return null;
+        return this.ref.current.cloneNode(true) as HTMLDivElement;
     }
 
     public hide() {
-        if (!this.ref) return;
-        this.ref.style.visibility = 'hidden';
+        if (!this.ref.current) return;
+        this.ref.current.style.visibility = 'hidden';
     }
 
     public unhide() {
-        if (!this.ref) return;
-        this.ref.style.visibility = 'visible';
+        if (!this.ref.current) return;
+        this.ref.current.style.visibility = 'visible';
     }
 
-    setRef = (ref: HTMLDivElement | null) => {
-        this.ref = ref;
-    }
-    
     render() {
         return (
             <div
-                ref={this.setRef}
+                ref={this.ref}
                 id={this.id}
                 style={{display: "contents"}}
             >

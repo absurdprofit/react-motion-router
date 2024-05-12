@@ -171,6 +171,8 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
                 if (!startClone) continue;
                 if (end.transitionType !== "morph") {
                     startClone.id = `${id}-start`;
+                    const startStyle = start.ref.current?.firstElementChild?.getAttribute("style");
+                    if (startStyle) startClone.setAttribute("style", startStyle);
                     (startClone.firstElementChild as HTMLElement).style.position = "absolute";
                     this.ref.current?.prepend(startClone);
                     start.hide();
@@ -178,6 +180,8 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
 
                 if (!endClone) continue;
                 endClone.id = `${id}${end.transitionType === "morph" ? '' : '-end'}`;
+                const endStyle = end.ref.current?.firstElementChild?.getAttribute("style");
+                if (endStyle) endClone.setAttribute("style", endStyle);
                 (endClone.firstElementChild as HTMLElement).style.position = "absolute";
                 this.ref.current?.prepend(endClone);
                 end.hide();
