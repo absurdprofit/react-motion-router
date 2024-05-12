@@ -30,7 +30,7 @@ export interface RouterBaseState<N extends NavigationBase = NavigationBase> {
 }
 
 export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState, E extends RouterBaseEventMap = RouterBaseEventMap> extends Component<P, S> {
-    protected readonly ref = createRef<HTMLRouterBaseElement>();
+    protected readonly ref = createRef<HTMLRouterBaseElement<E>>();
     protected screenTransitionLayer = createRef<ScreenTransitionLayer>();
     public readonly screenState: ScreenState = new Map();
     public readonly parentRouter: RouterBase | null = null;
@@ -116,14 +116,12 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         return dispatchEvent(event, ref);
     }
 
-    public addEventListener<K extends keyof E>(type: K, listener: (this: HTMLElement, ev: E[K]) => any, options?: boolean | AddEventListenerOptions | undefined) {
-        // @ts-ignore
-        return this.ref?.addEventListener(type, listener, options);
+    public addEventListener<K extends keyof E>(type: K, listener: (this: HTMLRouterBaseElement<E>, ev: E[K]) => any, options?: boolean | AddEventListenerOptions | undefined) {
+        return this.ref.current?.addEventListener(type, listener, options);
     }
 
-    public removeEventListener<K extends keyof E>(type: K, listener: (this: HTMLElement, ev: E[K]) => any, options?: boolean | EventListenerOptions | undefined) {
-        // @ts-ignore
-        return this.ref?.removeEventListener(type, listener, options);
+    public removeEventListener<K extends keyof E>(type: K, listener: (this: HTMLRouterBaseElement<E>, ev: E[K]) => any, options?: boolean | EventListenerOptions | undefined) {
+        return this.ref.current?.removeEventListener(type, listener, options);
     }
 
     public preloadRoute(pathname: string) {
