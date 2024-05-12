@@ -40,7 +40,7 @@
     "build": "tsc && vite build --base=/react-motion-router",
     "preview": "vite preview",
     "test": "vite test",
-    "predeploy": "npm run build",
+    "predeploy": "lerna run build",
     "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
