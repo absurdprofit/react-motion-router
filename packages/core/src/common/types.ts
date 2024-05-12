@@ -27,9 +27,6 @@ enum EasingFunctionKeywordEnum {
 export type EasingFunctionKeyword = keyof typeof EasingFunctionKeywordEnum;
 export type EasingFunction = EasingFunctionKeyword | `cubic-bezier(${number},${' ' | ''}${number},${' ' | ''}${number},${' ' | ''}${number})`;
 
-export type ParamsSerializer = (params: PlainObject) => string;
-export type ParamsDeserializer = (queryString: string) => PlainObject;
-
 export interface AnimationEffectFactoryProps<R extends HTMLElement = HTMLElement> {
     ref: R | null;
     index: number;
@@ -49,9 +46,6 @@ export interface Vec2 {
 export type MetaTypeKey = 'http-equiv' | 'name' | 'itemprop' | 'property' | 'charset';
 export type MetaType = [MetaTypeKey, string];
 export type MetaKey = `${MetaTypeKey}=${string}`;
-
-export type SearchParamsDeserializer = (queryString: string) => PlainObject;
-export type SearchParamsSerializer = (params: PlainObject) => string;
 
 export interface LazyExoticComponent<T extends React.ComponentType<any>> extends React.LazyExoticComponent<T> {
     load: () => Promise<{ default: T }>;

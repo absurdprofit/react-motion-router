@@ -1,19 +1,18 @@
 import { RouterBase, clamp, includesRoute, isValidScreenChild, matchRoute } from '@react-motion-router/core';
-import type { NestedRouterContext, PlainObject, RouterBaseProps, RouterBaseState, ScreenChild } from '@react-motion-router/core';
+import type { NestedRouterContext, RouterBaseProps, RouterBaseState, ScreenChild } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { ScreenProps, Screen } from './Screen';
 import { HistoryEntryState, isHorizontalDirection, isRefObject, SwipeDirection } from './common/types';
 import { Children, createRef, cloneElement, startTransition } from 'react';
 import { SwipeStartEvent, SwipeEndEvent } from 'web-gesture-events';
 import { GestureTimeline } from 'web-animations-extension';
+import { searchParamsToObject } from './common/utils';
 
 export interface RouterProps extends RouterBaseProps<Screen> {
     config: RouterBaseProps["config"] & {
         screenConfig?: ScreenProps["config"];
         disableBrowserRouting?: boolean;
         initialRoute?: string;
-        paramsSerializer?(params: PlainObject): string;
-        paramsDeserializer?(queryString: string): PlainObject;
         shouldIntercept?(navigateEvent: NavigateEvent): boolean;
         onIntercept?(navigateEvent: NavigateEvent): boolean;
     }
@@ -32,8 +31,6 @@ export interface RouterState extends RouterBaseState<Navigation> {
 }
 
 export class Router extends RouterBase<RouterProps, RouterState> {
-    public readonly paramsSerializer = this.props.config.paramsSerializer;
-    public readonly paramsDeserializer = this.props.config.paramsDeserializer;
     constructor(props: RouterProps, context: React.ContextType<typeof NestedRouterContext>) {
         super(props, context);
 
@@ -255,6 +252,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                 const screen = this.screenChildFromPathname(entry.url.pathname);
                 if (!isValidScreenChild<Screen>(screen)) return null;
                 const { params, config } = entry.getState() as HistoryEntryState ?? {};
+                const queryParams = searchParamsToObject(entry.url.search);
                 screenStack.push(
                     cloneElement(screen, {
                         config: {
@@ -264,7 +262,8 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                         },
                         defaultParams: {
                             ...screen.props.defaultParams,
-                            ...params,
+                            ...queryParams,
+                            ...params
                         },
                         resolvedPathname: entry.url.pathname,
                         key: entry.key,
@@ -304,6 +303,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             const destinationIndex = screenStack.findIndex(screen => screen.key === e.destination.key);
             const backNavigating = destinationIndex >= 0 && destinationIndex < fromIndex;
             if (e.navigationType === "push" || e.navigationType === "replace") {
+                const queryParams = searchParamsToObject(new URL(destination.url).search);
                 screenStack.splice(
                     fromIndex + 1,
                     Infinity, // Remove all screens after current
@@ -315,6 +315,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                         },
                         defaultParams: {
                             ...destinationScreen.props.defaultParams,
+                            ...queryParams,
                             ...params,
                         },
                         resolvedPathname,

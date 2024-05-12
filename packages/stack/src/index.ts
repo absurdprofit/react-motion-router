@@ -6,3 +6,4 @@ export * from './keyframe-presets';
 export * from './keyframe-options-presets';
 export * from './animation-presets';
 export * from './common/hooks';
+export * from './GestureRegion';

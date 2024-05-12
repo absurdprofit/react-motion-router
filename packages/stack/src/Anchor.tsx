@@ -1,9 +1,10 @@
-import { searchParamsFromObject, PlainObject } from "@react-motion-router/core";
+import { PlainObject } from "@react-motion-router/core";
 import { Navigation } from "./Navigation";
 import { NavigateOptions, XOR } from "./common/types";
 import { useState, useEffect } from "react";
 import { Router } from "./Router";
 import { useNavigation, useRouter } from "./common/hooks";
+import { searchParamsFromObject } from "./common/utils";
 
 interface BaseAnchorProps extends React.DetailedHTMLProps<React.AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
     onClick?: React.MouseEventHandler<HTMLAnchorElement>;
@@ -49,8 +50,7 @@ export function Anchor(props: AnchorProps) {
         if (goBack) {
             setHref(navigation.previous?.url?.href ?? undefined);
         } else if (hrefProp && navigation.baseURL) {
-            const paramsSerializer = router?.paramsSerializer || null;
-            const search = searchParamsFromObject(params, paramsSerializer);
+            const search = searchParamsFromObject(params);
             const uri = new URL(hrefProp, navigation.baseURL);
             uri.search = search;
             setHref(uri.href);

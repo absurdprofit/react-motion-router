@@ -1,5 +1,5 @@
 import { lazy as ReactLazy } from "react";
-import { LazyExoticComponent, MatchedRoute, PathPattern, PlainObject, SearchParamsDeserializer, SearchParamsSerializer } from "./types";
+import { LazyExoticComponent, MatchedRoute, PathPattern, PlainObject } from "./types";
 
 export function getCSSData(styles: CSSStyleDeclaration, exclude: string[] = [], object: boolean = true): [string, PlainObject<string>] {
     let text = '';
@@ -116,42 +116,6 @@ export function dispatchEvent<T>(event: CustomEvent<T> | Event, target: HTMLElem
             target.dispatchEvent(event)
         ));
     });
-}
-
-export function defaultSearchParamsToObject(searchPart: string) {
-    const entries = new URLSearchParams(decodeURI(searchPart)).entries();
-    const result: PlainObject<string> = {};
-
-    for (const [key, value] of entries) { // each 'entry' is a [key, value] tuple
-        let parsedValue = '';
-        try {
-            parsedValue = JSON.parse(value);
-        } catch (e) {
-            console.warn("Non JSON serialisable value was passed as URL route param.");
-            parsedValue = value;
-        }
-        result[key] = parsedValue;
-    }
-    return Object.keys(result).length ? result : undefined;
-}
-
-export function searchParamsToObject(searchPart: string, paramsDeserializer: SearchParamsDeserializer | null) {
-    const deserializer = paramsDeserializer || defaultSearchParamsToObject;
-    const currentParams = deserializer(searchPart) || {};
-    return currentParams;
-}
-
-export function searchParamsFromObject(params: { [key: string]: any }, paramsSerializer: SearchParamsSerializer | null) {
-    try {
-        const serializer = paramsSerializer || function (paramsObj) {
-            return new URLSearchParams(paramsObj).toString();
-        }
-        return serializer(params);
-    } catch (e) {
-        console.error(e);
-        console.warn("Non JSON serialisable value was passed as route param.");
-    }
-    return '';
 }
 
 export function lazy<T extends React.ComponentType<any>>(
