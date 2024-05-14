@@ -1,17 +1,41 @@
-import { NativeAnimation } from "./common/types";
+import { NativeAnimation, AnimationDetails } from "./common/types";
 import { percentToTime } from "./common/utils";
 import { GestureTimeline, GestureTimelineUpdateEvent } from "./gesture-timeline";
 import { GroupEffect } from "./group-effect";
+
+const privateDetails = new WeakMap<Animation, AnimationDetails>();
+
+function updateChildren(details: AnimationDetails, effect: AnimationEffect | null) {
+	const { children } = details;
+	// clear children
+	children.splice(0, children.length);
+	if (effect instanceof GroupEffect) {
+		for (let i = 0; i < effect.children.length; i++) {
+			children.push(new Animation(effect.children.item(i), details.timeline));
+		}
+	} else {
+		const timeline = details.timeline instanceof GestureTimeline ? null : details.timeline;
+		children.push(new NativeAnimation(effect, timeline));
+	}
+}
+
+function onGestureTimelineUpdate(this: Animation, {currentTime}: GestureTimelineUpdateEvent) {
+	const details = privateDetails.get(this);
+	details?.children.forEach(child => {
+		if ('children' in child) {
+			child.currentTime = currentTime;
+		} else {
+			const { endTime = 0 } = child.effect?.getComputedTiming() ?? {};
+			child.currentTime = percentToTime(currentTime, endTime);
+		}
+	});
+}
 
 // TODO: properly handle updating playbackRate
 // TODO: properly handle playback. We need to manage pending states properly.
 
 export class Animation extends EventTarget implements NativeAnimation {
 	public id: string = '';
-	public _effect: AnimationEffect | null = null;
-	public _timeline: AnimationTimeline;
-	private readonly children: (NativeAnimation | Animation)[] = [];
-	private _replaceState: AnimationReplaceState = 'active';
 
 	public oncancel: ((this: NativeAnimation, ev: AnimationPlaybackEvent) => any) | null = null;
 	public onfinish: ((this: NativeAnimation, ev: AnimationPlaybackEvent) => any) | null = null;
@@ -19,66 +43,77 @@ export class Animation extends EventTarget implements NativeAnimation {
 	
 	constructor(effect?: AnimationEffect | null, timeline?: AnimationTimeline | null) {
 		super();
-		this._effect = effect ?? null;
-		this._timeline = timeline ?? document.timeline;
-		this.updateChildren(this._effect);
+
+		const details: AnimationDetails = {
+			effect: effect ?? null,
+			timeline: timeline ?? document.timeline,
+			replaceState: "active",
+			pendingTask: null,
+			startTime: null,
+			children: [],
+			onGestureTimelineUpdate: onGestureTimelineUpdate.bind(this)
+		};
+		privateDetails.set(this, details);
+		updateChildren(details, effect ?? null);
 
 		if (timeline instanceof GestureTimeline) {
-			timeline.addEventListener('update', this.onGestureTimelineUpdate);
+			timeline.addEventListener('update', details.onGestureTimelineUpdate);
 		}
 
 		this.finished.then(this.dispatchFinishedEvent.bind(this));
 		this.cancelled.then(this.dispatchCancelledEvent.bind(this));
 		this.removed.then(() => {
 			this.dispatchRemovedEvent();
-			this._replaceState = 'removed';
+			if (details)
+				details.replaceState = 'removed';
 		});
 	}
 
-	private updateChildren(effect: AnimationEffect | null) {
-		// clear children
-		this.children.splice(0, this.children.length);
-		if (effect instanceof GroupEffect) {
-			for (let i = 0; i < effect.children.length; i++) {
-				this.children.push(new Animation(effect.children.item(i), this.timeline));
-			}
-		} else {
-			this.children.push(new NativeAnimation(effect));
-		}
-	}
-
 	reverse(): void {
-		this.children.forEach(animation => animation.reverse());
+		const details = privateDetails.get(this);
+		details?.children.forEach(animation => animation.reverse());
 	}
 
 	play() {
 		if (!(this.timeline instanceof DocumentTimeline)) return; // TODO: properly handle playback of gesture animation
-		this.children.forEach(animation => animation.play());
+		const details = privateDetails.get(this);
+		details?.children.forEach(animation => animation.play());
 	}
 
 	pause() {
-		this.children.forEach(animation => animation.pause());
+		const details = privateDetails.get(this);
+		details?.children.forEach(animation => animation.pause());
 	}
 
 	persist(): void {
-		this.children.forEach(animation => animation.persist());
-		this._replaceState = 'persisted';
+		const details = privateDetails.get(this);
+		details?.children.forEach(animation => animation.persist());
+		if (details)
+			details.replaceState = 'persisted';
 	}
 
 	finish(): void {
-		this.children.forEach(animation => animation.finish());
+		const details = privateDetails.get(this);
+		details?.children.forEach(animation => animation.finish());
 	}
 
 	commitStyles() {
-		this.children.forEach(animation => animation.commitStyles());
+		const details = privateDetails.get(this);
+		details?.children.forEach(animation => {
+			if (animation.effect instanceof KeyframeEffect && animation.effect.pseudoElement === null) {
+				animation.commitStyles();
+			}
+		});
 	}
 
 	cancel() {
-		this.children.forEach(animation => animation.cancel());
+		const details = privateDetails.get(this);
+		details?.children.forEach(animation => animation.cancel());
 	}
 
 	updatePlaybackRate(playbackRate: number): void {
-		this.children.forEach(animation => animation.updatePlaybackRate(playbackRate));
+		const details = privateDetails.get(this);
+		details?.children.forEach(animation => animation.updatePlaybackRate(playbackRate));
 	}
 
 	addEventListener<K extends keyof AnimationEventMap>(type: K, listener: (ev: AnimationEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
@@ -121,27 +156,19 @@ export class Animation extends EventTarget implements NativeAnimation {
 		this.onremove?.call(this, event);
 	}
 
-	private onGestureTimelineUpdate = ({currentTime}: GestureTimelineUpdateEvent) => {
-		this.children.forEach(child => {
-			if ('children' in child) {
-				child.currentTime = currentTime;
-			} else {
-				const { endTime = 0 } = child.effect?.getComputedTiming() ?? {};
-				child.currentTime = percentToTime(currentTime, endTime);
-			}
-		});
-	}
-
 	set playbackRate(_playbackRate: number) {
-		this.children.forEach(animation => animation.playbackRate = _playbackRate);
+		const details = privateDetails.get(this);
+		details?.children.forEach(animation => animation.playbackRate = _playbackRate);
 	}
 
 	set startTime(_startTime: CSSNumberish | null) {
-		this.children.forEach(animation => animation.startTime = _startTime);
+		const details = privateDetails.get(this);
+		details?.children.forEach(animation => animation.startTime = _startTime);
 	}
 
 	set currentTime(_currentTime: CSSNumberish | null) {
-		this.children.forEach(child => {
+		const details = privateDetails.get(this);
+		details?.children.forEach(child => {
 			if ('children' in child) {
 				child.currentTime = _currentTime;
 			} else {
@@ -152,51 +179,67 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	set timeline(_timeline: AnimationTimeline | null) {
-		if (this._timeline instanceof GestureTimeline) {
-			this._timeline.removeEventListener('update', this.onGestureTimelineUpdate);
-		}
-		this._timeline = _timeline ?? document.timeline;
-		this.children.forEach(child => {
-			if ('children' in child) {
+		const details = privateDetails.get(this);
+		if (!details?.timeline)
+			return;
+
+		if (details.timeline instanceof GestureTimeline)
+			details.timeline.removeEventListener('update', details.onGestureTimelineUpdate);
+		details.timeline = _timeline ?? document.timeline;
+
+		details.children.forEach(child => {
+			if (child instanceof Animation) {
 				child.timeline = _timeline;
 			}
 		});
 		if (_timeline instanceof GestureTimeline) {
-			_timeline.addEventListener('update', this.onGestureTimelineUpdate);
-			this.children.forEach(child => child.pause());
+			_timeline.addEventListener('update', details?.onGestureTimelineUpdate);
+			details.children.forEach(child => child.pause());
 		}
 	}
 
 	set effect(_effect: AnimationEffect | null) {
-		this._effect = _effect;
-		this.updateChildren(_effect);
+		const details = privateDetails.get(this);
+		if (details) {
+			details.effect = _effect;
+			updateChildren(details, _effect);
+		}
 	}
 
 	get ready(): Promise<Animation> {
-		return Promise.all(this.children.map(animation => animation.ready)).then(() => this);
+		const details = privateDetails.get(this);
+		if (!details) return Promise.resolve(this);
+		return Promise.all(details.children.map(animation => animation.ready)).then(() => this);
 	}
 
 	get finished(): Promise<Animation> {
-		return Promise.all(this.children.map(animation => animation.finished)).then(() => this);
+		const details = privateDetails.get(this);
+		if (!details) return Promise.resolve(this);
+		return Promise.all(details.children.map(animation => animation.finished)).then(() => this);
 	}
 
 	private get cancelled(): Promise<Animation> {
-		return Promise.all(this.children.map(animation => new Promise(resolve => animation.oncancel = resolve))).then(() => this);
+		const details = privateDetails.get(this);
+		if (!details) return Promise.resolve(this);
+		return Promise.all(details.children.map(animation => new Promise(resolve => animation.oncancel = resolve))).then(() => this);
 	}
 
 	private get removed(): Promise<Animation> {
-		return Promise.all(this.children.map(animation => new Promise(resolve => animation.onremove = resolve))).then(() => this);
+		const details = privateDetails.get(this);
+		if (!details) return Promise.resolve(this);
+		return Promise.all(details.children.map(animation => new Promise(resolve => animation.onremove = resolve))).then(() => this);
 	}
 
 	get playState() {
+		const details = privateDetails.get(this);
 		const { playbackRate = 0, endTime = 0 } = this.effect?.getComputedTiming() ?? {};
 		const end = endTime instanceof CSSNumericValue ? endTime.to('ms').value : endTime;
-		const startTime = this.startTime
+		const startTime = this.startTime;
 		let currentTime = this.currentTime;
 		currentTime = currentTime instanceof CSSNumericValue ? currentTime.to('ms').value : currentTime;
-		if (currentTime === null && startTime === null)
+		if (currentTime === null && startTime === null && details?.pendingTask === null)
 			return 'idle';
-		else if (this.children.every(child => child.playState === 'paused') || (startTime === null && this.pending))
+		else if (details?.pendingTask === 'pause' || (startTime === null && details?.pendingTask !== 'play'))
 			return 'paused';
 		else if (currentTime !== null && ((playbackRate > 0 && currentTime >= end) || (playbackRate < 0 && currentTime <= 0)))
 			return 'finished';
@@ -208,11 +251,11 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	get replaceState() {
-		return this._replaceState;
+		return privateDetails.get(this)?.replaceState ?? 'removed';
 	}
 
 	get pending(): boolean {
-		return this.children.some(animation => animation.pending);
+		return privateDetails.get(this)?.pendingTask !== null;
 	}
 
 	get currentTime() {
@@ -224,10 +267,10 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	get timeline(): AnimationTimeline {
-		return this._timeline;
+		return privateDetails.get(this)?.timeline ?? document.timeline;
 	}
 
 	get effect() {
-		return this._effect;
+		return privateDetails.get(this)?.effect ?? null;
 	}
 }

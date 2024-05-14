@@ -1,3 +1,6 @@
+import { Animation } from "../animation";
+import { GestureTimelineUpdateEvent } from "../gesture-timeline";
+
 enum EasingFunctionKeywordEnum {
 	"ease",
 	"ease-in",
@@ -27,4 +30,18 @@ export interface SpringToLinearProps {
 	damping?: number;
 	velocity?: number;
 	steps?: number;
+}
+
+export interface AnimationDetails {
+	timeline: AnimationTimeline;
+	effect: AnimationEffect | null;
+	replaceState: AnimationReplaceState;
+	pendingTask: "play" | "pause" | null;
+	startTime: CSSNumberish | null;
+	children: (NativeAnimation | Animation)[];
+	onGestureTimelineUpdate(this: Animation, { currentTime }: GestureTimelineUpdateEvent): void
+}
+
+export interface ParallelEffectDetails {
+	timing: OptionalEffectTiming;
 }

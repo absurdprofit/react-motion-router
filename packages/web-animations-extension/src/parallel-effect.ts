@@ -1,26 +1,25 @@
+import { ParallelEffectDetails } from "./common/types";
 import { cssNumberishToNumber } from "./common/utils";
 import { GroupEffect } from "./group-effect";
 
+const privateDetails = new WeakMap<ParallelEffect, ParallelEffectDetails>();
+
 export class ParallelEffect extends GroupEffect {
-	private readonly timing;
 	constructor(effects: AnimationEffect[], timing: OptionalEffectTiming = {}) {
 		super(effects);
-		this.timing = timing;
-		this.updateTiming(timing);
+		privateDetails.set(this, {timing});
 	}
 
 	prepend(...children: AnimationEffect[]): void {
 		super.prepend(...children);
-		children.forEach(child => child.updateTiming(this.timing));
 	}
 
 	append(...children: AnimationEffect[]): void {
 		super.append(...children);
-		children.forEach(child => child.updateTiming(this.timing));
 	}
 
 	getTiming(): EffectTiming {
-		const timing: EffectTiming = this.timing;
+		const timing: EffectTiming = privateDetails.get(this)?.timing ?? {};
 		this._children.forEach(child => {
 			let {delay = 0, endDelay = 0, duration = 'auto', iterationStart = 0, iterations = 1, playbackRate = 0} = child.getTiming();
 			timing.delay = timing.delay ? Math.min(timing.delay, delay) : delay;
@@ -56,6 +55,12 @@ export class ParallelEffect extends GroupEffect {
 	}
 
 	updateTiming(timing?: OptionalEffectTiming) {
-		this._children.forEach(child => child.updateTiming(timing));
+		const details = privateDetails.get(this);
+		if (details) {
+			details.timing = {
+				...details.timing,
+				...timing
+			};
+		}
 	}
 }
