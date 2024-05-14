@@ -1,5 +1,5 @@
 import { NativeAnimation, AnimationDetails } from "./common/types";
-import { percentToTime } from "./common/utils";
+import { currentTimeFromPercent } from "./common/utils";
 import { GestureTimeline, GestureTimelineUpdateEvent } from "./gesture-timeline";
 import { GroupEffect } from "./group-effect";
 
@@ -25,8 +25,8 @@ function onGestureTimelineUpdate(this: Animation, {currentTime}: GestureTimeline
 		if ('children' in child) {
 			child.currentTime = currentTime;
 		} else {
-			const { endTime = 0 } = child.effect?.getComputedTiming() ?? {};
-			child.currentTime = percentToTime(currentTime, endTime);
+			const { startTime = 0, endTime = 0 } = child.effect?.getComputedTiming() ?? {};
+			child.currentTime = currentTimeFromPercent(currentTime, startTime, endTime);
 		}
 	});
 }
@@ -172,8 +172,8 @@ export class Animation extends EventTarget implements NativeAnimation {
 			if ('children' in child) {
 				child.currentTime = _currentTime;
 			} else {
-				const { endTime = 0 } = child.effect?.getComputedTiming() ?? {};
-				child.currentTime = percentToTime(_currentTime ?? 0, endTime);
+				const { startTime = 0, endTime = 0 } = child.effect?.getComputedTiming() ?? {};
+				child.currentTime = currentTimeFromPercent(_currentTime ?? 0, startTime, endTime);
 			}
 		});
 	}

@@ -7,11 +7,11 @@ export function cssNumberishToNumber(value: CSSNumberish, unit: string) {
 	return value;
 }
 
-export function percentToTime(value: CSSNumberish, endTime: CSSNumberish) {
+export function currentTimeFromPercent(value: CSSNumberish, startTime: CSSNumberish, endTime: CSSNumberish) {
 	const time = interpolate(
 		cssNumberishToNumber(value, 'percent'),
 		[MIN_DURATION_PERCENTAGE, MAX_DURATION_PERCENTAGE],
-		[0, cssNumberishToNumber(endTime, 'ms')]
+		[cssNumberishToNumber(startTime, 'ms'), cssNumberishToNumber(endTime, 'ms')]
 	);
 	return time;
 }

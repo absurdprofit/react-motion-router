@@ -1,5 +1,6 @@
 import { Animation } from "../animation";
 import { GestureTimelineUpdateEvent } from "../gesture-timeline";
+import { GroupEffect } from "../group-effect";
 
 enum EasingFunctionKeywordEnum {
 	"ease",
@@ -44,4 +45,9 @@ export interface AnimationDetails {
 
 export interface ParallelEffectDetails {
 	timing: OptionalEffectTiming;
+}
+
+export interface GroupEffectDetails {
+	children: AnimationEffect[];
+	parent: GroupEffect | null;
 }
