@@ -51,6 +51,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
     }
 
     static getDerivedStateFromProps(_: RouterProps, state: RouterState) {
+        try {
         const config = state.screenStack.find(screen => screen.key === state.navigation.current.key)?.props.config;
         return {
             gestureDirection: config?.gestureDirection ?? state.gestureDirection,
@@ -58,6 +59,10 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             gestureMinFlingVelocity: config?.gestureMinFlingVelocity ?? state.gestureMinFlingVelocity,
             gestureHysteresis: config?.gestureHysteresis ?? state.gestureHysteresis,
             disableGesture: config?.disableGesture ?? state.disableGesture
+        }
+        } catch (e) {
+            console.log(state.navigation, state.navigation.index);
+
         }
     }
 
@@ -85,14 +90,6 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         if (direction === "left" && Math.abs(e.x - clientRect.right) >= this.state.gestureAreaWidth) return false;
         if (direction === "down" && Math.abs(e.y - clientRect.top) >= this.state.gestureAreaWidth) return false;
         if (direction === "up" && Math.abs(e.y - clientRect.bottom) >= this.state.gestureAreaWidth) return false;
-        for (let target of e.composedPath().reverse()) {
-            if (
-                target instanceof HTMLElement
-                && target.classList.contains('gesture-region')
-                && target.dataset.disabled === "false"
-            ) return false;
-            if (target === e.gestureTarget) break;
-        }
         return true;
     }
 

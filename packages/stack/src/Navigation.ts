@@ -138,6 +138,7 @@ export class Navigation extends NavigationBase<StackRouterEventMap> {
                 // const { routerIds = [] } = entry.getState() as HistoryEntryState ?? {};
                 // return routerIds.includes(this.routerId);
                 const pathname = new URL(entry.url!).pathname;
+                // NOTE: shouldn't this just be a match against baseURL instead of the pattern?
                 return resolveBaseURLFromPattern(this.baseURLPattern.pathname, pathname)
             })
             .map((entry, index) => {
@@ -147,7 +148,7 @@ export class Navigation extends NavigationBase<StackRouterEventMap> {
 
     get index() {
         const globalEntries = this.globalEntries;
-        const globalCurrentIndex = globalEntries.findIndex(entry => entry === window.navigation.currentEntry);
+        const globalCurrentIndex = window.navigation.currentEntry?.index ?? -1;
         const previousEntries = globalEntries.slice(0, globalCurrentIndex + 1);
         return this.entries.findLastIndex(entry => {
             return previousEntries.findLastIndex(globalEntry => entry.source.key === globalEntry.key) > -1;
