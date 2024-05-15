@@ -20,15 +20,8 @@ function updateChildren(details: AnimationDetails, effect: AnimationEffect | nul
 }
 
 function onGestureTimelineUpdate(this: Animation, {currentTime}: GestureTimelineUpdateEvent) {
-	const details = privateDetails.get(this);
-	details?.children.forEach(child => {
-		if ('children' in child) {
-			child.currentTime = currentTime;
-		} else {
-			const { startTime = 0, endTime = 0 } = child.effect?.getComputedTiming() ?? {};
-			child.currentTime = currentTimeFromPercent(currentTime, startTime, endTime);
-		}
-	});
+	const { startTime = 0, endTime = 0 } = this.effect?.getComputedTiming() ?? {};
+	this.currentTime = currentTimeFromPercent(currentTime, startTime, endTime);
 }
 
 // TODO: properly handle updating playbackRate
@@ -169,12 +162,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 	set currentTime(_currentTime: CSSNumberish | null) {
 		const details = privateDetails.get(this);
 		details?.children.forEach(child => {
-			if ('children' in child) {
-				child.currentTime = _currentTime;
-			} else {
-				const { startTime = 0, endTime = 0 } = child.effect?.getComputedTiming() ?? {};
-				child.currentTime = currentTimeFromPercent(_currentTime ?? 0, startTime, endTime);
-			}
+			child.currentTime = _currentTime;
 		});
 	}
 
@@ -190,6 +178,8 @@ export class Animation extends EventTarget implements NativeAnimation {
 		details.children.forEach(child => {
 			if (child instanceof Animation) {
 				child.timeline = _timeline;
+			} else {
+				child.timeline = _timeline instanceof GestureTimeline ? null : _timeline;
 			}
 		});
 		if (_timeline instanceof GestureTimeline) {

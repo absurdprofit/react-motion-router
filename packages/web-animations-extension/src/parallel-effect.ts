@@ -10,14 +10,6 @@ export class ParallelEffect extends GroupEffect {
 		privateDetails.set(this, {timing});
 	}
 
-	prepend(...children: AnimationEffect[]): void {
-		super.prepend(...children);
-	}
-
-	append(...children: AnimationEffect[]): void {
-		super.append(...children);
-	}
-
 	getTiming(): EffectTiming {
 		const timing: EffectTiming = privateDetails.get(this)?.timing ?? {};
 		for (let i = 0; i < this.children.length; i++) {
@@ -57,6 +49,9 @@ export class ParallelEffect extends GroupEffect {
 		const { activeDuration, localTime } = computedTiming;
 		if (localTime && activeDuration)
 			computedTiming.progress = cssNumberishToNumber(localTime, 'ms') / cssNumberishToNumber(activeDuration, 'ms');
+		if (computedTiming.endTime === 0) {
+			// console.log(this);
+		}
 		return computedTiming;
 	}
 
