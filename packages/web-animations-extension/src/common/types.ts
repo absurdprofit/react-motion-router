@@ -37,8 +37,12 @@ export interface AnimationDetails {
 	timeline: AnimationTimeline;
 	effect: AnimationEffect | null;
 	replaceState: AnimationReplaceState;
-	pendingTask: "play" | "pause" | null;
+	pending: {
+		task: "play" | "pause" | null;
+		playbackRate: number | null;
+	};
 	startTime: CSSNumberish | null;
+	holdTime: CSSNumberish | null;
 	children: (NativeAnimation | Animation)[];
 	onGestureTimelineUpdate(this: Animation, { currentTime }: GestureTimelineUpdateEvent): void
 }

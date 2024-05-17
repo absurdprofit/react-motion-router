@@ -5,10 +5,41 @@ import { GroupEffect } from "./group-effect";
 
 const privateDetails = new WeakMap<Animation, AnimationDetails>();
 
-function updateChildren(details: AnimationDetails, effect: AnimationEffect | null) {
-	const { children } = details;
-	// clear children
-	children.splice(0, children.length);
+function dispatchFinishedEvent(this: Animation) {
+	const event = new AnimationPlaybackEvent(
+		'finish',
+		{
+			currentTime: this.currentTime,
+			timelineTime: this.timeline?.currentTime
+		}
+	);
+	this.dispatchEvent(event);
+	this.onfinish?.call(this, event);
+}
+
+function dispatchCancelledEvent(this: Animation) {
+	const event = new AnimationPlaybackEvent(
+		'cancel',
+		{
+			currentTime: this.currentTime,
+			timelineTime: this.timeline?.currentTime
+		}
+	);
+	this.dispatchEvent(event);
+	this.oncancel?.call(this, event);
+}
+
+function dispatchRemovedEvent(this: Animation) {
+	const event = new Event('remove');
+	this.dispatchEvent(event);
+	this.onremove?.call(this, event);
+}
+
+function updateChildren(this: Animation) {
+	const details = privateDetails.get(this);
+	if (!details) return;
+	const { effect } = details;
+	const children = [];
 	if (effect instanceof GroupEffect) {
 		for (let i = 0; i < effect.children.length; i++) {
 			children.push(new Animation(effect.children.item(i), details.timeline));
@@ -17,6 +48,14 @@ function updateChildren(details: AnimationDetails, effect: AnimationEffect | nul
 		const timeline = details.timeline instanceof GestureTimeline ? null : details.timeline;
 		children.push(new NativeAnimation(effect, timeline));
 	}
+
+	details.children = children;
+
+	Promise.all(children.map(child => child.finished)).then(dispatchFinishedEvent.bind(this));
+	Promise.all(children.map(child => new Promise(resolve => child.onremove = resolve))).then(dispatchRemovedEvent.bind(this));
+	Promise.all(children.map(child => new Promise(resolve => child.oncancel = resolve)))
+		.then(dispatchCancelledEvent.bind(this))
+		.then(() => details.replaceState = 'removed');
 }
 
 function onGestureTimelineUpdate(this: Animation, {currentTime}: GestureTimelineUpdateEvent) {
@@ -41,25 +80,21 @@ export class Animation extends EventTarget implements NativeAnimation {
 			effect: effect ?? null,
 			timeline: timeline ?? document.timeline,
 			replaceState: "active",
-			pendingTask: null,
+			pending: {
+				playbackRate: null,
+				task: null
+			},
 			startTime: null,
+			holdTime: null,
 			children: [],
 			onGestureTimelineUpdate: onGestureTimelineUpdate.bind(this)
 		};
 		privateDetails.set(this, details);
-		updateChildren(details, effect ?? null);
+		updateChildren.call(this);
 
 		if (timeline instanceof GestureTimeline) {
 			timeline.addEventListener('update', details.onGestureTimelineUpdate);
 		}
-
-		this.finished.then(this.dispatchFinishedEvent.bind(this));
-		this.cancelled.then(this.dispatchCancelledEvent.bind(this));
-		this.removed.then(() => {
-			this.dispatchRemovedEvent();
-			if (details)
-				details.replaceState = 'removed';
-		});
 	}
 
 	reverse(): void {
@@ -68,14 +103,21 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	play() {
-		if (!(this.timeline instanceof DocumentTimeline)) return; // TODO: properly handle playback of gesture animation
-		const details = privateDetails.get(this);
-		details?.children.forEach(animation => animation.play());
+		const { timeline, children } = privateDetails.get(this) ?? {};
+		if (timeline instanceof DocumentTimeline) {
+			children?.forEach(animation => animation.play());
+		} else {
+
+		}
 	}
 
 	pause() {
-		const details = privateDetails.get(this);
-		details?.children.forEach(animation => animation.pause());
+		const { timeline, children } = privateDetails.get(this) ?? {};
+		if (timeline instanceof DocumentTimeline) {
+			children?.forEach(animation => animation.pause());
+		} else {
+
+		}
 	}
 
 	persist(): void {
@@ -117,36 +159,6 @@ export class Animation extends EventTarget implements NativeAnimation {
 	removeEventListener<K extends keyof AnimationEventMap>(type: K, listener: (ev: AnimationEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
 	removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void {
 		super.removeEventListener(type, listener, options);
-	}
-
-	private dispatchFinishedEvent() {
-		const event = new AnimationPlaybackEvent(
-			'finish',
-			{
-				currentTime: this.currentTime,
-				timelineTime: this.timeline?.currentTime
-			}
-		);
-		this.dispatchEvent(event);
-		this.onfinish?.call(this, event);
-	}
-
-	private dispatchCancelledEvent() {
-		const event = new AnimationPlaybackEvent(
-			'cancel',
-			{
-				currentTime: this.currentTime,
-				timelineTime: this.timeline?.currentTime
-			}
-		);
-		this.dispatchEvent(event);
-		this.oncancel?.call(this, event);
-	}
-
-	private dispatchRemovedEvent() {
-		const event = new Event('remove');
-		this.dispatchEvent(event);
-		this.onremove?.call(this, event);
 	}
 
 	set playbackRate(_playbackRate: number) {
@@ -192,8 +204,8 @@ export class Animation extends EventTarget implements NativeAnimation {
 		const details = privateDetails.get(this);
 		if (details) {
 			details.effect = _effect;
-			updateChildren(details, _effect);
 		}
+		updateChildren.call(this);
 	}
 
 	get ready(): Promise<Animation> {
@@ -208,18 +220,6 @@ export class Animation extends EventTarget implements NativeAnimation {
 		return Promise.all(details.children.map(animation => animation.finished)).then(() => this);
 	}
 
-	private get cancelled(): Promise<Animation> {
-		const details = privateDetails.get(this);
-		if (!details) return Promise.resolve(this);
-		return Promise.all(details.children.map(animation => new Promise(resolve => animation.oncancel = resolve))).then(() => this);
-	}
-
-	private get removed(): Promise<Animation> {
-		const details = privateDetails.get(this);
-		if (!details) return Promise.resolve(this);
-		return Promise.all(details.children.map(animation => new Promise(resolve => animation.onremove = resolve))).then(() => this);
-	}
-
 	get playState() {
 		const details = privateDetails.get(this);
 		const { playbackRate = 0, endTime = 0 } = this.effect?.getComputedTiming() ?? {};
@@ -227,9 +227,9 @@ export class Animation extends EventTarget implements NativeAnimation {
 		const startTime = this.startTime;
 		let currentTime = this.currentTime;
 		currentTime = currentTime instanceof CSSNumericValue ? currentTime.to('ms').value : currentTime;
-		if (currentTime === null && startTime === null && details?.pendingTask === null)
+		if (currentTime === null && startTime === null && details?.pending.task === null)
 			return 'idle';
-		else if (details?.pendingTask === 'pause' || (startTime === null && details?.pendingTask !== 'play'))
+		else if (details?.pending.task === 'pause' || (startTime === null && details?.pending.task !== 'play'))
 			return 'paused';
 		else if (currentTime !== null && ((playbackRate > 0 && currentTime >= end) || (playbackRate < 0 && currentTime <= 0)))
 			return 'finished';
@@ -237,7 +237,9 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	get playbackRate() {
-		return this.effect?.getComputedTiming().playbackRate ?? 1;
+		const { children } = privateDetails.get(this) ?? {};
+		if (!children?.length) return 1;
+		return Math.max(...children.map(animation => animation.playbackRate));
 	}
 
 	get replaceState() {
@@ -245,7 +247,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	get pending(): boolean {
-		return privateDetails.get(this)?.pendingTask !== null;
+		return privateDetails.get(this)?.pending.task !== null;
 	}
 
 	get currentTime() {
