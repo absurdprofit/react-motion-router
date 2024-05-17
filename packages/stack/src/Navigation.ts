@@ -137,9 +137,8 @@ export class Navigation extends NavigationBase<StackRouterEventMap> {
             .filter(entry => {
                 // const { routerIds = [] } = entry.getState() as HistoryEntryState ?? {};
                 // return routerIds.includes(this.routerId);
-                const pathname = new URL(entry.url!).pathname;
-                // NOTE: shouldn't this just be a match against baseURL instead of the pattern?
-                return resolveBaseURLFromPattern(this.baseURLPattern.pathname, pathname)
+                if (!entry.url) return false;
+                return resolveBaseURLFromPattern(this.baseURL.pathname, new URL(entry.url).pathname);
             })
             .map((entry, index) => {
                 return new HistoryEntry(entry, this.routerId, index);

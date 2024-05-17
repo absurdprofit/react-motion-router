@@ -180,18 +180,19 @@ export class Animation extends EventTarget implements NativeAnimation {
 
 	set timeline(_timeline: AnimationTimeline | null) {
 		const details = privateDetails.get(this);
-		if (!details?.timeline)
+		if (!details)
 			return;
 
 		if (details.timeline instanceof GestureTimeline)
 			details.timeline.removeEventListener('update', details.onGestureTimelineUpdate);
+
 		details.timeline = _timeline ?? document.timeline;
 
 		details.children.forEach(child => {
 			if (child instanceof Animation) {
 				child.timeline = _timeline;
 			} else {
-				child.timeline = _timeline instanceof GestureTimeline ? null : _timeline;
+				child.timeline = _timeline instanceof GestureTimeline ? document.timeline : _timeline;
 			}
 		});
 		if (_timeline instanceof GestureTimeline) {

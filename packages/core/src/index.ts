@@ -1,3 +1,4 @@
+/// <reference types="urlpattern-polyfill" />
 import {
     ScreenChild,
     AnimationEffectFactory,

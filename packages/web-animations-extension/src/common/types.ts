@@ -34,7 +34,7 @@ export interface SpringToLinearProps {
 }
 
 export interface AnimationDetails {
-	timeline: AnimationTimeline;
+	timeline: AnimationTimeline | null;
 	effect: AnimationEffect | null;
 	replaceState: AnimationReplaceState;
 	pending: {
