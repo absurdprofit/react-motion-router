@@ -1,6 +1,9 @@
 import { PinchEvent, RotateEvent, SwipeEvent, PanEvent } from "web-gesture-events";
 import { cssNumberishToNumber, interpolate } from "./common/utils";
 import { MAX_DURATION_PERCENTAGE, MIN_DURATION_PERCENTAGE } from "./common/constants";
+import { GestureTimelineDetails } from "./common/types";
+
+const privateDetails = new WeakMap<GestureTimeline, GestureTimelineDetails>();
 
 export class GestureTimelineUpdateEvent extends Event {
 	public readonly currentTime;
@@ -51,25 +54,29 @@ export type GestureTimelineOptions = (SwipeTimelineOptions | RotateTimelineOptio
 };
 
 export class GestureTimeline extends EventTarget implements AnimationTimeline {
-	private readonly options;
-	private _currentTime: CSSNumericValue = CSSNumericValue.parse("0%");
 	constructor(options: GestureTimelineOptions = { type: "swipe", axis: "x", rangeStart: 0, rangeEnd: window.screen.availWidth, source: document.body }) {
 		super();
 		options.source.addEventListener(options.type, this.onGesture.bind(this));
-		this.options = options;
+		const details: GestureTimelineDetails = {
+			options,
+			currentTime: CSSNumericValue.parse("0%")
+		};
+		privateDetails.set(this, details);
 	}
 
 	private onGesture(event: PinchEvent	| RotateEvent | SwipeEvent | PanEvent) {
-		const sourceRect = this.options.source.getBoundingClientRect();
+		const details = privateDetails.get(this);
+		if (!details) return;
+		const sourceRect = details.options.source.getBoundingClientRect();
 		let percent = 0;
 		const position = {
 			x: event.x - sourceRect.left,
 			y: event.y - sourceRect.top
 		};
-		switch(this.options.type) {
+		switch(details.options.type) {
 			case "swipe": {
-				const { rangeStart, rangeEnd } = this.options;
-				const axis = this.options.axis;
+				const { rangeStart, rangeEnd } = details.options;
+				const axis = details.options.axis;
 				percent = interpolate(
 					position[axis],
 					[cssNumberishToNumber(rangeStart, 'px'), cssNumberishToNumber(rangeEnd, 'px')],
@@ -78,7 +85,7 @@ export class GestureTimeline extends EventTarget implements AnimationTimeline {
 				break;
 			}
 			case "pan": {
-				const { rangeStart, rangeEnd } = this.options;
+				const { rangeStart, rangeEnd } = details.options;
 				const { x, y } = position;
 				percent = interpolate(
 					{ x, y },
@@ -92,7 +99,7 @@ export class GestureTimeline extends EventTarget implements AnimationTimeline {
 				break;
 			}
 			case "pinch": {
-				const { rangeStart, rangeEnd } = this.options;
+				const { rangeStart, rangeEnd } = details.options;
 				const { scale } = event as PinchEvent;
 				percent = interpolate(
 					scale,
@@ -102,7 +109,7 @@ export class GestureTimeline extends EventTarget implements AnimationTimeline {
 				break;
 			}
 			case "rotate": {
-				const { rangeStart, rangeEnd } = this.options;
+				const { rangeStart, rangeEnd } = details.options;
 				const { rotation } = event as RotateEvent;
 				percent = interpolate(
 					rotation,
@@ -112,8 +119,8 @@ export class GestureTimeline extends EventTarget implements AnimationTimeline {
 			}
 		}
 
-		this._currentTime = CSSNumericValue.parse(`${percent}%`);
-		this.dispatchEvent(new GestureTimelineUpdateEvent(this._currentTime));
+		details.currentTime = CSSNumericValue.parse(`${percent}%`);
+		this.dispatchEvent(new GestureTimelineUpdateEvent(details.currentTime));
 	}
 
 	addEventListener<K extends keyof GestureTimelineEventMap>(type: K, listener: (ev: GestureTimelineEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
@@ -127,6 +134,6 @@ export class GestureTimeline extends EventTarget implements AnimationTimeline {
 	}
 
 	get currentTime() {
-		return this._currentTime;
+		return privateDetails.get(this)?.currentTime ?? CSSNumericValue.parse("0%");
 	}
 }
