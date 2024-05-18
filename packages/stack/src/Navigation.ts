@@ -1,8 +1,9 @@
 import {
     NavigationBase,
+    includesRoute,
     resolveBaseURLFromPattern,
 } from '@react-motion-router/core';
-import { GoBackOptions, GoForwardOptions, HistoryEntryState, NavigateOptions, NavigationBaseOptions, NavigationProps, StackRouterEventMap } from './common/types';
+import { GoBackOptions, GoForwardOptions, NavigateOptions, NavigationBaseOptions, NavigationProps, StackRouterEventMap } from './common/types';
 import { BackEvent, ForwardEvent, NavigateEvent } from './common/events';
 import { HistoryEntry } from './HistoryEntry';
 import { Router } from './Router';
@@ -133,12 +134,24 @@ export class Navigation extends NavigationBase<StackRouterEventMap> {
     }
 
     get entries() {
+        const nestedPathPatterns = this.router.pathPatterns.filter(pattern => pattern.pattern.endsWith("/**"));
+        let inNestedScope = false;
         return this.globalEntries
             .filter(entry => {
-                // const { routerIds = [] } = entry.getState() as HistoryEntryState ?? {};
-                // return routerIds.includes(this.routerId);
                 if (!entry.url) return false;
-                return resolveBaseURLFromPattern(this.baseURL.pathname, new URL(entry.url).pathname);
+                const url = new URL(entry.url);
+                if (!resolveBaseURLFromPattern(this.baseURLPattern.pathname, url.pathname))
+                    return false;
+
+                if (includesRoute(nestedPathPatterns, url.pathname, this.baseURLPattern.pathname)) {
+                    if (inNestedScope)
+                        return false;
+                    
+                    return inNestedScope = true; // technically in nested scope but include the first entry (the entry rendered by the parent router)
+                } else {
+                    inNestedScope = false;
+                    return true; // not in nested scope, so include
+                }
             })
             .map((entry, index) => {
                 return new HistoryEntry(entry, this.routerId, index);
