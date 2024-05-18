@@ -26,7 +26,6 @@ export type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<
 export interface HistoryEntryState {
 	config?: ScreenProps["config"];
 	params?: PlainObject;
-	routerIds?: string[];
 }
 
 export function isRefObject<T>(value: React.LegacyRef<T>): value is RefObject<T> {

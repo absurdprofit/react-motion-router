@@ -51,7 +51,6 @@ export class Router extends RouterBase<RouterProps, RouterState> {
     }
 
     static getDerivedStateFromProps(_: RouterProps, state: RouterState) {
-        try {
         const config = state.screenStack.find(screen => screen.key === state.navigation.current.key)?.props.config;
         return {
             gestureDirection: config?.gestureDirection ?? state.gestureDirection,
@@ -59,10 +58,6 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             gestureMinFlingVelocity: config?.gestureMinFlingVelocity ?? state.gestureMinFlingVelocity,
             gestureHysteresis: config?.gestureHysteresis ?? state.gestureHysteresis,
             disableGesture: config?.disableGesture ?? state.disableGesture
-        }
-        } catch (e) {
-            console.log(state.navigation, state.navigation.index);
-
         }
     }
 
@@ -219,7 +214,14 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                 break;
         }
 
-        window.navigation.onnavigatesuccess = this.onNavigateSuccess;
+        window.navigation.addEventListener(
+            'navigatesuccess',
+            () => window.navigation.updateCurrentEntry({ state: {
+                ...(window.navigation.currentEntry?.getState() ?? {}),
+                sourceEvent: e
+            }}),
+            { once: true }
+        );
     }
 
     private handleReplace(e: NavigateEvent) {
@@ -227,7 +229,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         const destinationPathname = new URL(e.destination.url).pathname;
         const destinationScreen = this.screenChildFromPathname(destinationPathname);
         if (!isValidScreenChild<Screen>(destinationScreen)) return e.preventDefault();
-        const handler = async () => {
+        const handler = () => {
             const { params, config } = e.destination.getState() as HistoryEntryState ?? {};
             const transition = window.navigation.transition;
             const destination = e.destination;
@@ -271,7 +273,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
     }
 
     private handleReload(e: NavigateEvent) {
-        const handler = async () => {
+        const handler = () => {
             const transition = window.navigation.transition;
             const destination = e.destination;
             const screenStack = new Array<ScreenChild<ScreenProps, Screen>>();
@@ -339,7 +341,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         const destinationPathname = new URL(e.destination.url).pathname;
         const destinationScreen = this.screenChildFromPathname(destinationPathname);
         if (!isValidScreenChild<Screen>(destinationScreen)) return e.preventDefault();
-        const handler = async () => {
+        const handler = () => {
             const { params, config } = e.destination.getState() as HistoryEntryState ?? {};
             const transition = window.navigation.transition;
             const destination = e.destination;
@@ -435,18 +437,5 @@ export class Router extends RouterBase<RouterProps, RouterState> {
 
             return this.screenTransitionLayer.current.transition();
         }
-    }
-
-    private onNavigateSuccess = () => {
-        // so we can check entries later
-        const { routerIds = [], ...state } = window.navigation.currentEntry?.getState() as HistoryEntryState ?? {};
-        if (!routerIds.includes(this.id))
-            routerIds.push(this.id);
-        window.navigation.updateCurrentEntry({
-            state: {
-                ...state,
-                routerIds
-            }
-        });
     }
 }
