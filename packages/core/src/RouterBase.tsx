@@ -211,7 +211,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     }
 
     get mounted() {
-        return Boolean(this.ref);
+        return Boolean(this.ref.current);
     }
 
     get navigation(): S["navigation"] {

@@ -134,7 +134,7 @@ export class Navigation extends NavigationBase<StackRouterEventMap> {
     }
 
     get entries() {
-        const nestedPathPatterns = this.router.pathPatterns.filter(pattern => pattern.pattern.endsWith("/**"));
+        const nestedPathPatterns = this.router.pathPatterns.filter(({pattern}) => pattern.endsWith("**"));
         let inNestedScope = false;
         return this.globalEntries
             .filter(entry => {
@@ -159,12 +159,19 @@ export class Navigation extends NavigationBase<StackRouterEventMap> {
     }
 
     get index() {
-        const globalEntries = this.globalEntries;
         const globalCurrentIndex = window.navigation.currentEntry?.index ?? -1;
-        const previousEntries = globalEntries.slice(0, globalCurrentIndex + 1);
-        return this.entries.findLastIndex(entry => {
-            return previousEntries.findLastIndex(globalEntry => entry.source.key === globalEntry.key) > -1;
-        });
+        const firstEntryGlobalIndex = this.entries.at(0)?.globalIndex ?? -1;
+        const lastEntryGlobalIndex = this.entries.at(-1)?.globalIndex ?? -1;
+        if (globalCurrentIndex <= firstEntryGlobalIndex)
+            return 0;
+        else if (globalCurrentIndex >= lastEntryGlobalIndex)
+            return this.entries.length - 1;
+        else {
+            const scopedEntries = this.globalEntries.slice(firstEntryGlobalIndex, globalCurrentIndex + 1);
+            return this.entries.findLastIndex(entry => {
+                return scopedEntries.findLastIndex(globalEntry => entry.source.key === globalEntry.key) > -1;
+            });
+        }
     }
 
     get previous() {

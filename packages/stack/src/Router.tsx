@@ -214,14 +214,14 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                 break;
         }
 
-        window.navigation.addEventListener(
-            'navigatesuccess',
-            () => window.navigation.updateCurrentEntry({ state: {
-                ...(window.navigation.currentEntry?.getState() ?? {}),
-                sourceEvent: e
-            }}),
-            { once: true }
-        );
+        // window.navigation.addEventListener(
+        //     'navigatesuccess',
+        //     () => window.navigation.updateCurrentEntry({ state: {
+        //         ...(window.navigation.currentEntry?.getState() ?? {}),
+        //         sourceEvent: e
+        //     }}),
+        //     { once: true }
+        // );
     }
 
     private handleReplace(e: NavigateEvent) {
