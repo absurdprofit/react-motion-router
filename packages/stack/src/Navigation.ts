@@ -147,7 +147,7 @@ export class Navigation extends NavigationBase<StackRouterEventMap> {
                     if (inNestedScope)
                         return false;
                     
-                    return inNestedScope = true; // technically in nested scope but include the first entry (the entry rendered by the parent router)
+                    return inNestedScope = true; // technically in nested scope but include the first entry (the entry intercepted by the parent router)
                 } else {
                     inNestedScope = false;
                     return true; // not in nested scope, so include

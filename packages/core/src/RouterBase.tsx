@@ -2,17 +2,17 @@ import { NavigationBase } from './NavigationBase';
 import { ScreenTransitionLayer } from './ScreenTransitionLayer';
 import {
     ScreenChild,
-    PlainObject,
     RouterBaseEventMap,
     HTMLRouterBaseElement,
     ScreenState
 } from './common/types';
 import { NestedRouterContext, RouterContext } from './RouterContext';
-import { dispatchEvent, includesRoute, matchRoute, resolveBaseURLFromPattern } from './common/utils';
-import { Component, RefObject, createRef } from 'react';
+import { dispatchEvent, matchRoute, resolveBaseURLFromPattern } from './common/utils';
+import { Component, createRef } from 'react';
 import { DEFAULT_ANIMATION, DEFAULT_GESTURE_CONFIG } from './common/constants';
-import { isValidElement, Children, cloneElement } from 'react';
+import { isValidElement, Children } from 'react';
 import { ScreenBase, ScreenBaseProps } from './ScreenBase';
+import { LoadEvent } from './common/events';
 
 export interface RouterBaseProps<S extends ScreenBase = ScreenBase> {
     id?: string;
@@ -71,6 +71,8 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         if (this.isRoot) {
             window.navigation.addEventListener('navigate', this.handleNavigationDispatch);
         }
+
+        window.navigation.dispatchEvent(new LoadEvent());
     }
 
     componentWillUnmount() {

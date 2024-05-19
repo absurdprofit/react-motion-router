@@ -1,64 +1,114 @@
 import { GestureEvent } from "web-gesture-events";
+import { PromiseAllDynamic } from "./utils";
 
 export class TransitionStartEvent extends Event {
-    constructor() {
-        super('transition-start');
-    }
+	constructor() {
+		super('transition-start');
+	}
 }
 
 export class TransitionCancelEvent extends Event {
-    constructor() {
-        super('transition-cancel');
-    }
+	constructor() {
+		super('transition-cancel');
+	}
 }
 
 export class TransitionEndEvent extends Event {
-    constructor() {
-        super('transition-end');
-    }
+	constructor() {
+		super('transition-end');
+	}
 }
 
 export class GestureStartEvent extends Event {
-    readonly source: GestureEvent;
+	readonly source: GestureEvent;
 
-    constructor(source: GestureEvent) {
-        super('gesture-start');
-        this.source = source;
-    }
+	constructor(source: GestureEvent) {
+		super('gesture-start');
+		this.source = source;
+	}
 }
 
 export class GestureEndEvent extends Event {
-    readonly source: GestureEvent;
+	readonly source: GestureEvent;
 
-    constructor(source: GestureEvent) {
-        super('gesture-end');
-        this.source = source;
-    }
+	constructor(source: GestureEvent) {
+		super('gesture-end');
+		this.source = source;
+	}
 }
 
 export class GestureCancelEvent extends Event {
-    constructor() {
-        super('gesture-cancel');
-    }
+	constructor() {
+		super('gesture-cancel');
+	}
 }
 
 export class MotionProgressStartEvent extends Event {
-    constructor() {
-        super('motion-progress-start');
-    }
+	constructor() {
+		super('motion-progress-start');
+	}
 }
 
 export class MotionProgressEvent extends Event {
-    readonly progress: number;
+	readonly progress: number;
 
-    constructor(progress: number) {
-        super('motion-progress');
-        this.progress = progress;
-    }
+	constructor(progress: number) {
+		super('motion-progress');
+		this.progress = progress;
+	}
 }
 
 export class MotionProgressEndEvent extends Event {
-    constructor() {
-        super('motion-progress-end');
-    }
+	constructor() {
+		super('motion-progress-end');
+	}
+}
+
+const privateDetails = new WeakMap<LoadEvent, { abortable: AbortController; intercepted: boolean; thenables: Promise<void>[]; }>();
+export class LoadEvent extends Event implements NavigateEvent {
+	readonly navigationType: NavigationTypeString = "load" as any;
+	readonly userInitiated: boolean = false;
+	readonly canIntercept: boolean = true;
+	readonly hashChange: boolean = false;
+	readonly formData: FormData | null = null;
+	readonly downloadRequest: string | null = null;
+	readonly destination: NavigationDestination;
+	readonly signal: AbortSignal;
+
+	constructor() {
+		super('navigate', { cancelable: false, bubbles: false, composed: false });
+		const currentEntry = window.navigation.currentEntry;
+		if (!currentEntry) throw new Error("Current entry is null");
+		this.destination = {
+			getState() {
+				return currentEntry.getState();
+			},
+			url: currentEntry.url ?? new URL(window.location.href).href,
+			key: currentEntry.key,
+			index: currentEntry.index,
+			id: currentEntry.id,
+			sameDocument: true
+		};
+
+		const abortable = new AbortController();
+		privateDetails.set(this, { abortable, intercepted: false, thenables: [] });
+		this.signal = abortable.signal;
+	}
+
+	intercept(options?: NavigationInterceptOptions | undefined): void {
+		const details = privateDetails.get(this);
+		if (!details) return;
+		if (details.intercepted) throw new DOMException("Failed to execute 'intercept' on 'NavigateEvent': intercept() may only be called while the navigate event is being dispatched.");
+		const thenable = options?.handler?.();
+		if (thenable) details.thenables.push(thenable);
+		if (details.thenables.length === 1) {
+			PromiseAllDynamic(details.thenables).then(() => {
+				details.intercepted = true;
+			});
+		}
+	}
+
+	scroll(): void {
+		throw new Error("Method not implemented.");
+	}
 }

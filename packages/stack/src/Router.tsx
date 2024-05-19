@@ -1,4 +1,4 @@
-import { RouterBase, clamp, includesRoute, isFirstLoad, isValidScreenChild, matchRoute } from '@react-motion-router/core';
+import { RouterBase, includesRoute, isFirstLoad, isValidScreenChild, matchRoute } from '@react-motion-router/core';
 import type { NestedRouterContext, RouterBaseProps, RouterBaseState, ScreenChild } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { ScreenProps, Screen } from './Screen';
@@ -65,13 +65,6 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         super.componentDidMount();
         this.ref.current?.addEventListener('swipestart', this.onSwipeStart);
         this.ref.current?.addEventListener('swipeend', this.onSwipeEnd);
-
-        // Trigger reload on first load.
-        // Gives routers ability to initialise state with the benefits of interception.
-        const transitionFinished = window.navigation.transition?.finished ?? Promise.resolve();
-        transitionFinished.then(() => {
-            window.navigation.reload({ info: { firstLoad: true } })
-        });
     }
 
     componentWillUnmount(): void {
@@ -107,19 +100,19 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             case "right":
                 rangeStart = 0;
                 rangeEnd = this.ref.current.clientWidth;
-            break;
+                break;
             case "left":
                 rangeStart = this.ref.current.clientWidth;
                 rangeEnd = 0;
-            break;
+                break;
             case "down":
                 rangeStart = 0;
                 rangeEnd = this.ref.current.clientHeight;
-            break;
+                break;
             case "up":
                 rangeStart = this.ref.current.clientHeight;
                 rangeEnd = 0;
-            break;
+                break;
         }
         this.screenTransitionLayer.current.animation.timeline = new GestureTimeline({
             source: this.ref.current,
@@ -283,11 +276,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
     }
 
     private handleReload(e: NavigateEvent) {
-        if (isFirstLoad(e.info)) {
-            this.handleFirstLoad(e);
-        } else {
-            this.handleReplace(e);
-        }
+        this.handleReplace(e);
     }
 
     private handleFirstLoad(e: NavigateEvent) {
@@ -331,10 +320,9 @@ export class Router extends RouterBase<RouterProps, RouterState> {
 
             return new Promise<void>((resolve) => startTransition(() => {
                 this.setState({ screenStack, transition, destination }, async () => {
-                    if (isFirstLoad(e.info) && !initialPathnameMatched) {
+                    if (isFirstLoad(e.info) && !initialPathnameMatched && this.props.config.initialPathname) {
                         transition?.finished.then(() => {
-                            if (!this.props.config.initialPathname) return;
-                            this.navigation.replace(this.props.config.initialPathname).finished.then(() => {
+                            this.navigation.replace(this.props.config.initialPathname!).finished.then(() => {
                                 const state = e.destination.getState() as HistoryEntryState ?? {};
                                 this.navigation.push(e.destination.url, state);
                             });
