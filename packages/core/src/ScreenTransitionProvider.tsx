@@ -17,7 +17,7 @@ interface ScreenTransitionProviderState {
 }
 
 export class ScreenTransitionProvider extends Component<ScreenTransitionProviderProps, ScreenTransitionProviderState> {
-    public readonly ref = createRef<HTMLDivElement>();
+    public readonly ref = createRef<HTMLElement>();
     static readonly contextType = ScreenTransitionLayerContext;
     context!: React.ContextType<typeof ScreenTransitionLayerContext>;
     public index = 0;
