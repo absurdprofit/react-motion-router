@@ -28,7 +28,7 @@ export interface HistoryEntryState {
 	params?: PlainObject;
 }
 
-export function isRefObject<T>(value: React.LegacyRef<T>): value is RefObject<T> {
+export function isRefObject<T>(value?: React.LegacyRef<T>): value is RefObject<T> {
 	if (
 		value !== null
 		&& typeof value === 'object'

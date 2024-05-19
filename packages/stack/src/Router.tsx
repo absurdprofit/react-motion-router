@@ -31,11 +31,11 @@ export interface RouterState extends RouterBaseState<Navigation> {
 }
 
 export class Router extends RouterBase<RouterProps, RouterState> {
+    public readonly navigation = new Navigation(this);
+
     constructor(props: RouterProps, context: React.ContextType<typeof NestedRouterContext>) {
         super(props, context);
-
         this.state = {
-            navigation: new Navigation(this),
             screenStack: [],
             gestureDirection: "horizontal",
             gestureAreaWidth: 50,
@@ -51,7 +51,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
     }
 
     static getDerivedStateFromProps(_: RouterProps, state: RouterState) {
-        const config = state.screenStack.find(screen => screen.key === state.navigation.current.key)?.props.config;
+        const config = state.screenStack.find(screen => isRefObject(screen.ref) && screen.ref.current?.focused)?.props.config;
         return {
             gestureDirection: config?.gestureDirection ?? state.gestureDirection,
             gestureAreaWidth: config?.gestureAreaWidth ?? state.gestureAreaWidth,
@@ -65,10 +65,16 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         super.componentDidMount();
         this.ref.current?.addEventListener('swipestart', this.onSwipeStart);
         this.ref.current?.addEventListener('swipeend', this.onSwipeEnd);
+
+        // Trigger reload on first load.
+        // Gives routers ability to initialise state with the benefits of interception.
+        const transitionFinished = window.navigation.transition?.finished ?? Promise.resolve();
+        transitionFinished.then(() => {
+            window.navigation.reload({ info: { firstLoad: true } })
+        });
     }
 
     componentWillUnmount(): void {
-        super.componentWillUnmount();
         this.ref.current?.removeEventListener('swipestart', this.onSwipeStart);
         this.ref.current?.removeEventListener('swipeend', this.onSwipeEnd);
     }
@@ -143,7 +149,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         transition?.finished.then(() => {
             const from = transition?.from;
             if (rollback && from) {
-                window.navigation.traverseTo(from.key, { info: { rollback }});
+                window.navigation.traverseTo(from.key, { info: { rollback } });
             }
         });
     }
@@ -174,7 +180,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
 
     private getScreenRefByKey(key: string) {
         const screen = this.state.screenStack.find(screen => screen.key === key)?.ref;
-        if (screen && isRefObject(screen)) return screen;
+        if (isRefObject(screen)) return screen;
         return null;
     }
 
@@ -207,6 +213,10 @@ export class Router extends RouterBase<RouterProps, RouterState> {
 
             case "reload":
                 this.handleReload(e);
+                break;
+
+            case "load" as any:
+                this.handleFirstLoad(e);
                 break;
 
             default:
@@ -273,6 +283,14 @@ export class Router extends RouterBase<RouterProps, RouterState> {
     }
 
     private handleReload(e: NavigateEvent) {
+        if (isFirstLoad(e.info)) {
+            this.handleFirstLoad(e);
+        } else {
+            this.handleReplace(e);
+        }
+    }
+
+    private handleFirstLoad(e: NavigateEvent) {
         const handler = () => {
             const transition = window.navigation.transition;
             const destination = e.destination;
@@ -424,16 +442,16 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             }
             const topScreenIndex = this.screens.findIndex(screen => screen.ref === (backNavigating ? outgoingScreen : incomingScreen));
             this.screenTransitionLayer.current.screens = this.screens
-            .map((screen, index) => {
-                // normalise indices making incoming screen index 1 and preceding screens index 0...-n
-                index = (index - topScreenIndex) + 1;
-                if (screen.ref && isRefObject(screen.ref) && screen.ref.current?.screenTransitionProvider.current) {
-                    screen.ref.current.screenTransitionProvider.current.index = index;
-                    return screen.ref;
-                }
-                return null;
-            })
-            .filter(isRefObject);
+                .map((screen, index) => {
+                    // normalise indices making incoming screen index 1 and preceding screens index 0...-n
+                    index = (index - topScreenIndex) + 1;
+                    if (isRefObject(screen.ref) && screen.ref.current?.screenTransitionProvider.current) {
+                        screen.ref.current.screenTransitionProvider.current.index = index;
+                        return screen.ref;
+                    }
+                    return null;
+                })
+                .filter(isRefObject);
 
             return this.screenTransitionLayer.current.transition();
         }

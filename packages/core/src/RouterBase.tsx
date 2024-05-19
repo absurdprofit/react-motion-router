@@ -26,28 +26,27 @@ export interface RouterBaseProps<S extends ScreenBase = ScreenBase> {
 export interface RouterBaseState<N extends NavigationBase = NavigationBase> {
     defaultDocumentTitle: string;
     documentTitle: string;
-    navigation: N;
 }
 
 export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState, E extends RouterBaseEventMap = RouterBaseEventMap> extends Component<P, S> {
     protected readonly ref = createRef<HTMLRouterBaseElement<E>>();
     protected screenTransitionLayer = createRef<ScreenTransitionLayer>();
+    public abstract readonly navigation: NavigationBase;
     public readonly screenState: ScreenState = new Map();
-    public readonly parentRouter: RouterBase | null = null;
+    public readonly parent: RouterBase | null = null;
+    private _child: WeakRef<RouterBase> | null = null;
     public readonly parentScreen: ScreenBase | null = null;
-    private _childRouter: WeakRef<RouterBase> | null = null;
     private static rootRouterRef: WeakRef<RouterBase> | null = null;
     static readonly contextType = NestedRouterContext;
     context!: React.ContextType<typeof NestedRouterContext>;
-    private firstLoadResult: NavigationResult | null = null;
 
     constructor(props: P, context: React.ContextType<typeof NestedRouterContext>) {
         super(props);
 
         this.parentScreen = context?.parentScreen ?? null;
-        this.parentRouter = context?.parentRouter ?? null;
-        if (this.parentRouter) {
-            this.parentRouter.childRouter = this;
+        this.parent = context?.parentRouter ?? null;
+        if (this.parent) {
+            this.parent.child = this;
         }
         if (this.isRoot) {
             RouterBase.rootRouterRef = new WeakRef(this);
@@ -72,16 +71,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         if (this.isRoot) {
             window.navigation.addEventListener('navigate', this.handleNavigationDispatch);
         }
-        
-        // Trigger reload on first load.
-        // Gives routers ability to initialise state with the benefits of interception.
-        const transitionFinished = window.navigation.transition?.finished ?? Promise.resolve();
-        transitionFinished.then(() => {
-            if (!this.firstLoadResult) {
-                this.firstLoadResult = window.navigation.reload({ info: { firstLoad: true } });
-            }
-        });
-
     }
 
     componentWillUnmount() {
@@ -94,8 +83,8 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         if (!this.canIntercept(e)) return;
         let router: RouterBase = this;
         // travel down router tree to find the correct router
-        while (router.childRouter?.canIntercept(e)) {
-            router = router.childRouter;
+        while (router.child?.canIntercept(e)) {
+            router = router.child;
         }
         router.intercept(e);
     }
@@ -104,8 +93,8 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         const router = target ?? RouterBase.rootRouterRef?.deref();
         if (router!.id === routerId) {
             return router ?? null;
-        } else if (router?.childRouter) {
-            return this.getRouterById(routerId, router!.childRouter);
+        } else if (router?.child) {
+            return this.getRouterById(routerId, router!.child);
         } else {
             return null;
         }
@@ -166,7 +155,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
 
     get id(): string {
         if (this.props.id) return this.props.id;
-        const prefix = this.parentRouter ? `${this.parentRouter.id}-` : '';
+        const prefix = this.parent ? `${this.parent.id}-` : '';
         const id = (this.parentScreen?.path ?? 'root')
             .toLowerCase()
             .replace(/[^\w-]/g, '-') // Remove non-alphanumeric chars
@@ -176,7 +165,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     }
 
     get isRoot() {
-        return !this.parentRouter;
+        return !this.parent;
     }
 
     get baseURL() {
@@ -191,9 +180,9 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         const defaultBasePathname = this.isRoot ? new URL(".", document.baseURI).href.replace(baseURL, '') : ".";
         let basePathname = this.props.config.basePathname ?? defaultBasePathname;
 
-        if (this.parentRouter && this.parentScreen) {
+        if (this.parent && this.parentScreen) {
             const { resolvedPathname = window.location.pathname, path } = this.parentScreen;
-            const parentBaseURL = this.parentRouter.baseURL?.href;
+            const parentBaseURL = this.parent.baseURL?.href;
             const pattern = new URLPattern({ baseURL: parentBaseURL, pathname: path });
             baseURL = resolveBaseURLFromPattern(
                 pattern.pathname,
@@ -214,27 +203,23 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         return Boolean(this.ref.current);
     }
 
-    get navigation(): S["navigation"] {
-        return this.state.navigation;
+    get child() {
+        return this._child?.deref() ?? null;
     }
 
-    get childRouter() {
-        return this._childRouter?.deref() ?? null;
-    }
-
-    set childRouter(childRouter: RouterBase | null) {
-        const currentChildRouter = this._childRouter?.deref();
+    set child(child: RouterBase | null) {
+        const currentChildRouter = this._child?.deref();
         if (
             currentChildRouter
-            && childRouter?.id !== currentChildRouter?.id
+            && child?.id !== currentChildRouter?.id
             && currentChildRouter?.mounted
         ) {
             throw new Error("It looks like you have two navigators at the same level. Try simplifying your navigation structure by using a nested router instead.");
         }
-        if (childRouter)
-            this._childRouter = new WeakRef(childRouter);
+        if (child)
+            this._child = new WeakRef(child);
         else
-            this._childRouter = null;
+            this._child = null;
     }
 
     protected abstract canIntercept(navigateEvent: NavigateEvent): boolean;

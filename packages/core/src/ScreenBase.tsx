@@ -101,6 +101,10 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
             .replace(/^-|-$/g, ''); // Remove leading and trailing hyphens;
     }
 
+    get focused() {
+        return this.state.focused;
+    }
+
     blur() {
         return new Promise<void>(resolve => this.setState({ focused: false }, resolve));
     }

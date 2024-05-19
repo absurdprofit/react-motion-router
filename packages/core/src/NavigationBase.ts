@@ -31,7 +31,7 @@ export abstract class NavigationBase<E extends RouterBaseEventMap = RouterBaseEv
     }
 
     get parent(): NavigationBase | null {
-        return this.router.parentRouter?.navigation ?? null;
+        return this.router.parent?.navigation ?? null;
     }
 
     get routerId() {
