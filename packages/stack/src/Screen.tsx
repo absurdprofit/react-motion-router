@@ -22,14 +22,14 @@ export interface ScreenProps extends ScreenBaseProps {
 export interface ScreenState extends ScreenBaseState { }
 
 export class Screen extends ScreenBase<ScreenProps, ScreenState> {
-    constructor(props: ScreenProps) {
-        super(props);
-
+    static getDerivedStateFromProps(props: ScreenProps) {
         if (
             props.config?.presentation === "dialog"
             || props.config?.presentation === "modal"
         )
-            this.elementType = "dialog";
+            return { elementType: "dialog" };
+        else
+            return { elementType: "div" };
     }
 
     get routeProp() {

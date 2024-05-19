@@ -47,9 +47,6 @@ export class ParallelEffect extends GroupEffect {
 		const { activeDuration, localTime } = computedTiming;
 		if (localTime && activeDuration)
 			computedTiming.progress = cssNumberishToNumber(localTime, 'ms') / cssNumberishToNumber(activeDuration, 'ms');
-		if (computedTiming.endTime === 0) {
-			// console.log(this);
-		}
 		return computedTiming;
 	}
 

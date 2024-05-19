@@ -2,7 +2,6 @@ export abstract class GroupEffect implements AnimationEffect {
 	#children: AnimationEffect[] = [];
 	constructor(children: AnimationEffect[]) {
 		this.#children = children;
-		console.log(this);
 	}
 
 	get children() {

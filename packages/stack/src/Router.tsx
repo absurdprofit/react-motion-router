@@ -88,7 +88,6 @@ export class Router extends RouterBase<RouterProps, RouterState> {
     }
 
     private onSwipeStart = (e: SwipeStartEvent) => {
-        // TODO: factor in gesture region
         if (!this.canGestureNavigate(e)) return;
         if (!this.ref.current || !this.screenTransitionLayer.current) return;
         const { direction } = e;
@@ -209,22 +208,13 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                 break;
 
             case "load" as any:
-                this.handleFirstLoad(e);
+                this.handleLoad(e);
                 break;
 
             default:
                 this.handleDefault(e);
                 break;
         }
-
-        // window.navigation.addEventListener(
-        //     'navigatesuccess',
-        //     () => window.navigation.updateCurrentEntry({ state: {
-        //         ...(window.navigation.currentEntry?.getState() ?? {}),
-        //         sourceEvent: e
-        //     }}),
-        //     { once: true }
-        // );
     }
 
     private handleReplace(e: NavigateEvent) {
@@ -279,22 +269,15 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         this.handleReplace(e);
     }
 
-    private handleFirstLoad(e: NavigateEvent) {
+    private handleLoad(e: NavigateEvent) {
         const handler = () => {
             const transition = window.navigation.transition;
             const destination = e.destination;
             const screenStack = new Array<ScreenChild<ScreenProps, Screen>>();
             let initialPathnameMatched = false;
             const entries = this.navigation.entries;
-            entries.forEach((entry, index) => {
+            entries.forEach((entry) => {
                 if (!entry.url) return null;
-                if (this.props.config.initialPathname && (index === 0 || index === entries.length - 1)) {
-                    initialPathnameMatched = Boolean(matchRoute(
-                        this.props.config.initialPathname,
-                        entry.url.pathname,
-                        this.baseURLPattern.pathname
-                    )) || initialPathnameMatched;
-                }
                 const screen = this.screenChildFromPathname(entry.url.pathname);
                 if (!isValidScreenChild<Screen>(screen)) return null;
                 const { params, config } = entry.getState() as HistoryEntryState ?? {};
@@ -320,12 +303,19 @@ export class Router extends RouterBase<RouterProps, RouterState> {
 
             return new Promise<void>((resolve) => startTransition(() => {
                 this.setState({ screenStack, transition, destination }, async () => {
-                    if (isFirstLoad(e.info) && !initialPathnameMatched && this.props.config.initialPathname) {
-                        transition?.finished.then(() => {
-                            this.navigation.replace(this.props.config.initialPathname!).finished.then(() => {
-                                const state = e.destination.getState() as HistoryEntryState ?? {};
-                                this.navigation.push(e.destination.url, state);
-                            });
+                    if (
+                        this.props.config.initialPathname
+                        && entries.length === 1
+                        && entries.at(0)?.url
+                        && !Boolean(matchRoute(
+                            this.props.config.initialPathname,
+                            entries.at(0)!.url!.pathname,
+                            this.baseURLPattern.pathname
+                        ))
+                    ) {
+                        this.navigation.replace(this.props.config.initialPathname!).finished.then(() => {
+                            const state = e.destination.getState() as HistoryEntryState ?? {};
+                            this.navigation.push(e.destination.url, state);
                         });
                         return resolve();
                     }

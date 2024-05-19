@@ -38,7 +38,8 @@ export default function Overlays(props: OverlaysProps) {
         <div className={`overlays ${isFirstLoad ? 'loaded' : 'suspense'}`}>
             <div style={{ position: "absolute", width: "100vw", height: "100vh" }}>
                 <Stack.Router config={{
-                    disableBrowserRouting: isPWA() && isIOS()
+                    disableBrowserRouting: isPWA() && isIOS(),
+                    initialPathname: '.'
                 }}>
                     <Stack.Screen component={Home} path="." config={{
                         animation: HomeAnimation,

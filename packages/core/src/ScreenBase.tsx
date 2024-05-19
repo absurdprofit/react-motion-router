@@ -51,18 +51,19 @@ export interface ScreenBaseProps<R extends RoutePropBase = RoutePropBase> {
 
 export interface ScreenBaseState {
     focused: boolean;
+    elementType: ElementType | string;
 }
 
 export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState, R extends RoutePropBase<ScreenBaseProps["config"]> = RoutePropBase<ScreenBaseProps["config"]>> extends Component<P, S> {
     public readonly sharedElementScene: SharedElementScene;
     #screenTransitionProvider = createRef<ScreenTransitionProvider>();
     protected readonly ref = createRef<HTMLDivElement>();
-    protected elementType: ElementType | string = "div";
     static readonly contextType = RouterContext;
     context!: React.ContextType<typeof RouterContext>;
 
     state: S = {
-        focused: false
+        focused: false,
+        elementType: 'div'
     } as S;
 
     constructor(props: P) {
@@ -189,7 +190,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         return (
             <ScreenTransitionProvider
                 ref={this.#screenTransitionProvider}
-                renderAs={this.elementType}
+                renderAs={this.state.elementType}
                 id={`${this.id}-animation-provider`}
                 animation={routeProp.config.animation}
                 navigation={navigation}

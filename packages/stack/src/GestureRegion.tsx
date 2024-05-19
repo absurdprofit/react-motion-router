@@ -10,6 +10,7 @@ export function GestureRegion({disabled, children, ...props}: GestureRegionProps
     useEffect(() => {
         const onSwipeStart = (e: SwipeStartEvent) => {
             e.stopPropagation();
+            e.preventDefault();
         }
 
         ref.current?.addEventListener('swipestart', onSwipeStart);
