@@ -19,8 +19,8 @@ interface ScreenTransitionLayerState {
 export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps, ScreenTransitionLayerState> {
     public readonly sharedElementTransitionLayer = createRef<SharedElementTransitionLayer>();
     public readonly animation: Animation = new Animation();
-    private _direction: PlaybackDirection = "normal";
-    private _screens: RefObject<ScreenBase>[] = new Array();
+    #direction: PlaybackDirection = "normal";
+    #screens: RefObject<ScreenBase>[] = new Array();
 
     state: ScreenTransitionLayerState = {
         gestureNavigating: false,
@@ -45,20 +45,20 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
     }
 
     get screens() {
-        return this._screens;
+        return this.#screens;
     }
 
     set screens(screens: RefObject<ScreenBase>[]) {
-        this._screens = screens;
+        this.#screens = screens;
     }
 
     set direction(direction: PlaybackDirection) {
-        this._direction = direction;
+        this.#direction = direction;
         this.animation.effect?.updateTiming({ direction: direction });
     }
 
     get direction() {
-        return this._direction;
+        return this.#direction;
     }
 
     public transition() {

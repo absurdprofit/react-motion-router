@@ -1,17 +1,15 @@
-import { ParallelEffectDetails } from "./common/types";
 import { cssNumberishToNumber } from "./common/utils";
 import { GroupEffect } from "./group-effect";
 
-const privateDetails = new WeakMap<ParallelEffect, ParallelEffectDetails>();
-
 export class ParallelEffect extends GroupEffect {
+	#timing: EffectTiming;
 	constructor(effects: AnimationEffect[], timing: OptionalEffectTiming = {}) {
 		super(effects);
-		privateDetails.set(this, {timing});
+		this.#timing = timing;
 	}
 
 	getTiming(): EffectTiming {
-		const timing: EffectTiming = privateDetails.get(this)?.timing ?? {};
+		const timing: EffectTiming = this.#timing;
 		for (let i = 0; i < this.children.length; i++) {
 			const child = this.children.item(i);
 			if (!child) continue;
@@ -56,12 +54,9 @@ export class ParallelEffect extends GroupEffect {
 	}
 
 	updateTiming(timing?: OptionalEffectTiming) {
-		const details = privateDetails.get(this);
-		if (details) {
-			details.timing = {
-				...details.timing,
-				...timing
-			};
-		}
+		this.#timing = {
+			...this.#timing,
+			...timing
+		};
 	}
 }

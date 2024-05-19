@@ -13,27 +13,27 @@ interface SharedElementTransitionLayerState { }
 
 export class SharedElementTransitionLayer extends Component<SharedElementTransitionLayerProps, SharedElementTransitionLayerState> {
     public readonly ref = createRef<HTMLDialogElement>();
-    private _outgoingScreen: RefObject<ScreenBase> | null = null;
-    private _incomingScreen: RefObject<ScreenBase> | null = null;
+    #outgoingScreen: RefObject<ScreenBase> | null = null;
+    #incomingScreen: RefObject<ScreenBase> | null = null;
 
     state: SharedElementTransitionLayerState = {
         transitioning: false
     }
 
     set outgoingScreen(outgoingScreen: RefObject<ScreenBase> | null) {
-        this._outgoingScreen = outgoingScreen;
+        this.#outgoingScreen = outgoingScreen;
     }
 
     set incomingScreen(incomingScreen: RefObject<ScreenBase> | null) {
-        this._incomingScreen = incomingScreen;
+        this.#incomingScreen = incomingScreen;
     }
 
     get outgoingScreen() {
-        return this._outgoingScreen;
+        return this.#outgoingScreen;
     }
 
     get incomingScreen() {
-        return this._incomingScreen;
+        return this.#incomingScreen;
     }
 
     getComputedStyles(element: HTMLElement, styles: WillChange[]) {

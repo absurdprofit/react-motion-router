@@ -55,7 +55,7 @@ export interface ScreenBaseState {
 
 export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState, R extends RoutePropBase<ScreenBaseProps["config"]> = RoutePropBase<ScreenBaseProps["config"]>> extends Component<P, S> {
     public readonly sharedElementScene: SharedElementScene;
-    private _screenTransitionProvider = createRef<ScreenTransitionProvider>();
+    #screenTransitionProvider = createRef<ScreenTransitionProvider>();
     protected readonly ref = createRef<HTMLDivElement>();
     protected elementType: ElementType | string = "div";
     static readonly contextType = RouterContext;
@@ -176,7 +176,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     }
 
     get screenTransitionProvider() {
-        return this._screenTransitionProvider;
+        return this.#screenTransitionProvider;
     }
 
     render() {
@@ -188,7 +188,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
 
         return (
             <ScreenTransitionProvider
-                ref={this._screenTransitionProvider}
+                ref={this.#screenTransitionProvider}
                 renderAs={this.elementType}
                 id={`${this.id}-animation-provider`}
                 animation={routeProp.config.animation}

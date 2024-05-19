@@ -31,7 +31,7 @@ export interface AnimationEffectFactoryProps<R extends HTMLElement = HTMLElement
     ref: R | null;
     index: number;
     exiting: boolean;
-    timeline: AnimationTimeline;
+    timeline: AnimationTimeline | null;
     playbackRate: number;
     direction: PlaybackDirection;
 }

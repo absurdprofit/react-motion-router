@@ -1,18 +1,12 @@
-import { GroupEffectDetails } from "./common/types";
-
-const privateDetails = new WeakMap<GroupEffect, GroupEffectDetails>();
-
 export abstract class GroupEffect implements AnimationEffect {
+	#children: AnimationEffect[] = [];
 	constructor(children: AnimationEffect[]) {
-		privateDetails.set(this, {
-			children,
-			parent: null
-		});
+		this.#children = children;
+		console.log(this);
 	}
 
 	get children() {
-		const details = privateDetails.get(this);
-		const _children = details?.children ?? [];
+		const _children = this.#children;
 		return {
 			length: _children.length,
 			item(index: number) {
@@ -22,13 +16,11 @@ export abstract class GroupEffect implements AnimationEffect {
 	}
 
 	get firstChild() {
-		const details = privateDetails.get(this);
-		return details?.children.at(0) ?? null;
+		return this.#children.at(0) ?? null;
 	}
 
 	get lastChild() {
-		const details = privateDetails.get(this);
-		return details?.children.at(-1) ?? null;
+		return this.#children.at(-1) ?? null;
 	}
 
 	abstract getComputedTiming(): ComputedEffectTiming;
@@ -40,18 +32,16 @@ export abstract class GroupEffect implements AnimationEffect {
 	}
 
 	append(...children: AnimationEffect[]): void {
-		const details = privateDetails.get(this);
 		children.forEach(child => {
-			if (details && !details.children.includes(child))
-				details.children.push(child);
+			if (!this.#children.includes(child))
+				this.#children.push(child);
 		});
 	}
 
 	prepend(...children: AnimationEffect[]): void {
-		const details = privateDetails.get(this);
 		children.forEach(child => {
-			if (details && !details.children.includes(child))
-				details.children.unshift(child);
+			if (!this.#children.includes(child))
+				this.#children.unshift(child);
 		});
 	}
 }

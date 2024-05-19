@@ -34,7 +34,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     public abstract readonly navigation: NavigationBase;
     public readonly screenState: ScreenState = new Map();
     public readonly parent: RouterBase | null = null;
-    private _child: WeakRef<RouterBase> | null = null;
+    #child: WeakRef<RouterBase> | null = null;
     public readonly parentScreen: ScreenBase | null = null;
     private static rootRouterRef: WeakRef<RouterBase> | null = null;
     static readonly contextType = NestedRouterContext;
@@ -206,11 +206,11 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     }
 
     get child() {
-        return this._child?.deref() ?? null;
+        return this.#child?.deref() ?? null;
     }
 
     set child(child: RouterBase | null) {
-        const currentChildRouter = this._child?.deref();
+        const currentChildRouter = this.#child?.deref();
         if (
             currentChildRouter
             && child?.id !== currentChildRouter?.id
@@ -219,9 +219,9 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
             throw new Error("It looks like you have two navigators at the same level. Try simplifying your navigation structure by using a nested router instead.");
         }
         if (child)
-            this._child = new WeakRef(child);
+            this.#child = new WeakRef(child);
         else
-            this._child = null;
+            this.#child = null;
     }
 
     protected abstract canIntercept(navigateEvent: NavigateEvent): boolean;

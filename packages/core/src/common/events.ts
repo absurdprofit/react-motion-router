@@ -64,9 +64,8 @@ export class MotionProgressEndEvent extends Event {
 	}
 }
 
-const privateDetails = new WeakMap<LoadEvent, { abortable: AbortController; intercepted: boolean; thenables: Promise<void>[]; }>();
 export class LoadEvent extends Event implements NavigateEvent {
-	readonly navigationType: NavigationTypeString = "load" as any;
+	readonly navigationType = "load" as NavigationTypeString;
 	readonly userInitiated: boolean = false;
 	readonly canIntercept: boolean = true;
 	readonly hashChange: boolean = false;
@@ -74,6 +73,9 @@ export class LoadEvent extends Event implements NavigateEvent {
 	readonly downloadRequest: string | null = null;
 	readonly destination: NavigationDestination;
 	readonly signal: AbortSignal;
+	#abortable = new AbortController();
+	#intercepted = false;
+	#thenables: Promise<void>[] = [];
 
 	constructor() {
 		super('navigate', { cancelable: false, bubbles: false, composed: false });
@@ -90,20 +92,16 @@ export class LoadEvent extends Event implements NavigateEvent {
 			sameDocument: true
 		};
 
-		const abortable = new AbortController();
-		privateDetails.set(this, { abortable, intercepted: false, thenables: [] });
-		this.signal = abortable.signal;
+		this.signal = this.#abortable.signal;
 	}
 
 	intercept(options?: NavigationInterceptOptions | undefined): void {
-		const details = privateDetails.get(this);
-		if (!details) return;
-		if (details.intercepted) throw new DOMException("Failed to execute 'intercept' on 'NavigateEvent': intercept() may only be called while the navigate event is being dispatched.");
+		if (this.#intercepted) throw new DOMException("Failed to execute 'intercept' on 'NavigateEvent': intercept() may only be called while the navigate event is being dispatched.");
 		const thenable = options?.handler?.();
-		if (thenable) details.thenables.push(thenable);
-		if (details.thenables.length === 1) {
-			PromiseAllDynamic(details.thenables).then(() => {
-				details.intercepted = true;
+		if (thenable) this.#thenables.push(thenable);
+		if (this.#thenables.length === 1) {
+			PromiseAllDynamic(this.#thenables).then(() => {
+				this.#intercepted = true;
 			});
 		}
 	}
