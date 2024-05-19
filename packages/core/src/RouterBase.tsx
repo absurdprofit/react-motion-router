@@ -35,6 +35,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     public readonly screenState: ScreenState = new Map();
     public readonly parent: RouterBase | null = null;
     #child: WeakRef<RouterBase> | null = null;
+    private loadDispatched = false;
     public readonly parentScreen: ScreenBase | null = null;
     private static rootRouterRef: WeakRef<RouterBase> | null = null;
     static readonly contextType = NestedRouterContext;
@@ -72,7 +73,10 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
             window.navigation.addEventListener('navigate', this.handleNavigationDispatch);
         }
 
-        window.navigation.dispatchEvent(new LoadEvent());
+        if (!this.loadDispatched) {
+            window.navigation.dispatchEvent(new LoadEvent());
+            this.loadDispatched = true;
+        }
     }
 
     componentWillUnmount() {

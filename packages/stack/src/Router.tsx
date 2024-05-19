@@ -274,7 +274,6 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             const transition = window.navigation.transition;
             const destination = e.destination;
             const screenStack = new Array<ScreenChild<ScreenProps, Screen>>();
-            let initialPathnameMatched = false;
             const entries = this.navigation.entries;
             entries.forEach((entry) => {
                 if (!entry.url) return null;
@@ -313,9 +312,12 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                             this.baseURLPattern.pathname
                         ))
                     ) {
-                        this.navigation.replace(this.props.config.initialPathname!).finished.then(() => {
-                            const state = e.destination.getState() as HistoryEntryState ?? {};
-                            this.navigation.push(e.destination.url, state);
+                        const transitionFinished = window.navigation.transition?.finished ?? Promise.resolve();
+                        transitionFinished.then(() => {
+                            this.navigation.replace(this.props.config.initialPathname!).finished.then(() => {
+                                const state = e.destination.getState() as HistoryEntryState ?? {};
+                                this.navigation.push(e.destination.url, state);
+                            });
                         });
                         return resolve();
                     }
