@@ -12,13 +12,13 @@ export interface RouterProps extends RouterBaseProps<Screen> {
     config: RouterBaseProps["config"] & {
         screenConfig?: ScreenProps["config"];
         disableBrowserRouting?: boolean;
-        initialPath?: string;
+        initialPathname?: string;
         shouldIntercept?(navigateEvent: NavigateEvent): boolean;
         onIntercept?(navigateEvent: NavigateEvent): boolean;
     }
 }
 
-export interface RouterState extends RouterBaseState<Navigation> {
+export interface RouterState extends RouterBaseState {
     backNavigating: boolean;
     transition: NavigationTransition | null;
     destination: NavigationDestination | null;
@@ -295,15 +295,16 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             const transition = window.navigation.transition;
             const destination = e.destination;
             const screenStack = new Array<ScreenChild<ScreenProps, Screen>>();
-            let initialPathMatched = false;
-            this.navigation.entries.forEach(entry => {
+            let initialPathnameMatched = false;
+            const entries = this.navigation.entries;
+            entries.forEach((entry, index) => {
                 if (!entry.url) return null;
-                if (this.props.config.initialPath) {
-                    initialPathMatched = Boolean(matchRoute(
-                        this.props.config.initialPath,
+                if (this.props.config.initialPathname && (index === 0 || index === entries.length - 1)) {
+                    initialPathnameMatched = Boolean(matchRoute(
+                        this.props.config.initialPathname,
                         entry.url.pathname,
                         this.baseURLPattern.pathname
-                    )) || initialPathMatched;
+                    )) || initialPathnameMatched;
                 }
                 const screen = this.screenChildFromPathname(entry.url.pathname);
                 if (!isValidScreenChild<Screen>(screen)) return null;
@@ -330,10 +331,10 @@ export class Router extends RouterBase<RouterProps, RouterState> {
 
             return new Promise<void>((resolve) => startTransition(() => {
                 this.setState({ screenStack, transition, destination }, async () => {
-                    if (isFirstLoad(e.info) && !initialPathMatched) {
+                    if (isFirstLoad(e.info) && !initialPathnameMatched) {
                         transition?.finished.then(() => {
-                            if (!this.props.config.initialPath) return;
-                            this.navigation.replace(this.props.config.initialPath).finished.then(() => {
+                            if (!this.props.config.initialPathname) return;
+                            this.navigation.replace(this.props.config.initialPathname).finished.then(() => {
                                 const state = e.destination.getState() as HistoryEntryState ?? {};
                                 this.navigation.push(e.destination.url, state);
                             });

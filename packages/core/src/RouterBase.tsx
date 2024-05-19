@@ -23,7 +23,7 @@ export interface RouterBaseProps<S extends ScreenBase = ScreenBase> {
     children: ScreenChild<S["props"], S> | ScreenChild<S["props"], S>[];
 }
 
-export interface RouterBaseState<N extends NavigationBase = NavigationBase> {
+export interface RouterBaseState {
     defaultDocumentTitle: string;
     documentTitle: string;
 }
