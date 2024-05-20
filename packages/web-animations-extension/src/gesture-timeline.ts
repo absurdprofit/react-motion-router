@@ -56,7 +56,7 @@ export class GestureTimeline extends EventTarget implements AnimationTimeline {
 	constructor(options: GestureTimelineOptions = { type: "swipe", axis: "x", rangeStart: 0, rangeEnd: window.screen.availWidth, source: document.body }) {
 		super();
 		options.source.addEventListener(options.type, this.onGesture.bind(this));
-		this.#currentTime = CSSNumericValue.parse("0%");
+		this.#currentTime = CSS.percent(0);
 		this.#options = options;
 	}
 
@@ -113,7 +113,7 @@ export class GestureTimeline extends EventTarget implements AnimationTimeline {
 			}
 		}
 
-		this.#currentTime = CSSNumericValue.parse(`${percent}%`);
+		this.#currentTime = CSS.percent(percent);
 		this.dispatchEvent(new GestureTimelineUpdateEvent(this.#currentTime));
 	}
 

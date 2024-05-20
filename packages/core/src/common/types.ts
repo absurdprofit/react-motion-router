@@ -171,3 +171,7 @@ export interface SharedElementNode {
 export type SharedElementNodeMap = Map<string, SharedElementNode>;
 
 export type WillChange = keyof React.CSSProperties;
+
+export function isAnimationEffect(value: any): value is AnimationEffect {
+    return value instanceof AnimationEffect;
+}

@@ -1,11 +1,27 @@
+import { DEFAULT_TIMING } from "./common/constants";
 import { cssNumberishToNumber } from "./common/utils";
 import { GroupEffect } from "./group-effect";
 
 export class ParallelEffect extends GroupEffect {
-	#timing: EffectTiming;
-	constructor(effects: AnimationEffect[], timing: OptionalEffectTiming = {}) {
+	#timing: OptionalEffectTiming;
+	constructor(effects: AnimationEffect[], timing: OptionalEffectTiming = DEFAULT_TIMING) {
 		super(effects);
-		this.#timing = timing;
+		this.#timing = {
+			...DEFAULT_TIMING,
+			...timing
+		};
+
+		this.updateTiming();
+	}
+
+	prepend(...children: AnimationEffect[]): void {
+		super.prepend(...children);
+		this.updateTiming();
+	}
+
+	append(...children: AnimationEffect[]): void {
+		super.append(...children);
+		this.updateTiming();
 	}
 
 	getTiming(): EffectTiming {
@@ -21,10 +37,11 @@ export class ParallelEffect extends GroupEffect {
 			timing.playbackRate = timing.playbackRate ? Math.max(playbackRate, timing.playbackRate) : playbackRate;
 			timing.duration = timing.duration instanceof CSSNumericValue ? timing.duration.to('ms').value : timing.duration;
 			duration = duration instanceof CSSNumericValue ? duration.to('ms').value : duration;
-			if (typeof timing.duration === "string")
-				timing.duration = duration;
-			else if (typeof duration !== "string")
-				timing.duration = timing.duration ? Math.max(timing.duration, duration) : duration;
+			if (typeof duration !== 'string')
+				if (timing.duration === 'auto')
+					timing.duration = cssNumberishToNumber(duration, 'ms');
+				else if (typeof timing.duration !== 'string')
+					timing.duration = timing.duration ? Math.max(timing.duration, duration) : duration;
 		}
 	
 		return timing;
@@ -55,5 +72,9 @@ export class ParallelEffect extends GroupEffect {
 			...this.#timing,
 			...timing
 		};
+		for (let i = 0; i < this.children.length; i++) {
+			const child = this.children.item(i)
+			child?.updateTiming();
+		}
 	}
 }

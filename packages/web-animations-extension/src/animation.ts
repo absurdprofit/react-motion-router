@@ -2,6 +2,7 @@ import { NativeAnimation } from "./common/types";
 import { currentTimeFromPercent } from "./common/utils";
 import { GestureTimeline, GestureTimelineUpdateEvent } from "./gesture-timeline";
 import { GroupEffect } from "./group-effect";
+import { KeyframeEffect } from "./keyframe-effect";
 
 // TODO: properly handle updating playbackRate
 // TODO: properly handle playback. We need to manage pending states properly.
@@ -44,8 +45,8 @@ export class Animation extends EventTarget implements NativeAnimation {
 		}
 	}
 
-	#onGestureTimelineUpdate(this: Animation, {currentTime}: GestureTimelineUpdateEvent) {
-		const { startTime = 0, endTime = 0 } = this.effect?.getComputedTiming() ?? {};
+	#onGestureTimelineUpdate = ({currentTime}: GestureTimelineUpdateEvent) => {
+		const { startTime = 0, endTime = 0 } = this.#effect?.getComputedTiming() ?? {};
 		this.currentTime = currentTimeFromPercent(currentTime, startTime, endTime);
 	}
 
@@ -54,11 +55,10 @@ export class Animation extends EventTarget implements NativeAnimation {
 		const children = [];
 		if (effect instanceof GroupEffect) {
 			for (let i = 0; i < effect.children.length; i++) {
-				children.push(new Animation(effect.children.item(i), this.#timeline));
+				children.push(new Animation(effect.children.item(i)));
 			}
 		} else {
-			const timeline = this.#timeline instanceof GestureTimeline ? null : this.#timeline;
-			children.push(new NativeAnimation(effect, timeline));
+			children.push(new NativeAnimation(effect));
 		}
 	
 		this.#children = children;
@@ -175,13 +175,6 @@ export class Animation extends EventTarget implements NativeAnimation {
 
 		this.#timeline = _timeline ?? document.timeline;
 
-		this.#children.forEach(child => {
-			if (child instanceof Animation) {
-				child.timeline = _timeline;
-			} else {
-				child.timeline = _timeline instanceof GestureTimeline ? document.timeline : _timeline;
-			}
-		});
 		if (_timeline instanceof GestureTimeline) {
 			_timeline.addEventListener('update', this.#onGestureTimelineUpdate);
 			this.#children.forEach(child => child.pause());
@@ -241,6 +234,8 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	get effect() {
+		if (this.#effect instanceof KeyframeEffect)
+			return new KeyframeEffect(this.#effect, null, this.#timeline);
 		return this.#effect;
 	}
 }

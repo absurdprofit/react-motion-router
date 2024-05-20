@@ -61,15 +61,6 @@ export function getStyleObject(styles: CSSStyleDeclaration, exclude: string[] = 
     return styleObject;
 }
 
-export function clamp(num: number, min: number, max?: number) {
-    if (num < min) {
-        return min;
-    } else if (max && num > max) {
-        return max;
-    }
-    return num;
-}
-
 export function resolveBaseURLFromPattern(pattern: string, pathname: string) {
     if (!pattern.endsWith("**")) pattern += '**'; // allows us to match nested routes
     const origin = window.location.origin;

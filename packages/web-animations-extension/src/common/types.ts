@@ -15,6 +15,10 @@ export type EasingFunction = EasingFunctionKeyword | `cubic-bezier(${number},${'
 
 export type NativeAnimation = globalThis.Animation;
 export const NativeAnimation = window.Animation;
+export type NativeKeyframeEffect = globalThis.KeyframeEffect;
+export const NativeKeyframeEffect = window.KeyframeEffect;
+export type NativeAnimationEffect = globalThis.AnimationEffect;
+export const NativeAnimationEffect = window.AnimationEffect;
 
 export type Input = Record<string, number>;
 export type Output = Record<string, number>;

@@ -42,7 +42,7 @@ function calculateWeightedMean(input: Input, range: LerpRange, weights: Weights)
 export function interpolate<O extends LerpRange | number[]>(input: number, inputRange: [number, number], outputRange: O): O extends number[] ? number : Output;
 export function interpolate<O extends LerpRange | number[]>(input: Input, inputRange: LerpRange, outputRange: O, weights: Weights): O extends number[] ? number : Output;
 export function interpolate(input: Input | number, inputRange: LerpRange | number[], outputRange: number[] | LerpRange, weights: Weights = {}) {
-	let inputInterpolatedValue;
+	let normalisedInputValue;
 	if (typeof input === "number" && is1DRange(inputRange)) {
 		const min = { x: inputRange[0] };
 		const max = { x: inputRange[1] };
@@ -51,10 +51,14 @@ export function interpolate(input: Input | number, inputRange: LerpRange | numbe
 	} else {
 		throw new TypeError("Input and input range must have the same dimensions.");
 	}
-	inputInterpolatedValue = calculateWeightedMean(input, inputRange, weights);
+
+	// normalise input value in 0-1 range
+	normalisedInputValue = calculateWeightedMean(input, inputRange, weights);
+	// clamp normalised input
+	normalisedInputValue = clamp(normalisedInputValue, 0, 1);
 
 	if (is1DRange(outputRange)) {
-		return mapRange(inputInterpolatedValue, outputRange);
+		return mapRange(normalisedInputValue, outputRange);
 	}
 	// create output ranges (min/max) for each dimension and mapRange for each
 	const output: Output = {};
@@ -62,7 +66,7 @@ export function interpolate(input: Input | number, inputRange: LerpRange | numbe
 		const min = outputRange.min[dimension];
 		const max = outputRange.max[dimension];
 		const range = [min, max];
-		output[dimension] = mapRange(inputInterpolatedValue, range);
+		output[dimension] = mapRange(normalisedInputValue, range);
 	}
 	return output;
 }
@@ -131,4 +135,13 @@ export function easingToLinear(easing: (t: number) => number, steps = 100) {
 
 	// Construct the CSS linear() function string
 	return `linear(${easingPoints.join(', ')})`;
+}
+
+export function clamp(num: number, min: number, max?: number) {
+	if (num < min) {
+			return min;
+	} else if (max && num > max) {
+			return max;
+	}
+	return num;
 }

@@ -1,5 +1,5 @@
 import { Component, RefObject, createContext, createRef } from 'react';
-import { NavigationBase, ScreenBase, ScreenChild } from './index';
+import { NavigationBase, ScreenBase, ScreenChild, isAnimationEffect } from './index';
 import { MotionProgressEvent, TransitionCancelEvent, TransitionEndEvent, TransitionStartEvent } from './common/events';
 import { SharedElementTransitionLayer } from './SharedElementTransitionLayer';
 import { ParallelEffect, Animation } from 'web-animations-extension';
@@ -54,7 +54,7 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
 
     set direction(direction: PlaybackDirection) {
         this.#direction = direction;
-        this.animation.effect?.updateTiming({ direction: direction });
+        this.animation.effect?.updateTiming({ direction });
     }
 
     get direction() {
@@ -62,22 +62,19 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
     }
 
     public transition() {
-        const effect = new ParallelEffect([]);
-        this.screens.forEach(screen => {
-            if (!screen.current?.screenTransitionProvider) return;
-            const screenEffect = screen.current.screenTransitionProvider.current?.animationEffect;
-            if (screenEffect) effect.append(screenEffect);
-        })
+        const effect = new ParallelEffect(
+            this.screens.map(screen => {
+                return screen.current?.screenTransitionProvider?.current?.animationEffect;
+            }).filter(isAnimationEffect)
+        );
 
-        if (this.sharedElementTransitionLayer.current) {
-            const sharedElementEffect = this.sharedElementTransitionLayer.current.animationEffect;
-            const duration = effect.getComputedTiming().duration;
-            if (sharedElementEffect) {
-                sharedElementEffect.updateTiming({
-                    duration: duration instanceof CSSNumericValue ? duration.to('ms').value : duration
-                });
-                effect.append(sharedElementEffect);
-            }
+        const sharedElementEffect = this.sharedElementTransitionLayer.current?.animationEffect;
+        const duration = effect.getComputedTiming().duration;
+        if (sharedElementEffect) {
+            sharedElementEffect.updateTiming({
+                duration: duration instanceof CSSNumericValue ? duration.to('ms').value : duration
+            });
+            effect.append(sharedElementEffect);
         }
 
         this.animation.effect = effect;
