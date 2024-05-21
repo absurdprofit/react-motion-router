@@ -1,5 +1,5 @@
 import { GestureTimeline } from "../gesture-timeline";
-import { MAX_DURATION_PERCENTAGE, MIN_DURATION_PERCENTAGE, RESOLVED_AUTO_DURATION } from "./constants";
+import { DEFAULT_TIMING, MAX_DURATION_PERCENTAGE, MIN_DURATION_PERCENTAGE, RESOLVED_AUTO_DURATION } from "./constants";
 import { Input, LerpRange, Output, SpringToLinearProps, Weights, is1DRange } from "./types";
 
 export function cssNumberishToNumber(value: CSSNumberish, unit: string) {
@@ -8,8 +8,15 @@ export function cssNumberishToNumber(value: CSSNumberish, unit: string) {
 	return value;
 }
 
-export function currentTimeFromPercent(value: CSSUnitValue, timing: EffectTiming) {
+export function currentTimeFromPercent(value: CSSNumberish | null = null, timing: EffectTiming = DEFAULT_TIMING) {
 	let { duration = 'auto', iterations = 1, playbackRate = 1 } = timing;
+	if (value === null || typeof value === 'number' || !('type' in value.type())) {
+		throw new DOMException(
+			"CSSNumericValue must be a percentage for progress based animations.",
+			"NotSupportedError"
+		);
+	}
+
 	if (duration === 'auto') {
 		duration = RESOLVED_AUTO_DURATION; // arbitrary duration
 	} else if (duration instanceof CSSNumericValue) {
@@ -28,6 +35,20 @@ export function currentTimeFromPercent(value: CSSUnitValue, timing: EffectTiming
 		[0, totalDuration]
 	);
 	return time;
+}
+
+export function currentTimeFromTime(value: CSSNumberish | null = null) {
+	if (value === null || typeof value === 'number')
+		return value;
+
+	if ('time' in value.type()) {
+		throw new DOMException(
+			"CSSNumericValue must be a time value for time based animations.",
+			"NotSupportedError"
+		);
+	}
+
+	return value.to('ms').value;
 }
 
 function mapRange(input: number, outputRange: number[]): number {
@@ -189,7 +210,7 @@ export function computedTimingToPercent(computedTiming: ComputedEffectTiming, ti
 	duration = new CSSUnitValue((iterationDurationMs / totalTimeMs) * 100, 'percent');
 	const activeDuration = CSS.percent((duration.to('percent').value * iterations) / Math.abs(playbackRate));
 	const localTime = timeline.currentTime;
-	progress = clamp(localTime.to('percent').value / activeDuration.value, 0, 1);
+	progress = localTime.to('percent').value / CSS.percent(100).value;
 
 	return {
 		...computedTiming,

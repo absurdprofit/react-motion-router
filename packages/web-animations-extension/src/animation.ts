@@ -1,9 +1,10 @@
 import { associatedAnimation } from "./common/associated-animation";
 import { NativeAnimation, NativeKeyframeEffect } from "./common/types";
-import { currentTimeFromPercent } from "./common/utils";
+import { cssNumberishToNumber, currentTimeFromPercent, currentTimeFromTime } from "./common/utils";
 import { GestureTimeline, GestureTimelineUpdateEvent } from "./gesture-timeline";
 import { GroupEffect } from "./group-effect";
 import { KeyframeEffect } from "./keyframe-effect";
+import { PromiseWrapper } from "./promise-wrapper";
 
 // TODO: properly handle updating playbackRate
 // TODO: properly handle playback. We need to manage pending states properly.
@@ -22,8 +23,10 @@ export class Animation extends EventTarget implements NativeAnimation {
 		task: "play" | "pause" | null;
 		playbackRate: number | null;
 	};
-	#startTime: CSSNumberish | null;
-	#holdTime: CSSNumberish | null;
+	#readyPromise: PromiseWrapper<Animation> | null = null;
+	#startTime: number | null;
+	#holdTime: number | null;
+	#autoAlignStartTime: boolean = true;
 	#children: (NativeAnimation | Animation)[];
 	
 	constructor(effect?: AnimationEffect | null, timeline?: AnimationTimeline | null) {
@@ -53,6 +56,70 @@ export class Animation extends EventTarget implements NativeAnimation {
 		}
 	}
 
+	#createReadyPromise() {
+		this.#readyPromise = new PromiseWrapper();
+		requestAnimationFrame(() => {
+			const timelineTime = this.#timeline?.currentTime ?? null;
+			if (timelineTime === null) {
+				return
+			}
+			// autoAlignStartTime(details);
+			if (this.#pending.task === 'play' && (this.#startTime !== null || this.#holdTime !== null)) {
+				this.#commitPendingPlay();
+			} else if (this.#pending.task === 'pause') {
+				this.#commitPendingPause();
+			}
+		});
+	}
+
+	#commitPendingPlay()  {
+		const timelineTime = currentTimeFromPercent(this.#timeline?.currentTime, this.effect?.getTiming());
+		if (this.#holdTime != null) {
+			this.playbackRate = this.#pending.playbackRate ?? 1;
+			this.#pending.playbackRate = null;
+			if (this.playbackRate == 0) {
+				this.#startTime = timelineTime;
+			} else {
+				this.#startTime = timelineTime - this.#holdTime / this.playbackRate;
+				this.#holdTime = null;
+			}
+		} else if (this.#startTime !== null && this.#pending.playbackRate !== null) {
+			const currentTimeToMatch = (timelineTime - this.#startTime) * this.playbackRate;
+			this.playbackRate = this.#pending.playbackRate ?? 1;
+			this.#pending.playbackRate = null;
+			const playbackRate = this.playbackRate;
+			if (playbackRate == 0) {
+				this.#holdTime = null;
+				this.#startTime = timelineTime;
+			} else {
+				this.#startTime = timelineTime - currentTimeToMatch / playbackRate;
+			}
+		}
+	
+		if (this.#readyPromise && this.#readyPromise.state == 'pending')
+			 this.#readyPromise.resolve(this);
+	
+		// updateFinishedState(details, false, false);
+	
+		this.currentTime = this.#timeline?.currentTime ?? null;
+		this.#pending.task = null;
+	}
+
+	#commitPendingPause() {
+		const readyTime = currentTimeFromPercent(this.#timeline?.currentTime, this.effect?.getTiming());
+		if (this.#startTime != null && this.#holdTime == null) {
+			this.#holdTime = (readyTime - this.#startTime) * this.playbackRate;
+		}
+	
+		this.playbackRate = this.#pending.playbackRate ?? 1;
+		this.#pending.playbackRate = null;
+		this.#startTime = null;
+		this.#readyPromise?.resolve(this);
+		// updateFinishedState(details, false, false);
+		this.currentTime = this.#timeline?.currentTime ?? null;
+		this.#pending.task = null;
+	}
+
 	#onGestureTimelineUpdate = ({currentTime}: GestureTimelineUpdateEvent) => {
 		this.currentTime = currentTime;
 	}
@@ -65,7 +132,8 @@ export class Animation extends EventTarget implements NativeAnimation {
 				children.push(new Animation(effect.children.item(i)));
 			}
 		} else {
-			children.push(new NativeAnimation(effect));
+			const timeline = this.#timeline instanceof GestureTimeline ? document.timeline : this.#timeline;
+			children.push(new NativeAnimation(effect, timeline));
 		}
 	
 		this.#children = children;
@@ -115,7 +183,62 @@ export class Animation extends EventTarget implements NativeAnimation {
 		if (this.#timeline instanceof DocumentTimeline) {
 			this.#children.forEach(animation => animation.play());
 		} else {
+			const abortedPause = this.playState === 'paused' && this.pending;
 
+			let hasPendingReadyPromise = false;
+			let previousCurrentTime = null;
+			
+			if (this.#timeline instanceof GestureTimeline) {
+				previousCurrentTime = currentTimeFromPercent(this.#timeline.currentTime, this.effect?.getTiming());
+			} else {
+				previousCurrentTime = currentTimeFromTime(this.#timeline?.currentTime);
+			}
+
+			const playbackRate = this.#pending.playbackRate ?? this.playbackRate;
+			if (playbackRate === 0 && previousCurrentTime === null) {
+				this.#holdTime = 0;
+			}
+
+			if (previousCurrentTime === null) {
+				this.#autoAlignStartTime = true;
+			}
+
+			if (this.playState === 'finished' || abortedPause) {
+				this.#startTime = null;
+				this.#holdTime = null;
+				this.#autoAlignStartTime = true;
+			}
+
+			if (this.#holdTime) {
+				this.#startTime = null;
+			}
+
+			if (this.#pending.task) {
+				this.#pending.task = null;
+				hasPendingReadyPromise = true;
+			}
+
+			if (
+				this.#holdTime === null
+				&& !this.#autoAlignStartTime
+				&& !abortedPause
+				&& this.#pending.playbackRate === null
+			) {
+				return;
+			}
+
+			if (this.#readyPromise && !hasPendingReadyPromise) {
+				this.#readyPromise = null;
+			}
+
+			this.currentTime = this.#timeline?.currentTime ?? null;
+
+			if (!this.#readyPromise) {
+				this.#createReadyPromise();
+			}
+			this.#pending.task = 'play';
+
+			// updateFinishedState();
 		}
 	}
 
@@ -123,7 +246,20 @@ export class Animation extends EventTarget implements NativeAnimation {
 		if (this.#timeline instanceof DocumentTimeline) {
 			this.#children.forEach(animation => animation.pause());
 		} else {
-
+			if (this.playState == "paused")
+				return;
+			if (this.currentTime === null) {
+				this.#autoAlignStartTime = true;
+			}
+	
+			if (this.#pending.task == 'play')
+				this.#pending.task = null;
+			else
+				this.#readyPromise = null;
+	
+			if (!this.#readyPromise)
+				this.#createReadyPromise();
+			this.#pending.task ='pause';
 		}
 	}
 
@@ -149,7 +285,44 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	updatePlaybackRate(playbackRate: number): void {
-		this.#children.forEach(animation => animation.updatePlaybackRate(playbackRate));
+		if (this.#timeline instanceof GestureTimeline) {
+			this.#pending.playbackRate = playbackRate;
+			const previousPlayState = this.playState;
+
+    if (this.#readyPromise && this.#readyPromise.state == 'pending')
+      return;
+
+    switch(previousPlayState) {
+      case 'idle':
+      case 'paused':
+        this.playbackRate = this.#pending.playbackRate ?? 1;
+				this.#pending.playbackRate = null;
+			break;
+
+      case 'finished':
+        const timelineTime = currentTimeFromPercent(this.#timeline.currentTime, this.effect?.getTiming());
+        let unconstrainedCurrentTime = null;
+				if (timelineTime !== null) {
+					unconstrainedCurrentTime = (timelineTime - (this.#startTime ?? 0)) * this.playbackRate
+				}
+        if (playbackRate == 0) {
+          this.#startTime = timelineTime;
+        } else {
+					if (this.#startTime !== null && unconstrainedCurrentTime !== null)
+						this.#startTime = (timelineTime - unconstrainedCurrentTime) / playbackRate;
+        }
+        this.playbackRate = this.#pending.playbackRate ?? 1;
+				this.#pending.playbackRate = null;
+        // updateFinishedState(details, false, false);
+        this.currentTime = this.#timeline.currentTime ?? null;
+        break;
+
+      default:
+        this.play();
+    }
+		} else {
+			this.#children.forEach(animation => animation.updatePlaybackRate(animation.playbackRate * playbackRate));
+		}
 	}
 
 	addEventListener<K extends keyof AnimationEventMap>(type: K, listener: (ev: AnimationEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
@@ -171,19 +344,38 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	set currentTime(_currentTime: CSSNumberish | null) {
-		this.#children.forEach(child => {
-			if (!child.effect) return;
-			const timing = child.effect.getTiming();
-			if (this.#timeline instanceof GestureTimeline) {
-				if (_currentTime instanceof CSSUnitValue && _currentTime.unit === 'percent') {
-					child.currentTime = currentTimeFromPercent(_currentTime, timing);
-				} else {
-					throw new TypeError("currentTime must be a percent unit value for progress based animations.");
-				}
-			} else {
-				child.currentTime = _currentTime;
+		if (this.#timeline instanceof GestureTimeline) {
+			const timelineTimeMs = currentTimeFromPercent(_currentTime, this.effect?.getTiming());
+			// silentlySetTheCurrentTime();
+			if (this.#pending.task === 'pause') {
+				this.#holdTime = timelineTimeMs;
+				this.playbackRate = this.#pending.playbackRate ?? 1;
+				this.#pending.playbackRate = null;
+				this.#startTime = null;
+				this.#pending.task = null;
+				this.#readyPromise?.resolve(this);
 			}
-		});
+			this.#children.forEach(child => {
+				if (!child.effect) return;
+				if (this.#startTime !== null) {
+					const timelineTime = this.#timeline?.currentTime;
+					if (timelineTime === null)
+						return;
+
+					const atTimelineBoundary = timelineTime && cssNumberishToNumber(timelineTime, 'percent') == (this.playbackRate < 0 ? 0 : 100);
+					const delta = atTimelineBoundary ? (this.playbackRate < 0 ? 0.001 : -0.001) : 0;
+					_currentTime = (timelineTimeMs - this.#startTime) * this.playbackRate;
+					_currentTime += delta;
+				} else if (this.#holdTime !== null) {
+					_currentTime = this.#holdTime;
+				}
+				child.currentTime = _currentTime !== null ? cssNumberishToNumber(_currentTime, 'ms') : null;
+			});
+
+    	// updateFinishedState(details, true, false);
+		} else {
+			this.#children.forEach(child => child.currentTime = _currentTime);
+		}
 	}
 
 	set timeline(_timeline: AnimationTimeline | null) {
