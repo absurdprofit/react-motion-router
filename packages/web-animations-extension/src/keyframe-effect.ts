@@ -1,38 +1,47 @@
+import { associatedAnimation } from "./common/associated-animation";
 import { NativeKeyframeEffect } from "./common/types";
-import { cssNumberishToNumber } from "./common/utils";
+import { computedTimingToPercent, cssNumberishToNumber } from "./common/utils";
 import { GestureTimeline } from "./gesture-timeline";
 import { GroupEffect } from "./group-effect";
 
 export class KeyframeEffect extends NativeKeyframeEffect {
-	#timeline: AnimationTimeline | null;
 	#nativeEffect: NativeKeyframeEffect;
 	#parent: GroupEffect | null = null;
-	constructor(
-		effect: NativeKeyframeEffect,
-		parent: GroupEffect | null = null,
-		timeline: AnimationTimeline | null = null
-	) {
+	constructor(effect: NativeKeyframeEffect, parent: GroupEffect | null = null) {
 		super(effect);
 		this.#nativeEffect = effect;
 		this.#parent = parent;
-		this.#timeline = timeline;
 	}
 
 	get parent() {
 		return this.#parent;
 	}
 
+	get #associatedAnimation() {
+		return associatedAnimation.get(this) ?? null;
+	}
+
 	getTiming(): EffectTiming {
 		const timing = this.#nativeEffect.getTiming();
-		if (this.#timeline instanceof GestureTimeline)
-			return timing;
+		if (this.#associatedAnimation?.timeline instanceof GestureTimeline) {
+			if (timing.duration === Infinity)
+				throw TypeError("Effect duration cannot be Infinity for non-monotonic timelines.");
+			if (timing.iterations === Infinity)
+				throw TypeError("Effect iterations cannot be Infinity for non-monotonic timelines.");
+		}
 		return timing;
 	}
 
 	getComputedTiming(): ComputedEffectTiming {
 		const computedTiming = this.#nativeEffect.getComputedTiming();
-		if (this.#timeline instanceof GestureTimeline)
-			return computedTiming;
+		if (this.#associatedAnimation?.timeline instanceof GestureTimeline) {
+			if (computedTiming.duration === Infinity)
+				throw TypeError("Effect duration cannot be Infinity for non-monotonic timelines.");
+			if (computedTiming.iterations === Infinity)
+				throw TypeError("Effect iterations cannot be Infinity for non-monotonic timelines.");
+			
+			return computedTimingToPercent(computedTiming, this.#associatedAnimation.timeline);
+		}
 		return computedTiming;
 	}
 
@@ -66,7 +75,7 @@ export class KeyframeEffect extends NativeKeyframeEffect {
 			parent = parent.parent;
 		}
 
-		if (this.#timeline instanceof GestureTimeline) {
+		if (this.#associatedAnimation?.timeline instanceof GestureTimeline) {
 			if (timing?.duration === Infinity)
 				throw TypeError("Effect duration cannot be Infinity for non-monotonic timelines.");
 

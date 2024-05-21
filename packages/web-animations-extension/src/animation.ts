@@ -1,4 +1,5 @@
-import { NativeAnimation } from "./common/types";
+import { associatedAnimation } from "./common/associated-animation";
+import { NativeAnimation, NativeKeyframeEffect } from "./common/types";
 import { currentTimeFromPercent } from "./common/utils";
 import { GestureTimeline, GestureTimelineUpdateEvent } from "./gesture-timeline";
 import { GroupEffect } from "./group-effect";
@@ -28,16 +29,23 @@ export class Animation extends EventTarget implements NativeAnimation {
 	constructor(effect?: AnimationEffect | null, timeline?: AnimationTimeline | null) {
 		super();
 
-		this.#effect = effect ?? null,
-		this.#timeline = timeline ?? document.timeline,
-		this.#replaceState = "active",
+		this.#effect = effect ?? null;
+		this.#timeline = timeline ?? document.timeline;
+		this.#replaceState = "active";
 		this.#pending = {
 			playbackRate: null,
 			task: null
-		},
+		};
 		this.#startTime = null;
 		this.#holdTime = null;
 		this.#children = [];
+
+		if (effect instanceof NativeKeyframeEffect)
+			this.#effect = new KeyframeEffect(effect);
+
+		if (this.#effect)
+			associatedAnimation.set(this.#effect, this);
+
 		this.#updateChildren();
 
 		if (timeline instanceof GestureTimeline) {
@@ -46,12 +54,11 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	#onGestureTimelineUpdate = ({currentTime}: GestureTimelineUpdateEvent) => {
-		const { startTime = 0, endTime = 0 } = this.#effect?.getComputedTiming() ?? {};
-		this.currentTime = currentTimeFromPercent(currentTime, startTime, endTime);
+		this.currentTime = currentTime;
 	}
 
 	#updateChildren(this: Animation) {
-		const effect = this.#effect;
+		let effect = this.#effect;
 		const children = [];
 		if (effect instanceof GroupEffect) {
 			for (let i = 0; i < effect.children.length; i++) {
@@ -165,7 +172,17 @@ export class Animation extends EventTarget implements NativeAnimation {
 
 	set currentTime(_currentTime: CSSNumberish | null) {
 		this.#children.forEach(child => {
-			child.currentTime = _currentTime;
+			if (!child.effect) return;
+			const timing = child.effect.getTiming();
+			if (this.#timeline instanceof GestureTimeline) {
+				if (_currentTime instanceof CSSUnitValue && _currentTime.unit === 'percent') {
+					child.currentTime = currentTimeFromPercent(_currentTime, timing);
+				} else {
+					throw new TypeError("currentTime must be a percent unit value for progress based animations.");
+				}
+			} else {
+				child.currentTime = _currentTime;
+			}
 		});
 	}
 
@@ -181,8 +198,14 @@ export class Animation extends EventTarget implements NativeAnimation {
 		}
 	}
 
-	set effect(_effect: AnimationEffect | null) {
-		this.#effect = _effect;
+	set effect(effect: AnimationEffect | null) {
+		if (effect instanceof NativeKeyframeEffect)
+			effect = new KeyframeEffect(effect, null);
+		if (this.#effect)
+			associatedAnimation.delete(this.#effect);
+		this.#effect = effect;
+		if (effect)
+			associatedAnimation.set(effect, this);
 		this.#updateChildren();
 	}
 
@@ -234,8 +257,6 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	get effect() {
-		if (this.#effect instanceof KeyframeEffect)
-			return new KeyframeEffect(this.#effect, null, this.#timeline);
 		return this.#effect;
 	}
 }

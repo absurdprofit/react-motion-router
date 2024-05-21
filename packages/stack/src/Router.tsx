@@ -128,8 +128,8 @@ export class Router extends RouterBase<RouterProps, RouterState> {
 
     private onSwipeEnd = (e: SwipeEndEvent) => {
         if (!this.screenTransitionLayer.current) return;
-        this.screenTransitionLayer.current.animation.timeline = document.timeline;
         const progress = this.screenTransitionLayer.current.animation.effect?.getComputedTiming().progress ?? 0;
+        this.screenTransitionLayer.current.animation.timeline = document.timeline;
         const hysteresisReached = this.state.backNavigating ? progress > this.state.gestureHysteresis : progress < this.state.gestureHysteresis;
         let rollback = false;
         if (e.velocity < this.state.gestureMinFlingVelocity && hysteresisReached) {

@@ -1,4 +1,5 @@
-import { MAX_DURATION_PERCENTAGE, MIN_DURATION_PERCENTAGE } from "./constants";
+import { GestureTimeline } from "../gesture-timeline";
+import { MAX_DURATION_PERCENTAGE, MIN_DURATION_PERCENTAGE, RESOLVED_AUTO_DURATION } from "./constants";
 import { Input, LerpRange, Output, SpringToLinearProps, Weights, is1DRange } from "./types";
 
 export function cssNumberishToNumber(value: CSSNumberish, unit: string) {
@@ -7,11 +8,24 @@ export function cssNumberishToNumber(value: CSSNumberish, unit: string) {
 	return value;
 }
 
-export function currentTimeFromPercent(value: CSSNumberish, startTime: CSSNumberish, endTime: CSSNumberish) {
+export function currentTimeFromPercent(value: CSSUnitValue, timing: EffectTiming) {
+	let { duration = 'auto', iterations = 1, playbackRate = 1 } = timing;
+	if (duration === 'auto') {
+		duration = RESOLVED_AUTO_DURATION; // arbitrary duration
+	} else if (duration instanceof CSSNumericValue) {
+		duration = duration.to('ms').value;
+	} else if (typeof duration === 'string') {
+		throw TypeError("Unknown effect duration keyword.");
+	}
+
+	const { delay = 0, endDelay = 0 } = timing;
+	const iterationDuration = duration / iterations;
+	const activeDuration = (iterationDuration * iterations) / Math.abs(playbackRate);
+	const totalDuration = delay + activeDuration + endDelay;
 	const time = interpolate(
 		cssNumberishToNumber(value, 'percent'),
 		[MIN_DURATION_PERCENTAGE, MAX_DURATION_PERCENTAGE],
-		[cssNumberishToNumber(startTime, 'ms'), cssNumberishToNumber(endTime, 'ms')]
+		[0, totalDuration]
 	);
 	return time;
 }
@@ -144,4 +158,50 @@ export function clamp(num: number, min: number, max?: number) {
 			return max;
 	}
 	return num;
+}
+
+export function computedTimingToPercent(computedTiming: ComputedEffectTiming, timeline: GestureTimeline) {
+	let {
+		duration = 'auto',
+		iterations = 1,
+		playbackRate = 1,
+		iterationStart = 0,
+		delay = 0,
+		endDelay = 0,
+		progress = null,
+		endTime
+	} = computedTiming;
+
+	endTime = new CSSUnitValue(100, 'percent');
+	if (duration === 'auto') {
+		duration = RESOLVED_AUTO_DURATION; // arbitrary duration
+		delay = 0;
+		endDelay = 0;
+	} else if (duration instanceof CSSNumericValue) {
+		duration = duration.to('ms').value;
+	} else if (typeof duration === 'string') {
+		throw TypeError("Unknown effect duration keyword.");
+	}
+
+	const iterationDurationMs = duration / iterations;
+	const activeDurationMs = (iterationDurationMs * iterations) / Math.abs(playbackRate);
+	const totalTimeMs = delay + activeDurationMs + endDelay;
+	duration = new CSSUnitValue((iterationDurationMs / totalTimeMs) * 100, 'percent');
+	const activeDuration = CSS.percent((duration.to('percent').value * iterations) / Math.abs(playbackRate));
+	const localTime = timeline.currentTime;
+	progress = clamp(localTime.to('percent').value / activeDuration.value, 0, 1);
+
+	return {
+		...computedTiming,
+		localTime,
+		activeDuration,
+		duration,
+		iterations,
+		playbackRate,
+		iterationStart,
+		delay,
+		endDelay,
+		progress,
+		endTime
+	};
 }

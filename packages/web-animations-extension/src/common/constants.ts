@@ -10,3 +10,4 @@ export const DEFAULT_TIMING = {
 	iterationStart: 0,
 	iterations: 1
 } as const;
+export const RESOLVED_AUTO_DURATION = 1000;
