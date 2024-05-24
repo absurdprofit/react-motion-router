@@ -1,6 +1,7 @@
 import { PinchEvent, RotateEvent, SwipeEvent, PanEvent } from "web-gesture-events";
 import { cssNumberishToNumber, interpolate } from "./common/utils";
 import { MAX_DURATION_PERCENTAGE, MIN_DURATION_PERCENTAGE } from "./common/constants";
+import { TimelinePhase } from "./common/types";
 
 export class GestureTimelineUpdateEvent extends Event {
 	public readonly currentTime;
@@ -52,7 +53,8 @@ export type GestureTimelineOptions = (SwipeTimelineOptions | RotateTimelineOptio
 
 export class GestureTimeline extends EventTarget implements AnimationTimeline {
 	#options: GestureTimelineOptions;
-	#currentTime: CSSUnitValue;
+	#currentTime: CSSUnitValue | null;
+	#phase: TimelinePhase = "inactive";
 	constructor(options: GestureTimelineOptions = { type: "swipe", axis: "x", rangeStart: 0, rangeEnd: window.screen.availWidth, source: document.body }) {
 		super();
 		options.source.addEventListener(options.type, this.onGesture.bind(this));
@@ -129,5 +131,9 @@ export class GestureTimeline extends EventTarget implements AnimationTimeline {
 
 	get currentTime() {
 		return this.#currentTime;
+	}
+
+	get phase() {
+		return this.#phase;
 	}
 }

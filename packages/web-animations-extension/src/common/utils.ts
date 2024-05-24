@@ -1,6 +1,6 @@
 import { GestureTimeline } from "../gesture-timeline";
 import { DEFAULT_TIMING, MAX_DURATION_PERCENTAGE, MIN_DURATION_PERCENTAGE, RESOLVED_AUTO_DURATION } from "./constants";
-import { Input, LerpRange, Output, SpringToLinearProps, Weights, is1DRange } from "./types";
+import { Input, LerpRange, Output, SpringToLinearProps, Weights, is1DRange, isNull } from "./types";
 
 export function cssNumberishToNumber(value: CSSNumberish, unit: string) {
 	if (value instanceof CSSNumericValue)
@@ -8,9 +8,12 @@ export function cssNumberishToNumber(value: CSSNumberish, unit: string) {
 	return value;
 }
 
-export function currentTimeFromPercent(value: CSSNumberish | null = null, timing: EffectTiming = DEFAULT_TIMING) {
+export function currentTimeFromPercent<T extends CSSNumberish | null>(value: T, timing: EffectTiming = DEFAULT_TIMING) {
 	let { duration = 'auto', iterations = 1, playbackRate = 1 } = timing;
-	if (value === null || typeof value === 'number' || !('type' in value.type())) {
+	if (isNull(value))
+		return value;
+
+	if (typeof value === 'number' || value.type().percent === undefined) {
 		throw new DOMException(
 			"CSSNumericValue must be a percentage for progress based animations.",
 			"NotSupportedError"
@@ -22,7 +25,7 @@ export function currentTimeFromPercent(value: CSSNumberish | null = null, timing
 	} else if (duration instanceof CSSNumericValue) {
 		duration = duration.to('ms').value;
 	} else if (typeof duration === 'string') {
-		throw TypeError("Unknown effect duration keyword.");
+		throw new TypeError("Unknown effect duration keyword.");
 	}
 
 	const { delay = 0, endDelay = 0 } = timing;
@@ -37,11 +40,11 @@ export function currentTimeFromPercent(value: CSSNumberish | null = null, timing
 	return time;
 }
 
-export function currentTimeFromTime(value: CSSNumberish | null = null) {
-	if (value === null || typeof value === 'number')
+export function currentTimeFromTime<T extends CSSNumberish | null>(value: T) {
+	if (isNull(value) || typeof value === 'number')
 		return value;
 
-	if ('time' in value.type()) {
+	if (value.type().time !== undefined) {
 		throw new DOMException(
 			"CSSNumericValue must be a time value for time based animations.",
 			"NotSupportedError"
@@ -210,7 +213,8 @@ export function computedTimingToPercent(computedTiming: ComputedEffectTiming, ti
 	duration = new CSSUnitValue((iterationDurationMs / totalTimeMs) * 100, 'percent');
 	const activeDuration = CSS.percent((duration.to('percent').value * iterations) / Math.abs(playbackRate));
 	const localTime = timeline.currentTime;
-	progress = localTime.to('percent').value / CSS.percent(100).value;
+	if (localTime !== null)
+		progress = localTime.to('percent').value / CSS.percent(100).value;
 
 	return {
 		...computedTiming,
