@@ -54,7 +54,6 @@ export type GestureTimelineOptions = (SwipeTimelineOptions | RotateTimelineOptio
 export class GestureTimeline extends EventTarget implements AnimationTimeline {
 	#options: GestureTimelineOptions;
 	#currentTime: CSSUnitValue | null;
-	#phase: TimelinePhase = "inactive";
 	constructor(options: GestureTimelineOptions = { type: "swipe", axis: "x", rangeStart: 0, rangeEnd: window.screen.availWidth, source: document.body }) {
 		super();
 		options.source.addEventListener(options.type, this.onGesture.bind(this));
@@ -133,7 +132,7 @@ export class GestureTimeline extends EventTarget implements AnimationTimeline {
 		return this.#currentTime;
 	}
 
-	get phase() {
-		return this.#phase;
+	get phase(): TimelinePhase {
+		return 'active';
 	}
 }

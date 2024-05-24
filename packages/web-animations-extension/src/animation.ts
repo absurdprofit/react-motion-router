@@ -30,6 +30,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 	#holdTime: number | null = null;
 	#children: (NativeAnimation | Animation)[] = [];
 	#previousCurrentTime: CSSNumberish | null = null;
+	#autoAlignStartTime: boolean = false;
 	
 	constructor(effect?: AnimationEffect | null, timeline?: AnimationTimeline | null) {
 		super();
@@ -57,6 +58,8 @@ export class Animation extends EventTarget implements NativeAnimation {
 			if (timelineTime === null) {
 				return
 			}
+			this.#autoAlign();
+			console.log(this.#pending.task, this.#startTime, this.#holdTime)
 			if (this.#pending.task === 'play' && (this.#startTime !== null || this.#holdTime !== null)) {
 				this.#commitPendingPlay();
 			} else if (this.#pending.task === 'pause') {
@@ -118,6 +121,25 @@ export class Animation extends EventTarget implements NativeAnimation {
 		this.#syncCurrentTime();
 		this.#pending.task = null;
 		this.#children.forEach(child => child.pause());
+	}
+
+	#autoAlign() {
+		if (!this.#autoAlignStartTime) {
+			return;
+		}
+	
+		if (!this.#timeline || !this.#timeline.currentTime) {
+			return;
+		}
+	
+		if (this.playState === 'idle' ||
+			(this.playState === 'paused' && this.#holdTime !== null)) {
+			return;
+		}
+
+		const playbackRate = this.#pending.playbackRate ?? this.playbackRate;
+		this.#startTime = 0; // TODO: fix this
+		this.#holdTime = null;
 	}
 
 	#syncCurrentTime() {
@@ -184,8 +206,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 
 			const upperBound = delay + (duration * iterations) + endDelay;
 			let boundary = this.#timeline instanceof GestureTimeline ? currentTimeFromPercent(this.#previousCurrentTime, this.#effect?.getTiming()) : currentTimeFromTime(this.#previousCurrentTime);
-			if (playbackRate > 0 && unconstrainedCurrentTime >= upperBound &&
-					this.#previousCurrentTime != null) {
+			if (playbackRate > 0 && unconstrainedCurrentTime >= upperBound && this.#previousCurrentTime != null) {
 				if (boundary === null || boundary < upperBound)
 					boundary = upperBound;
 				this.#holdTime = didSeek ? unconstrainedCurrentTime : boundary;
@@ -213,12 +234,9 @@ export class Animation extends EventTarget implements NativeAnimation {
 				this.finish();
 			}
 		} else {
-			if (this.#finishedPromise &&
-					this.#finishedPromise.state === 'resolved') {
+			if (this.#finishedPromise && this.#finishedPromise.state === 'resolved') {
 				this.#finishedPromise = new PromiseWrapper();
 			}
-			if (this.playState !== 'paused')
-				this.pause();
 		}
 	}
 
@@ -293,9 +311,14 @@ export class Animation extends EventTarget implements NativeAnimation {
 			this.#holdTime = 0;
 		}
 
+		if (previousCurrentTime == null) {
+			this.#autoAlignStartTime = true;
+		}
+
 		if (this.playState === 'finished' || abortedPause) {
 			this.#startTime = null;
 			this.#holdTime = null;
+			this.#autoAlignStartTime = true;
 		}
 
 		if (this.#holdTime) {
@@ -308,7 +331,8 @@ export class Animation extends EventTarget implements NativeAnimation {
 		}
 
 		if (
-			this.#holdTime === null
+			this.#startTime !== null
+			&& this.#holdTime === null
 			&& !abortedPause
 			&& this.#pending.playbackRate === null
 		) {
@@ -330,8 +354,13 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	pause() {
+		console.trace();
 		if (this.playState === "paused")
 			return;
+
+		if (this.currentTime === null) {
+      this.#autoAlignStartTime = true;
+    }
 
 		if (this.#pending.task === 'play')
 			this.#pending.task = null;
@@ -444,6 +473,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 			}
 
 			currentTime = currentTimeFromPercent(currentTime, this.#effect?.getTiming());
+			this.#autoAlignStartTime = false;
 			if (
 				this.#holdTime !== null
 				|| this.#startTime === null

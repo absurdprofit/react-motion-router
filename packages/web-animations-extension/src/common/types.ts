@@ -65,7 +65,7 @@ export interface GestureTimelineDetails {
 	currentTime: CSSNumericValue;
 }
 
-export type TimelinePhase = "inactive" | "active" | "hold";
+export type TimelinePhase = "inactive" | "active";
 
 export function isNull(value: unknown): value is null {
 	return typeof value === 'object' && value === null;
