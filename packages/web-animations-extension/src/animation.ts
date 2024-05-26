@@ -298,13 +298,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 		const abortedPause = this.playState === 'paused' && this.pending;
 
 		let hasPendingReadyPromise = false;
-		let previousCurrentTime = null;
-		
-		if (this.#timeline instanceof GestureTimeline) {
-			previousCurrentTime = currentTimeFromPercent(this.#timeline.currentTime, this.effect?.getTiming());
-		} else {
-			previousCurrentTime = currentTimeFromTime(this.#timeline?.currentTime ?? null);
-		}
+		let previousCurrentTime = this.#currentTime;
 
 		const playbackRate = this.#pending.playbackRate ?? this.playbackRate;
 		if (playbackRate === 0 && previousCurrentTime === null) {
@@ -568,6 +562,30 @@ export class Animation extends EventTarget implements NativeAnimation {
 
 	get pending(): boolean {
 		return this.#pending.task !== null;
+	}
+
+	// get current time in milliseconds
+	get #currentTime() {
+		if (this.#holdTime)
+			return this.#holdTime;
+
+		const timelineTime = this.timeline?.currentTime ?? null;
+		if (timelineTime === null) {
+			return null;
+		}
+		const timelineTimeMs = this.#timeline instanceof GestureTimeline ? currentTimeFromPercent(timelineTime, this.effect?.getTiming()) : currentTimeFromTime(timelineTime);
+		if (timelineTimeMs === null)
+			return null;
+
+		if (this.#startTime === null)
+			return null;
+
+		let currentTime = (timelineTimeMs - this.#startTime) * this.playbackRate;
+
+		if (currentTime == -0)
+			currentTime = 0;
+
+		return currentTime;
 	}
 
 	get currentTime() {
