@@ -2,13 +2,14 @@ import { GestureTimeline } from "../gesture-timeline";
 import { DEFAULT_TIMING, MAX_DURATION_PERCENTAGE, MIN_DURATION_PERCENTAGE, RESOLVED_AUTO_DURATION } from "./constants";
 import { Input, LerpRange, Output, SpringToLinearProps, Weights, is1DRange, isNull } from "./types";
 
-export function cssNumberishToNumber(value: CSSNumberish, unit: string) {
-	if (value instanceof CSSNumericValue)
+export function cssNumberishToNumber<T extends CSSNumberish | null>(value: T, unit: string) {
+	if (isNull(value) || typeof value === 'number')
+		return value;
+	else
 		return value.to(unit).value;
-	return value;
 }
 
-export function currentTimeFromPercent<T extends CSSNumberish | null>(value: T, timing: EffectTiming = DEFAULT_TIMING) {
+export function msFromPercent<T extends CSSNumberish | null>(value: T, timing: EffectTiming = DEFAULT_TIMING) {
 	let { duration = 'auto', iterations = 1, playbackRate = 1 } = timing;
 	if (isNull(value))
 		return value;
@@ -33,14 +34,14 @@ export function currentTimeFromPercent<T extends CSSNumberish | null>(value: T, 
 	const activeDuration = (iterationDuration * iterations) / Math.abs(playbackRate);
 	const totalDuration = delay + activeDuration + endDelay;
 	const time = interpolate(
-		cssNumberishToNumber(value, 'percent'),
+		value.to('percent').value,
 		[MIN_DURATION_PERCENTAGE, MAX_DURATION_PERCENTAGE],
 		[0, totalDuration]
 	);
 	return time;
 }
 
-export function currentTimeFromTime<T extends CSSNumberish | null>(value: T) {
+export function msFromTime<T extends CSSNumberish | null>(value: T) {
 	if (isNull(value) || typeof value === 'number')
 		return value;
 
