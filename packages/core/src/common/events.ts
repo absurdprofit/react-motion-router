@@ -93,6 +93,15 @@ export class LoadEvent extends Event implements Omit<NavigateEvent, 'navigationT
 		};
 
 		this.#signal = this.#abortable.signal;
+		window.addEventListener('navigate', this.#onNavigate, { signal: this.#signal });
+	}
+
+	#onNavigate = (e: Event) => {
+		if (e !== this) {
+			this.#abortable.abort();
+		} else if (!this.#thenables.length) {
+			window.removeEventListener('navigate', this.#onNavigate);
+		}
 	}
 
 	intercept(options?: NavigationInterceptOptions | undefined): void {
@@ -102,6 +111,7 @@ export class LoadEvent extends Event implements Omit<NavigateEvent, 'navigationT
 		if (this.#thenables.length === 1) {
 			PromiseAllDynamic(this.#thenables).then(() => {
 				this.#intercepted = true;
+				window.removeEventListener('navigate', this.#onNavigate);
 			});
 		}
 	}
