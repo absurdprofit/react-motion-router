@@ -1,5 +1,5 @@
 import { RouterBase, includesRoute, isFirstLoad, isValidScreenChild, matchRoute } from '@react-motion-router/core';
-import type { NestedRouterContext, RouterBaseProps, RouterBaseState, ScreenChild } from '@react-motion-router/core';
+import type { LoadEvent, NestedRouterContext, RouterBaseProps, RouterBaseState, ScreenChild } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { ScreenProps, Screen } from './Screen';
 import { HistoryEntryState, isHorizontalDirection, isRefObject, SwipeDirection } from './common/types';
@@ -193,8 +193,8 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             && !e.downloadRequest;
     }
 
-    protected intercept(e: NavigateEvent): void {
-        if (this.props.config.onIntercept)
+    protected intercept(e: NavigateEvent | LoadEvent): void {
+        if (this.props.config.onIntercept && e.navigationType !== "load")
             if (this.props.config.onIntercept(e) || e.defaultPrevented)
                 return;
 
@@ -207,7 +207,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                 this.handleReload(e);
                 break;
 
-            case "load" as any:
+            case "load":
                 this.handleLoad(e);
                 break;
 
@@ -269,7 +269,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         this.handleReplace(e);
     }
 
-    private handleLoad(e: NavigateEvent) {
+    private handleLoad(e: LoadEvent) {
         const handler = () => {
             const transition = window.navigation.transition;
             const destination = e.destination;

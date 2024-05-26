@@ -64,15 +64,15 @@ export class MotionProgressEndEvent extends Event {
 	}
 }
 
-export class LoadEvent extends Event implements NavigateEvent {
-	readonly navigationType = "load" as NavigationTypeString;
-	readonly userInitiated: boolean = false;
-	readonly canIntercept: boolean = true;
-	readonly hashChange: boolean = false;
-	readonly formData: FormData | null = null;
-	readonly downloadRequest: string | null = null;
-	readonly destination: NavigationDestination;
-	readonly signal: AbortSignal;
+export class LoadEvent extends Event implements Omit<NavigateEvent, 'navigationType'> {
+	#navigationType = "load" as const;
+	#userInitiated: boolean = false;
+	#canIntercept: boolean = true;
+	#hashChange: boolean = false;
+	#formData: FormData | null = null;
+	#downloadRequest: string | null = null;
+	#destination: NavigationDestination;
+	#signal: AbortSignal;
 	#abortable = new AbortController();
 	#intercepted = false;
 	#thenables: Promise<void>[] = [];
@@ -81,7 +81,7 @@ export class LoadEvent extends Event implements NavigateEvent {
 		super('navigate', { cancelable: false, bubbles: false, composed: false });
 		const currentEntry = window.navigation.currentEntry;
 		if (!currentEntry) throw new Error("Current entry is null");
-		this.destination = {
+		this.#destination = {
 			getState() {
 				return currentEntry.getState();
 			},
@@ -92,7 +92,7 @@ export class LoadEvent extends Event implements NavigateEvent {
 			sameDocument: true
 		};
 
-		this.signal = this.#abortable.signal;
+		this.#signal = this.#abortable.signal;
 	}
 
 	intercept(options?: NavigationInterceptOptions | undefined): void {
@@ -108,5 +108,37 @@ export class LoadEvent extends Event implements NavigateEvent {
 
 	scroll(): void {
 		throw new Error("Method not implemented.");
+	}
+
+	get navigationType() {
+		return this.#navigationType;
+	}
+
+	get userInitiated() {
+		return this.#userInitiated;
+	}
+
+	get canIntercept() {
+		return this.#canIntercept;
+	}
+
+	get hashChange() {
+		return this.#hashChange;
+	}
+
+	get formData() {
+		return this.#formData;
+	}
+
+	get downloadRequest() {
+		return this.#downloadRequest;
+	}
+
+	get destination() {
+		return this.#destination;
+	}
+
+	get signal() {
+		return this.#signal;
 	}
 }
