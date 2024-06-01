@@ -1,5 +1,5 @@
 import { associatedAnimation } from "./common/associated-animation";
-import { RESOLVED_AUTO_DURATION } from "./common/constants";
+import { MAX_DURATION_PERCENTAGE, MIN_DURATION_PERCENTAGE, RESOLVED_AUTO_DURATION } from "./common/constants";
 import { NativeAnimation, NativeKeyframeEffect, isNull } from "./common/types";
 import { cssNumberishToNumber, msFromPercent, msFromTime } from "./common/utils";
 import { GestureTimeline, GestureTimelineUpdateEvent } from "./gesture-timeline";
@@ -25,7 +25,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 		playbackRate: null
 	};
 	#readyPromise: PromiseWrapper<Animation> | null = null;
-	#finishedPromise: PromiseWrapper<Animation> | null = null;
+	#finishedPromise: PromiseWrapper<Animation> = new PromiseWrapper();
 	#startTime: number | null = null;
 	#holdTime: number | null = null;
 	#children: (NativeAnimation | Animation)[] = [];
@@ -37,9 +37,6 @@ export class Animation extends EventTarget implements NativeAnimation {
 
 		this.#effect = effect ?? null;
 		this.#timeline = timeline ?? document.timeline;
-
-		if (effect instanceof NativeKeyframeEffect)
-			this.#effect = new KeyframeEffect(effect);
 
 		if (this.#effect)
 			associatedAnimation.set(this.#effect, this);
@@ -95,7 +92,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 		}
 	
 		if (this.#readyPromise && this.#readyPromise.state === 'pending')
-			 this.#readyPromise.resolve(this);
+			this.#readyPromise.resolve(this);
 	
 		this.#updateFinishedState(false);
 	
@@ -134,14 +131,14 @@ export class Animation extends EventTarget implements NativeAnimation {
 			return;
 		}
 	
-		if (this.playState === 'idle' ||
-			(this.playState === 'paused' && this.#holdTime !== null)) {
+		if (this.playState === 'idle' || (this.playState === 'paused' && this.#holdTime !== null)) {
 			return;
 		}
+		// if (this.#effect?.getComputedTiming().duration === 0) debugger;
 
 		if (this.#timeline instanceof GestureTimeline) {
 			const playbackRate = this.#pending.playbackRate ?? this.playbackRate;
-			this.#startTime = playbackRate >= 0 ? 0 : 100;
+			this.#startTime = playbackRate >= 0 ? MIN_DURATION_PERCENTAGE : MAX_DURATION_PERCENTAGE;
 		} else {
 			this.#startTime = cssNumberishToNumber(this.#timeline.currentTime, 'ms');
 		}
@@ -188,10 +185,10 @@ export class Animation extends EventTarget implements NativeAnimation {
 	
 		this.#children = children;
 	
-		Promise.all(children.map(child => child.finished)).then(this.#dispatchFinishedEvent.bind(this));
-		Promise.all(children.map(child => new Promise(resolve => child.onremove = resolve))).then(this.#dispatchRemovedEvent.bind(this));
+		Promise.all(children.map(child => child.finished)).then(this.#dispatchFinishedEvent);
+		Promise.all(children.map(child => new Promise(resolve => child.onremove = resolve))).then(this.#dispatchRemovedEvent);
 		Promise.all(children.map(child => new Promise(resolve => child.oncancel = resolve)))
-			.then(this.#dispatchCancelledEvent.bind(this))
+			.then(this.#dispatchCancelledEvent)
 			.then(() => this.#replaceState = 'removed');
 	}
 
@@ -238,13 +235,13 @@ export class Animation extends EventTarget implements NativeAnimation {
 		const playState = this.playState;
 	
 		if (playState === 'finished') {
-			if (!this.#finishedPromise)
-				this.#finishedPromise = new PromiseWrapper();
+			// if (!this.#finishedPromise)
+			// 	this.#finishedPromise = new PromiseWrapper();
 			if (this.#finishedPromise.state === 'pending') {
-				this.finish();
+				this.#dispatchFinishedEvent();
 			}
 		} else {
-			if (this.#finishedPromise && this.#finishedPromise.state === 'resolved') {
+			if (/* this.#finishedPromise && */ this.#finishedPromise.state === 'resolved') {
 				this.#finishedPromise = new PromiseWrapper();
 			}
 		}
@@ -256,7 +253,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 		this.#pending.playbackRate = null;
 	}
 
-	#dispatchFinishedEvent(this: Animation) {
+	#dispatchFinishedEvent = () => {
 		if (this.#finishedPromise?.state !== 'pending')
 			return;
 		if (this.playState !== "finished") return;
@@ -282,19 +279,25 @@ export class Animation extends EventTarget implements NativeAnimation {
 		});
 	}
 	
-	#dispatchCancelledEvent(this: Animation) {
+	#dispatchCancelledEvent = () => {
+		const getCurrentTime = () => this.currentTime;
+		const getTimelineTime = () => this.timeline?.currentTime;
 		const event = new AnimationPlaybackEvent(
 			'cancel',
 			{
-				currentTime: this.currentTime,
-				timelineTime: this.timeline?.currentTime
+				get currentTime() {
+					return getCurrentTime();
+				},
+				get timelineTime() {
+					return getTimelineTime();
+				}
 			}
 		);
 		this.dispatchEvent(event);
 		this.oncancel?.call(this, event);
 	}
 	
-	#dispatchRemovedEvent(this: Animation) {
+	#dispatchRemovedEvent = () => {
 		const event = new Event('remove');
 		this.dispatchEvent(event);
 		this.onremove?.call(this, event);
@@ -358,7 +361,6 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	pause() {
-		console.trace();
 		if (this.playState === "paused")
 			return;
 
@@ -523,8 +525,6 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	set effect(effect: AnimationEffect | null) {
-		if (effect instanceof NativeKeyframeEffect)
-			effect = new KeyframeEffect(effect, null);
 		if (this.#effect)
 			associatedAnimation.delete(this.#effect);
 		this.#effect = effect;
@@ -542,9 +542,9 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	get finished(): Promise<Animation> {
-		if (!this.#finishedPromise) {
-      this.#finishedPromise = new PromiseWrapper();
-    }
+		// if (!this.#finishedPromise) {
+    //   this.#finishedPromise = new PromiseWrapper();
+    // }
     return this.#finishedPromise.promise;
 	}
 
@@ -572,7 +572,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	get pending(): boolean {
-		return this.#pending.task !== null;
+		return Boolean(this.#readyPromise && this.#readyPromise.state === 'pending');
 	}
 
 	get currentTime() {
@@ -602,9 +602,9 @@ export class Animation extends EventTarget implements NativeAnimation {
 			return null;
 
 		const timelineTime = this.timeline?.currentTime ?? null;
-		const unit = this.#timeline instanceof GestureTimeline ? 'percent' : 'ms';
 		if (typeof timelineTime === "number")
 			return this.#startTime;
+		const unit = this.#timeline instanceof GestureTimeline ? 'percent' : 'ms';
 		return new CSSUnitValue(this.#startTime, unit);
 	}
 

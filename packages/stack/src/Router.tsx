@@ -390,6 +390,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                     if (!isRollback(e.info)) {
                         const animation = this.screenTransition(incomingScreen, outgoingScreen, backNavigating);
                         signal.addEventListener('abort', () => animation?.cancel());
+                        console.log(animation?.finished);
                         animation?.finished.then(console.log);
                         animation?.addEventListener('finish', console.log);
                         if (animation) animation.onfinish = console.log;

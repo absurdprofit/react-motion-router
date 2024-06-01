@@ -53,26 +53,26 @@ export class KeyframeEffect extends NativeKeyframeEffect {
 			...timing
 		};
 
-		let parent = this.#parent;
-		while (parent) {
-			const parentTiming = parent.getTiming();
+		let ancestor = this.#parent;
+		while (ancestor) {
+			const ancestorTiming = ancestor.getTiming();
 			if (timing?.delay)
-				timing.delay += parentTiming.delay ?? 0;
+				timing.delay += ancestorTiming.delay ?? 0;
 			if (timing?.endDelay)
-				timing.endDelay += parentTiming.endDelay ?? 0;
+				timing.endDelay += ancestorTiming.endDelay ?? 0;
 			if (timing?.iterationStart)
-				timing.iterationStart += parentTiming.iterationStart ?? 0;
+				timing.iterationStart += ancestorTiming.iterationStart ?? 0;
 			if (timing?.iterations)
-				timing.iterations *= parentTiming.iterations ?? 1;
+				timing.iterations *= ancestorTiming.iterations ?? 1;
 			if (timing?.playbackRate)
-				timing.playbackRate *= parentTiming.playbackRate ?? 1;
-			if (parentTiming.duration) {
-				if (typeof parentTiming.duration !== 'string')
+				timing.playbackRate *= ancestorTiming.playbackRate ?? 1;
+			if (ancestorTiming.duration) {
+				if (typeof ancestorTiming.duration !== 'string')
 					if (timing?.duration === 'auto')
-						timing.duration = cssNumberishToNumber(parentTiming.duration, 'ms');
+						timing.duration = cssNumberishToNumber(ancestorTiming.duration, 'ms');
 			}
 
-			parent = parent.parent;
+			ancestor = ancestor.parent;
 		}
 
 		if (this.#associatedAnimation?.timeline instanceof GestureTimeline) {
