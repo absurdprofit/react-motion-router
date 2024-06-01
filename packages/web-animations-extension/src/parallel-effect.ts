@@ -6,28 +6,24 @@ import { GroupEffect } from "./group-effect";
 
 export class ParallelEffect extends GroupEffect {
 	#timing: OptionalEffectTiming;
-	constructor(effects: AnimationEffect[], timing: OptionalEffectTiming = DEFAULT_TIMING) {
-		super(effects);
+	constructor(children: AnimationEffect[], timing: OptionalEffectTiming = DEFAULT_TIMING) {
+		super(children);
 		this.#timing = {
 			...DEFAULT_TIMING,
 			...timing
 		};
 
-		this.updateTiming();
-	}
-
-	get #associatedAnimation() {
-		return associatedAnimation.get(this) ?? null;
+		children.forEach(effect => effect.updateTiming());
 	}
 
 	prepend(...children: AnimationEffect[]): void {
 		super.prepend(...children);
-		this.updateTiming();
+		children.forEach(effect => effect.updateTiming());
 	}
 
 	append(...children: AnimationEffect[]): void {
 		super.append(...children);
-		this.updateTiming();
+		children.forEach(effect => effect.updateTiming());
 	}
 
 	getTiming(): EffectTiming {
@@ -72,8 +68,9 @@ export class ParallelEffect extends GroupEffect {
 					timing.duration = timing.duration ? Math.max(timing.duration, duration) : duration;
 		}
 
-		if (this.#associatedAnimation?.timeline instanceof GestureTimeline) {
-			return computedTimingToPercent(computedTiming, this.#associatedAnimation.timeline);
+		const associatedTimeline = associatedAnimation.get(this)?.timeline;
+		if (associatedTimeline instanceof GestureTimeline) {
+			return computedTimingToPercent(computedTiming, associatedTimeline);
 		}
 		return computedTiming;
 	}

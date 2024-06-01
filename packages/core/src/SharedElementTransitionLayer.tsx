@@ -51,6 +51,7 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
         const endRect = end.instance.getBoundingClientRect();
         const config = {
             fill: "forwards" as const,
+            duration: "auto",
             ...start.instance.props.config,
             ...end.instance.props.config
         };

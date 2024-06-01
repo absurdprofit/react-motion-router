@@ -134,7 +134,6 @@ export class Animation extends EventTarget implements NativeAnimation {
 		if (this.playState === 'idle' || (this.playState === 'paused' && this.#holdTime !== null)) {
 			return;
 		}
-		// if (this.#effect?.getComputedTiming().duration === 0) debugger;
 
 		if (this.#timeline instanceof GestureTimeline) {
 			const playbackRate = this.#pending.playbackRate ?? this.playbackRate;
@@ -260,14 +259,16 @@ export class Animation extends EventTarget implements NativeAnimation {
 
 		this.#finishedPromise.resolve(this);
 
+		const currentTime = this.currentTime;
+		const timelineTime = this.timeline?.currentTime;
 		const event = new AnimationPlaybackEvent(
 			'finish',
 			{
 				get currentTime() {
-					return this.currentTime;
+					return currentTime;
 				},
 				get timelineTime() {
-					return this.timeline?.currentTime;
+					return timelineTime;
 				}
 			}
 		);
@@ -278,14 +279,16 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 	
 	#dispatchCancelledEvent = () => {
+		const currentTime = this.currentTime;
+		const timelineTime = this.timeline?.currentTime;
 		const event = new AnimationPlaybackEvent(
 			'cancel',
 			{
 				get currentTime() {
-					return this.currentTime;
+					return currentTime;
 				},
 				get timelineTime() {
-					return this.timeline?.currentTime;
+					return timelineTime;
 				}
 			}
 		);
