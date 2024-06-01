@@ -260,16 +260,14 @@ export class Animation extends EventTarget implements NativeAnimation {
 
 		this.#finishedPromise.resolve(this);
 
-		const getCurrentTime = () => this.currentTime;
-		const getTimelineTime = () => this.timeline?.currentTime;
 		const event = new AnimationPlaybackEvent(
 			'finish',
 			{
 				get currentTime() {
-					return getCurrentTime();
+					return this.currentTime;
 				},
 				get timelineTime() {
-					return getTimelineTime();
+					return this.timeline?.currentTime;
 				}
 			}
 		);
@@ -280,16 +278,14 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 	
 	#dispatchCancelledEvent = () => {
-		const getCurrentTime = () => this.currentTime;
-		const getTimelineTime = () => this.timeline?.currentTime;
 		const event = new AnimationPlaybackEvent(
 			'cancel',
 			{
 				get currentTime() {
-					return getCurrentTime();
+					return this.currentTime;
 				},
 				get timelineTime() {
-					return getTimelineTime();
+					return this.timeline?.currentTime;
 				}
 			}
 		);
