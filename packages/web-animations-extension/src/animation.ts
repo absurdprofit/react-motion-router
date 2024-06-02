@@ -24,7 +24,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 		task: null,
 		playbackRate: null
 	};
-	#readyPromise: PromiseWrapper<Animation> | null = null;
+	#readyPromise: PromiseWrapper<Animation> = new PromiseWrapper();
 	#finishedPromise: PromiseWrapper<Animation> = new PromiseWrapper();
 	#startTime: number | null = null;
 	#holdTime: number | null = null;
@@ -36,6 +36,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 	constructor(effect?: AnimationEffect | null, timeline?: AnimationTimeline | null) {
 		super();
 
+		this.#readyPromise.resolve(this);
 		this.#effect = effect ?? null;
 		this.#timeline = timeline ?? document.timeline;
 
@@ -50,7 +51,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	#schedulePendingTask() {
-		if (this.#readyPromise?.state !== "pending")
+		if (this.#readyPromise.state !== "pending")
 			this.#readyPromise = new PromiseWrapper();
 
 		cancelAnimationFrame(this.#pendingTaskRequestId);
@@ -95,7 +96,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 			}
 		}
 	
-		if (this.#readyPromise && this.#readyPromise.state === 'pending')
+		if (this.#readyPromise.state === 'pending')
 			this.#readyPromise.resolve(this);
 	
 		this.#updateFinishedState(false);
@@ -119,7 +120,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 	
 		this.#applyPendingPlaybackRate();
 		this.#startTime = null;
-		this.#readyPromise?.resolve(this);
+		this.#readyPromise.resolve(this);
 		this.#updateFinishedState(false);
 		this.#syncCurrentTime();
 		this.#pending.task = null;
@@ -238,13 +239,11 @@ export class Animation extends EventTarget implements NativeAnimation {
 		const playState = this.playState;
 	
 		if (playState === 'finished') {
-			// if (!this.#finishedPromise)
-			// 	this.#finishedPromise = new PromiseWrapper();
 			if (this.#finishedPromise.state === 'pending') {
 				this.#dispatchFinishedEvent();
 			}
 		} else {
-			if (/* this.#finishedPromise && */ this.#finishedPromise.state === 'resolved') {
+			if (this.#finishedPromise.state === 'resolved') {
 				this.#finishedPromise = new PromiseWrapper();
 			}
 		}
@@ -257,7 +256,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	#dispatchFinishedEvent = () => {
-		if (this.#finishedPromise?.state !== 'pending')
+		if (this.#finishedPromise.state !== 'pending')
 			return;
 		if (this.playState !== "finished") return;
 
@@ -313,7 +312,6 @@ export class Animation extends EventTarget implements NativeAnimation {
 	play() {
 		const abortedPause = this.playState === 'paused' && this.pending;
 
-		let hasPendingReadyPromise = false;
 		let previousCurrentTime = this.currentTime;
 
 		const playbackRate = this.#pending.playbackRate ?? this.playbackRate;
@@ -337,7 +335,6 @@ export class Animation extends EventTarget implements NativeAnimation {
 
 		if (this.#pending.task) {
 			this.#pending.task = null;
-			hasPendingReadyPromise = true;
 		}
 
 		if (
@@ -349,15 +346,9 @@ export class Animation extends EventTarget implements NativeAnimation {
 			return;
 		}
 
-		if (this.#readyPromise && !hasPendingReadyPromise) {
-			this.#readyPromise = null;
-		}
-
 		this.#syncCurrentTime();
 
-		if (!this.#readyPromise) {
-			this.#schedulePendingTask();
-		}
+		this.#schedulePendingTask();
 		this.#pending.task = 'play';
 
 		this.#updateFinishedState(false);
@@ -371,13 +362,10 @@ export class Animation extends EventTarget implements NativeAnimation {
       this.#autoAlignStartTime = true;
     }
 
-		if (this.#pending.task === 'play')
+		if (this.#pending.task)
 			this.#pending.task = null;
-		else
-			this.#readyPromise = null;
 
-		if (!this.#readyPromise)
-			this.#schedulePendingTask();
+		this.#schedulePendingTask();
 		this.#pending.task ='pause';
 	}
 
@@ -403,12 +391,12 @@ export class Animation extends EventTarget implements NativeAnimation {
 			this.#pending.task = null;
 		
 			this.#applyPendingPlaybackRate();
-			this.#readyPromise?.reject(new DOMException("The user aborted a request", "AbortError"));
+			this.#readyPromise.reject(new DOMException("The user aborted a request", "AbortError"));
 		
 			this.#schedulePendingTask();
-			this.#readyPromise?.resolve(this);
+			this.#readyPromise.resolve(this);
 
-      if (this.#finishedPromise && this.#finishedPromise.state === 'pending') {
+      if (this.#finishedPromise.state === 'pending') {
         this.#finishedPromise.reject(new DOMException("The user aborted a request", "AbortError"));
       }
       this.#finishedPromise = new PromiseWrapper();
@@ -423,7 +411,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 		this.#pending.playbackRate = playbackRate;
 		const previousPlayState = this.playState;
 
-    if (this.#readyPromise && this.#readyPromise.state === 'pending')
+    if (this.#readyPromise.state === 'pending')
       return;
 
     switch(previousPlayState) {
@@ -505,7 +493,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 				this.#applyPendingPlaybackRate();
 				this.#startTime = null;
 				this.#pending.task = null;
-				this.#readyPromise?.resolve(this);
+				this.#readyPromise.resolve(this);
 			}
 			
 
@@ -548,17 +536,10 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	get ready(): Promise<Animation> {
-		if (!this.#readyPromise) {
-      this.#readyPromise = new PromiseWrapper();
-      this.#readyPromise.resolve(this);
-    }
     return this.#readyPromise.promise;
 	}
 
 	get finished(): Promise<Animation> {
-		// if (!this.#finishedPromise) {
-    //   this.#finishedPromise = new PromiseWrapper();
-    // }
     return this.#finishedPromise.promise;
 	}
 
@@ -586,7 +567,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	get pending(): boolean {
-		return Boolean(this.#readyPromise && this.#readyPromise.state === 'pending');
+		return Boolean(this.#readyPromise.state === 'pending');
 	}
 
 	get currentTime() {
