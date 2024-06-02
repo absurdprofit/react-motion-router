@@ -31,6 +31,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 	#children: (NativeAnimation | Animation)[] = [];
 	#previousCurrentTime: CSSNumberish | null = null;
 	#autoAlignStartTime: boolean = false;
+	#pendingTaskRequestId = 0;
 	
 	constructor(effect?: AnimationEffect | null, timeline?: AnimationTimeline | null) {
 		super();
@@ -48,9 +49,12 @@ export class Animation extends EventTarget implements NativeAnimation {
 		}
 	}
 
-	#createReadyPromise() {
-		this.#readyPromise = new PromiseWrapper();
-		requestAnimationFrame(() => {
+	#schedulePendingTask() {
+		if (this.#readyPromise?.state !== "pending")
+			this.#readyPromise = new PromiseWrapper();
+
+		cancelAnimationFrame(this.#pendingTaskRequestId);
+		this.#pendingTaskRequestId = requestAnimationFrame(() => {
 			const timelineTime = this.#timeline?.currentTime ?? null;
 			if (timelineTime === null) {
 				return
@@ -352,7 +356,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 		this.#syncCurrentTime();
 
 		if (!this.#readyPromise) {
-			this.#createReadyPromise();
+			this.#schedulePendingTask();
 		}
 		this.#pending.task = 'play';
 
@@ -373,7 +377,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 			this.#readyPromise = null;
 
 		if (!this.#readyPromise)
-			this.#createReadyPromise();
+			this.#schedulePendingTask();
 		this.#pending.task ='pause';
 	}
 
@@ -401,7 +405,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 			this.#applyPendingPlaybackRate();
 			this.#readyPromise?.reject(new DOMException("The user aborted a request", "AbortError"));
 		
-			this.#createReadyPromise();
+			this.#schedulePendingTask();
 			this.#readyPromise?.resolve(this);
 
       if (this.#finishedPromise && this.#finishedPromise.state === 'pending') {
@@ -524,12 +528,23 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	set effect(effect: AnimationEffect | null) {
+		if (effect === this.#effect) return;
+		if (this.pending) {
+			this.#schedulePendingTask();
+		}
+
 		if (this.#effect)
 			associatedAnimation.delete(this.#effect);
-		this.#effect = effect;
-		if (effect)
+		if (effect) {
+			const effectAssociatedAnimation = associatedAnimation.get(effect);
+			if (effectAssociatedAnimation)
+				effectAssociatedAnimation.effect = null;
 			associatedAnimation.set(effect, this);
+		}
+
+		this.#effect = effect;
 		this.#updateChildren();
+		this.#updateFinishedState(false);
 	}
 
 	get ready(): Promise<Animation> {
