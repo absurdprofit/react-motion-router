@@ -19,7 +19,7 @@ interface ScreenTransitionProviderState {
 export class ScreenTransitionProvider extends Component<ScreenTransitionProviderProps, ScreenTransitionProviderState> {
     public readonly ref = createRef<HTMLElement>();
     static readonly contextType = ScreenTransitionLayerContext;
-    context!: React.ContextType<typeof ScreenTransitionLayerContext>;
+    declare context: React.ContextType<typeof ScreenTransitionLayerContext>;
     public index = 0;
     public exiting = false;
 
@@ -53,7 +53,7 @@ export class ScreenTransitionProvider extends Component<ScreenTransitionProvider
 
     get animationEffect() {
         const animationEffectFactory = this.props.animation;
-        const { animation, direction } = this.context!;
+        const { animation, direction } = this.context;
         const { timeline, playbackRate } = animation;
         const { index, exiting, ref } = this;
 

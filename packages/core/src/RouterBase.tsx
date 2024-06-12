@@ -39,7 +39,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     public readonly parentScreen: ScreenBase | null = null;
     private static rootRouterRef: WeakRef<RouterBase> | null = null;
     static readonly contextType = NestedRouterContext;
-    context!: React.ContextType<typeof NestedRouterContext>;
+    declare context: React.ContextType<typeof NestedRouterContext>;
 
     constructor(props: P, context: React.ContextType<typeof NestedRouterContext>) {
         super(props);

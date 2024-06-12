@@ -42,11 +42,11 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
             path,
             params: {
                 ...this.props.defaultParams,
-                ...this.context!.screenState.get(this.props.path)?.params
+                ...this.context.screenState.get(this.props.path)?.params
             },
             config: {
                 ...this.props.config,
-                ...this.context!.screenState.get(this.props.path)?.config
+                ...this.context.screenState.get(this.props.path)?.config
             },
             focused,
             resolvedPathname,

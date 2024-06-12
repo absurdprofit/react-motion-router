@@ -59,7 +59,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     #screenTransitionProvider = createRef<ScreenTransitionProvider>();
     protected readonly ref = createRef<HTMLDivElement>();
     static readonly contextType = RouterContext;
-    context!: React.ContextType<typeof RouterContext>;
+    declare context: React.ContextType<typeof RouterContext>;
 
     state: S = {
         focused: false,
@@ -79,7 +79,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
             ...params
         };
         const config = this.routeProp.config;
-        this.context!.screenState.set(this.props.path, { config, params });
+        this.context.screenState.set(this.props.path, { config, params });
         this.forceUpdate();
     }
 
@@ -89,7 +89,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
             ...config
         };
         const params = this.routeProp.params;
-        this.context!.screenState.set(this.props.path, { config, params });
+        this.context.screenState.set(this.props.path, { config, params });
         this.forceUpdate();
     }
 
@@ -123,7 +123,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
             result = { default: Component };
         }
 
-        const navigation = this.context!.navigation;
+        const navigation = this.context.navigation;
         const route = this.routeProp;
         await this.props.config?.onLoad?.({ navigation, route, signal });
 
@@ -133,13 +133,13 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     abstract get routeProp(): R;
 
     get nestedRouterData() {
-        return { parentScreen: this as ScreenBase, parentRouter: this.context! };
+        return { parentScreen: this as ScreenBase, parentRouter: this.context };
     }
 
     onExited(signal: AbortSignal) {
         return this.routeProp.config.onExited?.({
             route: this.routeProp,
-            navigation: this.context!.navigation,
+            navigation: this.context.navigation,
             signal
         });
     }
@@ -147,7 +147,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     onExit(signal: AbortSignal) {
         return this.routeProp.config.onExit?.({
             route: this.routeProp,
-            navigation: this.context!.navigation,
+            navigation: this.context.navigation,
             signal
         });
     }
@@ -155,7 +155,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     onEnter(signal: AbortSignal) {
         return this.routeProp.config.onEnter?.({
             route: this.routeProp,
-            navigation: this.context!.navigation,
+            navigation: this.context.navigation,
             signal
         });
     }
@@ -163,7 +163,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     onEntered(signal: AbortSignal) {
         return this.routeProp.config.onEntered?.({
             route: this.routeProp,
-            navigation: this.context!.navigation,
+            navigation: this.context.navigation,
             signal
         });
     }

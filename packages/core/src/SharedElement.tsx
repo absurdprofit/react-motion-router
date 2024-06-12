@@ -23,7 +23,7 @@ interface SharedElementState {}
 export class SharedElement extends Component<SharedElementProps, SharedElementState> {
     public readonly ref = createRef<HTMLDivElement>();
     static readonly contextType = SharedElementSceneContext;
-    context!: React.ContextType<typeof SharedElementSceneContext>;
+    declare context: React.ContextType<typeof SharedElementSceneContext>;
 
     componentDidMount(): void {
         this.scene.addNode(this);
@@ -54,7 +54,7 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
     }
 
     get scene() {
-        return this.context!;
+        return this.context;
     }
 
     get id() {
