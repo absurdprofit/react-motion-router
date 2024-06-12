@@ -1,6 +1,6 @@
 import { GestureTimeline } from "../gesture-timeline";
 import { DEFAULT_TIMING, MAX_DURATION_PERCENTAGE, MIN_DURATION_PERCENTAGE, RESOLVED_AUTO_DURATION } from "./constants";
-import { Input, LerpRange, Output, SpringToLinearProps, Weights, is1DRange, isNull } from "./types";
+import { AnimationEffectPhase, Input, LerpRange, Output, SpringToLinearProps, Weights, is1DRange, isNull } from "./types";
 
 export function cssNumberishToNumber<T extends CSSNumberish | null>(value: T, unit: string) {
 	if (isNull(value) || typeof value === 'number')
@@ -231,3 +231,5 @@ export function computedTimingToPercent(computedTiming: ComputedEffectTiming, ti
 		endTime
 	};
 }
+
+

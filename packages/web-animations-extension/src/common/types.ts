@@ -70,3 +70,5 @@ export type TimelinePhase = "inactive" | "active";
 export function isNull(value: unknown): value is null {
 	return typeof value === 'object' && value === null;
 }
+
+export type AnimationEffectPhase = 'before' | 'active' | 'after' | 'idle';
