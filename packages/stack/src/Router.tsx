@@ -389,7 +389,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                     await incomingScreen?.current?.load(signal);
                     if (!isRollback(e.info)) {
                         const animation = this.screenTransition(incomingScreen, outgoingScreen, backNavigating);
-                        signal.addEventListener('abort', () => animation?.cancel());
+                        signal.addEventListener('abort', () => animation?.finish());
                         await animation?.finished;
                     }
                     await Promise.all([

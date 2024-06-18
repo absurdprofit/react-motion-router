@@ -1,5 +1,5 @@
 import { ScreenTransitionLayerContext } from './ScreenTransitionLayerContext';
-import { AnimationEffectFactory, CustomElementType } from './common/types';
+import { AnimationEffectFactory } from './common/types';
 import { NavigationBase } from './NavigationBase';
 import { Component, ElementType, createRef } from 'react';
 
@@ -8,7 +8,7 @@ interface ScreenTransitionProviderProps {
     animation?: AnimationEffectFactory;
     children: React.ReactNode
     navigation: NavigationBase;
-    renderAs: ElementType | CustomElementType;
+    renderAs: ElementType;
     focused: boolean;
 }
 

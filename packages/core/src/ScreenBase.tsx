@@ -51,7 +51,7 @@ export interface ScreenBaseProps<R extends RoutePropBase = RoutePropBase> {
 
 export interface ScreenBaseState {
     focused: boolean;
-    elementType: ElementType | string;
+    elementType: ElementType;
 }
 
 export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState, R extends RoutePropBase<ScreenBaseProps["config"]> = RoutePropBase<ScreenBaseProps["config"]>> extends Component<P, S> {

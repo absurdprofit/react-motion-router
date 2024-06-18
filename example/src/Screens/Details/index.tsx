@@ -74,7 +74,7 @@ export default function Details(props: DetailsProps) {
             >
                 {!Boolean(noBg)
                     &&
-                    <SharedElement id={`${hero.id}-card-bg`}>
+                    <SharedElement id={`${hero.id}-card-bg`} config={{willChange: ['backgroundColor']}}>
                         <div className="card-bg" aria-hidden="true"></div>
                     </SharedElement>}
                 <Anchor aria-label='Go Back' goBack tabIndex={-1}>
@@ -103,7 +103,7 @@ export default function Details(props: DetailsProps) {
                             aria-hidden="true"
                         ></div>
                     </SharedElement>
-                    <SharedElement id={hero.id}>
+                    <SharedElement id={hero.id} config={{willChange: ['objectFit', 'borderRadius']}}>
                         <img src={hero.photoUrl} alt="Character" width={hero.photoWidth} height={hero.photoHeight} />
                     </SharedElement>
                     <div className="text-content" tabIndex={0}>

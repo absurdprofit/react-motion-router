@@ -40,7 +40,7 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
         const computedStyles: Record<string, string> = {};
         const computedStyle = window.getComputedStyle(element);
         for (const style of styles) {
-            computedStyles[style] = computedStyle.getPropertyValue(style);
+            computedStyles[style] = computedStyle[style as any];
         }
         return computedStyles;
     }
@@ -55,7 +55,8 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
             ...start.instance.props.config,
             ...end.instance.props.config
         };
-        if (end.instance.transitionType === "fade") {
+        const transitionType = end.instance.transitionType === "fade";
+        if (transitionType) {
             keyframeEffects.push(
                 new KeyframeEffect(
                     start.clone.firstElementChild,
@@ -131,15 +132,15 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
                     end.clone.firstElementChild,
                     [
                         {
-                            ...Object.fromEntries((start.clone.firstElementChild as HTMLElement).attributeStyleMap),
-                            ...this.getComputedStyles(start.clone.firstElementChild as HTMLElement, willChange),
+                            ...Object.fromEntries((start.instance.ref.current?.firstElementChild as HTMLElement).attributeStyleMap),
+                            ...this.getComputedStyles(start.instance.ref.current?.firstElementChild as HTMLElement, willChange),
                             transform: `translate(${startRect.x}px, ${startRect.y}px)`,
                             width: `${startRect.width}px`,
                             height: `${startRect.height}px`,
                         },
                         {
-                            ...Object.fromEntries((end.clone.firstElementChild as HTMLElement).attributeStyleMap),
-                            ...this.getComputedStyles(end.clone.firstElementChild as HTMLElement, willChange),
+                            ...Object.fromEntries((end.instance.ref.current?.firstElementChild as HTMLElement).attributeStyleMap),
+                            ...this.getComputedStyles(end.instance.ref.current?.firstElementChild as HTMLElement, willChange),
                             transform: `translate(${endRect.x}px, ${endRect.y}px)`,
                             width: `${endRect.width}px`,
                             height: `${endRect.height}px`,
@@ -160,11 +161,10 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
         nextScene.previousScene = currentScene;
         const parallelEffects = new Array<ParallelEffect>();
         for (const [id, end] of Array.from(nextScene.nodes.entries())) {
-            if (end.canTransition) {
+            const start = currentScene.nodes.get(id);
+            if (start?.canTransition && end.canTransition) {
                 const endClone = end.clone();
-                let start = null;
                 let startClone = null;
-                start = currentScene.nodes.get(id)!;
                 startClone = start.clone();
                 if (!startClone) continue;
                 if (end.transitionType !== "morph") {

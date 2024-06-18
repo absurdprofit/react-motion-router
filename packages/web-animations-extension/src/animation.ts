@@ -1,6 +1,6 @@
 import { associatedAnimation } from "./common/associated-animation";
 import { MAX_DURATION_PERCENTAGE, MIN_DURATION_PERCENTAGE, RESOLVED_AUTO_DURATION } from "./common/constants";
-import { NativeAnimation, NativeKeyframeEffect, isNull } from "./common/types";
+import { NativeAnimation, isNull } from "./common/types";
 import { cssNumberishToNumber, msFromPercent, msFromTime } from "./common/utils";
 import { GestureTimeline, GestureTimelineUpdateEvent } from "./gesture-timeline";
 import { GroupEffect } from "./group-effect";
@@ -420,7 +420,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 				this.#applyPendingPlaybackRate();
 				break;
 
-			case 'finished':
+			case 'finished': {
 				const unit = this.#timeline instanceof GestureTimeline ? 'percent' : 'ms';
 				const timelineTime = this.#timeline?.currentTime ?? null;;
 				if (playbackRate === 0) {
@@ -435,6 +435,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 				this.#updateFinishedState(false);
 				this.#syncCurrentTime();
 				break;
+			}
 
 			default:
 				this.play();

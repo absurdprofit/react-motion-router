@@ -104,7 +104,7 @@ export interface HTMLRouterBaseElement<E extends RouterBaseEventMap> extends HTM
     removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
 }
 
-export type CustomElementType = string;
+export type CustomElementType = `${string}-${string}`;
 
 export interface MatchedRoute {
     exact: boolean;

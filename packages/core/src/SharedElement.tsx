@@ -48,8 +48,7 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
     }
 
     get canTransition() {
-        return this.scene.previousScene?.nodes.has(this.id)
-            && !this.props.disabled
+        return !this.props.disabled
             && this.scene.canTransition;
     }
 

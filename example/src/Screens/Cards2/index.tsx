@@ -65,7 +65,7 @@ const CardComponent = ({ observer, navigation, hero }: CardProps) => {
                 <ButtonBase aria-label={`Character profile: ${hero.name}`} disableRipple>
                     <SharedElement id={`${hero.id}-card-bg`}>
                         <div
-                            id={`${hero.id}-bg`}
+                            id={`${hero.id}-card-bg`}
                             className="card-bg"
                             ref={bgRef}
                             style={{ width: 345 > window.screen.width ? 300 : 345, clipPath: (heroName === hero.id ? bgInset : '') }}
