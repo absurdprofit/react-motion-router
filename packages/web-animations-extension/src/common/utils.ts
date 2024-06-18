@@ -233,3 +233,111 @@ export function computedTimingToPercent(computedTiming: ComputedEffectTiming, ti
 }
 
 
+export function getPhase(timing: ComputedEffectTiming, animationDirection: "forwards" | "backwards"): AnimationEffectPhase {
+	const { activeDuration = 0, localTime, endTime = Infinity, delay = 0 } = timing;
+	
+	if (localTime == null || localTime === undefined) {
+		return 'idle';
+	}
+	
+	const beforeActiveBoundaryTime = Math.max(Math.min(delay, msFromTime(endTime)), 0);
+	const activeAfterBoundaryTime = Math.max(Math.min(delay + msFromTime(activeDuration), msFromTime(endTime)), 0);
+	
+	if (
+		msFromTime(localTime) < beforeActiveBoundaryTime ||
+		(animationDirection === 'backwards' && localTime === beforeActiveBoundaryTime)
+	) {
+		return 'before';
+	}
+	
+	if (
+		msFromTime(localTime) > activeAfterBoundaryTime ||
+		(animationDirection === 'forwards' && localTime === activeAfterBoundaryTime)
+	) {
+		return 'after';
+	}
+	
+	return 'active';
+}
+
+export function calculateActiveTime(timing: ComputedEffectTiming, phase: AnimationEffectPhase): number | null {
+	const { localTime, delay = 0, activeDuration = 0, fill } = timing;
+  
+	if (localTime == null || localTime === undefined) {
+	  return null; // Unresolved time value
+	}
+  
+	switch (phase) {
+	  case 'before':
+		if (fill === 'backwards' || fill === 'both') {
+		  return Math.max(msFromTime(localTime) - delay, 0);
+		} else {
+		  return null; // Unresolved time value
+		}
+  
+	  case 'active':
+		return msFromTime(localTime) - delay;
+  
+	  case 'after':
+		if (fill === 'forwards' || fill === 'both') {
+		  return Math.max(Math.min(msFromTime(localTime) - delay, msFromTime(activeDuration)), 0);
+		} else {
+		  return null; // Unresolved time value
+		}
+  
+	  default:
+		return null; // Unresolved time value
+	}
+}
+
+export function calculateOverallProgress(timing: ComputedEffectTiming, phase: AnimationEffectPhase, activeTime: number) {
+	const { duration = 0, iterations = 1, iterationStart = 0 } = timing;
+	
+	let overallProgress = 0;
+
+	if (duration === 0)
+		if (phase === "before")
+			overallProgress = 0;
+		else
+			overallProgress = iterations;
+	else
+		overallProgress =  activeTime / duration;
+
+	return overallProgress + iterationStart;
+}
+
+export function calculateSimpleIterationProgress(timing: ComputedEffectTiming, phase: AnimationEffectPhase, overallProgress: number, activeTime: number) {
+	const { iterations = 1, iterationStart = 0 , activeDuration = 0 } = timing;
+
+	if (isNull(overallProgress))
+		return null;
+
+	let simpleIterationProgress = 0;
+	if (overallProgress === Infinity)
+		simpleIterationProgress = iterationStart % 1;
+
+	if (simpleIterationProgress === 0
+		&& (phase === "active" || phase === "after")
+		&& activeDuration === activeTime
+		&& iterations !== 0
+	) simpleIterationProgress = 1;
+
+	return simpleIterationProgress;
+}
+
+export function calculateCurrentIterationIndex(timing: ComputedEffectTiming, phase: AnimationEffectPhase) {
+	const { iterations = 1 } = timing;
+	const activeTime = calculateActiveTime(timing, phase);
+
+	if (isNull(activeTime))
+		return null;
+
+	if (phase === "after" && iterations === Infinity)
+		return Infinity;
+
+	const overallProgress = calculateOverallProgress(timing, phase, activeTime);
+	const simpleIterationProgress = calculateSimpleIterationProgress(timing, phase, overallProgress, activeTime);
+	if (simpleIterationProgress === 1)
+		return Math.floor(overallProgress) - 1;
+	return Math.floor(overallProgress);
+}

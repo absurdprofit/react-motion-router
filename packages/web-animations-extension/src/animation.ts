@@ -21,9 +21,9 @@ export class Animation extends EventTarget implements NativeAnimation {
 		task: "play" | "pause" | null;
 		playbackRate: number | null;
 	} = {
-		task: null,
-		playbackRate: null
-	};
+			task: null,
+			playbackRate: null
+		};
 	#readyPromise: PromiseWrapper<Animation> = new PromiseWrapper();
 	#finishedPromise: PromiseWrapper<Animation> = new PromiseWrapper();
 	#startTime: number | null = null;
@@ -32,7 +32,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 	#previousCurrentTime: CSSNumberish | null = null;
 	#autoAlignStartTime: boolean = false;
 	#pendingTaskRequestId = 0;
-	
+
 	constructor(effect?: AnimationEffect | null, timeline?: AnimationTimeline | null) {
 		super();
 
@@ -69,7 +69,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 		});
 	}
 
-	#commitPendingPlay()  {
+	#commitPendingPlay() {
 		const timelineTime = this.timeline?.currentTime ?? null;
 		if (timelineTime === null) {
 			return
@@ -95,12 +95,12 @@ export class Animation extends EventTarget implements NativeAnimation {
 				this.#startTime = cssNumberishToNumber(timelineTime, unit) - currentTimeToMatch / playbackRate;
 			}
 		}
-	
+
 		if (this.#readyPromise.state === 'pending')
 			this.#readyPromise.resolve(this);
-	
+
 		this.#updateFinishedState(false);
-	
+
 		this.#syncCurrentTime();
 		this.#pending.task = null;
 		this.#children.forEach(child => child.play());
@@ -117,7 +117,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 		if (this.#startTime !== null && this.#holdTime === null) {
 			this.#holdTime = (cssNumberishToNumber(readyTime, unit) - this.#startTime) * this.playbackRate;
 		}
-	
+
 		this.#applyPendingPlaybackRate();
 		this.#startTime = null;
 		this.#readyPromise.resolve(this);
@@ -131,11 +131,11 @@ export class Animation extends EventTarget implements NativeAnimation {
 		if (!this.#autoAlignStartTime) {
 			return;
 		}
-	
+
 		if (!this.#timeline || !this.#timeline.currentTime) {
 			return;
 		}
-	
+
 		if (this.playState === 'idle' || (this.playState === 'paused' && this.#holdTime !== null)) {
 			return;
 		}
@@ -170,7 +170,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 		this.#children.forEach(child => child.currentTime = currentTime);
 	}
 
-	#onGestureTimelineUpdate = ({currentTime}: GestureTimelineUpdateEvent) => {
+	#onGestureTimelineUpdate = ({ currentTime }: GestureTimelineUpdateEvent) => {
 		this.currentTime = currentTime;
 	}
 
@@ -186,9 +186,9 @@ export class Animation extends EventTarget implements NativeAnimation {
 			const timeline = this.#timeline instanceof GestureTimeline ? document.timeline : this.#timeline;
 			children.push(new NativeAnimation(effect, timeline));
 		}
-	
+
 		this.#children = children;
-	
+
 		Promise.all(children.map(child => child.finished)).then(this.#dispatchFinishedEvent);
 		Promise.all(children.map(child => new Promise(resolve => child.onremove = resolve))).then(this.#dispatchRemovedEvent);
 		Promise.all(children.map(child => new Promise(resolve => child.oncancel = resolve)))
@@ -200,7 +200,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 		const timelineTime = this.#timeline?.currentTime ?? null;
 		const unit = this.#timeline instanceof GestureTimeline ? 'percent' : 'ms';
 		let unconstrainedCurrentTime = cssNumberishToNumber(timelineTime, unit);
-	
+
 		if (unconstrainedCurrentTime && this.#startTime !== null && !this.pending) {
 			let { delay = 0, endDelay = 0, iterations = 1, duration = 'auto' } = this.#effect?.getTiming() ?? {};
 			const playbackRate = this.#pending.playbackRate ?? this.playbackRate;
@@ -233,11 +233,11 @@ export class Animation extends EventTarget implements NativeAnimation {
 				this.#holdTime = null;
 			}
 		}
-	
+
 		this.#syncCurrentTime();
 		this.#previousCurrentTime = this.currentTime;
 		const playState = this.playState;
-	
+
 		if (playState === 'finished') {
 			if (this.#finishedPromise.state === 'pending') {
 				this.#dispatchFinishedEvent();
@@ -280,7 +280,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 			this.onfinish?.call(this, event);
 		});
 	}
-	
+
 	#dispatchCancelledEvent = () => {
 		const currentTime = this.currentTime;
 		const timelineTime = this.timeline?.currentTime;
@@ -298,7 +298,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 		this.dispatchEvent(event);
 		this.oncancel?.call(this, event);
 	}
-	
+
 	#dispatchRemovedEvent = () => {
 		const event = new Event('remove');
 		this.dispatchEvent(event);
@@ -359,14 +359,14 @@ export class Animation extends EventTarget implements NativeAnimation {
 			return;
 
 		if (this.currentTime === null) {
-      this.#autoAlignStartTime = true;
-    }
+			this.#autoAlignStartTime = true;
+		}
 
 		if (this.#pending.task)
 			this.#pending.task = null;
 
 		this.#schedulePendingTask();
-		this.#pending.task ='pause';
+		this.#pending.task = 'pause';
 	}
 
 	persist(): void {
@@ -389,56 +389,56 @@ export class Animation extends EventTarget implements NativeAnimation {
 	cancel() {
 		if (this.playState !== 'idle') {
 			this.#pending.task = null;
-		
+
 			this.#applyPendingPlaybackRate();
 			this.#readyPromise.reject(new DOMException("The user aborted a request", "AbortError"));
-		
+
 			this.#schedulePendingTask();
 			this.#readyPromise.resolve(this);
 
-      if (this.#finishedPromise.state === 'pending') {
-        this.#finishedPromise.reject(new DOMException("The user aborted a request", "AbortError"));
-      }
-      this.#finishedPromise = new PromiseWrapper();
+			if (this.#finishedPromise.state === 'pending') {
+				this.#finishedPromise.reject(new DOMException("The user aborted a request", "AbortError"));
+			}
+			this.#finishedPromise = new PromiseWrapper();
 			this.#children.forEach(animation => animation.cancel());
-    }
+		}
 
-    this.#startTime = null;
-    this.#holdTime = null;
+		this.#startTime = null;
+		this.#holdTime = null;
 	}
 
 	updatePlaybackRate(playbackRate: number): void {
 		this.#pending.playbackRate = playbackRate;
 		const previousPlayState = this.playState;
 
-    if (this.#readyPromise.state === 'pending')
-      return;
+		if (this.#readyPromise.state === 'pending')
+			return;
 
-    switch(previousPlayState) {
-      case 'idle':
-      case 'paused':
-        this.#applyPendingPlaybackRate();
-			break;
+		switch (previousPlayState) {
+			case 'idle':
+			case 'paused':
+				this.#applyPendingPlaybackRate();
+				break;
 
-      case 'finished':
+			case 'finished':
 				const unit = this.#timeline instanceof GestureTimeline ? 'percent' : 'ms';
-        const timelineTime = this.#timeline?.currentTime ?? null;;
-        if (playbackRate === 0) {
-          this.#startTime = cssNumberishToNumber(timelineTime, unit);
-        } else if (timelineTime !== null) {
+				const timelineTime = this.#timeline?.currentTime ?? null;;
+				if (playbackRate === 0) {
+					this.#startTime = cssNumberishToNumber(timelineTime, unit);
+				} else if (timelineTime !== null) {
 					let unconstrainedCurrentTime = null;
 					unconstrainedCurrentTime = (cssNumberishToNumber(timelineTime, unit) - (this.#startTime ?? 0)) * this.playbackRate
 					if (this.#startTime !== null && unconstrainedCurrentTime !== null)
-						this.#startTime = (cssNumberishToNumber(timelineTime, unit) - unconstrainedCurrentTime) / playbackRate;
-        }
-        this.#applyPendingPlaybackRate();
-        this.#updateFinishedState(false);
-        this.#syncCurrentTime();
-        break;
+						this.#startTime = (cssNumberishToNumber(timelineTime, unit) - unconstrainedCurrentTime) / playbackRate; ''
+				}
+				this.#applyPendingPlaybackRate();
+				this.#updateFinishedState(false);
+				this.#syncCurrentTime();
+				break;
 
-      default:
-        this.play();
-    }
+			default:
+				this.play();
+		}
 	}
 
 	addEventListener<K extends keyof AnimationEventMap>(type: K, listener: (ev: AnimationEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
@@ -487,7 +487,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 			}
 
 			this.#previousCurrentTime = null;
-				
+
 			if (this.#pending.task === 'pause') {
 				this.#holdTime = currentTime;
 				this.#applyPendingPlaybackRate();
@@ -495,9 +495,9 @@ export class Animation extends EventTarget implements NativeAnimation {
 				this.#pending.task = null;
 				this.#readyPromise.resolve(this);
 			}
-			
 
-    	this.#updateFinishedState(true);
+
+			this.#updateFinishedState(true);
 		} else {
 			this.#children.forEach(child => child.currentTime = currentTime);
 		}
@@ -536,11 +536,11 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	get ready(): Promise<Animation> {
-    return this.#readyPromise.promise;
+		return this.#readyPromise.promise;
 	}
 
 	get finished(): Promise<Animation> {
-    return this.#finishedPromise.promise;
+		return this.#finishedPromise.promise;
 	}
 
 	get playState() {
