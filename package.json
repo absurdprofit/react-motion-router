@@ -32,9 +32,9 @@
   },
   "homepage": "https://github.com/nxtexe/react-motion-router#readme",
   "devDependencies": {
-    "lerna": "^5.4.3",
     "@types/dom-navigation": "^1.0.3",
-    "typescript": "^5.4.3"
+    "lerna": "^5.4.3",
+    "typescript": "^5.5.2"
   },
   "workspaces": {
     "packages": [
