@@ -32,6 +32,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 	#previousCurrentTime: CSSNumberish | null = null;
 	#autoAlignStartTime: boolean = false;
 	#pendingTaskRequestId = 0;
+	#playbackRate: number = 1;
 
 	constructor(effect?: AnimationEffect | null, timeline?: AnimationTimeline | null) {
 		super();
@@ -452,10 +453,10 @@ export class Animation extends EventTarget implements NativeAnimation {
 		super.removeEventListener(type, listener, options);
 	}
 
-	set playbackRate(desiredPlaybackRate: number) {
+	set playbackRate(_playbackRate: number) {
+		this.#playbackRate = _playbackRate;
 		this.#children.forEach(animation => {
-			const { playbackRate: specifiedPlaybackRate = 1 } = animation.effect?.getTiming() ?? {};
-			animation.playbackRate = specifiedPlaybackRate * desiredPlaybackRate;
+			animation.playbackRate *= _playbackRate;
 		});
 	}
 
@@ -560,7 +561,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	get playbackRate() {
-		return Math.max(...this.#children.map(animation => animation.playbackRate));
+		return this.#playbackRate;
 	}
 
 	get replaceState() {

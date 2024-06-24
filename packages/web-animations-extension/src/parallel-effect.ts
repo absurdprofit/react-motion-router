@@ -1,6 +1,6 @@
 import { associatedAnimation } from "./common/associated-animation";
 import { DEFAULT_TIMING } from "./common/constants";
-import { calculateCurrentIterationIndex, computedTimingToPercent, cssNumberishToNumber, getPhase } from "./common/utils";
+import { calculateCurrentIterationIndex, computedTimingToPercent, cssNumberishToNumber, getPhase, msFromTime } from "./common/utils";
 import { GestureTimeline } from "./gesture-timeline";
 import { GroupEffect } from "./group-effect";
 
@@ -32,7 +32,7 @@ export class ParallelEffect extends GroupEffect {
 
 	getComputedTiming(): ComputedEffectTiming {
 		const timing = this.getTiming();
-		const computedTiming: ComputedEffectTiming = {...timing};
+		const computedTiming: ComputedEffectTiming = { ...timing };
 		let overallProgress = 0;
 		for (let i = 0; i < this.children.length; i++) {
 			const child = this.children.item(i);
@@ -61,6 +61,12 @@ export class ParallelEffect extends GroupEffect {
 		}
 
 		const { timeline, startTime, currentTime } = associatedAnimation.get(this) ?? {};
+		let { duration = 0, iterations = 1 } = computedTiming;
+		if (duration === "auto") duration = 0;
+		if (typeof duration === "string")
+			throw new TypeError("Unknown effect duration keyword.");
+		computedTiming.duration = duration;
+		computedTiming.activeDuration = msFromTime(duration) * iterations;
 		computedTiming.startTime = startTime ?? undefined;
 		computedTiming.localTime = currentTime;
 		computedTiming.progress = overallProgress / this.children.length; // average progress

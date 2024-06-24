@@ -13,7 +13,7 @@ export default function NotFound(props: NotFoundProps) {
             <div className="page-content">
                 <h1>404 Not Found</h1>
                 <img src={BoredSaitama} alt="gif" style={{ width: imgWidth, height: imgWidth / 1.16 }} />
-                <Button variant="contained" onClick={() => props.navigation.navigate('/')}>Home</Button>
+                <Button variant="contained" onClick={() => props.navigation.replace('/react-motion-router/')}>Home</Button>
             </div>
         </div>
     );
