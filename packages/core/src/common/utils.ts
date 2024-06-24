@@ -113,8 +113,9 @@ export function lazy<T extends React.ComponentType<any>>(
     factory: () => Promise<{ default: T }>
 ): LazyExoticComponent<T> {
     const Component = ReactLazy(factory) as LazyExoticComponent<T>;
-    Component.load = () => {
-        return factory();
+    Component.load = async () => {
+        Component.module ??= await factory();
+        return Component.module;
     };
     return Component;
 }
@@ -151,16 +152,16 @@ export async function polyfillNavigation() {
 }
 
 export function isFirstLoad(info?: unknown) {
-	if (info && typeof info === 'object' && 'firstLoad' in info)
+    if (info && typeof info === 'object' && 'firstLoad' in info)
         return Boolean(info.firstLoad);
     return false;
 }
 
 export async function PromiseAllDynamic<T>(values: Iterable<T | PromiseLike<T>>): Promise<Awaited<T>[]> {
-	const awaited = [];
-	for (const value of values) {
-		awaited.push(await value);
-	}
+    const awaited = [];
+    for (const value of values) {
+        awaited.push(await value);
+    }
 
-	return awaited;
+    return awaited;
 }

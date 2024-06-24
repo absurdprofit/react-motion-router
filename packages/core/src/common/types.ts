@@ -49,6 +49,7 @@ export type MetaKey = `${MetaTypeKey}=${string}`;
 
 export interface LazyExoticComponent<T extends React.ComponentType<any>> extends React.LazyExoticComponent<T> {
     load: () => Promise<{ default: T }>;
+    module?: { default: T };
 }
 
 export type ScreenState<P extends ScreenBaseProps = ScreenBaseProps> = Map<string, Pick<RoutePropBase<P["config"], PlainObject>, "config" | "params">>;
@@ -69,12 +70,6 @@ export interface ScreenComponentBaseProps<
 > {
     route: R;
     navigation: N;
-}
-
-export function isValidComponentConstructor(value: any): value is React.ComponentType<any> {
-    if (value === null) return false;
-    return typeof value === 'function' ||
-        (typeof value === 'object' && value.$$typeof === Symbol.for('react.lazy'));
 }
 
 export function isValidScreenChild<S extends ScreenBase>(value: any): value is ScreenChild<S["props"], S> {
@@ -174,4 +169,10 @@ export type WillChange = keyof React.CSSProperties;
 
 export function isAnimationEffect(value: any): value is AnimationEffect {
     return value instanceof AnimationEffect;
+}
+
+export function isLazyExoticComponent(value: any): value is LazyExoticComponent<any> {
+    return typeof value === "object"
+        && value !== null
+        && value.$$typeof === Symbol.for('react.lazy');
 }

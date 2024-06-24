@@ -378,19 +378,18 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                     const incomingKey = window.navigation.currentEntry?.key;
                     const outgoingScreen = this.getScreenRefByKey(String(outgoingKey));
                     const incomingScreen = this.getScreenRefByKey(String(incomingKey));
-                    await Promise.all([
-                        outgoingScreen?.current?.blur(),
-                        incomingScreen?.current?.focus()
-                    ]);
-                    await Promise.all([
-                        outgoingScreen?.current?.onExit(signal),
-                        incomingScreen?.current?.onEnter(signal)
-                    ]);
-                    await incomingScreen?.current?.load(signal);
+                    queueMicrotask(async () => {
+                        await Promise.all([
+                            outgoingScreen?.current?.blur(),
+                            incomingScreen?.current?.focus()
+                        ]);
+                        await Promise.all([
+                            outgoingScreen?.current?.onExit(signal),
+                            incomingScreen?.current?.onEnter(signal)
+                        ]);
+                    });
+                    incomingScreen?.current?.load(signal);
                     if (!isRollback(e.info)) {
-                        // lazy loaded screens don't have time to add shared elements to scene
-                        // wait for next animation frame in case of lazy loaded screens
-                        await nextAnimationFrame();
                         const animation = this.screenTransition(incomingScreen, outgoingScreen, backNavigating);
                         signal.addEventListener('abort', () => animation?.finish());
                         await animation?.finished;

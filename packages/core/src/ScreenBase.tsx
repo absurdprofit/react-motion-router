@@ -5,7 +5,7 @@ import {
     LazyExoticComponent,
     PlainObject,
     RoutePropBase,
-    isValidComponentConstructor
+    isLazyExoticComponent,
 } from "./common/types";
 import { NestedRouterContext, RouterContext } from "./RouterContext";
 import { RoutePropContext } from "./RoutePropContext";
@@ -233,13 +233,16 @@ interface ComponentWithRoutePropsProps extends RouteProps<RoutePropBase, Navigat
     component: React.JSXElementConstructor<any> | LazyExoticComponent<any> | React.ReactNode;
 }
 function ComponentWithRouteProps({ component, route, navigation }: ComponentWithRoutePropsProps) {
+    if (isLazyExoticComponent(component) && component.module?.default) {
+        component = component.module.default;
+    }
     const Component = component ?? null;
     if (isValidElement(Component)) {
         return cloneElement<any>(Component, {
             navigation,
             route
         });
-    } else if (isValidComponentConstructor(Component)) {
+    } else if (typeof Component === "function") {
         return (
             <Component
                 navigation={navigation}
