@@ -29,7 +29,7 @@ function Routes() {
         gestureMinFlingVelocity: 1000,
         animation
       },
-      initialPath: '.',
+      initialPathname: '.',
       disableBrowserRouting: isPWA() && isIOS(),
     }}>
       <Stack.Screen

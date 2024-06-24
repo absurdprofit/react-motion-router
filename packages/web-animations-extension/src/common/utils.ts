@@ -178,9 +178,9 @@ export function easingToLinear(easing: (t: number) => number, steps = 100) {
 
 export function clamp(num: number, min: number, max?: number) {
 	if (num < min) {
-			return min;
+		return min;
 	} else if (max && num > max) {
-			return max;
+		return max;
 	}
 	return num;
 }
@@ -235,64 +235,66 @@ export function computedTimingToPercent(computedTiming: ComputedEffectTiming, ti
 
 export function getPhase(timing: ComputedEffectTiming, animationDirection: "forwards" | "backwards"): AnimationEffectPhase {
 	const { activeDuration = 0, localTime, endTime = Infinity, delay = 0 } = timing;
-	
+
 	if (localTime == null || localTime === undefined) {
 		return 'idle';
 	}
-	
+
 	const beforeActiveBoundaryTime = Math.max(Math.min(delay, msFromTime(endTime)), 0);
 	const activeAfterBoundaryTime = Math.max(Math.min(delay + msFromTime(activeDuration), msFromTime(endTime)), 0);
-	
+
 	if (
 		msFromTime(localTime) < beforeActiveBoundaryTime ||
 		(animationDirection === 'backwards' && localTime === beforeActiveBoundaryTime)
 	) {
 		return 'before';
 	}
-	
+
 	if (
 		msFromTime(localTime) > activeAfterBoundaryTime ||
 		(animationDirection === 'forwards' && localTime === activeAfterBoundaryTime)
 	) {
 		return 'after';
 	}
-	
+
 	return 'active';
 }
 
 export function calculateActiveTime(timing: ComputedEffectTiming, phase: AnimationEffectPhase): number | null {
 	const { localTime, delay = 0, activeDuration = 0, fill } = timing;
-  
+
 	if (localTime == null || localTime === undefined) {
-	  return null; // Unresolved time value
-	}
-  
-	switch (phase) {
-	  case 'before':
-		if (fill === 'backwards' || fill === 'both') {
-		  return Math.max(msFromTime(localTime) - delay, 0);
-		} else {
-		  return null; // Unresolved time value
-		}
-  
-	  case 'active':
-		return msFromTime(localTime) - delay;
-  
-	  case 'after':
-		if (fill === 'forwards' || fill === 'both') {
-		  return Math.max(Math.min(msFromTime(localTime) - delay, msFromTime(activeDuration)), 0);
-		} else {
-		  return null; // Unresolved time value
-		}
-  
-	  default:
 		return null; // Unresolved time value
+	}
+
+	switch (phase) {
+		case 'before':
+			if (fill === 'backwards' || fill === 'both') {
+				return Math.max(msFromTime(localTime) - delay, 0);
+			} else {
+				return null; // Unresolved time value
+			}
+
+		case 'active':
+			return msFromTime(localTime) - delay;
+
+		case 'after':
+			if (fill === 'forwards' || fill === 'both') {
+				return Math.max(Math.min(msFromTime(localTime) - delay, msFromTime(activeDuration)), 0);
+			} else {
+				return null; // Unresolved time value
+			}
+
+		default:
+			return null; // Unresolved time value
 	}
 }
 
 export function calculateOverallProgress(timing: ComputedEffectTiming, phase: AnimationEffectPhase, activeTime: number) {
 	const { duration = 0, iterations = 1, iterationStart = 0 } = timing;
-	
+	if (typeof duration !== "number")
+		throw new TypeError("Duration cannot be unresolved");
+
 	let overallProgress = 0;
 
 	if (duration === 0)
@@ -301,13 +303,13 @@ export function calculateOverallProgress(timing: ComputedEffectTiming, phase: An
 		else
 			overallProgress = iterations;
 	else
-		overallProgress =  activeTime / duration;
+		overallProgress = activeTime / msFromTime(duration);
 
 	return overallProgress + iterationStart;
 }
 
 export function calculateSimpleIterationProgress(timing: ComputedEffectTiming, phase: AnimationEffectPhase, overallProgress: number, activeTime: number) {
-	const { iterations = 1, iterationStart = 0 , activeDuration = 0 } = timing;
+	const { iterations = 1, iterationStart = 0, activeDuration = 0 } = timing;
 
 	if (isNull(overallProgress))
 		return null;

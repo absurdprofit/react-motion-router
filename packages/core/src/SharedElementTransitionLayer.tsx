@@ -170,13 +170,13 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
                     startClone.id = `${id}-start`;
                     (startClone.firstElementChild as HTMLElement).style.position = "absolute";
                     this.ref.current?.prepend(startClone);
-                    start.hide();
                 }
 
                 if (!endClone) continue;
                 endClone.id = `${id}${end.transitionType === "morph" ? '' : '-end'}`;
                 (endClone.firstElementChild as HTMLElement).style.position = "absolute";
                 this.ref.current?.prepend(endClone);
+                start.hide();
                 end.hide();
                 const onFinish = () => {
                     end.unhide();
