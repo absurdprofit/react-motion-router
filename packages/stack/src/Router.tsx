@@ -6,7 +6,7 @@ import { HistoryEntryState, isHorizontalDirection, isRefObject, SwipeDirection }
 import { Children, createRef, cloneElement, startTransition } from 'react';
 import { SwipeStartEvent, SwipeEndEvent } from 'web-gesture-events';
 import { GestureTimeline } from 'web-animations-extension';
-import { isRollback, searchParamsToObject } from './common/utils';
+import { isRollback, nextAnimationFrame, searchParamsToObject } from './common/utils';
 
 export interface RouterProps extends RouterBaseProps<Screen> {
     config: RouterBaseProps["config"] & {
@@ -388,6 +388,9 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                     ]);
                     await incomingScreen?.current?.load(signal);
                     if (!isRollback(e.info)) {
+                        // lazy loaded screens don't have time to add shared elements to scene
+                        // wait for next animation frame in case of lazy loaded screens
+                        await nextAnimationFrame();
                         const animation = this.screenTransition(incomingScreen, outgoingScreen, backNavigating);
                         signal.addEventListener('abort', () => animation?.finish());
                         await animation?.finished;

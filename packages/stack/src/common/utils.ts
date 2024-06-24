@@ -32,3 +32,9 @@ export function isRollback(info?: unknown) {
 		return Boolean(info.rollback);
 	return false;
 }
+
+export function nextAnimationFrame() {
+	return new Promise<DOMHighResTimeStamp>(resolve => {
+		return requestAnimationFrame(resolve);
+	});
+}
