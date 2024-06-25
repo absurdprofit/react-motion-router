@@ -449,12 +449,14 @@ export class Animation extends EventTarget implements NativeAnimation {
 
 		if (this.#pending.task === 'pause' && this.#startTime !== null) {
 			this.#holdTime = null;
+			this.#pending.task = null;
 			cancelAnimationFrame(this.#pendingTaskRequestId);
 			this.#readyPromise.resolve(this);
 		}
 
 
 		if (this.#pending.task === 'play' && this.#startTime !== null) {
+			this.#pending.task = null;
 			cancelAnimationFrame(this.#pendingTaskRequestId);
 			this.#readyPromise.resolve(this);
 		}
@@ -548,45 +550,46 @@ export class Animation extends EventTarget implements NativeAnimation {
 		this.#children.forEach(animation => animation.startTime = _startTime);
 	}
 
-	set currentTime(currentTime: CSSNumberish | null) {
-		if (this.#timeline instanceof GestureTimeline) {
-			const timelineTime = this.#timeline?.currentTime;
-			if (isNull(currentTime) && !isNull(timelineTime)) {
-				throw new TypeError("currentTime may not be changed from resolved to unresolved.");
-			}
-
-			currentTime = msFromPercent(currentTime, this.#effect?.getTiming());
-			this.#autoAlignStartTime = false;
-			if (
-				this.#holdTime !== null
-				|| this.#startTime === null
-				|| this.#timeline.phase === 'inactive'
-				|| this.playbackRate === 0
-			) {
-				this.#holdTime = currentTime;
-			} else if (currentTime !== null) {
-				this.#startTime = msFromPercent(currentTime, this.#effect?.getTiming()) - currentTime / this.playbackRate;
-			}
-
-			if (this.#timeline.phase === 'inactive') {
-				this.#startTime = null;
-			}
-
-			this.#previousCurrentTime = null;
-
-			if (this.#pending.task === 'pause') {
-				this.#holdTime = currentTime;
-				this.#applyPendingPlaybackRate();
-				this.#startTime = null;
-				this.#pending.task = null;
-				this.#readyPromise.resolve(this);
-			}
-
-
-			this.#updateFinishedState(true);
-		} else {
-			this.#children.forEach(child => child.currentTime = currentTime);
+	set currentTime(seekTime: CSSNumberish | null) {
+		const unit = this.#timeline instanceof GestureTimeline ? 'percent' : 'ms';
+		const timelineTime = cssNumberishToNumber(this.#timeline?.currentTime ?? null, unit);
+		if (isNull(seekTime) && !isNull(timelineTime)) {
+			throw new TypeError("currentTime may not be changed from resolved to unresolved.");
 		}
+
+		seekTime = cssNumberishToNumber(seekTime, unit);
+		this.#autoAlignStartTime = false;
+		if (
+			this.#holdTime !== null
+			|| this.#startTime === null
+			|| timelineTime === null
+			|| this.playbackRate === 0
+		) {
+			this.#holdTime = seekTime;
+		} else {
+			// since timelineTime is not null seekTime must not be null
+			this.#startTime = timelineTime - (seekTime! / this.playbackRate);
+		}
+
+		if (this.#timeline === null || timelineTime === null) {
+			this.#startTime = null;
+		}
+
+		this.#previousCurrentTime = null;
+
+		this.#setCurrentTimeSilently(seekTime);
+		if (this.#pending.task === 'pause') {
+			this.#holdTime = seekTime;
+			this.#applyPendingPlaybackRate();
+			this.#startTime = null;
+			this.#pending.task = null;
+			cancelAnimationFrame(this.#pendingTaskRequestId);
+			this.#readyPromise.resolve(this);
+		}
+
+
+		this.#updateFinishedState(true);
+		this.#children.forEach(child => child.currentTime = seekTime);
 	}
 
 	set timeline(_timeline: AnimationTimeline | null) {
