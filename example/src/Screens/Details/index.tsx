@@ -72,7 +72,7 @@ export default function Details(props: DetailsProps) {
                     backgroundColor: noBg ? 'white' : undefined
                 }}
             >
-                <SharedElement id={`${hero.id}-card-bg`} config={{ willChange: ['backgroundColor'] }} disabled={noBg}>
+                <SharedElement id={`${hero.id}-card-bg`} config={{ willChange: ['backgroundColor', 'borderRadius'], deepClone: false }} disabled={noBg}>
                     <div className="card-bg" aria-hidden="true">
                         
                             <Anchor aria-label='Go Back' goBack tabIndex={-1}>
@@ -91,7 +91,7 @@ export default function Details(props: DetailsProps) {
                                 </IconButton>
                             </Anchor>
                             <div className="profile-info">
-                                <SharedElement id={`${hero.id}-gradient-overlay`}>
+                                <SharedElement id={`${hero.id}-gradient-overlay`} config={{willChange: ['background', 'opacity', 'clipPath']}}>
                                     <div
                                         className="gradient-overlay"
                                         style={{
@@ -117,7 +117,7 @@ export default function Details(props: DetailsProps) {
                                         </Typography>
                                     </SharedElement>
                                     <div className="description">
-                                        <SharedElement id={`description-${hero.id}`}>
+                                        <SharedElement id={`description-${hero.id}`} config={{willChange: ['clipPath', 'textAlign', 'overflow', 'lineHeight']}}>
                                             <p style={{ zIndex: 10 }}>{hero.description}</p>
                                         </SharedElement>
                                     </div>

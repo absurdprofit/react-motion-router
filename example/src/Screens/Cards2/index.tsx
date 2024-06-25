@@ -63,7 +63,7 @@ const CardComponent = ({ observer, navigation, hero }: CardProps) => {
         <li role="menuitem">
             <Anchor href='details' params={params} onClick={onClick}>
                 <ButtonBase aria-label={`Character profile: ${hero.name}`} disableRipple>
-                    <SharedElement id={`${hero.id}-card-bg`} config={{willChange: ['borderRadius']}}>
+                    <SharedElement id={`${hero.id}-card-bg`} config={{deepClone: false}}>
                         <div
                             id={`${hero.id}-card-bg`}
                             className="card-bg"
@@ -95,7 +95,7 @@ const CardComponent = ({ observer, navigation, hero }: CardProps) => {
                                         }}
                                     />
                                 </SharedElement>
-                                <CardContent style={{ position: 'absolute', bottom: '0', color: 'white' }}>
+                                <CardContent style={{ position: 'absolute', bottom: '0' }}>
                                     <SharedElement id={`title-${hero.id}`} config={{
                                         type: 'fade-through'
                                     }}>
@@ -105,6 +105,7 @@ const CardComponent = ({ observer, navigation, hero }: CardProps) => {
                                                 fontWeight: 'bold',
                                                 zIndex: 10,
                                                 margin: 0,
+                                                color: 'white',
                                                 position: 'relative',
                                                 fontSize: '28px'
                                             }}
@@ -122,6 +123,7 @@ const CardComponent = ({ observer, navigation, hero }: CardProps) => {
                                             style={{
                                                 fontSize: '16px',
                                                 zIndex: 10,
+                                                color: 'white',
                                                 position: 'relative',
                                                 clipPath: (heroName === hero.id ? textInset : '')
                                             }}

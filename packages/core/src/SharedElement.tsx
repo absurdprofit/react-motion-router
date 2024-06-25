@@ -2,13 +2,11 @@ import { Component, createRef } from 'react';
 import { SharedElementTransitionType, WillChange } from './common/types';
 import { SharedElementSceneContext } from './SharedElementSceneContext';
 
-interface SharedElementConfig {
+interface SharedElementConfig extends OptionalEffectTiming {
     type?: SharedElementTransitionType;
     transformOrigin?: React.CSSProperties["transformOrigin"];
-    easing?: React.CSSProperties["animationTimingFunction"];
-    duration?: number;
-    delay?: number;
     willChange?: WillChange[];
+    deepClone?: boolean;
 }
 
 interface SharedElementProps {
@@ -70,7 +68,8 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
 
     public clone() {
         if (!this.ref.current) return null;
-        return this.ref.current.cloneNode(true) as HTMLDivElement;
+        const deepClone = this.props.config?.deepClone ?? true;
+        return this.ref.current.firstElementChild?.cloneNode(deepClone) as HTMLElement;
     }
 
     public hide() {
