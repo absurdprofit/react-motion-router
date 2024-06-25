@@ -136,7 +136,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         return { parentScreen: this as ScreenBase, parentRouter: this.context };
     }
 
-    onExited(signal: AbortSignal) {
+    onExited(signal: AbortSignal): void | Promise<void> {
         return this.routeProp.config.onExited?.({
             route: this.routeProp,
             navigation: this.context.navigation,
@@ -144,7 +144,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         });
     }
 
-    onExit(signal: AbortSignal) {
+    onExit(signal: AbortSignal): void | Promise<void> {
         return this.routeProp.config.onExit?.({
             route: this.routeProp,
             navigation: this.context.navigation,
@@ -152,7 +152,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         });
     }
 
-    onEnter(signal: AbortSignal) {
+    onEnter(signal: AbortSignal): void | Promise<void> {
         return this.routeProp.config.onEnter?.({
             route: this.routeProp,
             navigation: this.context.navigation,
@@ -160,7 +160,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         });
     }
 
-    onEntered(signal: AbortSignal) {
+    onEntered(signal: AbortSignal): void | Promise<void> {
         return this.routeProp.config.onEntered?.({
             route: this.routeProp,
             navigation: this.context.navigation,

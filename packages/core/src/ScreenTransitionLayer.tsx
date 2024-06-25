@@ -64,7 +64,7 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
     public transition() {
         const effect = new ParallelEffect(
             this.screens.map(screen => {
-                return screen.current?.screenTransitionProvider?.current?.animationEffect;
+                return screen.current?.transitionProvider?.current?.animationEffect;
             }).filter(isAnimationEffect)
         );
 
