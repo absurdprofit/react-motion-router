@@ -51,6 +51,47 @@ export class Animation extends EventTarget implements NativeAnimation {
 		}
 	}
 
+	#setCurrentTimeSilently(seekTime: CSSNumberish | null) {
+		const timelineTime = this.#timeline?.currentTime ?? null;
+		if (seekTime === null) {
+			if (timelineTime !== null) {
+				throw new TypeError();
+			}
+		}
+
+		if (seekTime === null || timelineTime === null)
+			return;
+
+		if (this.#timeline instanceof GestureTimeline)
+			seekTime = msFromPercent(seekTime, this.#effect?.getTiming());
+		else
+			seekTime = msFromTime(seekTime);
+
+		this.#autoAlignStartTime = false;
+
+		if (
+			this.#holdTime !== null
+			|| this.#startTime === null
+			|| (this.#timeline instanceof GestureTimeline && this.#timeline.phase === 'inactive')
+			|| this.#playbackRate === 0
+		) {
+			this.#holdTime = seekTime;
+		} else {
+			let timelineTimeMs;
+			if (this.#timeline instanceof GestureTimeline)
+				timelineTimeMs = msFromPercent(timelineTime, this.#effect?.getTiming());
+			else
+				timelineTimeMs = msFromTime(timelineTime);
+			this.#startTime = timelineTimeMs - seekTime / this.#playbackRate;
+		}
+
+		if (this.#timeline instanceof GestureTimeline && this.#timeline.phase === 'inactive') {
+			this.#startTime = null;
+		}
+
+		this.#previousCurrentTime = null
+	}
+
 	#schedulePendingTask() {
 		if (this.#readyPromise.state !== "pending")
 			this.#readyPromise = new PromiseWrapper();
@@ -259,7 +300,8 @@ export class Animation extends EventTarget implements NativeAnimation {
 	#dispatchFinishedEvent = () => {
 		if (this.#finishedPromise.state !== 'pending')
 			return;
-		if (this.playState !== "finished") return;
+		if (this.playState !== "finished")
+			return;
 
 		this.#finishedPromise.resolve(this);
 
@@ -376,6 +418,48 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	finish(): void {
+		const { endTime = null } = this.effect?.getComputedTiming() ?? {};
+		const playbackRate = this.#pending.playbackRate ?? this.#playbackRate;
+		if (playbackRate === 0 || (playbackRate > 0 && endTime === Infinity)) {
+			throw new DOMException("InvalidStateError");
+		}
+
+		this.#applyPendingPlaybackRate();
+
+		let limit;
+		if (playbackRate > 0) {
+			limit = endTime;
+		} else {
+			limit = 0;
+		}
+
+		this.#setCurrentTimeSilently(limit);
+
+		if (
+			this.startTime === null
+			&& this.#timeline !== null
+			&& this.#timeline.currentTime !== null
+			&& limit !== null
+		) {
+			const unit = this.#timeline instanceof GestureTimeline ? 'percent' : 'ms';
+			limit = cssNumberishToNumber(limit, unit);
+			const timelineTime = cssNumberishToNumber(this.#timeline.currentTime, unit);
+			this.#startTime = (timelineTime - (limit / playbackRate));
+		}
+
+		if (this.#pending.task === 'pause' && this.#startTime !== null) {
+			this.#holdTime = null;
+			cancelAnimationFrame(this.#pendingTaskRequestId);
+			this.#readyPromise.resolve(this);
+		}
+
+
+		if (this.#pending.task === 'play' && this.#startTime !== null) {
+			cancelAnimationFrame(this.#pendingTaskRequestId);
+			this.#readyPromise.resolve(this);
+		}
+
+		this.#updateFinishedState(true);
 		this.#children.forEach(animation => animation.finish());
 	}
 
