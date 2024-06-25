@@ -418,7 +418,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	finish(): void {
-		const { endTime = null } = this.effect?.getComputedTiming() ?? {};
+		const { endTime = 0 } = this.effect?.getComputedTiming() ?? {};
 		const playbackRate = this.#pending.playbackRate ?? this.#playbackRate;
 		if (playbackRate === 0 || (playbackRate > 0 && endTime === Infinity)) {
 			throw new DOMException("InvalidStateError");

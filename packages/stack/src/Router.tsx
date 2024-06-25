@@ -378,24 +378,24 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                     const incomingKey = window.navigation.currentEntry?.key;
                     const outgoingScreen = this.getScreenRefByKey(String(outgoingKey));
                     const incomingScreen = this.getScreenRefByKey(String(incomingKey));
-                    Promise.all([
+                    const pendingPromises = new Array();
+                    pendingPromises.push(
                         outgoingScreen?.current?.blur(),
-                        incomingScreen?.current?.focus()
-                    ]);
-                    Promise.all([
+                        incomingScreen?.current?.focus(),
                         outgoingScreen?.current?.onExit(signal),
-                        incomingScreen?.current?.onEnter(signal)
-                    ]);
-                    incomingScreen?.current?.load(signal);
+                        incomingScreen?.current?.onEnter(signal),
+                        incomingScreen?.current?.load(signal)
+                    );
                     if (!isRollback(e.info)) {
                         const animation = this.screenTransition(incomingScreen, outgoingScreen, backNavigating);
                         signal.addEventListener('abort', () => animation?.finish());
                         await animation?.finished;
                     }
-                    Promise.all([
+                    pendingPromises.push(
                         outgoingScreen?.current?.onExited(signal),
                         incomingScreen?.current?.onEntered(signal)
-                    ]);
+                    );
+                    await Promise.all(pendingPromises);
                     this.setState({ destination: null, transition: null }, resolve);
                 });
             }));
