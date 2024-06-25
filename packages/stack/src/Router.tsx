@@ -413,11 +413,11 @@ export class Router extends RouterBase<RouterProps, RouterState> {
     ) {
         if (this.screenTransitionLayer.current && incomingScreen && outgoingScreen) {
             this.screenTransitionLayer.current.direction = backNavigating ? 'reverse' : 'normal';
-            if (incomingScreen.current?.screenTransitionProvider.current) {
-                incomingScreen.current.screenTransitionProvider.current.exiting = false;
+            if (incomingScreen.current?.transitionProvider.current) {
+                incomingScreen.current.transitionProvider.current.exiting = false;
             }
-            if (outgoingScreen.current?.screenTransitionProvider.current) {
-                outgoingScreen.current.screenTransitionProvider.current.exiting = true;
+            if (outgoingScreen.current?.transitionProvider.current) {
+                outgoingScreen.current.transitionProvider.current.exiting = true;
             }
             if (this.screenTransitionLayer.current.sharedElementTransitionLayer.current) {
                 this.screenTransitionLayer.current.sharedElementTransitionLayer.current.outgoingScreen = outgoingScreen;
@@ -428,8 +428,8 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                 .map((screen, index) => {
                     // normalise indices making incoming screen index 1 and preceding screens index 0...-n
                     index = (index - topScreenIndex) + 1;
-                    if (isRefObject(screen.ref) && screen.ref.current?.screenTransitionProvider.current) {
-                        screen.ref.current.screenTransitionProvider.current.index = index;
+                    if (isRefObject(screen.ref) && screen.ref.current?.transitionProvider.current) {
+                        screen.ref.current.transitionProvider.current.index = index;
                         return screen.ref;
                     }
                     return null;

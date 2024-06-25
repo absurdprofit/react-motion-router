@@ -69,26 +69,26 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
 
     onEnter(signal: AbortSignal) {
         if (
-            this.screenTransitionProvider.current?.ref.current instanceof HTMLDialogElement
-            && this.screenTransitionProvider.current.ref.current.open === false
+            this.transitionProvider.current?.ref.current instanceof HTMLDialogElement
+            && this.transitionProvider.current.ref.current.open === false
         ) {
             const navigation = this.context?.navigation as Navigation | undefined;
             if (this.props.config?.presentation === "modal") {
-                this.screenTransitionProvider.current.ref.current.showModal();
+                this.transitionProvider.current.ref.current.showModal();
             } else {
-                this.screenTransitionProvider.current.ref.current.show();
+                this.transitionProvider.current.ref.current.show();
             }
-            this.screenTransitionProvider.current.ref.current.style.maxHeight = 'unset';
-            this.screenTransitionProvider.current.ref.current.style.maxWidth = 'unset';
-            this.screenTransitionProvider.current.ref.current.style.width = 'max-content';
-            this.screenTransitionProvider.current.ref.current.style.height = 'max-content';
+            this.transitionProvider.current.ref.current.style.maxHeight = 'unset';
+            this.transitionProvider.current.ref.current.style.maxWidth = 'unset';
+            this.transitionProvider.current.ref.current.style.width = 'max-content';
+            this.transitionProvider.current.ref.current.style.height = 'max-content';
             if (this.ref.current) {
                 this.ref.current.style.width = 'max-content';
                 this.ref.current.style.height = 'max-content';
             }
 
             // closed by form submit or ESC key
-            this.screenTransitionProvider.current?.ref.current.addEventListener('close', function () {
+            this.transitionProvider.current?.ref.current.addEventListener('close', function () {
                 if (this.returnValue !== "screen-exit") {
                     this.style.display = "block";
                     navigation?.goBack();
@@ -96,9 +96,9 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
             }, { once: true });
 
             // close by backdrop click
-            this.screenTransitionProvider.current.ref.current.onclick = (e) => {
-                if (!this.screenTransitionProvider.current?.ref.current) return;
-                const rect = this.screenTransitionProvider.current.ref.current.getBoundingClientRect();
+            this.transitionProvider.current.ref.current.onclick = (e) => {
+                if (!this.transitionProvider.current?.ref.current) return;
+                const rect = this.transitionProvider.current.ref.current.getBoundingClientRect();
                 const isInDialog = (
                     rect.top <= e.clientY
                     && e.clientY <= rect.top + rect.height
@@ -136,8 +136,8 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
     }
 
     onExited(signal: AbortSignal) {
-        if (this.screenTransitionProvider.current?.ref.current instanceof HTMLDialogElement) {
-            this.screenTransitionProvider.current.ref.current.close("screen-exit");
+        if (this.transitionProvider.current?.ref.current instanceof HTMLDialogElement) {
+            this.transitionProvider.current.ref.current.close("screen-exit");
         }
 
         return super.onExited(signal);

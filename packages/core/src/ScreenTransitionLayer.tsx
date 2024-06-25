@@ -103,7 +103,7 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
                     navigation={this.props.navigation}
                 />
                 <div
-                    className="screen-animation-layer"
+                    className="screen-transition-layer"
                     style={{
                         width: '100%',
                         height: '100%',
