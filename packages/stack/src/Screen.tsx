@@ -116,9 +116,9 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
     onExit(signal: AbortSignal) {
         const navigation = this.context?.navigation as Navigation | undefined;
         const currentPath = navigation?.current?.url?.pathname;
-        if (!currentPath) return;
+        if (!currentPath) return super.onExit(signal);
         const baseURL = navigation?.baseURL?.href;
-        if (!baseURL) return;
+        if (!baseURL) return super.onExit(signal);
         const routes = Children.toArray(this.context?.props.children);
         const currentRoute = routes.find(route => {
             if (!isValidElement(route)) return false;

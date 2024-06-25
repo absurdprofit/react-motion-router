@@ -1,4 +1,4 @@
-import { RouterBase, includesRoute, isFirstLoad, isValidScreenChild, matchRoute } from '@react-motion-router/core';
+import { RouterBase, includesRoute, isValidScreenChild, matchRoute } from '@react-motion-router/core';
 import type { LoadEvent, NestedRouterContext, RouterBaseProps, RouterBaseState, ScreenChild } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { ScreenProps, Screen } from './Screen';
@@ -6,7 +6,7 @@ import { HistoryEntryState, isHorizontalDirection, isRefObject, SwipeDirection }
 import { Children, createRef, cloneElement, startTransition } from 'react';
 import { SwipeStartEvent, SwipeEndEvent } from 'web-gesture-events';
 import { GestureTimeline } from 'web-animations-extension';
-import { isRollback, nextAnimationFrame, searchParamsToObject } from './common/utils';
+import { isRollback, searchParamsToObject } from './common/utils';
 
 export interface RouterProps extends RouterBaseProps<Screen> {
     config: RouterBaseProps["config"] & {
@@ -253,9 +253,11 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                 this.setState({ destination, transition, screenStack }, async () => {
                     const signal = e.signal;
                     const currentScreen = this.getScreenRefByKey(this.navigation.current.key);
-                    await currentScreen?.current?.focus();
                     await currentScreen?.current?.onEnter(signal);
-                    await currentScreen?.current?.load(signal);
+                    await Promise.all([
+                        currentScreen?.current?.focus(),
+                        currentScreen?.current?.load(signal)
+                    ]);
                     await currentScreen?.current?.onEntered(signal);
                     this.setState({ destination: null, transition: null }, resolve);
                 });
@@ -279,7 +281,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                 if (!entry.url) return null;
                 const screen = this.screenChildFromPathname(entry.url.pathname);
                 if (!isValidScreenChild<Screen>(screen)) return null;
-                const { params, config } = entry.getState() as HistoryEntryState ?? {};
+                const { params, config } = entry.getState<HistoryEntryState>() ?? {};
                 const queryParams = searchParamsToObject(entry.url.search);
                 screenStack.push(
                     cloneElement(screen, {
@@ -306,11 +308,11 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                         this.props.config.initialPathname
                         && entries.length === 1
                         && entries.at(0)?.url
-                        && !Boolean(matchRoute(
+                        && !matchRoute(
                             this.props.config.initialPathname,
                             entries.at(0)!.url!.pathname,
                             this.baseURLPattern.pathname
-                        ))
+                        )
                     ) {
                         const transitionFinished = window.navigation.transition?.finished ?? Promise.resolve();
                         transitionFinished.then(() => {
@@ -323,9 +325,11 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                     }
                     const signal = e.signal;
                     const currentScreen = this.getScreenRefByKey(this.navigation.current.key);
-                    await currentScreen?.current?.focus();
                     await currentScreen?.current?.onEnter(signal);
-                    await currentScreen?.current?.load(signal);
+                    await Promise.all([
+                        currentScreen?.current?.focus(),
+                        currentScreen?.current?.load(signal)
+                    ]);
                     await currentScreen?.current?.onEntered(signal);
                     this.setState({ destination: null, transition: null }, resolve);
                 });
@@ -380,10 +384,8 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                     const incomingScreen = this.getScreenRefByKey(String(incomingKey));
                     const pendingPromises = new Array();
                     pendingPromises.push(
-                        outgoingScreen?.current?.blur(),
-                        incomingScreen?.current?.focus(),
-                        outgoingScreen?.current?.onExit(signal),
-                        incomingScreen?.current?.onEnter(signal),
+                        outgoingScreen?.current?.onExit(signal).then(() => outgoingScreen?.current?.blur()),
+                        incomingScreen?.current?.onEnter(signal).then(() => incomingScreen?.current?.focus()),
                         incomingScreen?.current?.load(signal)
                     );
                     if (!isRollback(e.info)) {
