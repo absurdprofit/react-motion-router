@@ -69,67 +69,68 @@ const CardComponent = ({ observer, navigation, hero }: CardProps) => {
                             className="card-bg"
                             ref={bgRef}
                             style={{ width: 345 > window.screen.width ? 300 : 345, clipPath: (heroName === hero.id ? bgInset : '') }}
-                        ></div>
+                        >
+                            <Card sx={{ width: 345 > window.screen.width ? 300 : 345 }}>
+                                <SharedElement id={`${hero.id}-gradient-overlay`}>
+                                    <div
+                                        ref={gradientRef}
+                                        className="gradient-overlay"
+                                        style={{
+                                            clipPath: (heroName === hero.id ? imageInset : '')
+                                        }}
+                                    ></div>
+                                </SharedElement>
+                                <SharedElement id={hero.id}>
+                                    <CardMedia
+                                        component="img"
+                                        height={345}
+                                        loading={heroName === hero.id ? "eager" : "lazy"}
+                                        decoding={heroName === hero.id ? "sync" : "async"}
+                                        src={hero.photoUrl}
+                                        alt={hero.name}
+                                        id={`${hero.id}`}
+                                        ref={imageRef}
+                                        style={{
+                                            clipPath: (heroName === hero.id ? imageInset : '')
+                                        }}
+                                    />
+                                </SharedElement>
+                                <CardContent style={{ position: 'absolute', bottom: '0', color: 'white' }}>
+                                    <SharedElement id={`title-${hero.id}`} config={{
+                                        type: 'fade-through'
+                                    }}>
+                                        <Typography
+                                            style={{
+                                                clipPath: (heroName === hero.id ? titleInset : ''),
+                                                fontWeight: 'bold',
+                                                zIndex: 10,
+                                                margin: 0,
+                                                position: 'relative',
+                                                fontSize: '28px'
+                                            }}
+                                            ref={titleRef}
+                                            gutterBottom
+                                            variant="h4"
+                                            component="h4"
+                                        >{hero.name}</Typography>
+                                    </SharedElement>
+                                    <SharedElement id={`description-${hero.id}`} config={{
+                                        type: 'fade-through'
+                                    }}>
+                                        <p
+                                            ref={paraRef}
+                                            style={{
+                                                fontSize: '16px',
+                                                zIndex: 10,
+                                                position: 'relative',
+                                                clipPath: (heroName === hero.id ? textInset : '')
+                                            }}
+                                        >{hero.description}</p>
+                                    </SharedElement>
+                                </CardContent>
+                            </Card>
+                        </div>
                     </SharedElement>
-                    <Card sx={{ width: 345 > window.screen.width ? 300 : 345 }}>
-                        <SharedElement id={`${hero.id}-gradient-overlay`}>
-                            <div
-                                ref={gradientRef}
-                                className="gradient-overlay"
-                                style={{
-                                    clipPath: (heroName === hero.id ? imageInset : '')
-                                }}
-                            ></div>
-                        </SharedElement>
-                        <SharedElement id={hero.id}>
-                            <CardMedia
-                                component="img"
-                                height={345}
-                                loading={heroName === hero.id ? "eager" : "lazy"}
-                                decoding={heroName === hero.id ? "sync" : "async"}
-                                src={hero.photoUrl}
-                                alt={hero.name}
-                                id={`${hero.id}`}
-                                ref={imageRef}
-                                style={{
-                                    clipPath: (heroName === hero.id ? imageInset : '')
-                                }}
-                            />
-                        </SharedElement>
-                        <CardContent style={{ position: 'absolute', bottom: '0', color: 'white' }}>
-                            <SharedElement id={`title-${hero.id}`} config={{
-                                type: 'fade-through'
-                            }}>
-                                <Typography
-                                    style={{
-                                        clipPath: (heroName === hero.id ? titleInset : ''),
-                                        fontWeight: 'bold',
-                                        zIndex: 10,
-                                        margin: 0,
-                                        position: 'relative',
-                                        fontSize: '28px'
-                                    }}
-                                    ref={titleRef}
-                                    gutterBottom
-                                    variant="h4"
-                                    component="h4"
-                                >{hero.name}</Typography>
-                            </SharedElement>
-                            <SharedElement id={`description-${hero.id}`} config={{
-                                type: 'fade-through'
-                            }}>
-                                <p
-                                    ref={paraRef}
-                                    style={{
-                                        fontSize: '16px',
-                                        zIndex: 10,
-                                        position: 'relative',
-                                        clipPath: (heroName === hero.id ? textInset : '')
-                                    }}
-                                >{hero.description}</p>
-                            </SharedElement>
-                        </CardContent>
-                    </Card>
                 </ButtonBase>
             </Anchor>
         </li>

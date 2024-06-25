@@ -72,59 +72,59 @@ export default function Details(props: DetailsProps) {
                     backgroundColor: noBg ? 'white' : undefined
                 }}
             >
-                {!Boolean(noBg)
-                    &&
-                    <SharedElement id={`${hero.id}-card-bg`} config={{willChange: ['backgroundColor']}}>
-                        <div className="card-bg" aria-hidden="true"></div>
-                    </SharedElement>}
-                <Anchor aria-label='Go Back' goBack tabIndex={-1}>
-                    <IconButton style={{
-                        position: "absolute",
-                        color: 'grey',
-                        zIndex: 10000
-                    }} disableRipple>
-                        <SharedElement id="back" config={{
-                            type: 'fade-through'
-                        }}>
-                            <ClearIcon style={{
-                                zIndex: 100
-                            }} />
-                        </SharedElement>
-                    </IconButton>
-                </Anchor>
-                <div className="profile-info">
-                    <SharedElement id={`${hero.id}-gradient-overlay`}>
-                        <div
-                            className="gradient-overlay"
-                            style={{
-                                height: window.innerWidth / photoAspect,
-                                width: window.innerWidth
-                            }}
-                            aria-hidden="true"
-                        ></div>
-                    </SharedElement>
-                    <SharedElement id={hero.id} config={{willChange: ['objectFit', 'borderRadius']}}>
-                        <img src={hero.photoUrl} alt="Character" width={hero.photoWidth} height={hero.photoHeight} />
-                    </SharedElement>
-                    <div className="text-content" tabIndex={0}>
-                        <SharedElement id={`title-${hero.id}`}>
-                            <Typography
-                                id="title"
-                                style={{ fontWeight: 'bold', fontSize: '28px', zIndex: 10 }}
-                                gutterBottom
-                                variant="h4"
-                                component="h4"
-                            >
-                                {hero.name}
-                            </Typography>
-                        </SharedElement>
-                        <div className="description">
-                            <SharedElement id={`description-${hero.id}`}>
-                                <p style={{ zIndex: 10 }}>{hero.description}</p>
-                            </SharedElement>
-                        </div>
+                <SharedElement id={`${hero.id}-card-bg`} config={{ willChange: ['backgroundColor'] }} disabled={noBg}>
+                    <div className="card-bg" aria-hidden="true">
+                        
+                            <Anchor aria-label='Go Back' goBack tabIndex={-1}>
+                                <IconButton style={{
+                                    position: "absolute",
+                                    color: 'grey',
+                                    zIndex: 10000
+                                }} disableRipple>
+                                    <SharedElement id="back" config={{
+                                        type: 'fade-through'
+                                    }}>
+                                        <ClearIcon style={{
+                                            zIndex: 100
+                                        }} />
+                                    </SharedElement>
+                                </IconButton>
+                            </Anchor>
+                            <div className="profile-info">
+                                <SharedElement id={`${hero.id}-gradient-overlay`}>
+                                    <div
+                                        className="gradient-overlay"
+                                        style={{
+                                            height: window.innerWidth / photoAspect,
+                                            width: window.innerWidth
+                                        }}
+                                        aria-hidden="true"
+                                    ></div>
+                                </SharedElement>
+                                <SharedElement id={hero.id} config={{willChange: ['objectFit', 'borderRadius']}}>
+                                    <img src={hero.photoUrl} alt="Character" width={hero.photoWidth} height={hero.photoHeight} />
+                                </SharedElement>
+                                <div className="text-content" tabIndex={0}>
+                                    <SharedElement id={`title-${hero.id}`}>
+                                        <Typography
+                                            id="title"
+                                            style={{ fontWeight: 'bold', fontSize: '28px', zIndex: 10 }}
+                                            gutterBottom
+                                            variant="h4"
+                                            component="h4"
+                                        >
+                                            {hero.name}
+                                        </Typography>
+                                    </SharedElement>
+                                    <div className="description">
+                                        <SharedElement id={`description-${hero.id}`}>
+                                            <p style={{ zIndex: 10 }}>{hero.description}</p>
+                                        </SharedElement>
+                                    </div>
+                                </div>
+                            </div>
                     </div>
-                </div>
+                </SharedElement>
             </article>
         </GestureRegion>
     );
