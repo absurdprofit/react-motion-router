@@ -1,0 +1,2 @@
+/* LICENSES */
+import{j as t}from"./index-Hjt514II.js";import{B as n}from"./Button-JT9yvGuc.js";const e="/react-motion-router/assets/bored-saitama-8ynjmGO1.gif";function s(i){const o=window.screen.width>400?400:window.screen.width;return t.jsx("div",{className:"not-found",children:t.jsxs("div",{className:"page-content",children:[t.jsx("h1",{children:"404 Not Found"}),t.jsx("img",{src:e,alt:"gif",style:{width:o,height:o/1.16}}),t.jsx(n,{variant:"contained",onClick:()=>i.navigation.replace("/react-motion-router/"),children:"Home"})]})})}export{s as default};
