@@ -20,7 +20,7 @@ export interface RouterProps extends RouterBaseProps<Screen> {
 
 export interface RouterState extends RouterBaseState {
     backNavigating: boolean;
-    transition: NavigationTransition | null;
+    transition: NavigationTransition | LoadEvent["transition"] | null;
     destination: NavigationDestination | null;
     screenStack: ScreenChild<ScreenProps, Screen>[];
     gestureDirection: SwipeDirection;
@@ -147,12 +147,16 @@ export class Router extends RouterBase<RouterProps, RouterState> {
     }
 
     protected get screens() {
-        return this.state.screenStack
-            .filter(screen => {
-                const ref = screen.ref ?? null;
-                return isRefObject(ref) && ref.current?.routeProp.config.keepAlive
-                    || screen.key === this.navigation.current.key
-                    || screen.key === this.state.transition?.from.key
+        const screenStack = this.state.screenStack;
+        return screenStack
+            .filter((screen, index) => {
+                const currentScreenRef = screen.ref ?? null;
+                const nextScreenRef = screenStack.at(index + 1)?.ref;
+                return (isRefObject(currentScreenRef) && currentScreenRef.current?.config.keepAlive)
+                    || (isRefObject(nextScreenRef) && nextScreenRef.current?.config.presentation === "modal")
+                    || (isRefObject(nextScreenRef) && nextScreenRef.current?.config.presentation === "dialog")
+                    || screen.key === this.navigation.current?.key
+                    || screen.key === this.state.transition?.from?.key
                     || screen.key === this.state.destination?.key;
             });
     }
@@ -228,7 +232,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             const destination = e.destination;
             const resolvedPathname = new URL(e.destination.url).pathname;
             const queryParams = searchParamsToObject(new URL(destination.url).search);
-            const currentIndex = screenStack.findIndex(screen => screen.key === this.navigation.current.key);
+            const currentIndex = screenStack.findIndex(screen => screen.key === this.navigation.current?.key);
             screenStack.splice(
                 currentIndex,
                 1, // Remove all screens after current
@@ -252,6 +256,8 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             return new Promise<void>((resolve) => startTransition(() => {
                 this.setState({ destination, transition, screenStack }, async () => {
                     const signal = e.signal;
+                    if (this.navigation.current?.key === undefined)
+                        throw new Error("Current key is undefined");
                     const currentScreen = this.getScreenRefByKey(this.navigation.current.key);
                     await currentScreen?.current?.onEnter(signal);
                     await Promise.all([
@@ -273,7 +279,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
 
     private handleLoad(e: LoadEvent) {
         const handler = () => {
-            const transition = window.navigation.transition;
+            const transition = e.transition;
             const destination = e.destination;
             const screenStack = new Array<ScreenChild<ScreenProps, Screen>>();
             const entries = this.navigation.entries;
@@ -324,6 +330,8 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                         return resolve();
                     }
                     const signal = e.signal;
+                    if (this.navigation.current?.key === undefined)
+                        throw new Error("Current key is undefined");
                     const currentScreen = this.getScreenRefByKey(this.navigation.current.key);
                     await currentScreen?.current?.onEnter(signal);
                     await Promise.all([

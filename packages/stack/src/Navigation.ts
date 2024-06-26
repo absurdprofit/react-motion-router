@@ -46,7 +46,7 @@ export class Navigation extends NavigationBase<StackRouterEventMap> {
         const controller = new AbortController();
         controller.signal.addEventListener('abort', () => this.goBack(), { once: true });
         options.signal?.addEventListener('abort', controller.abort, { once: true });
-        
+
         const event = this.createNavigateEvent(route, props, history, controller.signal, result, transition);
         this.dispatchEvent?.(event);
 
@@ -63,7 +63,7 @@ export class Navigation extends NavigationBase<StackRouterEventMap> {
         const controller = new AbortController();
         controller.signal.addEventListener('abort', () => this.goForward(), { once: true });
         options.signal?.addEventListener('abort', controller.abort, { once: true });
-        
+
         const event = this.createBackEvent(controller.signal, result, transition);
         this.dispatchEvent?.(event);
 
@@ -80,7 +80,7 @@ export class Navigation extends NavigationBase<StackRouterEventMap> {
         const controller = new AbortController();
         controller.signal.addEventListener('abort', () => this.goBack(), { once: true });
         options.signal?.addEventListener('abort', controller.abort, { once: true });
-        
+
         const event = this.createForwardEvent(controller.signal, result, transition);
         this.dispatchEvent?.(event);
 
@@ -134,7 +134,7 @@ export class Navigation extends NavigationBase<StackRouterEventMap> {
     }
 
     get entries() {
-        const nestedPathPatterns = this.router.pathPatterns.filter(({pattern}) => pattern.endsWith("**"));
+        const nestedPathPatterns = this.router.pathPatterns.filter(({ pattern }) => pattern.endsWith("**"));
         let inNestedScope = false;
         return this.globalEntries
             .filter(entry => {
@@ -146,7 +146,7 @@ export class Navigation extends NavigationBase<StackRouterEventMap> {
                 if (includesRoute(nestedPathPatterns, url.pathname, this.baseURLPattern.pathname)) {
                     if (inNestedScope)
                         return false;
-                    
+
                     return inNestedScope = true; // technically in nested scope but include the first entry (the entry intercepted by the parent router)
                 } else {
                     inNestedScope = false;
@@ -175,15 +175,15 @@ export class Navigation extends NavigationBase<StackRouterEventMap> {
     }
 
     get previous() {
-        return this.entries[this.index - 1] ?? null;
+        return this.entries.at(this.index - 1) ?? null;
     }
 
     get next() {
-        return this.entries[this.index + 1] ?? null;
+        return this.entries.at(this.index + 1) ?? null;
     }
 
     get current() {
-        return this.entries[this.index]!;
+        return this.entries.at(this.index);
     }
 
     get canGoBack() {

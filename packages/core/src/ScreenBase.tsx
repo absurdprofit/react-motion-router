@@ -131,6 +131,8 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     }
 
     abstract get routeProp(): R;
+    abstract get config(): R["config"];
+    abstract get params(): R["params"];
 
     get nestedRouterData() {
         return { parentScreen: this as ScreenBase, parentRouter: this.context };

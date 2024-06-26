@@ -76,6 +76,7 @@ export class LoadEvent extends Event implements Omit<NavigateEvent, 'navigationT
 	#abortable = new AbortController();
 	#intercepted = false;
 	#thenables: Promise<void>[] = [];
+	#transition: { from: NavigationHistoryEntry | null, finished: Promise<void>, navigationType: "load" } | null = null;
 
 	constructor() {
 		super('navigate', { cancelable: false, bubbles: false, composed: false });
@@ -93,31 +94,42 @@ export class LoadEvent extends Event implements Omit<NavigateEvent, 'navigationT
 		};
 
 		this.#signal = this.#abortable.signal;
-		window.addEventListener('navigate', this.#onNavigate, { signal: this.#signal });
+		window.navigation.addEventListener('navigate', this.#onNavigate, { signal: this.#signal });
 	}
 
 	#onNavigate = (e: Event) => {
 		if (e !== this) {
 			this.#abortable.abort();
 		} else if (!this.#thenables.length) {
-			window.removeEventListener('navigate', this.#onNavigate);
+			window.navigation.removeEventListener('navigate', this.#onNavigate);
 		}
 	}
 
 	intercept(options?: NavigationInterceptOptions | undefined): void {
 		if (this.#intercepted) throw new DOMException("Failed to execute 'intercept' on 'NavigateEvent': intercept() may only be called while the navigate event is being dispatched.");
+		let finish: Function | null = null;
+		this.#transition = {
+			finished: new Promise((resolve) => finish = resolve),
+			from: window.navigation.currentEntry,
+			navigationType: "load" as const
+		};
 		const thenable = options?.handler?.();
 		if (thenable) this.#thenables.push(thenable);
 		if (this.#thenables.length === 1) {
-			PromiseAllDynamic(this.#thenables).then(() => {
+			this.#transition.finished = PromiseAllDynamic(this.#thenables).then(() => {
 				this.#intercepted = true;
 				window.removeEventListener('navigate', this.#onNavigate);
+				finish?.();
 			});
 		}
 	}
 
 	scroll(): void {
 		throw new Error("Method not implemented.");
+	}
+
+	get transition() {
+		return this.#transition;
 	}
 
 	get navigationType() {

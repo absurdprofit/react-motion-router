@@ -26,20 +26,17 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
 
     state: ScreenTransitionLayerState = {
         gestureNavigating: false,
-        progress: 0
+        progress: 1
     }
 
     private onAnimationFrame() {
         const progress = this.animation.effect?.getComputedTiming().progress;
 
-        console.log({ progress }, 'frame');
         if (progress)
             this.onProgress(progress);
 
         if (this.animation.playState === "running")
             requestAnimationFrame(this.onAnimationFrame.bind(this));
-        else
-            console.log;
     }
 
     private onTransitionCancel() {

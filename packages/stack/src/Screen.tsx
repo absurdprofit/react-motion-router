@@ -1,8 +1,8 @@
-import { ScreenBase, matchRoute } from '@react-motion-router/core';
+import { ScreenBase } from '@react-motion-router/core';
 import type { PlainObject, ScreenBaseProps, ScreenBaseState, ScreenComponentBaseProps } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
-import { Children, isValidElement } from 'react';
 import { RouteProp, SwipeDirection } from './common/types';
+import { Router } from './Router';
 
 export interface ScreenComponentProps<T extends PlainObject = {}> extends ScreenComponentBaseProps<RouteProp<T>, Navigation> { }
 
@@ -38,20 +38,29 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
         const setConfig = this.setConfig.bind(this);
         const setParams = this.setParams.bind(this);
         const path = this.props.path;
+        const { params, config } = this;
         return {
             path,
-            params: {
-                ...this.props.defaultParams,
-                ...this.context.screenState.get(this.props.path)?.params
-            },
-            config: {
-                ...this.props.config,
-                ...this.context.screenState.get(this.props.path)?.config
-            },
+            params,
+            config,
             focused,
             resolvedPathname,
             setConfig,
             setParams
+        };
+    }
+
+    get config() {
+        return {
+            ...this.props.config,
+            ...this.context.screenState.get(this.props.path)?.config
+        };
+    }
+
+    get params() {
+        return {
+            ...this.props.defaultParams,
+            ...this.context.screenState.get(this.props.path)?.params
         };
     }
 
@@ -65,6 +74,9 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
         super.setConfig(config);
         if (this.state.focused)
             window.navigation.updateCurrentEntry({ state: { config } });
+    }
+    protected get router() {
+        return this.context as Router;
     }
 
     onEnter(signal: AbortSignal) {
@@ -112,28 +124,6 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
 
         return super.onEnter(signal);
     };
-
-    onExit(signal: AbortSignal) {
-        const navigation = this.context?.navigation as Navigation | undefined;
-        const currentPath = navigation?.current?.url?.pathname;
-        if (!currentPath) return super.onExit(signal);
-        const baseURL = navigation?.baseURL?.href;
-        if (!baseURL) return super.onExit(signal);
-        const routes = Children.toArray(this.context?.props.children);
-        const currentRoute = routes.find(route => {
-            if (!isValidElement(route)) return false;
-            const path = route.props.path;
-            const caseSensitive = route.props.caseSensitive;
-            return matchRoute(path, currentPath, baseURL, caseSensitive);
-        }) as ScreenBase<ScreenProps, ScreenState> | undefined;
-        if (currentRoute?.props.config?.presentation === "modal"
-            || currentRoute?.props.config?.presentation === "dialog") {
-            // if next screen is modal or dialog, keep current screen alive
-            this.setConfig({ keepAlive: true });
-        }
-
-        return super.onExit(signal);
-    }
 
     onExited(signal: AbortSignal) {
         if (this.transitionProvider.current?.ref.current instanceof HTMLDialogElement) {
