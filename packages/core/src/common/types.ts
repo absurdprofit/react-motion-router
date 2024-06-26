@@ -167,10 +167,6 @@ export type SharedElementNodeMap = Map<string, SharedElementNode>;
 
 export type WillChange = keyof React.CSSProperties;
 
-export function isAnimationEffect(value: any): value is AnimationEffect {
-    return value instanceof AnimationEffect;
-}
-
 export function isLazyExoticComponent(value: any): value is LazyExoticComponent<any> {
     return typeof value === "object"
         && value !== null

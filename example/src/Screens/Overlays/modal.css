@@ -1,4 +1,4 @@
-#playertransition-provider,
+#player-transition-provider,
 #sheet-transition-provider {
   transform: translateY(15vh);
   overflow: visible;

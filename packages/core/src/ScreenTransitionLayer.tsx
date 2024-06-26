@@ -3,7 +3,7 @@ import { MotionProgressEvent, TransitionCancelEvent, TransitionEndEvent, Transit
 import { SharedElementTransitionLayer } from './SharedElementTransitionLayer';
 import { ParallelEffect, Animation } from 'web-animations-extension';
 import { ScreenTransitionLayerContext } from './ScreenTransitionLayerContext';
-import { ScreenChild, isAnimationEffect } from './common/types';
+import { ScreenChild } from './common/types';
 import { NavigationBase } from './NavigationBase';
 import { ScreenBase } from './ScreenBase';
 import { Motion } from './MotionContext';
@@ -78,8 +78,8 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
     public transition() {
         const effect = new ParallelEffect(
             this.screens.map(screen => {
-                return screen.current?.transitionProvider?.current?.animationEffect;
-            }).filter(isAnimationEffect)
+                return screen.current?.transitionProvider?.current?.animationEffect ?? null;
+            }).filter((effect): effect is AnimationEffect => effect !== null)
         );
 
         const sharedElementEffect = this.sharedElementTransitionLayer.current?.animationEffect;

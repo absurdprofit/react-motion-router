@@ -2,22 +2,22 @@ import { AnimationEffectFactoryProps } from '@react-motion-router/core';
 import { isIOS, isPWA } from '../../common/utils';
 import { ParallelEffect } from 'web-animations-extension';
 
-export function BackdropAnimation({ref, direction, playbackRate, index}: AnimationEffectFactoryProps) {
+export function BackdropAnimation({ ref, direction, playbackRate, index }: AnimationEffectFactoryProps) {
     const duration = isIOS() && !isPWA() ? 0 : 300;
     const options: KeyframeEffectOptions = {
-		duration,
-		direction,
-		playbackRate,
-		fill: direction === "normal" ? "forwards" : "backwards",
+        duration,
+        direction,
+        playbackRate,
+        fill: direction === "normal" ? "forwards" : "backwards",
         pseudoElement: "::backdrop"
-	};
+    };
     const fadeOut = [
-        {backgroundColor: 'rgba(0, 0, 0, 0.8)'},
-        {backgroundColor: 'rgba(0, 0, 0, 0)'}
+        { backgroundColor: 'rgba(0, 0, 0, 0.8)' },
+        { backgroundColor: 'rgba(0, 0, 0, 0)' }
     ];
     const fadeIn = [
-        {backgroundColor: 'rgba(0, 0, 0, 0)'},
-        {backgroundColor: 'rgba(0, 0, 0, 0.8)'}
+        { backgroundColor: 'rgba(0, 0, 0, 0)' },
+        { backgroundColor: 'rgba(0, 0, 0, 0.8)' }
     ];
     const keyframes = [
         fadeOut,
@@ -27,14 +27,14 @@ export function BackdropAnimation({ref, direction, playbackRate, index}: Animati
     return new KeyframeEffect(ref, keyframes[index], options);
 };
 
-export function HomeAnimation({ref, direction, playbackRate, index}: AnimationEffectFactoryProps) {
+export function HomeAnimation({ ref, direction, playbackRate, index }: AnimationEffectFactoryProps) {
     const duration = isIOS() && !isPWA() ? 0 : 300;
     const options: KeyframeEffectOptions = {
-		duration,
-		direction,
-		playbackRate,
-		fill: "both"
-	};
+        duration,
+        direction,
+        playbackRate,
+        fill: "both"
+    };
     const scaleUp = [
         {
             transform: 'scale(0.95) translateY(15px)',
@@ -65,27 +65,27 @@ export function HomeAnimation({ref, direction, playbackRate, index}: AnimationEf
     return new KeyframeEffect(ref, keyframes[index], options);
 }
 
-export function ModalAnimation({ref, direction, playbackRate, index, ...props}: AnimationEffectFactoryProps) {
+export function ModalAnimation({ ref, direction, playbackRate, index, ...props }: AnimationEffectFactoryProps) {
     const duration = isIOS() && !isPWA() ? 0 : 300;
     const options: KeyframeEffectOptions = {
-		duration,
-		direction,
-		playbackRate,
-		fill: direction === "normal" ? "forwards" : "backwards"
-	};
+        duration,
+        direction,
+        playbackRate,
+        fill: direction === "normal" ? "forwards" : "backwards"
+    };
 
     const keyframes = [
         [
-            {transform: 'translateY(15vh)', borderRadius: '15px 15px 0px 0px'},
-            {transform: 'translateY(90vh)', borderRadius: '0px'}
+            { transform: 'translateY(15vh)', borderRadius: '15px 15px 0px 0px' },
+            { transform: 'translateY(90vh)', borderRadius: '0px' }
         ],
         [
-            {transform: 'translateY(90vh)', borderRadius: '0px'},
-            {transform: 'translateY(15vh)', borderRadius: '15px 15px 0px 0px'}
+            { transform: 'translateY(90vh)', borderRadius: '0px' },
+            { transform: 'translateY(15vh)', borderRadius: '15px 15px 0px 0px' }
         ]
     ];
     return new ParallelEffect([
         new KeyframeEffect(ref, keyframes[index], options),
-        BackdropAnimation({ref, direction, playbackRate, index, ...props})
+        BackdropAnimation({ ref, direction, playbackRate, index, ...props })
     ]);
 };
