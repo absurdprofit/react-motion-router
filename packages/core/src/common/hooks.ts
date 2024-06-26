@@ -1,5 +1,5 @@
 import { useContext, useDebugValue } from "react";
-import { Motion } from "../MotionContext";
+import { MotionContext } from "../MotionContext";
 import { NavigationBase } from "../NavigationBase";
 import { RouterContext } from "../RouterContext";
 import { RoutePropContext } from "../RoutePropContext";
@@ -21,7 +21,7 @@ export function useRouterBase<T extends RouterBase = RouterBase>() {
 
 export function useMotion() {
     useDebugValue("Motion");
-    return useContext(Motion);
+    return useContext(MotionContext);
 }
 
 export function useRouteBase<R extends RoutePropBase>() {

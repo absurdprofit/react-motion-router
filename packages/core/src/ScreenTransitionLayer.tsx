@@ -6,7 +6,7 @@ import { ScreenTransitionLayerContext } from './ScreenTransitionLayerContext';
 import { ScreenChild } from './common/types';
 import { NavigationBase } from './NavigationBase';
 import { ScreenBase } from './ScreenBase';
-import { Motion } from './MotionContext';
+import { MotionContext } from './MotionContext';
 
 interface ScreenTransitionLayerProps {
     children: ScreenChild | ScreenChild[];
@@ -125,9 +125,9 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
                         '--motion-progress': this.state.progress
                     } as React.CSSProperties}
                 >
-                    <Motion.Provider value={this.state.progress}>
+                    <MotionContext.Provider value={this.state.progress}>
                         {this.props.children}
-                    </Motion.Provider>
+                    </MotionContext.Provider>
                 </div>
             </ScreenTransitionLayerContext.Provider>
         );

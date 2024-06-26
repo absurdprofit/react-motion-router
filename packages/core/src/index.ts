@@ -6,7 +6,7 @@ import {
 import { NavigationBase } from './NavigationBase';
 import { RouterBase, RouterBaseProps, RouterBaseState } from './RouterBase';
 import { ScreenBase, ScreenBaseProps, ScreenBaseState } from './ScreenBase';
-import { Motion } from './ScreenTransitionLayer';
+import { MotionContext } from './MotionContext';
 import 'web-gesture-events';
 import { SharedElement } from './SharedElement';
 
@@ -31,7 +31,7 @@ export type {
     ScreenBaseProps,
     ScreenBaseState
 };
-export { SharedElement, Motion };
+export { SharedElement, MotionContext };
 export { NavigationBase, RouterBase, ScreenBase };
 export * from './RouterContext';
 export * from './common/hooks';
