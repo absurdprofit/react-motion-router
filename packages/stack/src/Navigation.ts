@@ -175,15 +175,15 @@ export class Navigation extends NavigationBase<StackRouterEventMap> {
     }
 
     get previous() {
-        return this.entries.at(this.index - 1) ?? null;
+        return this.entries[this.index - 1] ?? null;
     }
 
     get next() {
-        return this.entries.at(this.index + 1) ?? null;
+        return this.entries[this.index + 1] ?? null;
     }
 
     get current() {
-        return this.entries.at(this.index);
+        return this.entries[this.index];
     }
 
     get canGoBack() {
