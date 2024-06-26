@@ -77,7 +77,7 @@ export class ScreenTransitionProvider extends Component<ScreenTransitionProvider
         return (
             <Element
                 id={this.props.id}
-                className="screen-animation-provider"
+                className="screen-transition-provider"
                 ref={this.ref}
                 {...{ inert }}
                 style={{

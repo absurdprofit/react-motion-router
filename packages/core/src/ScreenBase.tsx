@@ -191,7 +191,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
             <ScreenTransitionProvider
                 ref={this.#transitionProvider}
                 renderAs={this.state.elementType}
-                id={`${this.id}-animation-provider`}
+                id={`${this.id}-transition-provider`}
                 animation={routeProp.config.animation}
                 navigation={navigation}
                 focused={this.state.focused}

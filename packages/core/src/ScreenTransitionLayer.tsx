@@ -1,11 +1,12 @@
-import { Component, RefObject, createContext, createRef } from 'react';
-import { NavigationBase, ScreenBase, ScreenChild, isAnimationEffect } from './index';
+import { Component, RefObject, createRef } from 'react';
 import { MotionProgressEvent, TransitionCancelEvent, TransitionEndEvent, TransitionStartEvent } from './common/events';
 import { SharedElementTransitionLayer } from './SharedElementTransitionLayer';
 import { ParallelEffect, Animation } from 'web-animations-extension';
 import { ScreenTransitionLayerContext } from './ScreenTransitionLayerContext';
-
-export const Motion = createContext(0);
+import { ScreenChild, isAnimationEffect } from './common/types';
+import { NavigationBase } from './NavigationBase';
+import { ScreenBase } from './ScreenBase';
+import { Motion } from './MotionContext';
 
 interface ScreenTransitionLayerProps {
     children: ScreenChild | ScreenChild[];
@@ -14,6 +15,7 @@ interface ScreenTransitionLayerProps {
 
 interface ScreenTransitionLayerState {
     gestureNavigating: boolean;
+    progress: number;
 }
 
 export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps, ScreenTransitionLayerState> {
@@ -24,6 +26,20 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
 
     state: ScreenTransitionLayerState = {
         gestureNavigating: false,
+        progress: 0
+    }
+
+    private onAnimationFrame() {
+        const progress = this.animation.effect?.getComputedTiming().progress;
+
+        console.log({ progress }, 'frame');
+        if (progress)
+            this.onProgress(progress);
+
+        if (this.animation.playState === "running")
+            requestAnimationFrame(this.onAnimationFrame.bind(this));
+        else
+            console.log;
     }
 
     private onTransitionCancel() {
@@ -32,15 +48,16 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
 
     private onTransitionStart() {
         this.props.navigation.dispatchEvent(new TransitionStartEvent());
+
+        requestAnimationFrame(this.onAnimationFrame.bind(this));
     }
 
     private onTransitionEnd() {
         this.props.navigation.dispatchEvent(new TransitionEndEvent());
     }
 
-    private onProgress(_progress: number) {
-        let progress = _progress;
-
+    private onProgress(progress: number) {
+        this.setState({ progress });
         this.props.navigation.dispatchEvent(new MotionProgressEvent(progress));
     }
 
@@ -108,10 +125,10 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
                         width: '100%',
                         height: '100%',
                         display: 'grid',
-                        '--motion-progress': 0
+                        '--motion-progress': this.state.progress
                     } as React.CSSProperties}
                 >
-                    <Motion.Provider value={0}>
+                    <Motion.Provider value={this.state.progress}>
                         {this.props.children}
                     </Motion.Provider>
                 </div>

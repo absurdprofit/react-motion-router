@@ -1,7 +1,6 @@
 import { useContext, useDebugValue } from "react";
-import { Motion } from "../ScreenTransitionLayer";
+import { Motion } from "../MotionContext";
 import { NavigationBase } from "../NavigationBase";
-import { ScreenBaseProps } from "../ScreenBase";
 import { RouterContext } from "../RouterContext";
 import { RoutePropContext } from "../RoutePropContext";
 import { RouterBase } from "../RouterBase";

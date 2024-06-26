@@ -69,7 +69,7 @@ export class ParallelEffect extends GroupEffect {
 		computedTiming.activeDuration = msFromTime(duration) * iterations;
 		computedTiming.startTime = startTime ?? undefined;
 		computedTiming.localTime = currentTime;
-		computedTiming.progress = overallProgress / this.children.length; // average progress
+		computedTiming.progress = overallProgress ? overallProgress / this.children.length : 1; // average progress
 		computedTiming.currentIteration = calculateCurrentIterationIndex(computedTiming, getPhase(computedTiming, this.#animationDirection));
 
 		if (timeline instanceof GestureTimeline) {

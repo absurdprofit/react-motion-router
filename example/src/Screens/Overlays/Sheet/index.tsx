@@ -15,7 +15,7 @@ const transition = {
     damping: 5
 }
 export default function Sheet({ navigation, route }: SheetProps) {
-    const progress = useMotion() / 100;
+    const progress = useMotion();
     const [stiffness] = useState(50);
 
     return (
