@@ -46,7 +46,7 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
     private onTransitionStart() {
         this.props.navigation.dispatchEvent(new TransitionStartEvent());
 
-        requestAnimationFrame(this.onAnimationFrame.bind(this));
+        this.onAnimationFrame();
     }
 
     private onTransitionEnd() {

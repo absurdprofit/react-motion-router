@@ -1,3 +1,4 @@
+/// <reference types="urlpattern-polyfill" />
 export * from './Navigation';
 export * from './Screen';
 export * from './Router';

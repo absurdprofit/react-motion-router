@@ -21,13 +21,14 @@ export interface RouterProps extends RouterBaseProps<Screen> {
 export interface RouterState extends RouterBaseState {
     backNavigating: boolean;
     transition: NavigationTransition | LoadEvent["transition"] | null;
-    destination: NavigationDestination | null;
     screenStack: ScreenChild<ScreenProps, Screen>[];
     gestureDirection: SwipeDirection;
     gestureAreaWidth: number;
     gestureMinFlingVelocity: number;
     gestureHysteresis: number;
     disableGesture: boolean;
+    fromKey: React.Key | null
+    destinationKey: React.Key | null
 }
 
 export class Router extends RouterBase<RouterProps, RouterState> {
@@ -43,10 +44,11 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             disableGesture: true,
             gestureMinFlingVelocity: 500,
             transition: null,
-            destination: null,
             backNavigating: false,
             defaultDocumentTitle: document.title,
-            documentTitle: ''
+            documentTitle: '',
+            fromKey: null,
+            destinationKey: null
         };
     }
 
@@ -65,6 +67,11 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         super.componentDidMount();
         this.ref.current?.addEventListener('swipestart', this.onSwipeStart);
         this.ref.current?.addEventListener('swipeend', this.onSwipeEnd);
+    }
+
+    componentDidUpdate(prevProps: Readonly<RouterProps>, prevState: Readonly<RouterState>, snapshot?: any): void {
+        if (this.props.config !== prevProps.config && this.props.children !== prevProps.children && this.id === "root-overlays")
+            console.log({prevProps, props: this.props})
     }
 
     componentWillUnmount(): void {
@@ -156,8 +163,8 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                     || (isRefObject(nextScreenRef) && nextScreenRef.current?.config.presentation === "modal")
                     || (isRefObject(nextScreenRef) && nextScreenRef.current?.config.presentation === "dialog")
                     || screen.key === this.navigation.current?.key
-                    || screen.key === this.state.transition?.from?.key
-                    || screen.key === this.state.destination?.key;
+                    || screen.key === this.state.fromKey
+                    || screen.key === this.state.destinationKey;
             });
     }
 
@@ -228,8 +235,9 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         if (!isValidScreenChild<Screen>(destinationScreen)) return e.preventDefault();
         const handler = () => {
             const { params, config } = e.destination.getState() as HistoryEntryState ?? {};
-            const transition = window.navigation.transition;
             const destination = e.destination;
+            const fromKey = window.navigation.transition?.from.key ?? null;
+            const destinationKey = e.destination.key;
             const resolvedPathname = new URL(e.destination.url).pathname;
             const queryParams = searchParamsToObject(new URL(destination.url).search);
             const currentIndex = screenStack.findIndex(screen => screen.key === this.navigation.current?.key);
@@ -254,7 +262,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             );
 
             return new Promise<void>((resolve) => startTransition(() => {
-                this.setState({ destination, transition, screenStack }, async () => {
+                this.setState({ destinationKey, fromKey, screenStack }, async () => {
                     const signal = e.signal;
                     if (this.navigation.current?.key === undefined)
                         throw new Error("Current key is undefined");
@@ -265,7 +273,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                         currentScreen?.current?.load(signal)
                     ]);
                     await currentScreen?.current?.onEntered(signal);
-                    this.setState({ destination: null, transition: null }, resolve);
+                    this.setState({ destinationKey: null, fromKey: null }, resolve);
                 });
             }));
         };
@@ -279,8 +287,8 @@ export class Router extends RouterBase<RouterProps, RouterState> {
 
     private handleLoad(e: LoadEvent) {
         const handler = () => {
-            const transition = e.transition;
-            const destination = e.destination;
+            const fromKey = e.transition?.from?.key ?? null;
+            const destinationKey = e.destination.key;
             const screenStack = new Array<ScreenChild<ScreenProps, Screen>>();
             const entries = this.navigation.entries;
             entries.forEach((entry) => {
@@ -309,7 +317,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             });
 
             return new Promise<void>((resolve) => startTransition(() => {
-                this.setState({ screenStack, transition, destination }, async () => {
+                this.setState({ screenStack, fromKey, destinationKey }, async () => {
                     if (
                         this.props.config.initialPathname
                         && entries.length === 1
@@ -339,7 +347,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                         currentScreen?.current?.load(signal)
                     ]);
                     await currentScreen?.current?.onEntered(signal);
-                    this.setState({ destination: null, transition: null }, resolve);
+                    this.setState({ destinationKey: null, fromKey: null }, resolve);
                 });
             }));
         }
@@ -357,8 +365,23 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             const transition = window.navigation.transition;
             const destination = e.destination;
             const resolvedPathname = new URL(e.destination.url).pathname;
-            const fromIndex = screenStack.findIndex(screen => screen.key === transition?.from.key);
+            let fromIndex = screenStack.findIndex(screen => screen.key === transition?.from.key);
+            if (fromIndex === -1 && e.navigationType === "traverse") {
+                fromIndex = screenStack.findIndex(screen => {
+                    if (!transition?.from.url || !screen.props.resolvedPathname) return false;
+                    const pathnameMatched = transition.from.url.includes(screen.props.resolvedPathname);
+                    const patternMatched = matchRoute(
+                        screen.props.path,
+                        new URL(transition.from.url).pathname,
+                        this.baseURLPattern.pathname,
+                        screen.props.caseSensitive
+                    );
+                    return pathnameMatched && patternMatched;
+                });
+            }
             const destinationIndex = screenStack.findIndex(screen => screen.key === e.destination.key);
+            const fromKey = (screenStack[fromIndex]?.key || transition?.from.key) ?? null;
+            const destinationKey = (screenStack[destinationIndex]?.key || window.navigation.currentEntry?.key) ?? null;
             const backNavigating = destinationIndex >= 0 && destinationIndex < fromIndex;
             if (e.navigationType === "push") {
                 const queryParams = searchParamsToObject(new URL(destination.url).search);
@@ -384,12 +407,10 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             }
 
             return new Promise<void>((resolve) => startTransition(() => {
-                this.setState({ destination, transition, screenStack }, async () => {
+                this.setState({ destinationKey, fromKey, screenStack }, async () => {
                     const signal = e.signal;
-                    const outgoingKey = transition?.from.key;
-                    const incomingKey = window.navigation.currentEntry?.key;
-                    const outgoingScreen = this.getScreenRefByKey(String(outgoingKey));
-                    const incomingScreen = this.getScreenRefByKey(String(incomingKey));
+                    const outgoingScreen = this.getScreenRefByKey(String(fromKey));
+                    const incomingScreen = this.getScreenRefByKey(String(destinationKey));
                     const pendingPromises = new Array();
                     pendingPromises.push(
                         outgoingScreen?.current?.onExit(signal).then(() => outgoingScreen?.current?.blur()),
@@ -406,7 +427,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                         incomingScreen?.current?.onEntered(signal)
                     );
                     await Promise.all(pendingPromises);
-                    this.setState({ destination: null, transition: null }, resolve);
+                    this.setState({ destinationKey: null, fromKey: null }, resolve);
                 });
             }));
         }
