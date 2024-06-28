@@ -595,10 +595,17 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	set timeline(_timeline: AnimationTimeline | null) {
+		if (_timeline === this.#timeline)
+			return;
+
 		if (this.#timeline instanceof GestureTimeline)
 			this.#timeline.removeEventListener('update', this.#onGestureTimelineUpdate);
 
 		this.#timeline = _timeline ?? document.timeline;
+		if (this.#startTime !== null)
+			this.#holdTime = null;
+
+		// this.#updateFinishedState(false);
 
 		if (_timeline instanceof GestureTimeline) {
 			_timeline.addEventListener('update', this.#onGestureTimelineUpdate);
