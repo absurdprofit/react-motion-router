@@ -58,6 +58,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     public readonly sharedElementScene: SharedElementScene;
     #transitionProvider = createRef<ScreenTransitionProvider>();
     protected readonly ref = createRef<HTMLDivElement>();
+    protected readonly nestedRouterData;
     static readonly contextType = RouterContext;
     declare context: React.ContextType<typeof RouterContext>;
 
@@ -66,11 +67,12 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
         elementType: 'div'
     } as S;
 
-    constructor(props: P) {
+    constructor(props: P, context: React.ContextType<typeof RouterContext>) {
         super(props);
 
         this.sharedElementScene = new SharedElementScene(`${this.id}-shared-element-scene`);
-        this.sharedElementScene.getScreenRect = () => this.ref.current?.getBoundingClientRect() || new DOMRect()
+        this.sharedElementScene.getScreenRect = () => this.ref.current?.getBoundingClientRect() || new DOMRect();
+        this.nestedRouterData = { parentScreen: this as ScreenBase, parentRouter: context };
     }
 
     protected setParams(params: PlainObject) {
@@ -133,10 +135,6 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     abstract get routeProp(): R;
     abstract get config(): R["config"];
     abstract get params(): R["params"];
-
-    get nestedRouterData() {
-        return { parentScreen: this as ScreenBase, parentRouter: this.context };
-    }
 
     async onExited(signal: AbortSignal): Promise<void> {
         await this.routeProp.config.onExited?.({

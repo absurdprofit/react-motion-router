@@ -28,7 +28,7 @@ export interface RouterState extends RouterBaseState {
     gestureHysteresis: number;
     disableGesture: boolean;
     fromKey: React.Key | null
-    destinationKey: React.Key | null
+    destinationKey: React.Key | null;
 }
 
 export class Router extends RouterBase<RouterProps, RouterState> {
@@ -69,10 +69,6 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         this.ref.current?.addEventListener('swipeend', this.onSwipeEnd);
     }
 
-    componentDidUpdate(prevProps: Readonly<RouterProps>, prevState: Readonly<RouterState>, snapshot?: any): void {
-        if (this.props.config !== prevProps.config && this.props.children !== prevProps.children && this.id === "root-overlays")
-            console.log({prevProps, props: this.props})
-    }
 
     componentWillUnmount(): void {
         this.ref.current?.removeEventListener('swipestart', this.onSwipeStart);

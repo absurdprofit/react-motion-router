@@ -53,7 +53,8 @@ export default function Overlays(props: OverlaysProps) {
                         component={Sheet}
                         path="sheet"
                         config={{
-                            presentation: "modal",
+                            ...modalConfig,
+                            presentation: "dialog",
                             animation: BackdropAnimation
                         }}
                     />

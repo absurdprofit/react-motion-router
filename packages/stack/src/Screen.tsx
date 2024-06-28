@@ -79,6 +79,20 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
         return this.context as Router;
     }
 
+    private onClickOutside(e: MouseEvent) {
+        if (!this.transitionProvider.current?.ref.current) return;
+        const navigation = this.context?.navigation as Navigation | undefined;
+        const rect = this.transitionProvider.current.ref.current.getBoundingClientRect();
+        const isInDialog = (
+            rect.top <= e.clientY
+            && e.clientY <= rect.top + rect.height
+            && rect.left <= e.clientX
+            && e.clientX <= rect.left + rect.width
+        );
+        if (!isInDialog)
+            navigation?.goBack();
+    }
+
     onEnter(signal: AbortSignal) {
         if (
             this.transitionProvider.current?.ref.current instanceof HTMLDialogElement
@@ -99,27 +113,19 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
                 this.ref.current.style.height = 'max-content';
             }
 
+            const onClickOutside = this.onClickOutside.bind(this);
+
             // closed by form submit or ESC key
             this.transitionProvider.current?.ref.current.addEventListener('close', function () {
                 if (this.returnValue !== "screen-exit") {
                     this.style.display = "block";
                     navigation?.goBack();
                 }
+
+                navigation?.removeEventListener('click', onClickOutside);
             }, { once: true });
 
-            // close by backdrop click
-            this.transitionProvider.current.ref.current.onclick = (e) => {
-                if (!this.transitionProvider.current?.ref.current) return;
-                const rect = this.transitionProvider.current.ref.current.getBoundingClientRect();
-                const isInDialog = (
-                    rect.top <= e.clientY
-                    && e.clientY <= rect.top + rect.height
-                    && rect.left <= e.clientX
-                    && e.clientX <= rect.left + rect.width
-                );
-                if (!isInDialog)
-                    navigation?.goBack();
-            };
+            navigation?.addEventListener('click', onClickOutside);
         }
 
         return super.onEnter(signal);
