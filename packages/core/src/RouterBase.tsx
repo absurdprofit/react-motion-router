@@ -7,10 +7,9 @@ import {
     ScreenState
 } from './common/types';
 import { NestedRouterContext, RouterContext } from './RouterContext';
-import { dispatchEvent, matchRoute, resolveBaseURLFromPattern } from './common/utils';
-import { Component, createRef } from 'react';
+import { deepEquals, dispatchEvent, matchRoute, resolveBaseURLFromPattern } from './common/utils';
+import { Component, createRef, isValidElement, Children } from 'react';
 import { DEFAULT_ANIMATION, DEFAULT_GESTURE_CONFIG } from './common/constants';
-import { isValidElement, Children } from 'react';
 import { ScreenBase, ScreenBaseProps } from './ScreenBase';
 import { LoadEvent } from './common/events';
 
@@ -77,6 +76,14 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
             window.navigation.dispatchEvent(new LoadEvent());
             this.loadDispatched = true;
         }
+    }
+
+    shouldComponentUpdate(nextProps: Readonly<P>, nextState: Readonly<S>): boolean {
+        return (
+            !deepEquals(this.props.config, nextProps.config)
+            || !deepEquals(this.state, nextState)
+            || this.props.id !== nextProps.id
+        );
     }
 
     componentWillUnmount() {
