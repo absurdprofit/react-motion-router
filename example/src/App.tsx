@@ -18,8 +18,6 @@ const Slides = lazy(() => import('./Screens/Slides'));
 const Tiles = lazy(() => import('./Screens/Tiles'));
 const Details = lazy(() => import('./Screens/Details'));
 const Overlays = lazy(() => import('./Screens/Overlays'));
-const Video = lazy(() => import('./Screens/Video'));
-const FullscreenVideo = lazy(() => import('./Screens/FullscreenVideo'));
 
 function Routes() {
   return (
@@ -101,8 +99,6 @@ function Routes() {
           animation: slideToStatic
         }}
       />
-      <Stack.Screen path="video" component={Video} />
-      <Stack.Screen path="fullscreen-video" component={FullscreenVideo} />
       <Stack.Screen
         id="Not Found"
         path="*"
