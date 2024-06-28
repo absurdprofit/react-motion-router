@@ -1,6 +1,6 @@
 import { associatedAnimation } from "./common/associated-animation";
 import { DEFAULT_TIMING } from "./common/constants";
-import { calculateCurrentIterationIndex, computedTimingToPercent, cssNumberishToNumber, getPhase, msFromTime } from "./common/utils";
+import { calculateCurrentIterationIndex, computedTimingToPercent, cssNumberishToNumber, getPhase, msFromPercent, msFromTime } from "./common/utils";
 import { GestureTimeline } from "./gesture-timeline";
 import { GroupEffect } from "./group-effect";
 
@@ -68,7 +68,8 @@ export class ParallelEffect extends GroupEffect {
 		computedTiming.duration = duration;
 		computedTiming.activeDuration = msFromTime(duration) * iterations;
 		computedTiming.startTime = startTime ?? undefined;
-		computedTiming.localTime = currentTime;
+		if (currentTime)
+			computedTiming.localTime = timeline instanceof GestureTimeline ? msFromPercent(currentTime) : msFromTime(currentTime);
 		computedTiming.progress = overallProgress ? overallProgress / this.children.length : 1; // average progress
 		computedTiming.currentIteration = calculateCurrentIterationIndex(computedTiming, getPhase(computedTiming, this.#animationDirection));
 
