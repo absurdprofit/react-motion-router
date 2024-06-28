@@ -1,4 +1,4 @@
-import { RouterBase, includesRoute, isValidScreenChild, matchRoute } from '@react-motion-router/core';
+import { RouterBase, deepEquals, includesRoute, isValidScreenChild, matchRoute } from '@react-motion-router/core';
 import type { LoadEvent, NestedRouterContext, RouterBaseProps, RouterBaseState, ScreenChild } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { ScreenProps, Screen } from './Screen';
@@ -69,6 +69,13 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         this.ref.current?.addEventListener('swipeend', this.onSwipeEnd);
     }
 
+    shouldComponentUpdate(nextProps: Readonly<RouterProps>, nextState: Readonly<RouterState>): boolean {
+        return (
+            !deepEquals(this.props.config, nextProps.config)
+            || !deepEquals(this.state, nextState)
+            || this.props.id !== nextProps.id
+        );
+    }
 
     componentWillUnmount(): void {
         this.ref.current?.removeEventListener('swipestart', this.onSwipeStart);
