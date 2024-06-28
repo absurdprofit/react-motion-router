@@ -1,4 +1,4 @@
-import { RouterBase, deepEquals, includesRoute, isValidScreenChild, matchRoute } from '@react-motion-router/core';
+import { RouterBase, includesRoute, isValidScreenChild, matchRoute } from '@react-motion-router/core';
 import type { LoadEvent, NestedRouterContext, RouterBaseProps, RouterBaseState, ScreenChild } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { ScreenProps, Screen } from './Screen';
@@ -6,7 +6,7 @@ import { HistoryEntryState, isHorizontalDirection, isRefObject, SwipeDirection }
 import { Children, createRef, cloneElement, startTransition } from 'react';
 import { SwipeStartEvent, SwipeEndEvent } from 'web-gesture-events';
 import { GestureTimeline } from 'web-animations-extension';
-import { isRollback, searchParamsToObject } from './common/utils';
+import { deepEquals, isRollback, searchParamsToObject } from './common/utils';
 
 export interface RouterProps extends RouterBaseProps<Screen> {
     config: RouterBaseProps["config"] & {

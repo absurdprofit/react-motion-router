@@ -1,5 +1,5 @@
 import { ScreenBase } from '@react-motion-router/core';
-import type { PlainObject, ScreenBaseProps, ScreenBaseState, ScreenComponentBaseProps } from '@react-motion-router/core';
+import type { PlainObject, RouterContext, ScreenBaseProps, ScreenBaseState, ScreenComponentBaseProps } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { RouteProp, SwipeDirection } from './common/types';
 import { Router } from './Router';
@@ -22,6 +22,42 @@ export interface ScreenProps extends ScreenBaseProps {
 export interface ScreenState extends ScreenBaseState { }
 
 export class Screen extends ScreenBase<ScreenProps, ScreenState> {
+    readonly routeProp;
+
+    constructor(props: ScreenProps, context: React.ContextType<typeof RouterContext>) {
+        super(props, context);
+
+        const setParams = this.setParams.bind(this);
+        const setConfig = this.setConfig.bind(this);
+        const getProps = () => this.props;
+        const getState = () => this.state;
+        this.routeProp = {
+            setParams,
+            setConfig,
+            get path() {
+                return getProps().path;
+            },
+            get resolvedPathname() {
+                return getProps().resolvedPathname;
+            },
+            get focused() {
+                return getState().focused;
+            },
+            get config() {
+                return {
+                    ...getProps().config,
+                    ...context.screenState.get(this.path)?.config
+                };
+            },
+            get params() {
+                return {
+                    ...getProps().defaultParams,
+                    ...context.screenState.get(this.path)?.params
+                };
+            }
+        };
+    }
+
     static getDerivedStateFromProps(props: ScreenProps) {
         if (
             props.config?.presentation === "dialog"
@@ -30,24 +66,6 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState> {
             return { elementType: "dialog" };
         else
             return { elementType: "div" };
-    }
-
-    get routeProp() {
-        const focused = this.state.focused;
-        const resolvedPathname = this.props.resolvedPathname;
-        const setConfig = this.setConfig.bind(this);
-        const setParams = this.setParams.bind(this);
-        const path = this.props.path;
-        const { params, config } = this;
-        return {
-            path,
-            params,
-            config,
-            focused,
-            resolvedPathname,
-            setConfig,
-            setParams
-        };
     }
 
     get config() {
