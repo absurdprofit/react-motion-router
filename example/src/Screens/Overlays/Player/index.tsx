@@ -52,7 +52,7 @@ export default function Player({ navigation, route }: PlayerProps) {
                 <div className="cover-art">
                     <SharedElement id="cover-art" config={{
                         easing: 'ease-in',
-                        styles: ['borderRadius', 'objectFit']
+                        styles: ['border-radius', 'object-fit']
                     }}>
                         <img src={King} alt="cover-art" />
                     </SharedElement>

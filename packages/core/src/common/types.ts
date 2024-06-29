@@ -13,6 +13,7 @@ import {
     TransitionStartEvent
 } from './events';
 import { SharedElement } from '../SharedElement';
+import { StandardPropertiesHyphen } from 'csstype';
 
 export type ScreenChild<P extends ScreenBaseProps = ScreenBaseProps, E extends ScreenBase<P> = ScreenBase<P>> = React.CElement<P, E>;
 
@@ -165,7 +166,7 @@ export interface SharedElementNode {
 
 export type SharedElementNodeMap = Map<string, SharedElementNode>;
 
-export type StyleKeyList = (keyof React.CSSProperties)[];
+export type StyleKeyList = (keyof StandardPropertiesHyphen | string)[];
 
 export function isLazyExoticComponent(value: any): value is LazyExoticComponent<any> {
     return typeof value === "object"

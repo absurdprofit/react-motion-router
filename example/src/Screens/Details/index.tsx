@@ -72,7 +72,7 @@ export default function Details(props: DetailsProps) {
                     backgroundColor: noBg ? 'white' : undefined
                 }}
             >
-                <SharedElement id={`${hero.id}-card-bg`} config={{ styles: ['backgroundColor', 'borderRadius'], deepClone: false }} disabled={noBg}>
+                <SharedElement id={`${hero.id}-card-bg`} config={{ styles: ['background-color', 'border-radius'], deepClone: false }} disabled={noBg}>
                     <div className="card-bg" aria-hidden="true">
                         
                             <Anchor aria-label='Go Back' goBack tabIndex={-1}>
@@ -92,7 +92,7 @@ export default function Details(props: DetailsProps) {
                                 </IconButton>
                             </Anchor>
                             <div className="profile-info">
-                                <SharedElement id={`${hero.id}-gradient-overlay`} config={{ styles: ['background', 'opacity', 'clipPath', 'borderRadius'] }}>
+                                <SharedElement id={`${hero.id}-gradient-overlay`} config={{ styles: ['background', 'opacity', 'clip-path', 'border-radius'] }}>
                                     <div
                                         className="gradient-overlay"
                                         style={{
@@ -102,7 +102,7 @@ export default function Details(props: DetailsProps) {
                                         aria-hidden="true"
                                     ></div>
                                 </SharedElement>
-                                <SharedElement id={hero.id} config={{ styles: ['objectFit', 'borderRadius'] }}>
+                                <SharedElement id={hero.id} config={{ styles: ['object-fit', 'border-radius'] }}>
                                     <img src={hero.photoUrl} alt="Character" width={hero.photoWidth} height={hero.photoHeight} />
                                 </SharedElement>
                                 <div className="text-content" tabIndex={0}>
@@ -118,7 +118,7 @@ export default function Details(props: DetailsProps) {
                                         </Typography>
                                     </SharedElement>
                                     <div className="description">
-                                        <SharedElement id={`description-${hero.id}`} config={{ styles: ['clipPath', 'textAlign', 'overflow', 'lineHeight'] }}>
+                                        <SharedElement id={`description-${hero.id}`} config={{ styles: ['clip-path', 'text-align', 'overflow', 'line-height'] }}>
                                             <p style={{ zIndex: 10 }}>{hero.description}</p>
                                         </SharedElement>
                                     </div>

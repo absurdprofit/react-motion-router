@@ -165,3 +165,7 @@ export async function PromiseAllDynamic<T>(values: Iterable<T | PromiseLike<T>>)
 
     return awaited;
 }
+
+export function toCamelCase(value: string) {
+    return value.replace(/-([a-z])/g, (g) => g[1].toUpperCase())
+}

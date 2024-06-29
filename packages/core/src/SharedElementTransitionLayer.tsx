@@ -4,6 +4,7 @@ import { NavigationBase } from './NavigationBase';
 import { ScreenBase } from './ScreenBase';
 import { ParallelEffect } from 'web-animations-extension';
 import { SharedElement } from './SharedElement';
+import { toCamelCase } from './common/utils';
 
 interface SharedElementTransitionLayerProps {
     navigation: NavigationBase;
@@ -36,19 +37,29 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
         return this.#incomingScreen;
     }
 
-    getComputedStyles(element: Element, styles: StyleKeyList) {
+    getKeyframeProperties(element: Element, styleList: StyleKeyList) {
         const computedStyles: Record<string, string> = {};
         const computedStyle = window.getComputedStyle(element);
-        for (const style of styles) {
-            computedStyles[style] = computedStyle[style as any];
+        for (const key of styleList) {
+            let transformedKey;
+            if (key === "offset")
+                transformedKey = "cssOffset";
+            else if (key === "float")
+                transformedKey = "cssFloat";
+            else
+                transformedKey = toCamelCase(key);
+            computedStyles[transformedKey] = computedStyle.getPropertyValue(key);
         }
         return computedStyles;
     }
 
     copyStyles(srcElement: StylableElement, cloneElement: StylableElement, styleList: StyleKeyList) {
-        const computedStyles = this.getComputedStyles(srcElement, styleList);
-        for (const [key, value] of Object.entries(computedStyles))
-            cloneElement.style[key] = value;
+        const computedStyles = window.getComputedStyle(srcElement);
+        for (const key of styleList) {
+            const value = computedStyles.getPropertyValue(key);
+            const priority = computedStyles.getPropertyPriority(key);
+            cloneElement.style.setProperty(key, value, priority);
+        }
     }
 
     getAnimationEffect<T extends { instance: SharedElement, clone: HTMLElement }>(start: T, end: T) {
@@ -144,14 +155,13 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
                     [
                         {
                             ...Object.fromEntries((start.instance.ref.current?.firstElementChild as HTMLElement).attributeStyleMap),
-                            ...this.getComputedStyles(start.instance.ref.current?.firstElementChild as HTMLElement, styleList),
                             transform: startTransform,
                             width: `${startRect.width}px`,
                             height: `${startRect.height}px`,
                         },
                         {
                             ...Object.fromEntries((end.instance.ref.current?.firstElementChild as HTMLElement).attributeStyleMap),
-                            ...this.getComputedStyles(end.instance.ref.current?.firstElementChild as HTMLElement, styleList),
+                            ...this.getKeyframeProperties(end.instance.ref.current?.firstElementChild as HTMLElement, styleList),
                             transform: endTransform,
                             width: `${endRect.width}px`,
                             height: `${endRect.height}px`,
