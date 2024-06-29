@@ -34,8 +34,8 @@ export class KeyframeEffect extends NativeKeyframeEffect {
 				throw TypeError("Effect duration cannot be Infinity for non-monotonic timelines.");
 			if (computedTiming.iterations === Infinity)
 				throw TypeError("Effect iterations cannot be Infinity for non-monotonic timelines.");
-			
-			return computedTimingToPercent(computedTiming, associatedTimeline);
+
+			return computedTimingToPercent(computedTiming);
 		}
 		return computedTiming;
 	}

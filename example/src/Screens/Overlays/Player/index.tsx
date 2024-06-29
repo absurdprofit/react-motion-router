@@ -21,7 +21,7 @@ let volumeStart = 50;
 let timeStart = lerp(0, 139, seekStart / 100);
 let isFirstLoad = true;
 export default function Player({ navigation, route }: PlayerProps) {
-    const progress = useMotion() / 100;
+    const progress = useMotion();
     const [volume, setVolume] = useState(volumeStart - 15);
     const [seekProgress, setSeekProgress] = useState(seekStart - 10);
     const [currentTime, setCurrentTime] = useState(timeStart);
@@ -59,7 +59,8 @@ export default function Player({ navigation, route }: PlayerProps) {
                 </div>
                 <div className="song-info">
                     <SharedElement id="title" config={{
-                        easing: 'ease-in'
+                        easing: 'ease-in',
+                        styles: ['color']
                     }}>
                         <h3 className="title">Modal Sheet Example</h3>
                     </SharedElement>
@@ -87,12 +88,12 @@ export default function Player({ navigation, route }: PlayerProps) {
                         <SkipPreviousIcon />
                     </motion.div>
                     <div className="play">
-                        <SharedElement id="play">
+                        <SharedElement id="play" config={{ styles: ['color'] }}>
                             <PlayArrowIcon />
                         </SharedElement>
                     </div>
                     <div className="next">
-                        <SharedElement id="next">
+                        <SharedElement id="next" config={{ styles: ['color'] }}>
                             <SkipNextIcon />
                         </SharedElement>
                     </div>
