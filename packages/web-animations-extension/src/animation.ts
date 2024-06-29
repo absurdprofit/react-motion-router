@@ -52,7 +52,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	#setCurrentTimeSilently(seekTime: CSSNumberish | null) {
-		const timelineTime = this.#timeline?.currentTime ?? null;
+		const timelineTime = cssNumberishToNumber(this.#timeline?.currentTime ?? null);
 		if (seekTime === null) {
 			if (timelineTime !== null) {
 				throw new TypeError();
@@ -62,11 +62,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 		if (seekTime === null || timelineTime === null)
 			return;
 
-		if (this.#timeline instanceof GestureTimeline)
-			seekTime = msFromPercent(seekTime, this.#effect?.getTiming());
-		else
-			seekTime = msFromTime(seekTime);
-
+		seekTime = cssNumberishToNumber(seekTime);
 		this.#autoAlignStartTime = false;
 
 		if (
@@ -77,12 +73,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 		) {
 			this.#holdTime = seekTime;
 		} else {
-			let timelineTimeMs;
-			if (this.#timeline instanceof GestureTimeline)
-				timelineTimeMs = msFromPercent(timelineTime, this.#effect?.getTiming());
-			else
-				timelineTimeMs = msFromTime(timelineTime);
-			this.#startTime = timelineTimeMs - seekTime / this.#playbackRate;
+			this.#startTime = timelineTime - seekTime / this.#playbackRate;
 		}
 
 		if (this.#timeline instanceof GestureTimeline && this.#timeline.phase === 'inactive') {
@@ -108,6 +99,12 @@ export class Animation extends EventTarget implements NativeAnimation {
 			} else if (this.#pending.task === 'pause') {
 				this.#commitPendingPause();
 			}
+
+			Promise.all(this.#children.map(child => child.finished)).then(this.#dispatchFinishedEvent);
+			Promise.all(this.#children.map(child => new Promise(resolve => child.onremove = resolve))).then(this.#dispatchRemovedEvent);
+			Promise.all(this.#children.map(child => new Promise(resolve => child.oncancel = resolve)))
+				.then(this.#dispatchCancelledEvent)
+				.then(() => this.#replaceState = 'removed');
 		});
 	}
 
@@ -212,8 +209,8 @@ export class Animation extends EventTarget implements NativeAnimation {
 		this.#children.forEach(child => child.currentTime = currentTime);
 	}
 
-	#onGestureTimelineUpdate = ({ currentTime }: GestureTimelineUpdateEvent) => {
-		this.currentTime = currentTime;
+	#onGestureTimelineUpdate = () => {
+		this.#syncCurrentTime();
 	}
 
 	#updateChildren(this: Animation) {
@@ -230,12 +227,6 @@ export class Animation extends EventTarget implements NativeAnimation {
 		}
 
 		this.#children = children;
-
-		Promise.all(children.map(child => child.finished)).then(this.#dispatchFinishedEvent);
-		Promise.all(children.map(child => new Promise(resolve => child.onremove = resolve))).then(this.#dispatchRemovedEvent);
-		Promise.all(children.map(child => new Promise(resolve => child.oncancel = resolve)))
-			.then(this.#dispatchCancelledEvent)
-			.then(() => this.#replaceState = 'removed');
 	}
 
 	#updateFinishedState(didSeek: boolean) {
@@ -320,7 +311,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 		);
 		requestAnimationFrame(() => {
 			this.dispatchEvent(event);
-			this.onfinish?.call(this, event);
+			this.onfinish?.(event);
 		});
 	}
 
@@ -339,17 +330,38 @@ export class Animation extends EventTarget implements NativeAnimation {
 			}
 		);
 		this.dispatchEvent(event);
-		this.oncancel?.call(this, event);
+		this.oncancel?.(event);
 	}
 
 	#dispatchRemovedEvent = () => {
 		const event = new Event('remove');
 		this.dispatchEvent(event);
-		this.onremove?.call(this, event);
+		this.onremove?.(event);
 	}
 
 	reverse(): void {
-		this.#children.forEach(animation => animation.reverse());
+		const { endTime = 0 } = this.#effect?.getComputedTiming() ?? {};
+		const playbackRate = this.#pending.playbackRate ?? this.#playbackRate;
+		const previousCurrentTime = cssNumberishToNumber(this.currentTime);
+		const isInfiniteDuration = endTime === Infinity;
+
+		const reversable =
+			(playbackRate !== 0)
+			&& (playbackRate < 0 || (previousCurrentTime && previousCurrentTime > 0) || !isInfiniteDuration);
+		if (!this.#timeline || !reversable) {
+			if (reversable)
+				this.#pending.playbackRate = -playbackRate;
+			return;
+		}
+
+		if (this.#timeline.currentTime === null) {
+			throw new DOMException(
+				"Cannot reverse an animation with no active timeline",
+				"InvalidStateError");
+		}
+
+		this.updatePlaybackRate(-playbackRate);
+		this.play();
 	}
 
 	play() {
@@ -519,7 +531,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 					let unconstrainedCurrentTime = null;
 					unconstrainedCurrentTime = (cssNumberishToNumber(timelineTime, unit) - (this.#startTime ?? 0)) * this.playbackRate
 					if (this.#startTime !== null && unconstrainedCurrentTime !== null)
-						this.#startTime = (cssNumberishToNumber(timelineTime, unit) - unconstrainedCurrentTime) / playbackRate; ''
+						this.#startTime = (cssNumberishToNumber(timelineTime, unit) - unconstrainedCurrentTime) / playbackRate;
 				}
 				this.#applyPendingPlaybackRate();
 				this.#updateFinishedState(false);
@@ -605,16 +617,8 @@ export class Animation extends EventTarget implements NativeAnimation {
 		const previousPlayState = this.playState;
 		const unit = oldTimeline instanceof GestureTimeline ? 'percent' : 'ms';
 		const previousCurrentTime = cssNumberishToNumber(this.currentTime, unit);
-		const { endTime = 0 } = this.#effect?.getComputedTiming() ?? {};
+		const { progress: previousProgress = null, endTime = 0 } = this.#effect?.getComputedTiming() ?? {};
 		const end = cssNumberishToNumber(endTime, unit);
-		let previousProgress;
-		if (previousCurrentTime === null) {
-			previousProgress = null
-		} else if (endTime === 0) {
-			previousProgress = 0;
-		} else {
-			previousProgress = previousCurrentTime / end;
-		}
 
 		const fromGestureTimeline = (oldTimeline instanceof GestureTimeline);
 		const toGestureTimeline = (newTimeline instanceof GestureTimeline);
@@ -713,7 +717,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	get playState() {
-		let { playbackRate = 1, endTime = 0 } = this.effect?.getComputedTiming() ?? {};
+		let { endTime = 0 } = this.effect?.getComputedTiming() ?? {};
 		const unit = this.#timeline instanceof GestureTimeline ? 'percent' : 'ms';
 		const startTime = cssNumberishToNumber(this.startTime, unit);
 		const currentTime = cssNumberishToNumber(this.currentTime, unit);
@@ -722,7 +726,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 			return 'idle';
 		else if (this.#pending.task === 'pause' || (startTime === null && this.#pending.task !== 'play'))
 			return 'paused';
-		else if (currentTime !== null && ((playbackRate > 0 && currentTime >= endTime) || (playbackRate < 0 && currentTime <= 0)))
+		else if (currentTime !== null && ((this.#playbackRate > 0 && currentTime >= endTime) || (this.#playbackRate < 0 && currentTime <= 0)))
 			return 'finished';
 		return 'running';
 	}

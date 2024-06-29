@@ -139,14 +139,14 @@ export class Router extends RouterBase<RouterProps, RouterState> {
     private onSwipeEnd = (e: SwipeEndEvent) => {
         if (!this.screenTransitionLayer.current) return;
         const progress = this.screenTransitionLayer.current.animation.effect?.getComputedTiming().progress ?? 0;
+        const playbackRate = this.screenTransitionLayer.current.animation.playbackRate;
         this.screenTransitionLayer.current.animation.timeline = document.timeline;
-        const hysteresisReached = this.state.backNavigating ? progress > this.state.gestureHysteresis : progress < this.state.gestureHysteresis;
+        const hysteresisReached = playbackRate > 0 ? progress > this.state.gestureHysteresis : progress < this.state.gestureHysteresis;
         let rollback = false;
         if (e.velocity < this.state.gestureMinFlingVelocity && !hysteresisReached) {
             this.screenTransitionLayer.current.animation.reverse();
             rollback = true;
         }
-        this.screenTransitionLayer.current.animation.play();
         const transition = this.state.transition;
         transition?.finished.then(() => {
             const from = transition?.from;
@@ -424,6 +424,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                     );
                     if (!isRollback(e.info)) {
                         const animation = this.screenTransition(incomingScreen, outgoingScreen, backNavigating);
+                        animation?.updatePlaybackRate(1);
                         signal.addEventListener('abort', () => animation?.finish());
                         await animation?.finished;
                     }
