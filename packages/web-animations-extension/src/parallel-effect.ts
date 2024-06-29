@@ -61,20 +61,21 @@ export class ParallelEffect extends GroupEffect {
 		}
 
 		const { timeline, startTime, currentTime } = associatedAnimation.get(this) ?? {};
-		let { duration = 0, iterations = 1 } = computedTiming;
+		const unit = timeline instanceof GestureTimeline ? 'percent' : 'ms';
+		let { duration = 0, iterations = 1, endTime = 0 } = computedTiming;
 		if (duration === "auto") duration = 0;
 		if (typeof duration === "string")
 			throw new TypeError("Unknown effect duration keyword.");
 		computedTiming.duration = duration;
 		computedTiming.activeDuration = msFromTime(duration) * iterations;
 		computedTiming.startTime = startTime ?? undefined;
-		if (currentTime)
-			computedTiming.localTime = timeline instanceof GestureTimeline ? msFromPercent(currentTime) : msFromTime(currentTime);
-		computedTiming.progress = overallProgress ? overallProgress / this.children.length : 1; // average progress
+		computedTiming.localTime = currentTime;
 		computedTiming.currentIteration = calculateCurrentIterationIndex(computedTiming, getPhase(computedTiming, this.#animationDirection));
 
 		if (timeline instanceof GestureTimeline) {
-			return computedTimingToPercent(computedTiming, timeline);
+			return computedTimingToPercent(computedTiming);
+		} else if (timeline instanceof DocumentTimeline) {
+			computedTiming.progress = currentTime && cssNumberishToNumber(currentTime, unit) / cssNumberishToNumber(endTime, unit); // average progress
 		}
 		return computedTiming;
 	}

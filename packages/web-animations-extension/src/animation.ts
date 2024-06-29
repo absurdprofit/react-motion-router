@@ -666,7 +666,6 @@ export class Animation extends EventTarget implements NativeAnimation {
 				if (previousCurrentTime !== null && previousProgress !== null) {
 					const { endTime = 0 } = this.#effect?.getComputedTiming() ?? {};
 					const end = cssNumberishToNumber(endTime, 'ms');
-					console.log({ end, previousProgress })
 					this.currentTime = previousProgress * end;
 				}
 

@@ -2,11 +2,14 @@ import { GestureTimeline } from "../gesture-timeline";
 import { DEFAULT_TIMING, MAX_DURATION_PERCENTAGE, MIN_DURATION_PERCENTAGE, RESOLVED_AUTO_DURATION } from "./constants";
 import { AnimationEffectPhase, Input, LerpRange, Output, SpringToLinearProps, Weights, is1DRange, isNull } from "./types";
 
-export function cssNumberishToNumber<T extends CSSNumberish | null>(value: T, unit: string) {
+export function cssNumberishToNumber<T extends CSSNumberish | null>(value: T, unit?: string) {
 	if (isNull(value) || typeof value === 'number')
 		return value;
-	else
+	else {
+		if (!unit)
+			[unit] = Object.keys(value.type());
 		return value.to(unit).value;
+	}
 }
 
 export function msFromPercent<T extends CSSNumberish | null>(value: T, timing: EffectTiming = DEFAULT_TIMING) {
@@ -185,19 +188,18 @@ export function clamp(num: number, min: number, max?: number) {
 	return num;
 }
 
-export function computedTimingToPercent(computedTiming: ComputedEffectTiming, timeline: GestureTimeline) {
+export function computedTimingToPercent(computedTiming: ComputedEffectTiming) {
 	let {
 		duration = 'auto',
 		iterations = 1,
 		playbackRate = 1,
-		iterationStart = 0,
 		delay = 0,
 		endDelay = 0,
-		progress = null,
-		endTime
+		localTime = null,
+		progress = null
 	} = computedTiming;
 
-	endTime = new CSSUnitValue(100, 'percent');
+	const endTime = new CSSUnitValue(100, 'percent');
 	if (duration === 'auto') {
 		duration = RESOLVED_AUTO_DURATION; // arbitrary duration
 		delay = 0;
@@ -213,46 +215,45 @@ export function computedTimingToPercent(computedTiming: ComputedEffectTiming, ti
 	const totalTimeMs = delay + activeDurationMs + endDelay;
 	duration = new CSSUnitValue((iterationDurationMs / totalTimeMs) * 100, 'percent');
 	const activeDuration = CSS.percent((duration.to('percent').value * iterations) / Math.abs(playbackRate));
-	const localTime = timeline.currentTime;
 	if (localTime !== null)
-		progress = localTime.to('percent').value / CSS.percent(100).value;
+		progress = cssNumberishToNumber(localTime, 'percent') / endTime.value;
 
 	return {
 		...computedTiming,
-		localTime,
+		progress,
 		activeDuration,
 		duration,
 		iterations,
-		playbackRate,
-		iterationStart,
 		delay,
 		endDelay,
-		progress,
 		endTime
 	};
 }
 
 
 export function getPhase(timing: ComputedEffectTiming, animationDirection: "forwards" | "backwards"): AnimationEffectPhase {
-	const { activeDuration = 0, localTime, endTime = Infinity, delay = 0 } = timing;
+	let { activeDuration = 0, localTime = null, endTime = Infinity, delay = 0 } = timing;
+	endTime = cssNumberishToNumber(endTime);
+	activeDuration = cssNumberishToNumber(activeDuration);
+	localTime = cssNumberishToNumber(localTime);
 
 	if (localTime == null || localTime === undefined) {
 		return 'idle';
 	}
 
-	const beforeActiveBoundaryTime = Math.max(Math.min(delay, msFromTime(endTime)), 0);
-	const activeAfterBoundaryTime = Math.max(Math.min(delay + msFromTime(activeDuration), msFromTime(endTime)), 0);
+	const beforeActiveBoundaryTime = Math.max(Math.min(delay, endTime), 0);
+	const activeAfterBoundaryTime = Math.max(Math.min(delay + activeDuration, endTime), 0);
 
 	if (
-		msFromTime(localTime) < beforeActiveBoundaryTime ||
-		(animationDirection === 'backwards' && localTime === beforeActiveBoundaryTime)
+		localTime < beforeActiveBoundaryTime
+		|| (animationDirection === 'backwards' && localTime === beforeActiveBoundaryTime)
 	) {
 		return 'before';
 	}
 
 	if (
-		msFromTime(localTime) > activeAfterBoundaryTime ||
-		(animationDirection === 'forwards' && localTime === activeAfterBoundaryTime)
+		localTime > activeAfterBoundaryTime
+		|| (animationDirection === 'forwards' && localTime === activeAfterBoundaryTime)
 	) {
 		return 'after';
 	}
@@ -261,7 +262,9 @@ export function getPhase(timing: ComputedEffectTiming, animationDirection: "forw
 }
 
 export function calculateActiveTime(timing: ComputedEffectTiming, phase: AnimationEffectPhase): number | null {
-	const { localTime, delay = 0, activeDuration = 0, fill } = timing;
+	let { localTime = null, delay = 0, activeDuration = 0, fill } = timing;
+	activeDuration = cssNumberishToNumber(activeDuration);
+	localTime = cssNumberishToNumber(localTime);
 
 	if (localTime == null || localTime === undefined) {
 		return null; // Unresolved time value
@@ -270,17 +273,17 @@ export function calculateActiveTime(timing: ComputedEffectTiming, phase: Animati
 	switch (phase) {
 		case 'before':
 			if (fill === 'backwards' || fill === 'both') {
-				return Math.max(msFromTime(localTime) - delay, 0);
+				return Math.max(localTime - delay, 0);
 			} else {
 				return null; // Unresolved time value
 			}
 
 		case 'active':
-			return msFromTime(localTime) - delay;
+			return localTime - delay;
 
 		case 'after':
 			if (fill === 'forwards' || fill === 'both') {
-				return Math.max(Math.min(msFromTime(localTime) - delay, msFromTime(activeDuration)), 0);
+				return Math.max(Math.min(localTime - delay, activeDuration), 0);
 			} else {
 				return null; // Unresolved time value
 			}

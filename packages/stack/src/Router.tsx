@@ -142,7 +142,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         this.screenTransitionLayer.current.animation.timeline = document.timeline;
         const hysteresisReached = this.state.backNavigating ? progress > this.state.gestureHysteresis : progress < this.state.gestureHysteresis;
         let rollback = false;
-        if (e.velocity < this.state.gestureMinFlingVelocity && hysteresisReached) {
+        if (e.velocity < this.state.gestureMinFlingVelocity && !hysteresisReached) {
             this.screenTransitionLayer.current.animation.reverse();
             rollback = true;
         }
@@ -239,7 +239,8 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         const handler = () => {
             const { params, config } = e.destination.getState() as HistoryEntryState ?? {};
             const destination = e.destination;
-            const fromKey = window.navigation.transition?.from.key ?? null;
+            const transition = window.navigation.transition;
+            const fromKey = transition?.from.key ?? null;
             const destinationKey = e.destination.key;
             const resolvedPathname = new URL(e.destination.url).pathname;
             const queryParams = searchParamsToObject(new URL(destination.url).search);
@@ -265,7 +266,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             );
 
             return new Promise<void>((resolve) => startTransition(() => {
-                this.setState({ destinationKey, fromKey, screenStack }, async () => {
+                this.setState({ destinationKey, fromKey, transition, screenStack }, async () => {
                     const signal = e.signal;
                     if (this.navigation.current?.key === undefined)
                         throw new Error("Current key is undefined");
@@ -292,6 +293,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         const handler = () => {
             const fromKey = e.transition?.from?.key ?? null;
             const destinationKey = e.destination.key;
+            const transition = e.transition;
             const screenStack = new Array<ScreenChild<ScreenProps, Screen>>();
             const entries = this.navigation.entries;
             entries.forEach((entry) => {
@@ -320,7 +322,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             });
 
             return new Promise<void>((resolve) => startTransition(() => {
-                this.setState({ screenStack, fromKey, destinationKey }, async () => {
+                this.setState({ screenStack, fromKey, transition, destinationKey }, async () => {
                     if (
                         this.props.config.initialPathname
                         && entries.length === 1
@@ -410,7 +412,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             }
 
             return new Promise<void>((resolve) => startTransition(() => {
-                this.setState({ destinationKey, fromKey, screenStack }, async () => {
+                this.setState({ destinationKey, fromKey, transition, screenStack, backNavigating }, async () => {
                     const signal = e.signal;
                     const outgoingScreen = this.getScreenRefByKey(String(fromKey));
                     const incomingScreen = this.getScreenRefByKey(String(destinationKey));
