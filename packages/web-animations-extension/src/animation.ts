@@ -224,7 +224,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 				children.push(new Animation(effect.children.item(i)));
 			}
 		} else {
-			// TODO: we really should intercept ScrollTimeline and convert it to time values for child animations
+			// TODO: we really should intercept GestureTimeline and convert it to time values for child animations
 			const timeline = this.#timeline instanceof GestureTimeline ? document.timeline : this.#timeline;
 			children.push(new NativeAnimation(effect, timeline));
 		}
@@ -594,22 +594,94 @@ export class Animation extends EventTarget implements NativeAnimation {
 		this.#syncCurrentTime();
 	}
 
-	set timeline(_timeline: AnimationTimeline | null) {
-		if (_timeline === this.#timeline)
+	set timeline(newTimeline: AnimationTimeline | null) {
+		const oldTimeline = this.timeline;
+		if (oldTimeline === newTimeline)
 			return;
 
 		if (this.#timeline instanceof GestureTimeline)
 			this.#timeline.removeEventListener('update', this.#onGestureTimelineUpdate);
 
-		this.#timeline = _timeline ?? document.timeline;
-		if (this.#startTime !== null)
+		const previousPlayState = this.playState;
+		const unit = oldTimeline instanceof GestureTimeline ? 'percent' : 'ms';
+		const previousCurrentTime = cssNumberishToNumber(this.currentTime, unit);
+		const { endTime = 0 } = this.#effect?.getComputedTiming() ?? {};
+		const end = cssNumberishToNumber(endTime, unit);
+		let previousProgress;
+		if (previousCurrentTime === null) {
+			previousProgress = null
+		} else if (endTime === 0) {
+			previousProgress = 0;
+		} else {
+			previousProgress = previousCurrentTime / end;
+		}
+
+		const fromGestureTimeline = (oldTimeline instanceof GestureTimeline);
+		const toGestureTimeline = (newTimeline instanceof GestureTimeline);
+		const toDocumentTimeline = (newTimeline instanceof DocumentTimeline);
+		const pending = this.pending;
+
+		if (fromGestureTimeline) {
+			//   removeAnimation(this.#timeline, this.#animation);
+		}
+
+		if (toGestureTimeline) {
+			this.#timeline = newTimeline;
+			this.#applyPendingPlaybackRate();
+			this.#autoAlignStartTime = true;
+			this.#startTime = null;
 			this.#holdTime = null;
 
-		// this.#updateFinishedState(false);
+			if (previousPlayState === 'running' || previousPlayState === 'finished') {
+				if (!this.#readyPromise || this.#readyPromise.state === 'resolved') {
+					this.#schedulePendingTask();
+				}
+				this.#pending.task = 'play';
+				newTimeline.addEventListener('update', this.#onGestureTimelineUpdate);
+				this.#children.forEach(child => child.pause());
+			}
+			if (previousPlayState === 'paused' && previousProgress !== null) {
+				this.#holdTime = previousProgress * end;
+			}
 
-		if (_timeline instanceof GestureTimeline) {
-			_timeline.addEventListener('update', this.#onGestureTimelineUpdate);
-			this.#children.forEach(child => child.pause());
+			if (pending) {
+				if (!this.#readyPromise || this.#readyPromise.state === 'resolved') {
+					this.#schedulePendingTask();
+				}
+				if (previousPlayState === 'paused')
+					this.#pending.task = 'pause';
+				else
+					this.#pending.task = 'play';
+			}
+
+			if (this.#startTime !== null)
+				this.#holdTime = null;
+
+			this.#updateFinishedState(false);
+		} else if (toDocumentTimeline) {
+			//   removeAnimation(this.#timeline, this.#animation);
+			this.#timeline = newTimeline;
+
+			if (fromGestureTimeline) {
+				if (previousCurrentTime !== null && previousProgress !== null) {
+					const { endTime = 0 } = this.#effect?.getComputedTiming() ?? {};
+					const end = cssNumberishToNumber(endTime, 'ms');
+					console.log({ end, previousProgress })
+					this.currentTime = previousProgress * end;
+				}
+
+				switch (previousPlayState) {
+					case 'paused':
+						this.#children.forEach(child => child.pause());
+						break;
+
+					case 'running':
+					case 'finished':
+						this.#children.forEach(child => child.play());
+				}
+			}
+		} else {
+			throw TypeError("Unsupported timeline: " + newTimeline);
 		}
 	}
 

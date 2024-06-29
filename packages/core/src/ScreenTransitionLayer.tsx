@@ -89,11 +89,11 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
                 duration: duration instanceof CSSNumericValue ? duration.to('ms').value : duration
             });
             effect.append(sharedElementEffect);
+            this.sharedElementTransitionLayer.current?.ref.current?.showModal();
         }
 
         this.animation.effect = effect;
 
-        this.sharedElementTransitionLayer.current?.ref.current?.showModal();
         this.animation.play();
         this.onTransitionStart();
 
