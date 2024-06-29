@@ -165,10 +165,16 @@ export interface SharedElementNode {
 
 export type SharedElementNodeMap = Map<string, SharedElementNode>;
 
-export type WillChange = keyof React.CSSProperties;
+export type StyleKeyList = (keyof React.CSSProperties)[];
 
 export function isLazyExoticComponent(value: any): value is LazyExoticComponent<any> {
     return typeof value === "object"
         && value !== null
         && value.$$typeof === Symbol.for('react.lazy');
+}
+
+export type StylableElement = Element & { style: CSSStyleDeclaration };
+
+export function isStylableElement(element: any): element is StylableElement {
+    return 'style' in element && element.style instanceof CSSStyleDeclaration;
 }

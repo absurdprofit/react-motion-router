@@ -1,10 +1,10 @@
 import { associatedAnimation } from "./common/associated-animation";
 import { DEFAULT_TIMING } from "./common/constants";
-import { calculateCurrentIterationIndex, computedTimingToPercent, cssNumberishToNumber, getPhase, msFromPercent, msFromTime } from "./common/utils";
+import { calculateCurrentIterationIndex, computedTimingToPercent, cssNumberishToNumber, getPhase, msFromTime } from "./common/utils";
 import { GestureTimeline } from "./gesture-timeline";
 import { GroupEffect } from "./group-effect";
 
-export class ParallelEffect extends GroupEffect {
+export class SequenceEffect extends GroupEffect {
 	#timing: OptionalEffectTiming;
 	constructor(children: AnimationEffect[], timing: OptionalEffectTiming = DEFAULT_TIMING) {
 		super(children);
@@ -13,7 +13,6 @@ export class ParallelEffect extends GroupEffect {
 			...timing
 		};
 
-		children.forEach(effect => effect.updateTiming());
 	}
 
 	prepend(...children: AnimationEffect[]): void {
@@ -33,32 +32,31 @@ export class ParallelEffect extends GroupEffect {
 	getComputedTiming(): ComputedEffectTiming {
 		const timing = this.getTiming();
 		const computedTiming: ComputedEffectTiming = { ...timing };
+		const { delay = 0 } = this.children.item(0)?.getComputedTiming() ?? {};
+		const { endDelay = 0, endTime = 0 } = this.children.item(this.children.length - 1)?.getComputedTiming() ?? {};
+		timing.delay = timing.delay ? timing.delay + delay : delay;
+		timing.endDelay = timing.endDelay ? timing.endDelay + endDelay : endDelay;
+		computedTiming.endTime = endTime;
 		for (let i = 0; i < this.children.length; i++) {
 			const child = this.children.item(i);
 			if (!child) continue;
 			let {
-				delay = 0,
-				endDelay = 0,
 				duration = 'auto',
 				activeDuration = 0,
-				endTime = 0
 			} = child.getComputedTiming();
-			timing.delay = timing.delay ? Math.min(timing.delay, delay) : delay;
-			timing.endDelay = timing.endDelay ? Math.max(timing.endDelay, endDelay) : endDelay;
-			computedTiming.endTime = computedTiming.endTime ? Math.max(cssNumberishToNumber(computedTiming.endTime, 'ms'), cssNumberishToNumber(endTime, 'ms')) : endTime;
-			computedTiming.activeDuration = computedTiming.activeDuration ? Math.max(cssNumberishToNumber(computedTiming.activeDuration, 'ms'), cssNumberishToNumber(activeDuration, 'ms')) : activeDuration;
+			computedTiming.activeDuration = computedTiming.activeDuration ? cssNumberishToNumber(computedTiming.activeDuration, 'ms') + cssNumberishToNumber(activeDuration, 'ms') : activeDuration;
 			timing.duration = timing.duration instanceof CSSNumericValue ? timing.duration.to('ms').value : timing.duration;
 			duration = duration instanceof CSSNumericValue ? duration.to('ms').value : duration;
 			if (typeof duration !== 'string')
 				if (timing.duration === 'auto')
 					timing.duration = cssNumberishToNumber(duration, 'ms');
 				else if (typeof timing.duration !== 'string')
-					timing.duration = timing.duration ? Math.max(timing.duration, duration) : duration;
+					timing.duration = timing.duration ? timing.duration + duration : duration;
 		}
 
 		const { timeline, startTime, currentTime } = associatedAnimation.get(this) ?? {};
 		const unit = timeline instanceof GestureTimeline ? 'percent' : 'ms';
-		let { duration = 0, iterations = 1, endTime = 0 } = computedTiming;
+		let { duration = 0, iterations = 1 } = computedTiming;
 		if (duration === "auto") duration = 0;
 		if (typeof duration === "string")
 			throw new TypeError("Unknown effect duration keyword.");

@@ -1,11 +1,11 @@
 import { Component, createRef } from 'react';
-import { SharedElementTransitionType, WillChange } from './common/types';
+import { SharedElementTransitionType, StyleKeyList } from './common/types';
 import { SharedElementSceneContext } from './SharedElementSceneContext';
 
 interface SharedElementConfig extends OptionalEffectTiming {
     type?: SharedElementTransitionType;
     transformOrigin?: React.CSSProperties["transformOrigin"];
-    willChange?: WillChange[];
+    styles?: StyleKeyList;
     deepClone?: boolean;
 }
 
@@ -38,9 +38,9 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
         this.scene.removeNode(this.id);
     }
 
-    get willChange(): WillChange[] {
-        if (this.props.config?.willChange) {
-            return this.props.config.willChange;
+    get styles(): StyleKeyList {
+        if (this.props.config?.styles) {
+            return this.props.config.styles;
         }
         return [];
     }

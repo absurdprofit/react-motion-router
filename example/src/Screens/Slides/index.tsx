@@ -88,7 +88,7 @@ export default function Slides(props: SlidesProps) {
                         return (
                             <div className="slide" key={_index}>
                                 {
-                                    <SharedElement id={hero.id} disabled={_index !== index} config={{willChange: ["objectFit", "aspectRatio"]}}>
+                                    <SharedElement id={hero.id} disabled={_index !== index} config={{ styles: ["objectFit", "aspectRatio"] }}>
                                         <img
                                             src={hero.photoUrl}
                                             alt={hero.name}

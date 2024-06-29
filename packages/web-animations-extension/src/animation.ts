@@ -6,6 +6,7 @@ import { GestureTimeline, GestureTimelineUpdateEvent } from "./gesture-timeline"
 import { GroupEffect } from "./group-effect";
 import { KeyframeEffect } from "./keyframe-effect";
 import { PromiseWrapper } from "./promise-wrapper";
+import { SequenceEffect } from "./sequence-effect";
 
 export class Animation extends EventTarget implements NativeAnimation {
 	public id: string = '';
@@ -218,7 +219,14 @@ export class Animation extends EventTarget implements NativeAnimation {
 		const children = [];
 		if (effect instanceof GroupEffect) {
 			for (let i = 0; i < effect.children.length; i++) {
-				children.push(new Animation(effect.children.item(i)));
+				const animation = new Animation(effect.children.item(i));
+				if (effect instanceof SequenceEffect) {
+					if (i > 0) {
+						const { endTime = null } = children[i - 1].effect?.getComputedTiming() ?? {};
+						animation.startTime = cssNumberishToNumber(endTime, 'ms');
+					}
+				}
+				children.push(animation);
 			}
 		} else {
 			// TODO: we really should intercept GestureTimeline and convert it to time values for child animations
@@ -562,6 +570,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 	}
 
 	set startTime(_startTime: CSSNumberish | null) {
+		this.#startTime = cssNumberishToNumber(_startTime);
 		this.#children.forEach(animation => animation.startTime = _startTime);
 	}
 

@@ -1,4 +1,4 @@
-import { EasingFunction, WillChange } from './common/types';
+import { EasingFunction, StylableElement, StyleKeyList, isStylableElement } from './common/types';
 import { CSSProperties, Component, RefObject, createRef } from 'react';
 import { NavigationBase } from './NavigationBase';
 import { ScreenBase } from './ScreenBase';
@@ -36,13 +36,19 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
         return this.#incomingScreen;
     }
 
-    getComputedStyles(element: HTMLElement, styles: WillChange[]) {
+    getComputedStyles(element: Element, styles: StyleKeyList) {
         const computedStyles: Record<string, string> = {};
         const computedStyle = window.getComputedStyle(element);
         for (const style of styles) {
             computedStyles[style] = computedStyle[style as any];
         }
         return computedStyles;
+    }
+
+    copyStyles(srcElement: StylableElement, cloneElement: StylableElement, styleList: StyleKeyList) {
+        const computedStyles = this.getComputedStyles(srcElement, styleList);
+        for (const [key, value] of Object.entries(computedStyles))
+            cloneElement.style[key] = value;
     }
 
     getAnimationEffect<T extends { instance: SharedElement, clone: HTMLElement }>(start: T, end: T) {
@@ -57,13 +63,15 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
             ...end.instance.props.config
         };
         const transitionType = end.instance.transitionType === "fade";
+        const startTransform = `translate(${startRect.x}px, ${startRect.y}px)`;
+        const endTransform = `translate(${endRect.x}px, ${endRect.y}px)`;
         if (transitionType) {
             keyframeEffects.push(
                 new KeyframeEffect(
                     start.clone,
                     [
-                        { transform: `translate(${startRect.x}px, ${startRect.y}px)`, opacity: 1 },
-                        { transform: `translate(${endRect.x}px, ${endRect.y}px)`, opacity: 0 }
+                        { transform: startTransform, opacity: 1 },
+                        { transform: endTransform, opacity: 0 }
                     ],
                     config
                 ),
@@ -72,8 +80,8 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
                 new KeyframeEffect(
                     end.clone,
                     [
-                        { transform: `translate(${startRect.x}px, ${startRect.y}px)` },
-                        { transform: `translate(${endRect.x}px, ${endRect.y}px)` }
+                        { transform: startTransform },
+                        { transform: endTransform }
                     ],
                     config
                 ),
@@ -84,8 +92,9 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
                 new KeyframeEffect(
                     start.clone,
                     [
-                        { transform: `translate(${startRect.x}px, ${startRect.y}px)`, opacity: 1 },
-                        { transform: `translate(${endRect.x}px, ${endRect.y}px)`, opacity: 0 }
+                        { transform: startTransform, opacity: 1 },
+                        { opacity: 0, offset: 0.5 },
+                        { transform: endTransform, opacity: 0 }
                     ],
                     config
                 ),
@@ -95,8 +104,9 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
                 new KeyframeEffect(
                     end.clone,
                     [
-                        { transform: `translate(${startRect.x}px, ${startRect.y}px)`, opacity: 0 },
-                        { transform: `translate(${endRect.x}px, ${endRect.y}px)`, opacity: 1 }
+                        { transform: startTransform, opacity: 0 },
+                        { opacity: 0, offset: 0.5 },
+                        { transform: endTransform, opacity: 1 }
                     ],
                     config
                 ),
@@ -108,8 +118,8 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
                 new KeyframeEffect(
                     start.clone,
                     [
-                        { transform: `translate(${startRect.x}px, ${startRect.y}px)`, opacity: 1 },
-                        { transform: `translate(${endRect.x}px, ${endRect.y}px)`, opacity: 0 }
+                        { transform: startTransform, opacity: 1 },
+                        { transform: endTransform, opacity: 0 }
                     ],
                     config
                 ),
@@ -119,30 +129,30 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
                 new KeyframeEffect(
                     end.clone,
                     [
-                        { transform: `translate(${startRect.x}px, ${startRect.y}px)` },
-                        { transform: `translate(${endRect.x}px, ${endRect.y}px)` }
+                        { transform: startTransform },
+                        { transform: endTransform }
                     ],
                     config
                 ),
 
             );
         } else { // morph
-            const willChange = Array.from(new Set([...start.instance.willChange, ...end.instance.willChange]));
+            const styleList = Array.from(new Set([...start.instance.styles, ...end.instance.styles]));
             keyframeEffects.push(
                 new KeyframeEffect(
                     end.clone,
                     [
                         {
                             ...Object.fromEntries((start.instance.ref.current?.firstElementChild as HTMLElement).attributeStyleMap),
-                            ...this.getComputedStyles(start.instance.ref.current?.firstElementChild as HTMLElement, willChange),
-                            transform: `translate(${startRect.x}px, ${startRect.y}px)`,
+                            ...this.getComputedStyles(start.instance.ref.current?.firstElementChild as HTMLElement, styleList),
+                            transform: startTransform,
                             width: `${startRect.width}px`,
                             height: `${startRect.height}px`,
                         },
                         {
                             ...Object.fromEntries((end.instance.ref.current?.firstElementChild as HTMLElement).attributeStyleMap),
-                            ...this.getComputedStyles(end.instance.ref.current?.firstElementChild as HTMLElement, willChange),
-                            transform: `translate(${endRect.x}px, ${endRect.y}px)`,
+                            ...this.getComputedStyles(end.instance.ref.current?.firstElementChild as HTMLElement, styleList),
+                            transform: endTransform,
                             width: `${endRect.width}px`,
                             height: `${endRect.height}px`,
                         }
@@ -167,13 +177,20 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
                 const endClone = end.clone();
                 const startClone = start.clone();
                 if (!startClone) continue;
+                if (!endClone) continue;
+                const styleList = Array.from(new Set([...start.styles, ...end.styles, 'width' as const, 'height' as const]));
                 if (end.transitionType !== "morph") {
                     startClone.id = `${id}-start`;
                     startClone.style.position = "absolute";
+                    if (isStylableElement(start.ref.current?.firstElementChild))
+                        this.copyStyles(start.ref.current.firstElementChild, startClone, styleList);
+                    if (isStylableElement(end.ref.current?.firstElementChild))
+                        this.copyStyles(end.ref.current.firstElementChild, endClone, styleList);
                     this.ref.current?.prepend(startClone);
+                } else if (isStylableElement(start.ref.current?.firstElementChild)) {
+                    this.copyStyles(start.ref.current.firstElementChild, endClone, styleList);
                 }
 
-                if (!endClone) continue;
                 endClone.id = `${id}${end.transitionType === "morph" ? '' : '-end'}`;
                 endClone.style.position = "absolute";
                 this.ref.current?.prepend(endClone);
