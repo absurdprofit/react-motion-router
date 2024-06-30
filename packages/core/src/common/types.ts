@@ -150,6 +150,7 @@ export type StyleKeyList = (keyof StandardPropertiesHyphen | string)[];
 export function isLazyExoticComponent(value: any): value is LazyExoticComponent<any> {
     return typeof value === "object"
         && value !== null
+        && 'load' in value
         && value.$$typeof === Symbol.for('react.lazy');
 }
 
