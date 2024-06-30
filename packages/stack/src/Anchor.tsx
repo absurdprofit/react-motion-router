@@ -2,8 +2,7 @@ import { PlainObject } from "@react-motion-router/core";
 import { Navigation } from "./Navigation";
 import { NavigateOptions, XOR } from "./common/types";
 import { useState, useEffect } from "react";
-import { Router } from "./Router";
-import { useNavigation, useRouter } from "./common/hooks";
+import { useNavigation } from "./common/hooks";
 import { searchParamsFromObject } from "./common/utils";
 
 interface BaseAnchorProps extends React.DetailedHTMLProps<React.AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
@@ -13,6 +12,7 @@ interface BaseAnchorProps extends React.DetailedHTMLProps<React.AnchorHTMLAttrib
 
 interface ForwardAnchorProps extends BaseAnchorProps {
     params?: PlainObject;
+    query?: PlainObject<string | boolean | number>;
     href: string;
     type?: NavigateOptions["type"];
     preload?: boolean;
@@ -30,12 +30,12 @@ export function Anchor(props: AnchorProps) {
         preload,
         goBack,
         params = {},
+        query = {},
         type = "push",
         href: hrefProp,
         onClick: onClickProp,
         ...aProps
     } = props;
-    const router = useRouter();
     const [href, setHref] = useState<string | undefined>(undefined);
     const routerId = navigation?.routerId;
     const isExternal = !href?.includes(window.location.origin);
@@ -43,19 +43,19 @@ export function Anchor(props: AnchorProps) {
 
     useEffect(() => {
         if (!preload || !href) return;
-        navigation.preloadRoute(new URL(href).pathname);
-    }, [preload, href]);
+        navigation.preloadRoute(hrefProp);
+    }, [preload, hrefProp]);
 
     useEffect(() => {
         if (goBack) {
-            setHref(navigation.previous?.url?.href ?? undefined);
-        } else if (hrefProp && navigation.baseURL) {
-            const search = searchParamsFromObject(params);
+            setHref(navigation.previous?.url?.href);
+        } else if (hrefProp) {
+            const search = searchParamsFromObject(query);
             const uri = new URL(hrefProp, navigation.baseURL);
             uri.search = search;
             setHref(uri.href);
         }
-    }, [hrefProp, params]);
+    }, [hrefProp, query]);
 
     const onClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         if (goBack) {

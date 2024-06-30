@@ -8,7 +8,7 @@ export function BackdropAnimation({ ref, direction, playbackRate, index }: Anima
         duration,
         direction,
         playbackRate,
-        fill: direction === "normal" ? "forwards" : "backwards",
+        fill: "both",
         pseudoElement: "::backdrop"
     };
     const fadeOut = [
@@ -71,7 +71,7 @@ export function ModalAnimation({ ref, direction, playbackRate, index, ...props }
         duration,
         direction,
         playbackRate,
-        fill: direction === "normal" ? "forwards" : "backwards"
+        fill: "both"
     };
 
     const keyframes = [

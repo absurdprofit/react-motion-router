@@ -489,10 +489,14 @@ export class Animation extends EventTarget implements NativeAnimation {
 		this.#children.forEach(animation => {
 			if (
 				animation.effect instanceof KeyframeEffect
-				&& animation.effect.target !== null
-				&& animation.effect.pseudoElement === null) {
-				animation.commitStyles();
+				&& (
+					animation.effect.target === null
+					|| animation.effect.pseudoElement !== null
+				)
+			) {
+				return;
 			}
+			animation.commitStyles();
 		});
 	}
 

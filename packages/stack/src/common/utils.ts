@@ -22,7 +22,7 @@ export function searchParamsFromObject(params: { [key: string]: any }) {
 		return new URLSearchParams(params).toString();
 	} catch (e) {
 		console.error(e);
-		console.warn("Non JSON serialisable value was passed as route param.");
+		console.warn("Non JSON serialisable value was passed as query param.");
 	}
 	return '';
 }

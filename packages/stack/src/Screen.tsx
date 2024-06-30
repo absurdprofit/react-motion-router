@@ -6,10 +6,9 @@ import { Router } from './Router';
 
 export interface ScreenComponentProps<T extends PlainObject = {}> extends ScreenComponentBaseProps<RouteProp<T>, Navigation> { }
 
-type Presentation = "default" | "dialog" | "modal";
 export interface ScreenProps extends ScreenBaseProps {
     config?: ScreenBaseProps["config"] & {
-        presentation?: Presentation;
+        presentation?: "default" | "dialog" | "modal";
         keepAlive?: boolean;
         gestureDirection?: SwipeDirection;
         gestureAreaWidth?: number;

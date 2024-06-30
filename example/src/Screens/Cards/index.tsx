@@ -26,7 +26,7 @@ let textInset = '';
 let bgInset = '';
 let heroName = '';
 let titleInset = '';
-const CardComponent = ({ observer, navigation, hero }: CardProps) => {
+const CardComponent = ({ observer, hero }: CardProps) => {
     const bgRef = React.useRef<HTMLDivElement | null>(null);
     const titleRef = React.useRef<HTMLHeadingElement | null>(null);
     const paraRef = React.useRef<HTMLParagraphElement | null>(null);
@@ -60,7 +60,7 @@ const CardComponent = ({ observer, navigation, hero }: CardProps) => {
     };
     return (
         <li role="menuitem">
-            <Anchor href='details' params={{ ...hero }} onClick={onClick}>
+            <Anchor href='details' query={{ ...hero }} onClick={onClick}>
                 <ButtonBase aria-label={`Character profile: ${hero.name}`} disableRipple>
                     <SharedElement id={`${hero.id}-card-bg`} config={{deepClone: false}}>
                         <div
