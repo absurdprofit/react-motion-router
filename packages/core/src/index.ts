@@ -1,14 +1,5 @@
 /// <reference types="urlpattern-polyfill" />
-import {
-    ScreenChild,
-    AnimationEffectFactory,
-} from './common/types';
-import { NavigationBase } from './NavigationBase';
-import { RouterBase, RouterBaseProps, RouterBaseState } from './RouterBase';
-import { ScreenBase, ScreenBaseProps, ScreenBaseState } from './ScreenBase';
-import { MotionContext } from './MotionContext';
 import 'web-gesture-events';
-import { SharedElement } from './SharedElement';
 
 document.body.style.position = 'fixed';
 document.body.style.inset = '0';
@@ -23,16 +14,11 @@ if (root) {
     root.style.height = '100%';
 }
 
-export type {
-    AnimationEffectFactory,
-    ScreenChild,
-    RouterBaseProps,
-    RouterBaseState,
-    ScreenBaseProps,
-    ScreenBaseState
-};
-export { SharedElement, MotionContext };
-export { NavigationBase, RouterBase, ScreenBase };
+export * from './SharedElement';
+export * from './RouterBase';
+export * from './ScreenBase';
+export * from './NavigationBase';
+export * from './MotionContext';
 export * from './RouterContext';
 export * from './common/hooks';
 export * from './common/types';

@@ -1,5 +1,5 @@
-import { EasingFunction, StylableElement, StyleKeyList, isStylableElement } from './common/types';
-import { CSSProperties, Component, RefObject, createRef } from 'react';
+import { StylableElement, StyleKeyList, isStylableElement } from './common/types';
+import { Component, RefObject, createRef } from 'react';
 import { NavigationBase } from './NavigationBase';
 import { ScreenBase } from './ScreenBase';
 import { ParallelEffect } from 'web-animations-extension';

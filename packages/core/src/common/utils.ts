@@ -1,65 +1,5 @@
 import { lazy as ReactLazy } from "react";
-import { LazyExoticComponent, MatchedRoute, PathPattern, PlainObject } from "./types";
-
-export function getCSSData(styles: CSSStyleDeclaration, exclude: string[] = [], object: boolean = true): [string, PlainObject<string>] {
-    let text = '';
-    const styleObject: PlainObject<string> = {};
-    let j = 0;
-    for (let property in styles) {
-        if (exclude.includes(property)) continue;
-        if (j < styles.length) {
-            const propertyName = styles[property];
-            let propertyValue = styles.getPropertyValue(propertyName);
-            switch (propertyName) {
-                case "visibility":
-                    propertyValue = 'visible';
-                    break;
-            }
-            text += `${propertyName}:${propertyValue};`;
-        } else {
-            if (!object) break;
-            let propertyName = property;
-            let propertyValue = styles[propertyName as any];
-            if (
-                typeof propertyValue === "string"
-                && propertyName !== "cssText"
-                && !propertyName.includes('webkit')
-                && !propertyName.includes('grid')
-            ) {
-                switch (propertyName) {
-                    case "offset":
-                        propertyName = "cssOffset";
-                        break;
-
-                    case "float":
-                        propertyName = "cssFloat";
-                        break;
-
-                    case "visibility":
-                        propertyValue = "visible";
-                        break;
-                }
-
-                styleObject[propertyName] = propertyValue;
-            }
-        }
-        j++;
-    }
-    return [text, styleObject];
-}
-
-export function getStyleObject(styles: CSSStyleDeclaration, exclude: string[] = []): PlainObject<string> {
-    const styleObject: PlainObject<string> = {};
-    for (const key in styles) {
-        if (styles[key] && styles[key].length && typeof styles[key] !== "function") {
-            if (/^\d+$/.test(key)) continue;
-            if (key === "offset") continue;
-            if (exclude.includes(key)) continue;
-            styleObject[key] = styles[key];
-        }
-    }
-    return styleObject;
-}
+import { LazyExoticComponent, MatchedRoute, PathPattern } from "./types";
 
 export function resolveBaseURLFromPattern(pattern: string, pathname: string) {
     if (!pattern.endsWith("**")) pattern += '**'; // allows us to match nested routes
@@ -120,11 +60,6 @@ export function lazy<T extends React.ComponentType<any>>(
     return Component;
 }
 
-export function getAnimationDuration(animation: Animation | null, defaultDuration: number = 0) {
-    const duration = animation?.effect?.getTiming().duration;
-    return Number(duration) || defaultDuration;
-}
-
 export function isNavigationSupported() {
     return Boolean(window.navigation);
 }
@@ -149,12 +84,6 @@ export async function polyfillNavigation() {
         persist: true,
         persistState: true
     });
-}
-
-export function isFirstLoad(info?: unknown) {
-    if (info && typeof info === 'object' && 'firstLoad' in info)
-        return Boolean(info.firstLoad);
-    return false;
 }
 
 export async function PromiseAllDynamic<T>(values: Iterable<T | PromiseLike<T>>): Promise<Awaited<T>[]> {

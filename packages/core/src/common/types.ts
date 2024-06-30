@@ -1,5 +1,4 @@
 import { isValidElement } from 'react';
-import { NavigationBase } from '../NavigationBase';
 import { ScreenBase, ScreenBaseProps } from '../ScreenBase';
 import {
     GestureCancelEvent,
@@ -16,17 +15,6 @@ import { SharedElement } from '../SharedElement';
 import { StandardPropertiesHyphen } from 'csstype';
 
 export type ScreenChild<P extends ScreenBaseProps = ScreenBaseProps, E extends ScreenBase<P> = ScreenBase<P>> = React.CElement<P, E>;
-
-enum EasingFunctionKeywordEnum {
-    "ease",
-    "ease-in",
-    "ease-in-out",
-    "ease-out",
-    "linear"
-}
-
-export type EasingFunctionKeyword = keyof typeof EasingFunctionKeywordEnum;
-export type EasingFunction = EasingFunctionKeyword | `cubic-bezier(${number},${' ' | ''}${number},${' ' | ''}${number},${' ' | ''}${number})`;
 
 export interface AnimationEffectFactoryProps<R extends HTMLElement = HTMLElement> {
     ref: R | null;
@@ -63,14 +51,6 @@ export interface RoutePropBase<C extends ScreenBaseProps["config"] = {}, P exten
     params: P;
     setParams(params: Partial<P>): void;
     setConfig(config: Partial<NonNullable<C>>): void;
-}
-
-export interface ScreenComponentBaseProps<
-    R extends RoutePropBase = RoutePropBase,
-    N extends NavigationBase = NavigationBase
-> {
-    route: R;
-    navigation: N;
 }
 
 export function isValidScreenChild<S extends ScreenBase>(value: any): value is ScreenChild<S["props"], S> {

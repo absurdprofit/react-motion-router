@@ -13,12 +13,15 @@ import { NavigationBase } from "./NavigationBase";
 import { SharedElementSceneContext } from "./SharedElementSceneContext";
 import { SharedElementScene } from "./SharedElementScene";
 
-export interface RouteProps<R extends RoutePropBase, N extends NavigationBase> {
+export interface ScreenBaseComponentProps<
+    R extends RoutePropBase = RoutePropBase,
+    N extends NavigationBase = NavigationBase
+> {
     route: R;
     navigation: N;
 }
 
-export interface LifecycleProps<R extends RoutePropBase> extends RouteProps<R, NavigationBase> {
+export interface LifecycleProps<R extends RoutePropBase> extends ScreenBaseComponentProps<R, NavigationBase> {
     signal: AbortSignal;
 }
 
@@ -229,7 +232,7 @@ export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S 
     }
 }
 
-interface ComponentWithRoutePropsProps extends RouteProps<RoutePropBase, NavigationBase> {
+interface ComponentWithRoutePropsProps extends ScreenBaseComponentProps<RoutePropBase, NavigationBase> {
     component: React.JSXElementConstructor<any> | LazyExoticComponent<any> | React.ReactNode;
 }
 function ComponentWithRouteProps({ component, route, navigation }: ComponentWithRoutePropsProps) {

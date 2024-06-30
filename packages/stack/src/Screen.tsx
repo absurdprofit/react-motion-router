@@ -1,10 +1,10 @@
 import { ScreenBase } from '@react-motion-router/core';
-import type { PlainObject, RouterContext, ScreenBaseProps, ScreenBaseState, ScreenComponentBaseProps } from '@react-motion-router/core';
+import type { PlainObject, RouterContext, ScreenBaseProps, ScreenBaseState, ScreenBaseComponentProps } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { RouteProp, SwipeDirection } from './common/types';
 import { Router } from './Router';
 
-export interface ScreenComponentProps<T extends PlainObject = {}> extends ScreenComponentBaseProps<RouteProp<T>, Navigation> { }
+export interface ScreenComponentProps<T extends PlainObject = {}> extends ScreenBaseComponentProps<RouteProp<T>, Navigation> { }
 
 export interface ScreenProps extends ScreenBaseProps {
     config?: ScreenBaseProps["config"] & {
