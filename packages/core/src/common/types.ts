@@ -81,7 +81,6 @@ export function isValidScreenChild<S extends ScreenBase>(value: any): value is S
 export type PlainObject<T = any> = { [key: string]: T };
 
 export interface RouterBaseEventMap extends HTMLElementEventMap {
-    [key: string]: Event;
     "transition-start": TransitionStartEvent;
     "transition-cancel": TransitionCancelEvent;
     "transition-end": TransitionEndEvent;
@@ -93,10 +92,10 @@ export interface RouterBaseEventMap extends HTMLElementEventMap {
     "motion-progress-end": MotionProgressEndEvent;
 }
 
-export interface HTMLRouterBaseElement<E extends RouterBaseEventMap> extends HTMLDivElement {
-    addEventListener<K extends keyof E>(type: K, listener: (this: HTMLDivElement, ev: E[K]) => any, options?: boolean | AddEventListenerOptions): void;
+export type RouterHTMLElement<E extends RouterBaseEventMap, T extends HTMLElement = HTMLDivElement> = T & {
+    addEventListener<K extends keyof E>(type: K, listener: (this: T, ev: E[K]) => any, options?: boolean | AddEventListenerOptions): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-    removeEventListener<K extends keyof E>(type: K, listener: (this: HTMLDivElement, ev: E[K]) => any, options?: boolean | EventListenerOptions): void;
+    removeEventListener<K extends keyof E>(type: K, listener: (this: T, ev: E[K]) => any, options?: boolean | EventListenerOptions): void;
     removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
 }
 

@@ -3,7 +3,7 @@ import { ScreenTransitionLayer } from './ScreenTransitionLayer';
 import {
     ScreenChild,
     RouterBaseEventMap,
-    HTMLRouterBaseElement,
+    RouterHTMLElement,
     ScreenState
 } from './common/types';
 import { NestedRouterContext, RouterContext } from './RouterContext';
@@ -17,7 +17,7 @@ export interface RouterBaseProps<S extends ScreenBase = ScreenBase> {
     id?: string;
     config: {
         screenConfig?: S["props"]["config"];
-        basePathname?: string;
+        basePath?: string;
     };
     children: ScreenChild<S["props"], S> | ScreenChild<S["props"], S>[];
 }
@@ -28,7 +28,7 @@ export interface RouterBaseState {
 }
 
 export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState, E extends RouterBaseEventMap = RouterBaseEventMap> extends Component<P, S> {
-    protected readonly ref = createRef<HTMLRouterBaseElement<E>>();
+    protected readonly ref = createRef<RouterHTMLElement<E>>();
     protected screenTransitionLayer = createRef<ScreenTransitionLayer>();
     public abstract readonly navigation: NavigationBase;
     public readonly screenState: ScreenState = new Map();
@@ -105,16 +105,20 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         }
     }
 
-    public dispatchEvent = (event: Event) => {
+    dispatchEvent(event: Event) {
         const ref = this.ref.current ?? undefined;
         return dispatchEvent(event, ref);
     }
 
-    public addEventListener<K extends keyof E>(type: K, listener: (this: HTMLRouterBaseElement<E>, ev: E[K]) => any, options?: boolean | AddEventListenerOptions | undefined) {
+    addEventListener<K extends keyof E>(type: K, listener: (this: RouterHTMLElement<E>, ev: E[K]) => any, options?: boolean | AddEventListenerOptions): void;
+    addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+	addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void {
         return this.ref.current?.addEventListener(type, listener, options);
     }
 
-    public removeEventListener<K extends keyof E>(type: K, listener: (this: HTMLRouterBaseElement<E>, ev: E[K]) => any, options?: boolean | EventListenerOptions | undefined) {
+    removeEventListener<K extends keyof E>(type: K, listener: (this: RouterHTMLElement<E>, ev: E[K]) => any, options?: boolean | EventListenerOptions | undefined): void;
+    removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions) {
         return this.ref.current?.removeEventListener(type, listener, options);
     }
 
@@ -183,7 +187,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     get baseURLPattern() {
         let baseURL = window.location.origin + "/";
         const defaultBasePathname = this.isRoot ? new URL(".", document.baseURI).href.replace(baseURL, '') : ".";
-        let basePathname = this.props.config.basePathname ?? defaultBasePathname;
+        let basePathname = this.props.config.basePath ?? defaultBasePathname;
 
         if (this.parent && this.parentScreen) {
             const { resolvedPathname = window.location.pathname, path } = this.parentScreen;

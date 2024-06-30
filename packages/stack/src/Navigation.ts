@@ -169,16 +169,16 @@ export class Navigation extends NavigationBase<StackRouterEventMap> {
         else {
             const scopedEntries = this.globalEntries.slice(firstEntryGlobalIndex, globalCurrentIndex + 1);
             return this.entries.findLastIndex(entry => {
-                return scopedEntries.findLastIndex(globalEntry => entry.source.key === globalEntry.key) > -1;
+                return scopedEntries.findLastIndex(globalEntry => entry.key === globalEntry.key) > -1;
             });
         }
     }
 
-    get previous() {
+    get previous(): HistoryEntry | null {
         return this.entries[this.index - 1] ?? null;
     }
 
-    get next() {
+    get next(): HistoryEntry | null {
         return this.entries[this.index + 1] ?? null;
     }
 
@@ -187,10 +187,10 @@ export class Navigation extends NavigationBase<StackRouterEventMap> {
     }
 
     get canGoBack() {
-        return Boolean(this.previous);
+        return Boolean(this.previous?.sameDocument);
     }
 
     get canGoForward() {
-        return Boolean(this.next);
+        return Boolean(this.next?.sameDocument);
     }
 }

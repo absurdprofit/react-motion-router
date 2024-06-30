@@ -28,6 +28,7 @@ function Routes() {
         animation
       },
       initialPathname: '.',
+      basePath: '/(react-motion-router/)?',
       disableBrowserRouting: isPWA() && isIOS(),
     }}>
       <Stack.Screen

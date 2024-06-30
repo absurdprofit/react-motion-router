@@ -1,4 +1,4 @@
-import { RouterBaseEventMap } from "./common/types";
+import { RouterHTMLElement, RouterBaseEventMap } from "./common/types";
 import { MetaData } from "./MetaData";
 import { RouterBase } from "./RouterBase";
 
@@ -14,15 +14,16 @@ export abstract class NavigationBase<E extends RouterBaseEventMap = RouterBaseEv
             NavigationBase.rootNavigatorRef = new WeakRef(this);
     }
 
-    addEventListener<K extends keyof E>(type: K, listener: (this: HTMLElement, ev: E[K]) => any, options?: boolean | AddEventListenerOptions | undefined) {
-        // @ts-ignore
+    addEventListener<K extends keyof E>(type: K, listener: (this: RouterHTMLElement<E>, ev: E[K]) => any, options?: boolean | AddEventListenerOptions): () => void;
+    addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): () => void;
+    addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): () => void {
         this.router.addEventListener(type, listener, options);
-        // @ts-ignore
         return () => this.router.removeEventListener(type, listener, options);
     }
 
-    removeEventListener<K extends keyof E>(type: K, listener: (this: HTMLElement, ev: E[K]) => any, options?: boolean | EventListenerOptions | undefined): void {
-        // @ts-ignore
+    removeEventListener<K extends keyof E>(type: K, listener: (this: RouterHTMLElement<E>, ev: E[K]) => any, options?: boolean | EventListenerOptions | undefined): void
+    removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+    removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void {
         return this.router.removeEventListener(type, listener, options);
     }
 
