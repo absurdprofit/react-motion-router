@@ -147,11 +147,10 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             this.screenTransitionLayer.current.animation.reverse();
             rollback = true;
         }
-        const transition = this.state.transition;
-        transition?.finished.then(() => {
-            const from = transition?.from;
-            if (rollback && from) {
-                window.navigation.traverseTo(from.key, { info: { rollback } });
+        const { fromKey } = this.state;
+        this.state.transition?.finished.then(() => {
+            if (rollback && fromKey) {
+                window.navigation.traverseTo(fromKey.toString(), { info: { rollback } });
             }
         });
     }
@@ -213,12 +212,9 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                 return;
 
         switch (e.navigationType) {
+            case "reload":
             case "replace":
                 this.handleReplace(e);
-                break;
-
-            case "reload":
-                this.handleReload(e);
                 break;
 
             case "load":
@@ -265,28 +261,19 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                 })
             );
 
-            return new Promise<void>((resolve) => startTransition(() => {
+            return new Promise<void>((resolve, reject) => startTransition(() => {
                 this.setState({ destinationKey, fromKey, transition, screenStack }, async () => {
                     const signal = e.signal;
                     if (this.navigation.current?.key === undefined)
-                        throw new Error("Current key is undefined");
+                        reject(new Error("Current key is undefined"));
                     const currentScreen = this.getScreenRefByKey(this.navigation.current.key);
-                    await currentScreen?.current?.onEnter(signal);
-                    await Promise.all([
-                        currentScreen?.current?.focus(),
-                        currentScreen?.current?.load(signal)
-                    ]);
-                    await currentScreen?.current?.onEntered(signal);
+                    await this.dispatchLifecycleHandlers(currentScreen?.current ?? null, null, signal).catch(reject);
                     this.setState({ destinationKey: null, fromKey: null }, resolve);
                 });
             }));
         };
 
         e.intercept({ handler });
-    }
-
-    private handleReload(e: NavigateEvent) {
-        this.handleReplace(e);
     }
 
     private handleLoad(e: LoadEvent) {
@@ -321,7 +308,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                 );
             });
 
-            return new Promise<void>((resolve) => startTransition(() => {
+            return new Promise<void>((resolve, reject) => startTransition(() => {
                 this.setState({ screenStack, fromKey, transition, destinationKey }, async () => {
                     if (
                         this.props.config.initialPathname
@@ -344,14 +331,10 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                     }
                     const signal = e.signal;
                     if (this.navigation.current?.key === undefined)
-                        throw new Error("Current key is undefined");
+                        reject(new Error("Current key is undefined"));
+
                     const currentScreen = this.getScreenRefByKey(this.navigation.current.key);
-                    await currentScreen?.current?.onEnter(signal);
-                    await Promise.all([
-                        currentScreen?.current?.focus(),
-                        currentScreen?.current?.load(signal)
-                    ]);
-                    await currentScreen?.current?.onEntered(signal);
+                    await this.dispatchLifecycleHandlers(currentScreen?.current ?? null, null, signal).catch(reject);
                     this.setState({ destinationKey: null, fromKey: null }, resolve);
                 });
             }));
@@ -411,34 +394,40 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                 );
             }
 
-            return new Promise<void>((resolve) => startTransition(() => {
+            return new Promise<void>((resolve, reject) => startTransition(() => {
                 this.setState({ destinationKey, fromKey, transition, screenStack, backNavigating }, async () => {
                     const signal = e.signal;
                     const outgoingScreen = this.getScreenRefByKey(String(fromKey));
                     const incomingScreen = this.getScreenRefByKey(String(destinationKey));
-                    const pendingPromises = new Array();
-                    pendingPromises.push(
-                        outgoingScreen?.current?.onExit(signal).then(() => outgoingScreen?.current?.blur()),
-                        incomingScreen?.current?.onEnter(signal).then(() => incomingScreen?.current?.focus()),
-                        incomingScreen?.current?.load(signal)
-                    );
+                    const pendingLifecycleHandlers = this.dispatchLifecycleHandlers(incomingScreen?.current ?? null, outgoingScreen?.current ?? null, signal).catch(reject);
                     if (!isRollback(e.info)) {
                         const animation = this.screenTransition(incomingScreen, outgoingScreen, backNavigating);
                         animation?.updatePlaybackRate(1);
                         signal.addEventListener('abort', () => animation?.finish());
-                        await animation?.finished;
+                        await animation?.finished.catch(reject);
                     }
-                    pendingPromises.push(
-                        outgoingScreen?.current?.onExited(signal),
-                        incomingScreen?.current?.onEntered(signal)
-                    );
-                    await Promise.all(pendingPromises);
+                    await pendingLifecycleHandlers;
                     this.setState({ destinationKey: null, fromKey: null }, resolve);
                 });
             }));
         }
 
         e.intercept({ handler });
+    }
+
+    private async dispatchLifecycleHandlers(incomingScreen: Screen | null, outgoingScreen: Screen | null, signal: AbortSignal) {
+        await Promise.all([
+            outgoingScreen?.onExit(signal).then(() => outgoingScreen.blur()),
+            incomingScreen?.onEnter(signal).then(() => incomingScreen.focus()),
+            incomingScreen?.load(signal)
+        ]);
+
+        await new Promise((resolve) => this.addEventListener('transition-end', resolve, { once: true }));
+
+        await Promise.all([
+            outgoingScreen?.onExited(signal),
+            incomingScreen?.onEntered(signal)
+        ]);
     }
 
     private screenTransition(
