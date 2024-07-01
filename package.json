@@ -7,7 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "lerna run build",
     "dev": "lerna run dev --parallel",
-    "publish": "lerna run build && lerna publish"
+    "prepublish": "lerna run build",
+    "publish": "lerna publish from-package --yes",
+    "postpublish": "lerna clean"
   },
   "repository": {
     "type": "git",
@@ -33,7 +35,7 @@
   "homepage": "https://github.com/nxtexe/react-motion-router#readme",
   "devDependencies": {
     "@types/dom-navigation": "^1.0.3",
-    "lerna": "^5.4.3",
+    "lerna": "^8.1.5",
     "typescript": "^5.5.2"
   },
   "workspaces": {

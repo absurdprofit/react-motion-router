@@ -21,13 +21,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run Lerna bootstrap
-        run: npx lerna bootstrap
-
       - name: Publish to npm
         env:
           NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npx lerna publish from-package
-
-      - name: Clean up
-        run: npx lerna clean
+        run: npm run publish
