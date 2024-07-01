@@ -12,7 +12,7 @@ export interface RouterProps extends RouterBaseProps<Screen> {
     config: RouterBaseProps["config"] & {
         screenConfig?: ScreenProps["config"];
         disableBrowserRouting?: boolean;
-        initialPathname?: string;
+        initialPath?: string;
         shouldIntercept?(navigateEvent: NavigateEvent): boolean;
         onIntercept?(navigateEvent: NavigateEvent): boolean;
     }
@@ -310,21 +310,21 @@ export class Router extends RouterBase<RouterProps, RouterState> {
 
             return new Promise<void>((resolve, reject) => startTransition(() => {
                 this.setState({ screenStack, fromKey, transition, destinationKey }, async () => {
-                    const { initialPathname } = this.props.config;
+                    const { initialPath } = this.props.config;
                     const [firstEntry] = entries;
                     if (
-                        initialPathname
+                        initialPath
                         && entries.length === 1
                         && firstEntry.url
                         && !matchRoute(
-                            initialPathname,
+                            initialPath,
                             firstEntry.url.pathname,
                             this.baseURLPattern.pathname
                         )
                     ) {
                         const transitionFinished = window.navigation.transition?.finished ?? Promise.resolve();
                         transitionFinished.then(() => {
-                            this.navigation.replace(initialPathname).finished.then(() => {
+                            this.navigation.replace(initialPath).finished.then(() => {
                                 const state = e.destination.getState() as HistoryEntryState ?? {};
                                 this.navigation.push(e.destination.url, state);
                             });

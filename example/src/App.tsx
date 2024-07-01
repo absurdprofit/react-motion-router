@@ -27,7 +27,7 @@ function Routes() {
         gestureMinFlingVelocity: 1000,
         animation
       },
-      initialPathname: '.',
+      initialPath: '.',
       basePath: '/(react-motion-router/)?',
       disableBrowserRouting: isPWA() && isIOS(),
     }}>
