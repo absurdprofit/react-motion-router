@@ -324,9 +324,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                     ) {
                         const transitionFinished = window.navigation.transition?.finished ?? Promise.resolve();
                         transitionFinished.then(() => {
-                            const result  = this.navigation.replace(initialPathname);
-                            console.log(result.finished);
-                            result.finished.then(() => {
+                            this.navigation.replace(initialPathname).finished.then(() => {
                                 const state = e.destination.getState() as HistoryEntryState ?? {};
                                 this.navigation.push(e.destination.url, state);
                             });
