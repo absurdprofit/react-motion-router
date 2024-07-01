@@ -311,14 +311,14 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             return new Promise<void>((resolve, reject) => startTransition(() => {
                 this.setState({ screenStack, fromKey, transition, destinationKey }, async () => {
                     const { initialPathname } = this.props.config;
-                    const [currentEntry] = entries;
+                    const [firstEntry] = entries;
                     if (
                         initialPathname
                         && entries.length === 1
-                        && currentEntry.url
+                        && firstEntry.url
                         && !matchRoute(
                             initialPathname,
-                            currentEntry.url.pathname,
+                            firstEntry.url.pathname,
                             this.baseURLPattern.pathname
                         )
                     ) {
