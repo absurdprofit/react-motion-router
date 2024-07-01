@@ -310,19 +310,23 @@ export class Router extends RouterBase<RouterProps, RouterState> {
 
             return new Promise<void>((resolve, reject) => startTransition(() => {
                 this.setState({ screenStack, fromKey, transition, destinationKey }, async () => {
+                    const { initialPathname } = this.props.config;
+                    const [currentEntry] = entries;
                     if (
-                        this.props.config.initialPathname
+                        initialPathname
                         && entries.length === 1
-                        && entries.at(0)?.url
+                        && currentEntry.url
                         && !matchRoute(
-                            this.props.config.initialPathname,
-                            entries.at(0)!.url!.pathname,
+                            initialPathname,
+                            currentEntry.url.pathname,
                             this.baseURLPattern.pathname
                         )
                     ) {
                         const transitionFinished = window.navigation.transition?.finished ?? Promise.resolve();
                         transitionFinished.then(() => {
-                            this.navigation.replace(this.props.config.initialPathname!).finished.then(() => {
+                            const result  = this.navigation.replace(initialPathname);
+                            console.log(result.finished);
+                            result.finished.then(() => {
                                 const state = e.destination.getState() as HistoryEntryState ?? {};
                                 this.navigation.push(e.destination.url, state);
                             });
@@ -422,7 +426,8 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             incomingScreen?.load(signal)
         ]);
 
-        await new Promise((resolve) => this.addEventListener('transition-end', resolve, { once: true }));
+        if (incomingScreen && outgoingScreen)
+            await new Promise((resolve) => this.addEventListener('transition-end', resolve, { once: true }));
 
         await Promise.all([
             outgoingScreen?.onExited(signal),
