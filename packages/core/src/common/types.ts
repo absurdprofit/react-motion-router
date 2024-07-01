@@ -147,11 +147,14 @@ export type SharedElementNodeMap = Map<string, SharedElementNode>;
 
 export type StyleKeyList = (keyof StandardPropertiesHyphen | string)[];
 
-export function isLazyExoticComponent(value: any): value is LazyExoticComponent<any> {
+export function isNativeLazyExoticComponent(value: any): value is React.LazyExoticComponent<any> {
     return typeof value === "object"
         && value !== null
-        && 'load' in value
         && value.$$typeof === Symbol.for('react.lazy');
+}
+
+export function isLazyExoticComponent(value: any): value is LazyExoticComponent<any> {
+    return isNativeLazyExoticComponent(value) && 'load' in value;
 }
 
 export type StylableElement = Element & { style: CSSStyleDeclaration };

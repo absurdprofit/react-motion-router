@@ -6,6 +6,7 @@ import {
     PlainObject,
     RoutePropBase,
     isLazyExoticComponent,
+    isNativeLazyExoticComponent,
 } from "./common/types";
 import { NestedRouterContext, RouterContext } from "./RouterContext";
 import { RoutePropContext } from "./RoutePropContext";
@@ -237,6 +238,7 @@ interface ComponentWithRoutePropsProps extends ScreenBaseComponentProps<RoutePro
 }
 function ComponentWithRouteProps({ component, route, navigation }: ComponentWithRoutePropsProps) {
     if (isLazyExoticComponent(component) && component.module?.default) {
+        console.log("Should reassign");
         component = component.module.default;
     }
     const Component = component ?? null;
@@ -245,7 +247,7 @@ function ComponentWithRouteProps({ component, route, navigation }: ComponentWith
             navigation,
             route
         });
-    } else if (typeof Component === "function") {
+    } else if (typeof Component === "function" || isNativeLazyExoticComponent(Component)) {
         return (
             <Component
                 navigation={navigation}
