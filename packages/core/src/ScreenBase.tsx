@@ -238,7 +238,6 @@ interface ComponentWithRoutePropsProps extends ScreenBaseComponentProps<RoutePro
 }
 function ComponentWithRouteProps({ component, route, navigation }: ComponentWithRoutePropsProps) {
     if (isLazyExoticComponent(component) && component.module?.default) {
-        console.log("Should reassign");
         component = component.module.default;
     }
     const Component = component ?? null;

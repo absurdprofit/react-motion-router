@@ -418,13 +418,16 @@ export class Router extends RouterBase<RouterProps, RouterState> {
     }
 
     private async dispatchLifecycleHandlers(incomingScreen: Screen | null, outgoingScreen: Screen | null, signal: AbortSignal) {
+        let animationStarted = false;
+        this.addEventListener('transition-start', () => animationStarted = true, { once: true });
+
         await Promise.all([
             outgoingScreen?.onExit(signal).then(() => outgoingScreen.blur()),
             incomingScreen?.onEnter(signal).then(() => incomingScreen.focus()),
             incomingScreen?.load(signal)
         ]);
 
-        if (incomingScreen && outgoingScreen)
+        if (incomingScreen && outgoingScreen && animationStarted)
             await new Promise((resolve) => this.addEventListener('transition-end', resolve, { once: true }));
 
         await Promise.all([
