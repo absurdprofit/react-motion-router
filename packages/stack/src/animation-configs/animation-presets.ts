@@ -109,12 +109,17 @@ export function androidFadeInFromRight({ ref, direction, index, playbackRate }: 
 		androidFadeOutToLeftKeyframes,
 		androidFadeInFromRightKeyframes
 	];
+	let timing;
+	if (index === 0)
+		timing = androidFadeOutToBottomOptions;
+	else
+		timing = androidFadeInFromBottomOptions;
 
 	let keyframes = keyframesPresets[index];
 	const options: KeyframeEffectOptions = {
 		playbackRate,
 		fill: "forwards" as const,
-		...androidFadeInFromBottomOptions
+		...timing
 	};
 
 	if (direction === "reverse")
