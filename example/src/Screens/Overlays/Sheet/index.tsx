@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@mui/material';
 import { ScreenComponentProps, Anchor, Navigation } from '@react-motion-router/stack';
-import { motion } from 'framer-motion';
 import { lerp } from '../../../common/utils';
 import './index.css';
 import { useMotion } from '@react-motion-router/core';
@@ -9,33 +8,14 @@ import { useMotion } from '@react-motion-router/core';
 interface SheetProps extends ScreenComponentProps { }
 
 let isFirstLoad = true;
-const transition = {
-    type: 'spring',
-    mass: 0.25,
-    damping: 5
-}
 export default function Sheet({ navigation, route }: SheetProps) {
     const progress = useMotion();
     const [stiffness] = useState(50);
 
     return (
-        <motion.div
+        <div
             className={`sheet modal ${isFirstLoad ? 'loaded' : 'suspense'}`}
-            initial={{
-                transform: `translateY(115vh)`
-            }}
-            style={{
-                // opacity: true ? this.state.opacity : 1,
-
-            }}
-            animate={{
-                transform: `translateY(${lerp(false ? 92 : 100, 0, progress)}vh)`,
-                borderRadius: '15px 15px 0px 0px'
-            }}
-            transition={{
-                ...transition,
-                ...{ stiffness: stiffness }
-            }}
+            style={{ borderRadius: '15px 15px 0px 0px' }}
         >
             <div className="notch" style={{ opacity: lerp(0, 1, progress) }}></div>
             <div className='content'>
@@ -54,6 +34,6 @@ export default function Sheet({ navigation, route }: SheetProps) {
                     </Button>
                 </Anchor>
             </div>
-        </motion.div>
+        </div>
     );
 }

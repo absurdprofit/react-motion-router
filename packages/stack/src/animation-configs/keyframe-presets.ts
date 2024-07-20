@@ -201,7 +201,7 @@ export const androidRevealFromBottomKeyframes: Keyframe[] = [
 		transform: 'translateY(100vh)'
 	},
 	{
-		transform: 'translateY(calc(calc(100vh * calc(95.9 / 100)) * -1))'
+		transform: 'translateY(0vh)'
 	}
 ];
 
@@ -210,7 +210,7 @@ export const androidConcealToBottomKeyframes: Keyframe[] = [
 		transform: 'translateY(0vh)'
 	},
 	{
-		transform: 'translateY(calc(calc(100vh * calc(2/ 100)) * -1))'
+		transform: 'translateY(-2vh)'
 	}
 ];
 

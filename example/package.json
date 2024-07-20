@@ -35,9 +35,11 @@
     "web-vitals": "^1.1.2"
   },
   "scripts": {
-    "analyse": "source-map-explorer 'build/static/js/*.js'",
+    "analyse": "source-map-explorer 'build/assets/*.js'",
     "dev": "vite --host",
-    "build": "tsc && vite build --base=/react-motion-router",
+    "lint": "tsc",
+    "prebuild": "npm run lint",
+    "build": "vite build --base=/react-motion-router",
     "preview": "vite preview",
     "test": "vite test",
     "predeploy": "lerna run build",

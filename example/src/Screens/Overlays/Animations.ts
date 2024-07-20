@@ -1,6 +1,6 @@
 import { AnimationEffectFactoryProps } from '@react-motion-router/core';
 import { isIOS, isPWA } from '../../common/utils';
-import { ParallelEffect } from 'web-animations-extension';
+import { ParallelEffect, springToLinear } from 'web-animations-extension';
 
 export function BackdropAnimation({ ref, direction, playbackRate, index }: AnimationEffectFactoryProps) {
     const duration = isIOS() && !isPWA() ? 0 : 300;
@@ -65,7 +65,7 @@ export function HomeAnimation({ ref, direction, playbackRate, index }: Animation
     return new KeyframeEffect(ref, keyframes[index], options);
 }
 
-export function ModalAnimation({ ref, direction, playbackRate, index, ...props }: AnimationEffectFactoryProps) {
+export function PlayerAnimation({ ref, direction, playbackRate, index, ...props }: AnimationEffectFactoryProps) {
     const duration = isIOS() && !isPWA() ? 0 : 300;
     const options: KeyframeEffectOptions = {
         duration,
@@ -88,4 +88,35 @@ export function ModalAnimation({ ref, direction, playbackRate, index, ...props }
         new KeyframeEffect(ref, keyframes[index], options),
         BackdropAnimation({ ref, direction, playbackRate, index, ...props })
     ]);
+};
+
+const springTiming = springToLinear({
+    mass: 0.25,
+    damping: 10,
+    stiffness: 50
+});
+export function SheetAnimation({ ref, direction, playbackRate, index, ...props }: AnimationEffectFactoryProps) {
+    if (isIOS() && !isPWA())
+        ref = null;
+    const options: KeyframeEffectOptions = {
+        ...springTiming,
+        playbackRate,
+        fill: "forwards"
+    };
+
+    const keyframesPresets = [
+        [
+            { transform: 'translateY(15vh)' },
+            { transform: 'translateY(100vh)' }
+        ],
+        [
+            { transform: 'translateY(100vh)' },
+            { transform: 'translateY(15vh)' }
+        ]
+    ];
+
+    let keyframes = keyframesPresets[index];
+    if (direction === "reverse")
+        keyframes = keyframes.toReversed();
+    return new KeyframeEffect(ref, keyframes, options);
 };

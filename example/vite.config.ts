@@ -49,6 +49,7 @@ export default defineConfig({
   build: {
     target: 'ES2022',
     outDir: 'build',
+    sourcemap: true,
     rollupOptions: {
       plugins: [
         license({
@@ -68,7 +69,8 @@ export default defineConfig({
   },
   esbuild: {
     banner: '/* LICENSES */',
-    legalComments: 'none'
+    legalComments: 'none',
+    sourcemap: true
   },
   test: {
     globals: true,

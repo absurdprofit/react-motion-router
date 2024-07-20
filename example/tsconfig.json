@@ -3,10 +3,13 @@
   "compilerOptions": {
     "noEmit": true,
     "target": "ESNext",    
-    "types": ["vite/client"],
+    "types": ["vite/client"]
   },
   "include": [
     "src",
     "../packages/*/build/index.d.ts"
+  ],
+  "exclude": [
+    "node_modules"
   ]
 }

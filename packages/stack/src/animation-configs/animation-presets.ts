@@ -1,6 +1,28 @@
 import { AnimationEffectFactoryProps } from "@react-motion-router/core";
-import { androidBottomSheetSlideInOptions, androidBottomSheetSlideOutOptions, androidFadeInFromBottomOptions, androidFadeOutToBottomOptions, androidRevealFromBottomOptions, androidScaleFromCentreOptions, iOSKeyframeOptions } from "./keyframe-options-presets";
-import { androidConcealToBottomKeyframes, androidFadeInFromBottomKeyframes, androidFadeInFromBottomSheetKeyframes, androidFadeInFromRightKeyframes, androidFadeOutToLeftKeyframes, androidRevealFromBottomKeyframes, androidScaleFromCentreKeyframes, androidScaleToCentreKeyframes, iOSSlideInFromBottomKeyframes, iOSSlideInFromLeftKeyframes, iOSSlideInFromRightKeyframes, iOSSlideOutToLeftKeyframes, iOSSlideOutToRightKeyframes } from "./keyframe-presets";
+import {
+	androidBottomSheetSlideInOptions,
+	androidBottomSheetSlideOutOptions,
+	androidFadeInFromBottomOptions,
+	androidFadeOutToBottomOptions,
+	androidRevealFromBottomOptions,
+	androidScaleFromCentreOptions,
+	iOSKeyframeOptions
+} from "./keyframe-options-presets";
+import {
+	androidConcealToBottomKeyframes,
+	androidFadeInFromBottomKeyframes,
+	androidFadeInFromBottomSheetKeyframes,
+	androidFadeInFromRightKeyframes,
+	androidFadeOutToLeftKeyframes,
+	androidRevealFromBottomKeyframes,
+	androidScaleFromCentreKeyframes,
+	androidScaleToCentreKeyframes,
+	iOSSlideInFromBottomKeyframes,
+	iOSSlideInFromLeftKeyframes,
+	iOSSlideInFromRightKeyframes,
+	iOSSlideOutToLeftKeyframes,
+	iOSSlideOutToRightKeyframes,
+} from "./keyframe-presets";
 
 export function iOSSlideInFromRight({ ref, direction, playbackRate, index }: AnimationEffectFactoryProps) {
 	const keyframesPresets = [

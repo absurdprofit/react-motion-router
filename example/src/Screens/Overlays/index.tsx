@@ -1,13 +1,13 @@
+import React from 'react';
 
 import * as Stack from "@react-motion-router/stack";
 import Home from "./Home";
 import Player from "./Player";
 import Sheet from "./Sheet";
 import { useEffect } from "react";
-import { BackdropAnimation, HomeAnimation, ModalAnimation } from "./animations";
+import { HomeAnimation, PlayerAnimation, SheetAnimation } from "./animations";
 import './index.css';
 import { isIOS, isPWA } from "../../common/utils";
-import { STATIC_ANIMATION } from "../../common/constants";
 
 interface OverlaysProps extends Stack.ScreenComponentProps { }
 let isFirstLoad = false;
@@ -47,7 +47,7 @@ export default function Overlays(props: OverlaysProps) {
                     }} />
                     <Stack.Screen component={Player} path="player" config={{
                         ...modalConfig,
-                        animation: ModalAnimation
+                        animation: PlayerAnimation
                     }} />
                     <Stack.Screen
                         component={Sheet}
@@ -55,7 +55,7 @@ export default function Overlays(props: OverlaysProps) {
                         config={{
                             ...modalConfig,
                             presentation: "dialog",
-                            animation: BackdropAnimation
+                            animation: SheetAnimation
                         }}
                     />
                 </Stack.Router>
