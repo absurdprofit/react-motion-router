@@ -9,5 +9,10 @@
   "exclude": [
     "node_modules",
     "build"
-  ]
+  ],
+  "ts-node": { // for webpack
+    "compilerOptions": {
+      "module": "CommonJS"
+    }
+  }
 }

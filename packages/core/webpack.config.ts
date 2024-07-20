@@ -1,9 +1,9 @@
-const path = require('path');
-const webpack = require('webpack');
-const TerserPlugin = require("terser-webpack-plugin");
+import path from 'path';
+import webpack from 'webpack';
+import TerserPlugin from 'terser-webpack-plugin';
 
-module.exports = (env, argv) => ({
-    mode: argv.mode ?? "production",
+export default (env: any): webpack.Configuration => ({
+    mode: env.production ? 'production' : 'development',
     devtool: "source-map",
     experiments: {
         outputModule: true
@@ -38,7 +38,7 @@ module.exports = (env, argv) => ({
         })
     ],
     optimization: {
-        minimize: this.mode === "production",
+        minimize: env.production === "production",
         minimizer: [new TerserPlugin()]
     },
     externals: {

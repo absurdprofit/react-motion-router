@@ -27,7 +27,7 @@
     "react-swipeable-views-utils": "^0.14.0",
     "source-map-explorer": "^2.5.2",
     "styled-components": "^5.3.3",
-    "typescript": "^4.4.4",
+    "typescript": "^5.5.2",
     "vite": "^5.0.2",
     "vite-plugin-svgr": "^4.2.0",
     "vite-tsconfig-paths": "^4.2.1",
