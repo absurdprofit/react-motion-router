@@ -7,6 +7,7 @@ import { Children, createRef, cloneElement, startTransition } from 'react';
 import { SwipeStartEvent, SwipeEndEvent } from 'web-gesture-events';
 import { GestureTimeline } from 'web-animations-extension';
 import { deepEquals, isRollback, searchParamsToObject } from './common/utils';
+import { GestureCancelEvent, GestureEndEvent, GestureStartEvent } from './common/events';
 
 export interface RouterProps extends RouterBaseProps<Screen> {
     config: RouterBaseProps["config"] & {
@@ -134,6 +135,8 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             this.navigation.goBack();
         else
             this.navigation.goForward();
+
+        this.dispatchEvent(new GestureStartEvent(e));
     }
 
     private onSwipeEnd = (e: SwipeEndEvent) => {
@@ -146,6 +149,9 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         if (e.velocity < this.state.gestureMinFlingVelocity && !hysteresisReached) {
             this.screenTransitionLayer.current.animation.reverse();
             rollback = true;
+            this.dispatchEvent(new GestureCancelEvent());
+        } else {
+            this.dispatchEvent(new GestureEndEvent(e));
         }
         const { fromKey } = this.state;
         if (rollback && fromKey) {

@@ -1,4 +1,5 @@
 /// <reference types="urlpattern-polyfill" />
+import 'web-gesture-events';
 export * from './Navigation';
 export * from './Screen';
 export * from './Router';

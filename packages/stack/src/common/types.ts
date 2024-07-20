@@ -1,7 +1,7 @@
 import { PlainObject, RoutePropBase, RouterBaseEventMap } from "@react-motion-router/core";
 import { ScreenProps } from "../Screen";
 import { RefObject } from "react";
-import { BackEvent, ForwardEvent, NavigateEvent } from "./events";
+import { BackEvent, ForwardEvent, GestureCancelEvent, GestureEndEvent, GestureStartEvent, NavigateEvent } from "./events";
 
 export interface NavigationBaseOptions {
 	signal?: AbortSignal;
@@ -41,9 +41,12 @@ export interface StackRouterEventMap extends RouterBaseEventMap {
 	"navigate": NavigateEvent;
 	"back": BackEvent;
 	"forward": ForwardEvent;
+	"gesture-start": GestureStartEvent;
+	"gesture-end": GestureEndEvent;
+	"gesture-cancel": GestureCancelEvent;
 }
 
-export interface RouteProp<T extends PlainObject = {}> extends RoutePropBase<ScreenProps["config"], T> {}
+export interface RouteProp<T extends PlainObject = {}> extends RoutePropBase<ScreenProps["config"], T> { }
 
 export type SwipeDirection = 'up' | 'down' | 'left' | 'right' | 'horizontal' | 'vertical';
 

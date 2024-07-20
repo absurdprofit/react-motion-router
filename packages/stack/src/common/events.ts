@@ -1,3 +1,4 @@
+import { GestureEvent } from "web-gesture-events";
 import { NavigateOptions, NavigationProps } from "./types";
 
 export class NavigateEvent extends Event {
@@ -56,5 +57,29 @@ export class ForwardEvent extends Event {
 		this.signal = signal;
 		this.result = result;
 		this.transition = transition;
+	}
+}
+
+export class GestureStartEvent extends Event {
+	readonly source: GestureEvent;
+
+	constructor(source: GestureEvent) {
+		super('gesture-start');
+		this.source = source;
+	}
+}
+
+export class GestureEndEvent extends Event {
+	readonly source: GestureEvent;
+
+	constructor(source: GestureEvent) {
+		super('gesture-end');
+		this.source = source;
+	}
+}
+
+export class GestureCancelEvent extends Event {
+	constructor() {
+		super('gesture-cancel');
 	}
 }

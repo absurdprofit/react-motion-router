@@ -1,9 +1,6 @@
 import { isValidElement } from 'react';
 import { ScreenBase, ScreenBaseProps } from '../ScreenBase';
 import {
-    GestureCancelEvent,
-    GestureEndEvent,
-    GestureStartEvent,
     MotionProgressEndEvent,
     MotionProgressEvent,
     MotionProgressStartEvent,
@@ -64,9 +61,6 @@ export interface RouterBaseEventMap extends HTMLElementEventMap {
     "transition-start": TransitionStartEvent;
     "transition-cancel": TransitionCancelEvent;
     "transition-end": TransitionEndEvent;
-    "gesture-start": GestureStartEvent;
-    "gesture-end": GestureEndEvent;
-    "gesture-cancel": GestureCancelEvent;
     "motion-progress-start": MotionProgressStartEvent;
     "motion-progress": MotionProgressEvent;
     "motion-progress-end": MotionProgressEndEvent;

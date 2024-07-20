@@ -1,4 +1,3 @@
-import { GestureEvent } from "web-gesture-events";
 import { PromiseAllDynamic } from "./utils";
 
 export class TransitionStartEvent extends Event {
@@ -16,30 +15,6 @@ export class TransitionCancelEvent extends Event {
 export class TransitionEndEvent extends Event {
 	constructor() {
 		super('transition-end');
-	}
-}
-
-export class GestureStartEvent extends Event {
-	readonly source: GestureEvent;
-
-	constructor(source: GestureEvent) {
-		super('gesture-start');
-		this.source = source;
-	}
-}
-
-export class GestureEndEvent extends Event {
-	readonly source: GestureEvent;
-
-	constructor(source: GestureEvent) {
-		super('gesture-end');
-		this.source = source;
-	}
-}
-
-export class GestureCancelEvent extends Event {
-	constructor() {
-		super('gesture-cancel');
 	}
 }
 
