@@ -616,7 +616,6 @@ export class Animation extends EventTarget implements NativeAnimation {
 
 
 		this.#updateFinishedState(true);
-		this.#syncCurrentTime();
 	}
 
 	set timeline(newTimeline: AnimationTimeline | null) {

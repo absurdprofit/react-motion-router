@@ -148,11 +148,11 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             rollback = true;
         }
         const { fromKey } = this.state;
-        this.state.transition?.finished.then(() => {
-            if (rollback && fromKey) {
+        if (rollback && fromKey) {
+            this.state.transition?.finished.then(() => {
                 window.navigation.traverseTo(fromKey.toString(), { info: { rollback } });
-            }
-        });
+            });
+        }
     }
 
     protected get screens() {
