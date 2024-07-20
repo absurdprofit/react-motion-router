@@ -30,7 +30,6 @@ export function matchRoute(
     const params = match?.pathname.groups ?? {};
     if (match) {
         return {
-            exact: pathnamePattern === pathname,
             params
         };
     }

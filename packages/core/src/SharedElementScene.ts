@@ -1,13 +1,8 @@
 import { SharedElement } from "./SharedElement";
-import { Vec2 } from "./common/types";
 
 export class SharedElementScene {
 	public readonly id: string;
 	public readonly nodes = new Map<string, SharedElement>();
-	public scrollPos: Vec2 | null = {
-		x: 0,
-		y: 0
-	};
 	public getScreenRect: () => DOMRect = () => new DOMRect();
 	public keepAlive: boolean = false;
 	public previousScene: SharedElementScene | null = null;

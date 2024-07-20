@@ -24,11 +24,6 @@ export interface AnimationEffectFactoryProps<R extends HTMLElement = HTMLElement
 
 export type AnimationEffectFactory<R extends HTMLElement = HTMLElement> = (props: AnimationEffectFactoryProps<R>) => AnimationEffect;
 
-export interface Vec2 {
-    x: number;
-    y: number;
-}
-
 export type MetaTypeKey = 'http-equiv' | 'name' | 'itemprop' | 'property' | 'charset';
 export type MetaType = [MetaTypeKey, string];
 export type MetaKey = `${MetaTypeKey}=${string}`;
@@ -76,7 +71,6 @@ export type RouterHTMLElement<E extends RouterBaseEventMap, T extends HTMLElemen
 export type CustomElementType = `${string}-${string}`;
 
 export interface MatchedRoute {
-    exact: boolean;
     params?: PlainObject<string | undefined>;
 }
 
@@ -87,30 +81,6 @@ export interface PathPattern {
 
 export type AnimationDirection = "normal" | "reverse";
 
-//https://developer.mozilla.org/en-US/docs/Web/CSS/transform-origin#formal_syntax
-//https://stackoverflow.com/questions/51445767/how-to-define-a-regex-matched-string-type-in-typescript
-enum TransformOriginKeywordEnum {
-    center,
-    top,
-    bottom,
-    left,
-    right,
-};
-
-enum TransformOriginLengthUnitEnum {
-    cap, ch, em, ex, ic, lh, rem, rlh, //relative length
-    vh, vw, vi, vb, vmin, vmax,       //viewport percentage length
-    px, cm, mm, Q, in, pc, pt,       //absolute length
-    '%'
-}
-
-enum TransformOriginGlobalEnum {
-    initial,
-    inherit,
-    revert,
-    unset
-}
-
 enum SharedElementTransitionTypeEnum {
     "morph",
     "fade-through",
@@ -119,18 +89,6 @@ enum SharedElementTransitionTypeEnum {
 }
 
 export type SharedElementTransitionType = keyof typeof SharedElementTransitionTypeEnum;
-
-export type TransformOriginGlobal = keyof typeof TransformOriginGlobalEnum;
-
-export type TransformOriginLengthUnit = keyof typeof TransformOriginLengthUnitEnum;
-//e.g. 20px, 20%, 20rem
-export type TransformOriginLength = `${number}${TransformOriginLengthUnit}` | 0;
-
-export type TransformOriginKeyword = keyof typeof TransformOriginKeywordEnum;
-export type OneValueTransformOrigin = TransformOriginKeyword | TransformOriginLength;
-export type TwoValueTransformOrigin = `${OneValueTransformOrigin} ${OneValueTransformOrigin}`;
-export type ThreeValueTransformOrigin = `${OneValueTransformOrigin} ${OneValueTransformOrigin} ${TransformOriginLength}`;
-export type TransformOrigin = TransformOriginGlobal | OneValueTransformOrigin | TwoValueTransformOrigin | ThreeValueTransformOrigin;
 
 export interface SharedElementNode {
     id: string;
