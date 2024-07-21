@@ -9,7 +9,7 @@ import {
 import { NestedRouterContext, RouterContext } from './RouterContext';
 import { dispatchEvent, matchRoute, resolveBaseURLFromPattern } from './common/utils';
 import { Component, createRef, isValidElement, Children } from 'react';
-import { DEFAULT_ANIMATION, DEFAULT_GESTURE_CONFIG } from './common/constants';
+import { DEFAULT_GESTURE_CONFIG } from './common/constants';
 import { ScreenBase, ScreenBaseProps } from './ScreenBase';
 import { LoadEvent } from './common/events';
 
@@ -52,15 +52,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
             RouterBase.rootRouterRef = new WeakRef(this);
         }
     }
-
-    static readonly defaultProps = {
-        config: {
-            screenConfig: {
-                animation: DEFAULT_ANIMATION,
-                ...DEFAULT_GESTURE_CONFIG
-            }
-        }
-    };
 
     state: S = {
         defaultDocumentTitle: document.title,

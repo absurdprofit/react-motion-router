@@ -8,6 +8,7 @@ import { SwipeStartEvent, SwipeEndEvent } from 'web-gesture-events';
 import { GestureTimeline } from 'web-animations-extension';
 import { deepEquals, isRollback, searchParamsToObject } from './common/utils';
 import { GestureCancelEvent, GestureEndEvent, GestureStartEvent } from './common/events';
+import { DEFAULT_GESTURE_CONFIG } from './common/constants';
 
 export interface RouterProps extends RouterBaseProps<Screen> {
     config: RouterBaseProps["config"] & {
@@ -52,6 +53,14 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             destinationKey: null
         };
     }
+
+    static readonly defaultProps: Partial<RouterProps> = {
+        config: {
+            screenConfig: {
+                ...DEFAULT_GESTURE_CONFIG
+            }
+        }
+    };
 
     static getDerivedStateFromProps(_: RouterProps, state: RouterState) {
         const config = state.screenStack.find(screen => isRefObject(screen.ref) && screen.ref.current?.focused)?.props.config;
