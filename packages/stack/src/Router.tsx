@@ -31,6 +31,7 @@ export interface RouterState extends RouterBaseState {
     disableGesture: boolean;
     fromKey: React.Key | null
     destinationKey: React.Key | null;
+    documentTitle?: string;
 }
 
 export class Router extends RouterBase<RouterProps, RouterState> {
@@ -47,8 +48,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             gestureMinFlingVelocity: 500,
             transition: null,
             backNavigating: false,
-            defaultDocumentTitle: document.title,
-            documentTitle: '',
+            documentTitle: document.title,
             fromKey: null,
             destinationKey: null
         };
@@ -64,12 +64,14 @@ export class Router extends RouterBase<RouterProps, RouterState> {
 
     static getDerivedStateFromProps(_: RouterProps, state: RouterState) {
         const config = state.screenStack.find(screen => isRefObject(screen.ref) && screen.ref.current?.focused)?.props.config;
+        document.title = config?.title ?? document.title;
         return {
             gestureDirection: config?.gestureDirection ?? state.gestureDirection,
             gestureAreaWidth: config?.gestureAreaWidth ?? state.gestureAreaWidth,
             gestureMinFlingVelocity: config?.gestureMinFlingVelocity ?? state.gestureMinFlingVelocity,
             gestureHysteresis: config?.gestureHysteresis ?? state.gestureHysteresis,
-            disableGesture: config?.disableGesture ?? state.disableGesture
+            disableGesture: config?.disableGesture ?? state.disableGesture,
+            documentTitle: config?.title
         }
     }
 
@@ -261,6 +263,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                 1, // Remove all screens after current
                 cloneElement(destinationScreen, {
                     config: {
+                        title: document.title,
                         ...this.props.config.screenConfig,
                         ...destinationScreen.props.config,
                         ...config
@@ -307,6 +310,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                 screenStack.push(
                     cloneElement(screen, {
                         config: {
+                            title: document.title,
                             ...this.props.config.screenConfig,
                             ...screen.props.config,
                             ...config
@@ -395,6 +399,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                     Infinity, // Remove all screens after current
                     cloneElement(destinationScreen, {
                         config: {
+                            title: document.title,
                             ...this.props.config.screenConfig,
                             ...destinationScreen.props.config,
                             ...config

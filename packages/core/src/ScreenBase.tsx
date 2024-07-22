@@ -35,7 +35,6 @@ export interface ScreenBaseProps<R extends RoutePropBase = RoutePropBase> {
     caseSensitive?: boolean;
     id?: string;
     config?: {
-        title?: string;
         header?: {
             fallback?: React.ReactNode;
             component: React.JSXElementConstructor<any> | LazyExoticComponent<any>

@@ -8,6 +8,7 @@ export interface ScreenComponentProps<T extends PlainObject = {}> extends Screen
 
 export interface ScreenProps extends ScreenBaseProps {
     config?: ScreenBaseProps["config"] & {
+        title?: string;
         presentation?: "default" | "dialog" | "modal";
         keepAlive?: boolean;
         gestureDirection?: SwipeDirection;
