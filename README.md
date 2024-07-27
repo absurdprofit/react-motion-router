@@ -12,7 +12,7 @@ Declarative routing library for React ⚛ with support for page and shared eleme
 #### [Demo](https://absurdprofit.github.io/react-motion-router/)
 
 
-[![license](https://img.shields.io/npm/l/react-motion-router)](https://github.com/nxtexe/react-motion-router/blob/main/LICENSE)
+[![license](https://img.shields.io/badge/license-MIT-blue)](https://opensource.org/license/MIT)
 
 ### Packages
 - [@react-motion-router/core](https://npmjs.com/package/@react-motion-router/core) ![version](https://img.shields.io/npm/v/@react-motion-router/core)
