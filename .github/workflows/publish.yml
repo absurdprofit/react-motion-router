@@ -42,7 +42,7 @@ jobs:
           else
             echo "TAG_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
           fi
-          TAG_NAME=${{ env.BRANCH_NAME }}
+          TAG_NAME=${{ env.TAG_NAME }}
           COMMIT_HASH=${{ env.COMMIT_HASH }}
           CHANGED_PACKAGES_JSON=$(npx lerna list --json --since ${TAG_NAME})
           CHANGED_PACKAGES_COUNT=$(echo $CHANGED_PACKAGES_JSON | jq '. | length')
@@ -67,5 +67,5 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          TAG_NAME=${{ env.BRANCH_NAME }}
+          TAG_NAME=${{ env.TAG_NAME }}
           npx lerna publish from-package --yes --dist-tag $TAG_NAME
