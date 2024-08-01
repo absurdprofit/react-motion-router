@@ -4,7 +4,7 @@
   "description": "",
   "author": "nxtexe",
   "homepage": "https://github.com/nxtexe/react-motion-router/tree/main/packages/web-animations-extension#readme",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "main": "build/index.js",
   "publishConfig": {
     "access": "public"

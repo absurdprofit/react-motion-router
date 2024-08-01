@@ -19,7 +19,7 @@
     "url": "git+https://github.com/nxtexe/react-motion-router.git"
   },
   "author": "nxtexe",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/nxtexe/react-motion-router/issues"
   },
