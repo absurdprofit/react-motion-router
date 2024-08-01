@@ -26,22 +26,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Get branch name and commit hash
+      - name: Get tag name and commit hash
         id: git-info
-        run: |
-          echo "BRANCH_NAME=${GITHUB_REF_NAME}" >> $GITHUB_ENV
-          COMMIT_HASH=$(git rev-parse --short HEAD)
-          echo "COMMIT_HASH=${COMMIT_HASH}" >> $GITHUB_ENV
-
-      - name: Conditional Version Update
-        id: version
-        if: startsWith(env.BRANCH_NAME, 'next') || startsWith(env.BRANCH_NAME, 'beta')
         run: |
           if [[ "${GITHUB_REF##*/}" == "main" ]]; then
             echo "TAG_NAME=latest" >> $GITHUB_ENV
           else
             echo "TAG_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
           fi
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          echo "COMMIT_HASH=${COMMIT_HASH}" >> $GITHUB_ENV
+
+      - name: Conditional Version Update
+        id: version
+        if: startsWith(env.TAG_NAME, 'next') || startsWith(env.TAG_NAME, 'beta')
+        run: |
           TAG_NAME=${{ env.TAG_NAME }}
           COMMIT_HASH=${{ env.COMMIT_HASH }}
           CHANGED_PACKAGES_JSON=$(npx lerna list --json --since ${TAG_NAME})
