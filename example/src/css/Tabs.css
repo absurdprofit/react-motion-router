@@ -1,0 +1,44 @@
+.tab-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-x: hidden;
+}
+.tab-layout .header-layout {
+    display: flex;
+    position: relative;
+    overflow: scroll;
+    background-color: white;
+    margin-top: env(safe-area-inset-top);
+}
+.tab-layout .header-layout .underline {
+    position: absolute;
+    height: 8%;
+    bottom: 0;
+    left: 0;
+    background-color: rgba(254, 226, 85);
+    transition: all 200ms ease;
+}
+.tab-layout .header-layout button {
+    border-radius: 0;
+    border: none;
+    padding: 15px;
+    flex: 1 0 auto;
+    white-space: nowrap;
+}
+.tab {
+    width: calc(100vw - 30px);
+    min-height: 100%;
+    padding: 15px;
+}
+@import url('https://fonts.googleapis.com/css2?family=Flow+Block&display=swap');
+.tab article > *,
+.tab article > * > * {
+    font-family: 'Flow Block', cursive!important;
+    font-size: 1.25rem;
+    line-height: 1;
+    color: white;
+}
+.tab-layout .header-layout .MuiTouchRipple-child {
+    background-color: rgba(254, 226, 85);
+}

@@ -1,11 +1,7 @@
-/// <reference types="urlpattern-polyfill" />
-import 'web-gesture-events';
-export * from './Navigation';
-export * from './Screen';
-export * from './Router';
-export * from './Anchor';
-export * from './animation-configs/keyframe-presets';
-export * from './animation-configs/keyframe-options-presets';
-export * from './animation-configs/animation-presets';
-export * from './common/hooks';
-export * from './GestureRegion';
+import { Stack } from './Stack';
+import Router, { RouterProps, RouterState } from './Router';
+import History from './History';
+import Navigation from './Navigation';
+
+export {Stack, Router, Navigation, History};
+export type {RouterState, RouterProps};
