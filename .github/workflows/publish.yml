@@ -44,13 +44,9 @@ jobs:
             jq ".version = \"${NEW_VERSION}\"" $package/package.json > $package/package.json.tmp && mv $package/package.json.tmp $package/package.json
           done
 
-      - name: Upload modified package.json files as artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: modified-packages
-          path: |
-            **/package.json
-            !node_modules/**
+      - name: Assume unchanged for all package.json files
+        run: |
+          git ls-files -m | grep 'package.json' | xargs -I {} git update-index --assume-unchanged {}
 
       - name: Publish packages
         env:
@@ -61,4 +57,4 @@ jobs:
           else
             DIST_TAG="${GITHUB_REF##*/}"
           fi
-          npx lerna publish from-package --yes --force-publish --no-git-tag-version --no-push --dist-tag $DIST_TAG
+          npx lerna publish from-package --yes --dist-tag $DIST_TAG
