@@ -38,7 +38,6 @@ jobs:
         run: |
           TAG_NAME=${{ env.BRANCH_NAME }}
           COMMIT_HASH=${{ env.COMMIT_HASH }}
-          npx lerna version --no-push --no-git-tag-version --conventional-commits --yes
           lerna list --json | jq -r '.[] | .location' | while read -r package; do
             CURRENT_VERSION=$(jq -r '.version' $package/package.json)
             NEW_VERSION="${CURRENT_VERSION}-${TAG_NAME}.${COMMIT_HASH}"
@@ -56,5 +55,10 @@ jobs:
           fi
           npx lerna publish from-package --yes --force-publish --dist-tag $DIST_TAG
 
-      - name: List modified files
-        run: git status --short
+      - name: Upload modified package.json files as artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: modified-packages
+          path: |
+            **/package.json
+            !node_modules/**
