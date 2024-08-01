@@ -1,240 +1,276 @@
-import { NavigationBase } from './NavigationBase';
-import { ScreenTransitionLayer } from './ScreenTransitionLayer';
+import NavigationBase, { NavigateEvent, BackEvent } from './NavigationBase';
+import AnimationLayer from './AnimationLayer';
+import GhostLayer from './GhostLayer';
 import {
+    AnimationConfig,
+    AnimationKeyframeEffectConfig,
+    ReducedAnimationConfigSet,
+    SwipeDirection,
     ScreenChild,
-    RouterBaseEventMap,
-    RouterHTMLElement,
-    ScreenState
+    PlainObject,
+    RouterEventMap
 } from './common/types';
-import { NestedRouterContext, RouterContext } from './RouterContext';
-import { dispatchEvent, matchRoute, resolveBaseURLFromPattern } from './common/utils';
-import { Component, createRef, isValidElement, Children } from 'react';
-import { ScreenBase, ScreenBaseProps } from './ScreenBase';
-import { LoadEvent } from './common/events';
+import RouterData, { RoutesData, RouterDataContext } from './RouterData';
+import AnimationLayerData, { AnimationLayerDataContext } from './AnimationLayerData';
+import { PageAnimationEndEvent } from './MotionEvents';
+import { DEFAULT_ANIMATION, concatenateURL, dispatchEvent, searchParamsToObject } from './common/utils';
+import { Component } from 'react';
 
-export interface RouterBaseProps<S extends ScreenBase = ScreenBase> {
-    id?: string;
-    config: {
-        screenConfig?: S["props"]["config"];
-        basePath?: string;
-    };
-    children: ScreenChild<S["props"], S> | ScreenChild<S["props"], S>[];
+interface Config {
+    animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig;
+    defaultRoute?: string;
+    swipeAreaWidth?: number;
+    minFlingVelocity?: number;
+    hysteresis?: number;
+    basePathname?: string;
+    disableDiscovery?: boolean;
+    swipeDirection?: SwipeDirection;
+    disableBrowserRouting?: boolean;
+    paramsSerializer?(params: PlainObject): string;
+    paramsDeserializer?(queryString: string): PlainObject;
 }
 
-export interface RouterBaseState {}
+export interface RouterBaseProps {
+    id?: string;
+    config: Config;
+    children: ScreenChild | ScreenChild[];
+}
 
-export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState, E extends RouterBaseEventMap = RouterBaseEventMap> extends Component<P, S> {
-    protected readonly ref = createRef<RouterHTMLElement<E>>();
-    protected screenTransitionLayer = createRef<ScreenTransitionLayer>();
-    public abstract readonly navigation: NavigationBase;
-    public readonly screenState: ScreenState = new Map();
-    public readonly parent: RouterBase | null = null;
-    #child: WeakRef<RouterBase> | null = null;
-    private loadDispatched = false;
-    public readonly parentScreen: ScreenBase | null = null;
-    private static rootRouterRef: WeakRef<RouterBase> | null = null;
-    static readonly contextType = NestedRouterContext;
-    declare context: React.ContextType<typeof NestedRouterContext>;
+export interface RouterBaseState {
+    currentPath: string;
+    backNavigating: boolean;
+    gestureNavigating: boolean;
+    routesData: RoutesData;
+    implicitBack: boolean;
+    defaultDocumentTitle: string;
+}
 
-    constructor(props: P, context: React.ContextType<typeof NestedRouterContext>) {
-        super(props);
+export default abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState> extends Component<P, S> {
+    private readonly _id: string;
+    protected readonly animationLayerData = new AnimationLayerData();
+    protected ref: HTMLElement | null = null;
+    protected abstract _routerData: RouterData;
+    protected config: Config;
+    protected dispatchEvent: ((event: Event) => Promise<boolean>) | null = null;
+    protected addEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined) => void) | null = null;
+    protected removeEventListener: (<K extends keyof RouterEventMap>(type: K, listener: (this: HTMLElement, ev: RouterEventMap[K]) => any, options?: boolean | EventListenerOptions | undefined) => void) | null = null;
 
-        this.parentScreen = context?.parentScreen ?? null;
-        this.parent = context?.parentRouter ?? null;
-        if (this.parent) {
-            this.parent.child = this;
-        }
-        if (this.isRoot) {
-            RouterBase.rootRouterRef = new WeakRef(this);
+    static defaultProps = {
+        config: {
+            animation: DEFAULT_ANIMATION
         }
     }
 
-    componentDidMount() {
-        if (this.isRoot) {
-            window.navigation.addEventListener('navigate', this.handleNavigationDispatch);
-        }
+    constructor(props: RouterBaseProps) {
+        super(props as P);
 
-        if (!this.loadDispatched) {
-            window.navigation.dispatchEvent(new LoadEvent());
-            this.loadDispatched = true;
+        this._id = props.id ?? Math.random().toString().replace('.', '-');
+        
+        if (props.config) {
+            this.config = props.config;
+        } else {
+            this.config = {
+                animation: DEFAULT_ANIMATION
+            }
         }
+    }
+    
+    state: S = {
+        currentPath: "",
+        backNavigating: false,
+        gestureNavigating: false,
+        routesData: new Map(),
+        implicitBack: false,
+        defaultDocumentTitle: document.title
+    } as S;
+
+    componentDidMount() {
+        this._routerData.paramsDeserializer = this.props.config.paramsDeserializer;
+        this._routerData.paramsSerializer = this.props.config.paramsSerializer;
+        this.onPopStateListener = this.onPopStateListener.bind(this);
+        window.addEventListener('popstate', this.onPopStateListener);
     }
 
     componentWillUnmount() {
-        if (this.isRoot) {
-            window.navigation.removeEventListener('navigate', this.handleNavigationDispatch);
-        }
+        this.navigation.destructor();
+        this._routerData.destructor();
+        if (this.ref) this.removeNavigationEventListeners(this.ref);
+        window.removeEventListener('popstate', this.onPopStateListener);
     }
 
-    private handleNavigationDispatch = (e: NavigateEvent) => {
-        if (!this.canIntercept(e)) return;
-        let router: RouterBase = this;
-        // travel down router tree to find the correct router
-        while (router.child?.canIntercept(e)) {
-            router = router.child;
-        }
-        router.intercept(e);
-    }
-
-    getRouterById(routerId: string, target?: RouterBase): RouterBase | null {
-        const router = target ?? RouterBase.rootRouterRef?.deref();
-        if (router!.id === routerId) {
-            return router ?? null;
-        } else if (router?.child) {
-            return this.getRouterById(routerId, router!.child);
-        } else {
-            return null;
-        }
-    }
-
-    dispatchEvent(event: Event) {
-        const ref = this.ref.current ?? undefined;
-        return dispatchEvent(event, ref);
-    }
-
-    addEventListener<K extends keyof E>(type: K, listener: (this: RouterHTMLElement<E>, ev: E[K]) => any, options?: boolean | AddEventListenerOptions): void;
-    addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-	addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void {
-        return this.ref.current?.addEventListener(type, listener, options);
-    }
-
-    removeEventListener<K extends keyof E>(type: K, listener: (this: RouterHTMLElement<E>, ev: E[K]) => any, options?: boolean | EventListenerOptions | undefined): void;
-    removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
-    removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions) {
-        return this.ref.current?.removeEventListener(type, listener, options);
-    }
-
-    public preloadRoute(pathname: string) {
-        return new Promise<boolean>((resolve, reject) => {
-            let found = false;
-            const routes = this.props.children;
-            Children.forEach<ScreenChild<ScreenBaseProps>>(routes, (route) => {
-                if (found) return; // stop after first
-                if (!isValidElement(route)) return;
-                const { path, caseSensitive } = route.props;
-                const baseURLPattern = this.baseURLPattern.pathname;
-                const matchInfo = matchRoute(path, pathname, baseURLPattern, caseSensitive);
-                if (!matchInfo) return;
-                found = true;
-                const config = {
-                    ...this.screenState.get(path)?.config,
-                    ...route.props.config
-                };
-                queueMicrotask(async () => {
-                    const preloadTasks = [];
-                    if ('load' in route.props.component) {
-                        preloadTasks.push(route.props.component.load());
-                    }
-                    if (config?.header?.component && 'load' in config?.header?.component) {
-                        preloadTasks.push(config?.header?.component.load());
-                    }
-                    if (config?.footer?.component && 'load' in config?.footer?.component) {
-                        preloadTasks.push(config?.footer?.component.load());
-                    }
-                    try {
-                        await Promise.all(preloadTasks);
-                        resolve(found);
-                    } catch (e) {
-                        reject(e);
-                    }
-                });
+    /**
+     * Initialises current path and routes data from URL search params.
+     */
+    protected initialise(navigation: NavigationBase) {
+        // get url search params and append to existing route params
+        let currentPath = navigation.location.pathname;
+        const paramsDeserializer = this._routerData.paramsDeserializer || null;
+        const searchParams = searchParamsToObject(window.location.search, paramsDeserializer);
+        const routesData = this.state.routesData;
+        this._routerData.routesData = this.state.routesData;
+        
+        if (searchParams) {
+            const routeData = this.state.routesData.get(currentPath);
+            routesData.set(currentPath, {
+                focused: routeData?.focused ?? false,
+                preloaded: routeData?.preloaded ?? false,
+                setParams: routeData?.setParams ?? (() => {}),
+                params: searchParams,
+                config: routeData?.config ?? {},
+                setConfig: routeData?.setConfig ?? (() => {})
             });
-            if (!found)
-                resolve(false);
-        });
+        }
+        this.setState({currentPath, routesData});
+        this._routerData.currentPath = currentPath;
     }
 
-    get id(): string {
-        if (this.props.id) return this.props.id;
-        const prefix = this.parent ? `${this.parent.id}-` : '';
-        const id = (this.parentScreen?.path ?? 'root')
-            .toLowerCase()
-            .replace(/[^\w-]/g, '-') // Remove non-alphanumeric chars
-            .replace(/-+/g, '-') // Replace multiple hyphens with a single one
-            .replace(/^-|-$/g, ''); // Remove leading and trailing hyphens
-        return `${prefix}${id}`;
+    get id() {
+        return this._id;
     }
 
-    get isRoot() {
-        return !this.parent;
+    protected get parentRouterData() {
+        return this._routerData.parentRouterData;
     }
 
-    get baseURL() {
-        const pathname = this.isRoot ? window.location.pathname : this.parentScreen?.resolvedPathname!;
-        const pattern = this.baseURLPattern.pathname;
-
-        return resolveBaseURLFromPattern(pattern, pathname)!;
+    protected get baseURL() {
+        const origin = window.location.origin;
+        const basePathname = this.props.config.basePathname || "";
+        if (this.parentRouterData) {
+            const parentBaseURL = this.parentRouterData.navigation.history.baseURL;
+            const parentCurrentPath = this.parentRouterData.mountedScreen?.resolvedPathname || "";
+            return concatenateURL(basePathname, concatenateURL(parentCurrentPath, parentBaseURL));
+        } else {
+            return new URL(basePathname, origin);
+        }
     }
 
-    get baseURLPattern() {
-        let baseURL = window.location.origin + "/";
-        const defaultBasePathname = this.isRoot ? new URL(".", document.baseURI).href.replace(baseURL, '') : ".";
-        let basePathname = this.props.config.basePath ?? defaultBasePathname;
+    protected abstract get navigation(): NavigationBase;
 
-        if (this.parent && this.parentScreen) {
-            const { resolvedPathname = window.location.pathname, path } = this.parentScreen;
-            const parentBaseURL = this.parent.baseURL?.href;
-            const pattern = new URLPattern({ baseURL: parentBaseURL, pathname: path });
-            baseURL = resolveBaseURLFromPattern(
-                pattern.pathname,
-                resolvedPathname
-            )!.href;
+    abstract onAnimationEnd: (e: PageAnimationEndEvent) => void;
+
+    abstract onGestureNavigationStart: () => void;
+    abstract onGestureNavigationEnd: () => void;
+
+    protected onPopStateListener(e: Event) {
+        let currentPath = this.navigation.location.pathname;
+        const paramsDeserializer = this._routerData.paramsDeserializer || null;
+        const searchParams = searchParamsToObject(window.location.search, paramsDeserializer);
+        const routesData = this.state.routesData;
+        this._routerData.routesData = this.state.routesData;
+        
+        if (searchParams) {
+            const routeData = this.state.routesData.get(currentPath);
+            routesData.set(currentPath, {
+                focused: routeData?.focused ?? false,
+                preloaded: routeData?.preloaded ?? false,
+                setParams: routeData?.setParams ?? (() => {}),
+                params: searchParams,
+                config: routeData?.config ?? {},
+                setConfig: routeData?.setConfig ?? (() => {})
+            });
+        }
+        this.setState({routesData});
+    };
+
+    abstract onBackListener: (e: BackEvent) => void;
+
+    abstract onNavigateListener: (e: NavigateEvent) => void;
+
+    onDocumentTitleChange = (title: string | null) => {
+        if (title) document.title = title;
+        else document.title = this.state.defaultDocumentTitle;
+    }
+
+    addNavigationEventListeners(ref: HTMLElement) {
+        ref.addEventListener('go-back', this.onBackListener);
+        ref.addEventListener('navigate', this.onNavigateListener);
+    }
+
+    removeNavigationEventListeners(ref: HTMLElement) {
+        ref.removeEventListener('go-back', this.onBackListener);
+        ref.removeEventListener('navigate', this.onNavigateListener);
+    }
+
+    private setRef = (ref: HTMLElement | null) => {
+        if (this.ref) {
+            this.dispatchEvent = null;
+            this.addEventListener = null;
+            this.removeEventListener = null;
+            this.animationLayerData.dispatchEvent = this.dispatchEvent;
+            this._routerData.dispatchEvent = this.dispatchEvent;
+            this._routerData.addEventListener = this.addEventListener;
+            this._routerData.removeEventListener = this.removeEventListener;
+            this.removeNavigationEventListeners(this.ref);  
         }
 
-        return new URLPattern({ baseURL, pathname: basePathname });
-    }
-
-    get pathPatterns() {
-        return Children.map(this.props.children, (child) => {
-            return { pattern: child.props.path, caseSensitive: Boolean(child.props.caseSensitive) };
-        });
-    }
-
-    get mounted() {
-        return Boolean(this.ref.current);
-    }
-
-    get child() {
-        return this.#child?.deref() ?? null;
-    }
-
-    set child(child: RouterBase | null) {
-        const currentChildRouter = this.#child?.deref();
-        if (
-            currentChildRouter
-            && child?.id !== currentChildRouter?.id
-            && currentChildRouter?.mounted
-        ) {
-            throw new Error("It looks like you have two navigators at the same level. Try simplifying your navigation structure by using a nested router instead.");
+        if (ref) {
+            this.dispatchEvent = (event) => {
+                // return async version
+                return dispatchEvent(event, ref);
+            }
+            this.addEventListener = (type, listener, options) => {
+                return ref.addEventListener(type, listener, options);
+            };
+            this.removeEventListener = (type, listener, options) => {
+                return ref.removeEventListener(type, listener, options);
+            };
+            this.animationLayerData.dispatchEvent = this.dispatchEvent;
+            this.animationLayerData.addEventListener = this.addEventListener;
+            this._routerData.dispatchEvent = this.dispatchEvent;
+            this._routerData.addEventListener = this.addEventListener;
+            this._routerData.removeEventListener = this.removeEventListener;
+            this.addNavigationEventListeners(ref);
         }
-        if (child)
-            this.#child = new WeakRef(child);
-        else
-            this.#child = null;
     }
-
-    protected abstract canIntercept(navigateEvent: NavigateEvent): boolean;
-    protected abstract shouldIntercept(navigateEvent: NavigateEvent): boolean;
-    protected abstract intercept(navigateEvent: NavigateEvent): void;
-    protected abstract get screens(): P["children"];
-
+    
     render() {
-        if (!this.navigation) return;
         return (
-            <div
-                id={this.id}
-                className="react-motion-router"
-                style={{ width: '100%', height: '100%' }}
-                ref={this.ref}
-            >
-                <RouterContext.Provider value={this}>
-                    <ScreenTransitionLayer
-                        ref={this.screenTransitionLayer}
-                        navigation={this.navigation}
-                    >
-                        {this.screens}
-                    </ScreenTransitionLayer>
-                </RouterContext.Provider>
+            <div id={this._id.toString()} className="react-motion-router" style={{width: '100%', height: '100%'}} ref={this.setRef}>
+                <RouterDataContext.Consumer>
+                    {(routerData) => {
+                        this._routerData.parentRouterData = routerData;
+                        return (
+                            <RouterDataContext.Provider value={this._routerData}>
+                                <AnimationLayerDataContext.Provider value={this.animationLayerData}>
+                                    {Boolean(this.navigation)
+                                    && (
+                                        <GhostLayer
+                                            instance={(instance: GhostLayer | null) => {
+                                                this._routerData.ghostLayer = instance;
+                                            }}
+                                            backNavigating={this.state.backNavigating}
+                                            gestureNavigating={this.state.gestureNavigating}
+                                            navigation={this._routerData.navigation}
+                                            animationLayerData={this.animationLayerData}
+                                        />
+                                    )}
+                                    {Boolean(this.navigation)
+                                    && (
+                                        <AnimationLayer
+                                            disableBrowserRouting={this.props.config.disableBrowserRouting || false}
+                                            disableDiscovery={this.props.config.disableDiscovery || false}
+                                            hysteresis={this.props.config.hysteresis || 50}
+                                            minFlingVelocity={this.props.config.minFlingVelocity || 400}
+                                            swipeAreaWidth={this.props.config.swipeAreaWidth || 100}
+                                            swipeDirection={this.props.config.swipeDirection || 'right'}
+                                            navigation={this._routerData.navigation}
+                                            backNavigating={this.state.backNavigating}
+                                            currentPath={this.navigation.history.current}
+                                            lastPath={this.navigation.history.previous}
+                                            onGestureNavigationStart={this.onGestureNavigationStart}
+                                            onGestureNavigationEnd={this.onGestureNavigationEnd}
+                                            onDocumentTitleChange={this.onDocumentTitleChange}
+                                            dispatchEvent={this.dispatchEvent}
+                                        >
+                                            {this.props.children}
+                                        </AnimationLayer>
+                                    )}
+                                </AnimationLayerDataContext.Provider>
+                            </RouterDataContext.Provider>
+                        );
+                    }}
+                </RouterDataContext.Consumer>
+                
             </div>
         );
     }

@@ -5,15 +5,11 @@
   },
   "include": [
     "src/**/*.tsx",
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "../core/build/index.d.ts"
   ],
   "exclude": [
     "node_modules",
     "build"
-  ],
-  "ts-node": { // for webpack
-    "compilerOptions": {
-      "module": "CommonJS"
-    }
-  }
+  ]
 }

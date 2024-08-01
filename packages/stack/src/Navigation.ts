@@ -1,196 +1,250 @@
 import {
+    BackEventDetail,
+    concatenateURL,
+    GoBackOptions,
+    NavigateEventDetail,
+    NavigateOptions,
     NavigationBase,
-    includesRoute,
-    resolveBaseURLFromPattern,
+    RouterData,
+    searchParamsFromObject
 } from '@react-motion-router/core';
-import { GoBackOptions, GoForwardOptions, NavigateOptions, NavigationBaseOptions, NavigationProps, StackRouterEventMap } from './common/types';
-import { BackEvent, ForwardEvent, NavigateEvent } from './common/events';
-import { HistoryEntry } from './HistoryEntry';
-import { Router } from './Router';
+import type { AnimationLayerData, PlainObject } from '@react-motion-router/core';
+import History from './History';
 
-export class Navigation extends NavigationBase<StackRouterEventMap> {
-    protected readonly router: Router;
+export default class Navigation extends NavigationBase {
+    protected _history: History;
+    private _animationLayerData: AnimationLayerData;
+    private isInternalBack = false;
+    private _finished: Promise<void> = new Promise(() => {});
 
-    constructor(router: Router) {
-        super(router);
-        this.router = router;
+    constructor(
+        _routerId: string,
+        _routerData: RouterData<Navigation>,
+        _history: History,
+        _animationLayerData: AnimationLayerData,
+        _disableBrowserRouting: boolean = false,
+        _defaultRoute: string | null = null
+    ) {
+        super(_routerId, _routerData, _disableBrowserRouting, _defaultRoute);
+
+        this._history = _history;
+        this._animationLayerData = _animationLayerData;
     }
 
-    traverseTo(key: string) {
-        return window.navigation.traverseTo(key);
+    onPopState = (e: Event) => {
+        e.preventDefault();
+        if (this.isInternalBack) {
+            this.isInternalBack = false;
+            return;
+        }
+
+        const pathname = window.location.pathname.replace(this.history.baseURL.pathname, '') || '/';
+        if (pathname === this.history.previous) {
+            this.implicitBack();
+        } else {
+            this.implicitNavigate(pathname);
+        }
     }
 
-    replace(route: string, props: NavigationProps = {}, options: NavigationBaseOptions = {}) {
-        return this.navigate(route, props, { ...options, type: "replace" });
-    }
-
-    push(route: string, props: NavigationProps = {}, options: NavigationBaseOptions = {}) {
-        return this.navigate(route, props, { ...options, type: "push" });
-    }
-
-    reload(props: NavigationProps = {}) {
-        return window.navigation.reload({ state: props });
-    }
-
-    navigate(
+    navigate<T extends PlainObject = PlainObject>(
         route: string,
-        props: NavigationProps = {},
+        routeParams?: T,
         options: NavigateOptions = {}
     ) {
-        const { type: history = "push" } = options;
+        const {replace, hash} = options;
+        const search = searchParamsFromObject(routeParams || {}, this.paramsSerializer || null);
 
-        const url = new URL(route, this.baseURL);
-        const result = window.navigation.navigate(url.href, { history, state: props });
-        const transition = window.navigation.transition!;
+        if (this._disableBrowserRouting) {
+            this._history.implicitPush(route, Boolean(replace));
+        } else {
+            this._history.push(route, search, hash || '', Boolean(replace));
+        }
 
         const controller = new AbortController();
-        controller.signal.addEventListener('abort', () => this.goBack(), { once: true });
-        options.signal?.addEventListener('abort', controller.abort, { once: true });
+        controller.signal.addEventListener('abort', this.onNavigateAbort.bind(this), {once: true});
+        options.signal?.addEventListener('abort', this.onNavigateAbort.bind(this), {once: true});
+        this._finished = this.createFinishedPromise(controller);
+        const event = this.createNavigateEvent(route, routeParams, Boolean(replace), controller);
 
-        const event = this.createNavigateEvent(route, props, history, controller.signal, result, transition);
-        this.dispatchEvent?.(event);
+        if (this.dispatchEvent) this.dispatchEvent(event);
+        this._currentParams = routeParams || {};
 
-        return result;
+        return this._finished;
+    }
+
+    private implicitNavigate(route: string, routeParams?: PlainObject) {
+        this._history.implicitPush(route);
+        
+        const controller = new AbortController();
+        this._finished = this.createFinishedPromise(controller);
+        const event = this.createNavigateEvent(route, routeParams, false, controller);
+
+        if (this.dispatchEvent) this.dispatchEvent(event);
+        this._currentParams = routeParams || {};
+        return this._finished;
+    }
+
+    private implicitBack() {
+        this._history.implicitBack();
+
+        const controller = new AbortController();
+        this._finished = this.createFinishedPromise(controller);
+        let event = this.createBackEvent(controller);
+        if (this.dispatchEvent) this.dispatchEvent(event);
+        return this._finished;
     }
 
     goBack(options: GoBackOptions = {}) {
-        if (!this.canGoBack) return;
-
-        const previous = this.previous!;
-        const result = window.navigation.traverseTo(previous.key);
-        const transition = window.navigation.transition!;
+        this.isInternalBack = true;
 
         const controller = new AbortController();
-        controller.signal.addEventListener('abort', () => this.goForward(), { once: true });
-        options.signal?.addEventListener('abort', controller.abort, { once: true });
+        controller.signal.addEventListener('abort', this.onBackAbort.bind(this), {once: true});
+        options.signal?.addEventListener('abort', this.onBackAbort.bind(this), {once: true});
+        this._finished = this.createFinishedPromise(controller);
+        if (this._history.length === 1) {
+            if (this.parent === null) {
+                // if no history in root router, fallback to browser back
+                window.history.back();
+                return;
+            }
+            this.parent.goBack();
+        } else {
+            let event = this.createBackEvent(controller);
+            if (this._disableBrowserRouting) {
+                this._history.implicitBack();
+            } else {
+                if (this.history.state.get<string>("routerId") !== this.routerId) {
+                    // handle superfluous history entries on call to go back on ancestor navigator
+                    // delta = 1 for current navigator stack entry pop
+                    let delta = 0;
+                    // travel down navigator tree to find all current history entries
+                    let navigator: Navigation | undefined = this;
+                    while (navigator) {
+                        if (!navigator.disableBrowserRouting) {
+                            if (navigator === this) {
+                                delta += 1;
+                            } else {
+                                if (navigator.history.length > 1) {
+                                    delta += navigator.history.length;
+                                }
+                            }
+                        }
+                        navigator = navigator.routerData.childRouterData?.navigation as Navigation;
+                    }
+                    window.history.go(-delta);
+                    this._history.implicitBack();
+                } else {
+                    this._history.back();
+                }
+            }
+            if (this.dispatchEvent) this.dispatchEvent(event);
+        } 
 
-        const event = this.createBackEvent(controller.signal, result, transition);
-        this.dispatchEvent?.(event);
 
-        return result;
+        return this._finished;
     }
 
-    goForward(options: GoForwardOptions = {}) {
-        if (!this.canGoForward) return;
-
-        const next = this.next!;
-        const result = window.navigation.traverseTo(next.key);
-        const transition = window.navigation.transition!;
-
-        const controller = new AbortController();
-        controller.signal.addEventListener('abort', () => this.goBack(), { once: true });
-        options.signal?.addEventListener('abort', controller.abort, { once: true });
-
-        const event = this.createForwardEvent(controller.signal, result, transition);
-        this.dispatchEvent?.(event);
-
-        return result;
-    }
-
-    private createBackEvent(
-        signal: AbortSignal,
-        result: NavigationResult,
-        transition: NavigationTransition
-    ) {
-        if (!this.routerId) throw new Error("Router ID is not set");
-        return new BackEvent(this.routerId, signal, result, transition);
-    }
-
-    private createForwardEvent(
-        signal: AbortSignal,
-        result: NavigationResult,
-        transition: NavigationTransition
-    ) {
-        if (!this.routerId) throw new Error("Router ID is not set");
-        return new ForwardEvent(this.routerId, signal, result, transition);
+    private createBackEvent(controller: AbortController) {
+        return new CustomEvent<BackEventDetail>('go-back', {
+            bubbles: true,
+            detail: {
+                routerId: this.routerId,
+                signal: controller.signal,
+                finished: this._finished
+            }
+        });
     }
 
     private createNavigateEvent(
         route: string,
-        props: NavigationProps,
-        type: NavigateOptions["type"],
-        signal: AbortSignal,
-        result: NavigationResult,
-        transition: NavigationTransition
+        routeParams: PlainObject | undefined,
+        replace: boolean,
+        controller: AbortController
     ) {
-        if (!this.routerId) throw new Error("Router ID is not set");
-        return new NavigateEvent(
-            this.routerId,
-            route,
-            props,
-            type,
-            signal,
-            result,
-            transition
-        );
+        return new CustomEvent<NavigateEventDetail>('navigate', {
+            bubbles: true,
+            detail: {
+                routerId: this.routerId,
+                route: route,
+                routeParams: routeParams,
+                replace: replace,
+                signal: controller.signal,
+                finished: this._finished
+            }
+        })
     }
 
-    get transition() {
-        return this.router.state.transition;
+    private createFinishedPromise(controller: AbortController) {
+        return new Promise<void>(async (resolve, reject) => {
+            try {
+                await this._animationLayerData.finished;
+                resolve();
+            } catch (e) {
+                controller.abort(e);
+                reject(e);
+            }
+        });
     }
 
-    get globalEntries() {
-        return window.navigation.entries();
+    private onNavigateAbort() {
+        this._animationLayerData.cancel();
+        this.goBack();
     }
 
-    get entries() {
-        const nestedPathPatterns = this.router.pathPatterns.filter(({ pattern }) => pattern.endsWith("**"));
-        let inNestedScope = false;
-        return this.globalEntries
-            .filter(entry => {
-                if (!entry.url) return false;
-                const url = new URL(entry.url);
-                if (!resolveBaseURLFromPattern(this.baseURLPattern.pathname, url.pathname))
-                    return false;
-
-                if (includesRoute(nestedPathPatterns, url.pathname, this.baseURLPattern.pathname)) {
-                    if (inNestedScope)
-                        return false;
-
-                    return inNestedScope = true; // technically in nested scope but include the first entry (the entry intercepted by the parent router)
-                } else {
-                    inNestedScope = false;
-                    return true; // not in nested scope, so include
-                }
-            })
-            .map((entry, index) => {
-                return new HistoryEntry(entry, this.routerId, index);
-            });
+    private onBackAbort() {
+        this._animationLayerData.cancel();
+        if (!this.history.next) return;
+        this.navigate(this.history.next);
     }
 
-    get index() {
-        const globalCurrentIndex = window.navigation.currentEntry?.index ?? -1;
-        const firstEntryGlobalIndex = this.entries.at(0)?.globalIndex ?? -1;
-        const lastEntryGlobalIndex = this.entries.at(-1)?.globalIndex ?? -1;
-        if (globalCurrentIndex <= firstEntryGlobalIndex)
-            return 0;
-        else if (globalCurrentIndex >= lastEntryGlobalIndex)
-            return this.entries.length - 1;
-        else {
-            const scopedEntries = this.globalEntries.slice(firstEntryGlobalIndex, globalCurrentIndex + 1);
-            return this.entries.findLastIndex(entry => {
-                return scopedEntries.findLastIndex(globalEntry => entry.key === globalEntry.key) > -1;
-            });
+    assign(url: string | URL) {
+        url = new URL(url, window.location.origin);
+        if (url.origin === location.origin) {
+            this.navigate(url.pathname);
+        } else {
+            location.assign(url);
         }
     }
 
-    get previous(): HistoryEntry | null {
-        return this.entries[this.index - 1] ?? null;
+    replace(url: string | URL) {
+        url = new URL(url, window.location.origin);
+        if (url.origin === location.origin) {
+            this.navigate(url.pathname, {}, {
+                hash: url.hash,
+                replace: true
+            });
+        } else {
+            location.replace(url);
+        }
     }
 
-    get next(): HistoryEntry | null {
-        return this.entries[this.index + 1] ?? null;
+    get finished() {
+        return this._finished;
     }
 
-    get current() {
-        return this.entries[this.index];
+    get parent() {
+        return this.routerData.parentRouterData?.navigation ?? null;
     }
 
-    get canGoBack() {
-        return Boolean(this.previous?.sameDocument);
-    }
-
-    get canGoForward() {
-        return Boolean(this.next?.sameDocument);
+    get location() {
+        const {location} = window;
+        const url = concatenateURL(this._history.current, this.history.baseURL);
+        return {
+            ancestorOrigins: location.ancestorOrigins,
+            assign: this.assign.bind(this),
+            hash: location.hash,
+            host: location.host,
+            hostname: location.hostname,
+            href: url.href,
+            origin: location.origin,
+            pathname: url.pathname,
+            port: location.port,
+            protocol: location.protocol,
+            reload() {
+                location.reload();
+            },
+            replace: this.replace.bind(this),
+            search: searchParamsFromObject(this._currentParams, this.paramsSerializer || null)
+        }
     }
 }

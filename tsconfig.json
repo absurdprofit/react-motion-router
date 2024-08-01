@@ -2,12 +2,11 @@
     "compilerOptions": {
         "baseUrl": ".",
         "paths": {
-            "@react-motion-router/*": ["./packages/*/build"],
-            "web-animations-extension": ["./packages/web-animations-extension/build"]
+            "@react-motion-router/*": ["./packages/*/build"]
         },
         "declaration": true,
         "sourceMap": true,
-        "target": "ES2022",
+        "target": "ES2017",
         "lib": [
             "dom",
             "dom.iterable",
@@ -24,9 +23,7 @@
         "moduleResolution": "node",
         "resolveJsonModule": true,
         "isolatedModules": true,
-        "jsx": "react-jsx",
-        "incremental": true,
-        "tsBuildInfoFile": "./.tsbuildinfo",
+        "jsx": "react-jsx"
     },
     "exclude": [
         "node_modules",

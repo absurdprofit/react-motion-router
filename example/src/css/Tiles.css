@@ -1,0 +1,80 @@
+.tiles {
+    width: 100vw;
+    height: 100vh;
+    background-color: white;
+}
+.tiles .content {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    row-gap: 1vw;
+}
+.tiles.suspense .content {
+    animation: tiles-fade-in .5s ease forwards;
+}
+@keyframes tiles-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.tile {
+    width: 49vw;
+    height: calc(30vw - 2px);
+    transition: width 1s ease;
+}
+
+.tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.tiles .nav-bar {
+    background-color: yellow;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 64px;
+    position: sticky;
+    top: 0px;
+}
+
+.tiles .nav-bar .back-button {
+    position: absolute;
+    left: 0;
+    display: flex;
+    align-items: center;
+}
+.tiles .nav-bar .back-button button {
+    background-color: transparent;
+    border: none;
+    font-weight: 900;
+    font-size: 1.5rem;
+    padding: 10px;
+    height: 2.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.tiles .nav-bar .back-button button:hover {
+    box-shadow: 1px 1px 1px black;
+}
+.tiles .nav-bar .back-button button:active {
+    box-shadow: -1px -1px 1px black;
+}
+.tiles .content a:last-child .tile {
+    width: 100vw;
+}
+.tiles .tile img:empty {
+    background-color: #efefef;
+    width: 49vw;
+    height: calc(30vw - 2px);
+}
+.tiles a:last-child .tile img:empty {
+    width: 100vw;
+}

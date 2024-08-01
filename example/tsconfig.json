@@ -1,15 +1,10 @@
 {
   "extends": "../tsconfig",
   "compilerOptions": {
-    "noEmit": true,
-    "target": "ESNext",    
-    "types": ["vite/client"]
+    "noEmit": true
   },
   "include": [
     "src",
     "../packages/*/build/index.d.ts"
-  ],
-  "exclude": [
-    "node_modules"
   ]
 }
