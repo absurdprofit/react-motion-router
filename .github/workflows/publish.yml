@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -26,22 +28,45 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Get branch name and commit hash
+      - name: Get tag name and commit hash
         id: git-info
         run: |
-          echo "BRANCH_NAME=${GITHUB_REF_NAME}" >> $GITHUB_ENV
+          if [[ "${GITHUB_REF##*/}" == "main" ]]; then
+            echo "TAG_NAME=latest" >> $GITHUB_ENV
+          else
+            echo "TAG_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
+          fi
           COMMIT_HASH=$(git rev-parse --short HEAD)
+          LAST_COMMIT_HASH=$(git rev-parse --short HEAD~1)
           echo "COMMIT_HASH=${COMMIT_HASH}" >> $GITHUB_ENV
+          echo "LAST_COMMIT_HASH=${LAST_COMMIT_HASH}" >> $GITHUB_ENV
 
       - name: Conditional Version Update
-        if: startsWith(env.BRANCH_NAME, 'next') || startsWith(env.BRANCH_NAME, 'beta')
+        id: version
+        if: startsWith(env.TAG_NAME, 'next') || startsWith(env.TAG_NAME, 'beta')
         run: |
-          TAG_NAME=${{ env.BRANCH_NAME }}
+          TAG_NAME=${{ env.TAG_NAME }}
           COMMIT_HASH=${{ env.COMMIT_HASH }}
-          lerna list --json | jq -r '.[] | .location' | while read -r package; do
+          LAST_COMMIT_HASH=${{ env.LAST_COMMIT_HASH }}
+          ALL_PACKAGES_JSON=$(npx lerna list --json)
+          CHANGED_PACKAGES_JSON=$(npx lerna list --json --since ${LAST_COMMIT_HASH})
+          CHANGED_PACKAGES_COUNT=$(echo $CHANGED_PACKAGES_JSON | jq '. | length')
+
+          if [[ $CHANGED_PACKAGES_COUNT -eq 0 ]]; then
+            echo "No packages changed. Exiting..."
+            exit 1
+          fi
+
+          echo $CHANGED_PACKAGES_JSON | jq -r '.[].location' | while read -r package; do
             CURRENT_VERSION=$(jq -r '.version' $package/package.json)
             NEW_VERSION="${CURRENT_VERSION}-${TAG_NAME}.${COMMIT_HASH}"
             jq ".version = \"${NEW_VERSION}\"" $package/package.json > $package/package.json.tmp && mv $package/package.json.tmp $package/package.json
+          done
+
+          echo $ALL_PACKAGES_JSON | jq -r '.[].location' | while read -r package; do
+            if ! echo $CHANGED_PACKAGES_JSON | jq -r '.[].location' | grep -q "$package"; then
+              jq ".private = true" $package/package.json > $package/package.json.tmp && mv $package/package.json.tmp $package/package.json
+            fi
           done
 
       - name: Assume unchanged for all package.json files
@@ -49,12 +74,9 @@ jobs:
           git ls-files -m | grep 'package.json' | xargs -I {} git update-index --assume-unchanged {}
 
       - name: Publish packages
+        if: ${{ steps.version.conclusion != 'failure' }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          if [[ "${GITHUB_REF##*/}" == "main" ]]; then
-            DIST_TAG="latest"
-          else
-            DIST_TAG="${GITHUB_REF##*/}"
-          fi
-          npx lerna publish from-package --yes --dist-tag $DIST_TAG
+          TAG_NAME=${{ env.TAG_NAME }}
+          npx lerna publish from-package --yes --dist-tag $TAG_NAME

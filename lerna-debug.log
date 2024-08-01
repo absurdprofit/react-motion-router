@@ -1,0 +1,32 @@
+0 silly argv {
+0 silly argv   _: [ 'list' ],
+0 silly argv   json: true,
+0 silly argv   since: 'ls',
+0 silly argv   l: true,
+0 silly argv   long: true,
+0 silly argv   a: true,
+0 silly argv   all: true,
+0 silly argv   lernaVersion: '8.1.5',
+0 silly argv   '$0': 'node_modules\\lerna\\dist\\cli.js'
+0 silly argv }
+1 notice cli v8.1.5
+2 verbose packageConfigs Explicit "packages" configuration found in lerna.json. Resolving packages using the configured glob(s): ["packages/*","example"]
+3 verbose rootPath W:\react-motion-router
+4 info versioning independent
+5 notice filter changed since "ls"
+6 silly hasTags
+7 verbose hasTags true
+8 silly git-describe.sync "835dd7e-dirty" => {"refCount":"732","sha":"835dd7e","isDirty":true}
+9 info Looking for changed packages since ls
+10 silly checking diff example
+11 error Error: Command failed with exit code 128: git diff --name-only ls -- example
+11 error fatal: bad revision 'ls'
+11 error     at makeError (W:\react-motion-router\node_modules\execa\lib\error.js:59:11)
+11 error     at Function.module.exports.sync (W:\react-motion-router\node_modules\execa\index.js:186:17)
+11 error     at execSync (W:\react-motion-router\node_modules\lerna\dist\index.js:1579:31)
+11 error     at diffSinceIn (W:\react-motion-router\node_modules\lerna\dist\index.js:1993:10)
+11 error     at hasDiffSinceThatIsntIgnored (W:\react-motion-router\node_modules\lerna\dist\index.js:1966:18)
+11 error     at isCandidate (W:\react-motion-router\node_modules\lerna\dist\index.js:2063:77)
+11 error     at W:\react-motion-router\node_modules\lerna\dist\index.js:2071:9
+11 error     at Array.forEach (<anonymous>)
+11 error     at collectProjects (W:\react-motion-router\node_modules\lerna\dist\index.js:2070:12)
