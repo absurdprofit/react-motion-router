@@ -27,6 +27,5 @@
   "peerDependencies": {
     "@react-motion-router/core": "*",
     "web-animations-extension": "*"
-  },
-  "gitHead": "83b8e3c8a8aa463b8aff107f2c5b715534aa2896"
+  }
 }
