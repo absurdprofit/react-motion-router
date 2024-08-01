@@ -55,3 +55,6 @@ jobs:
             DIST_TAG="${GITHUB_REF##*/}"
           fi
           npx lerna publish from-package --yes --force-publish --dist-tag $DIST_TAG
+
+      - name: List modified files
+        run: git status --short
