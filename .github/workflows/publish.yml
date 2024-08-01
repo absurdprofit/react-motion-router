@@ -44,6 +44,14 @@ jobs:
             jq ".version = \"${NEW_VERSION}\"" $package/package.json > $package/package.json.tmp && mv $package/package.json.tmp $package/package.json
           done
 
+      - name: Upload modified package.json files as artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: modified-packages
+          path: |
+            **/package.json
+            !node_modules/**
+
       - name: Publish packages
         env:
           NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -54,11 +62,3 @@ jobs:
             DIST_TAG="${GITHUB_REF##*/}"
           fi
           npx lerna publish from-package --yes --force-publish --dist-tag $DIST_TAG
-
-      - name: Upload modified package.json files as artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: modified-packages
-          path: |
-            **/package.json
-            !node_modules/**
