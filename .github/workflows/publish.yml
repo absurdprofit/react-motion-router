@@ -34,6 +34,7 @@ jobs:
           echo "COMMIT_HASH=${COMMIT_HASH}" >> $GITHUB_ENV
 
       - name: Conditional Version Update
+        id: version
         if: startsWith(env.BRANCH_NAME, 'next') || startsWith(env.BRANCH_NAME, 'beta')
         run: |
           if [[ "${GITHUB_REF##*/}" == "main" ]]; then
@@ -48,7 +49,7 @@ jobs:
 
           if [[ $CHANGED_PACKAGES_COUNT -eq 0 ]]; then
             echo "No packages changed. Exiting..."
-            exit 0
+            exit 1
           fi
 
           echo $CHANGED_PACKAGES_JSON | jq -r '.[].location' | while read -r package; do
@@ -62,6 +63,7 @@ jobs:
           git ls-files -m | grep 'package.json' | xargs -I {} git update-index --assume-unchanged {}
 
       - name: Publish packages
+        if: ${{ steps.version.conclusion != 'failure' }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
