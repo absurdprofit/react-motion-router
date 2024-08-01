@@ -38,7 +38,9 @@ jobs:
         run: |
           TAG_NAME=${{ env.BRANCH_NAME }}
           COMMIT_HASH=${{ env.COMMIT_HASH }}
-          lerna list --json | jq -r '.[] | .location' | while read -r package; do
+          CHANGED_PACKAGES=$(npx lerna changed --json | jq -r '.[].location')
+
+          for package in $CHANGED_PACKAGES; do
             CURRENT_VERSION=$(jq -r '.version' $package/package.json)
             NEW_VERSION="${CURRENT_VERSION}-${TAG_NAME}.${COMMIT_HASH}"
             jq ".version = \"${NEW_VERSION}\"" $package/package.json > $package/package.json.tmp && mv $package/package.json.tmp $package/package.json
