@@ -17,7 +17,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: "0"
+          fetch-depth: 2
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -47,6 +47,8 @@ jobs:
         run: |
           TAG_NAME=${{ env.TAG_NAME }}
           COMMIT_HASH=${{ env.COMMIT_HASH }}
+          LAST_COMMIT_HASH=${{ env.LAST_COMMIT_HASH }}
+          ALL_PACKAGES_JSON=$(npx lerna list --json)
           CHANGED_PACKAGES_JSON=$(npx lerna list --json --since ${LAST_COMMIT_HASH})
           CHANGED_PACKAGES_COUNT=$(echo $CHANGED_PACKAGES_JSON | jq '. | length')
 
@@ -59,6 +61,12 @@ jobs:
             CURRENT_VERSION=$(jq -r '.version' $package/package.json)
             NEW_VERSION="${CURRENT_VERSION}-${TAG_NAME}.${COMMIT_HASH}"
             jq ".version = \"${NEW_VERSION}\"" $package/package.json > $package/package.json.tmp && mv $package/package.json.tmp $package/package.json
+          done
+
+          echo $ALL_PACKAGES_JSON | jq -r '.[].location' | while read -r package; do
+            if ! echo $CHANGED_PACKAGES_JSON | jq -r '.[].location' | grep -q "$package"; then
+              jq ".private = true" $package/package.json > $package/package.json.tmp && mv $package/package.json.tmp $package/package.json
+            fi
           done
 
       - name: Assume unchanged for all package.json files
