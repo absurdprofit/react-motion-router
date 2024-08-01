@@ -63,6 +63,7 @@ function Routes() {
         id="Cards Demo 2"
         component={Cards2}
         config={{
+          title: "Cards Demo 2",
           header: { component: () => <Navbar title="Cards Demo 2" /> },
           animation: slideToStatic
         }}

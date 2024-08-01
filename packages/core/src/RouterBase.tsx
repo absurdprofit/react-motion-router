@@ -21,10 +21,7 @@ export interface RouterBaseProps<S extends ScreenBase = ScreenBase> {
     children: ScreenChild<S["props"], S> | ScreenChild<S["props"], S>[];
 }
 
-export interface RouterBaseState {
-    defaultDocumentTitle: string;
-    documentTitle: string;
-}
+export interface RouterBaseState {}
 
 export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState, E extends RouterBaseEventMap = RouterBaseEventMap> extends Component<P, S> {
     protected readonly ref = createRef<RouterHTMLElement<E>>();
@@ -51,11 +48,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
             RouterBase.rootRouterRef = new WeakRef(this);
         }
     }
-
-    state: S = {
-        defaultDocumentTitle: document.title,
-        documentTitle: document.title,
-    } as S;
 
     componentDidMount() {
         if (this.isRoot) {
