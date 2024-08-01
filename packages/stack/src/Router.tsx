@@ -66,11 +66,11 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         const config = state.screenStack.find(screen => isRefObject(screen.ref) && screen.ref.current?.focused)?.props.config;
         document.title = config?.title ?? document.title;
         return {
-            gestureDirection: config?.gestureDirection ?? state.gestureDirection,
-            gestureAreaWidth: config?.gestureAreaWidth ?? state.gestureAreaWidth,
-            gestureMinFlingVelocity: config?.gestureMinFlingVelocity ?? state.gestureMinFlingVelocity,
-            gestureHysteresis: config?.gestureHysteresis ?? state.gestureHysteresis,
-            disableGesture: config?.disableGesture ?? state.disableGesture,
+            gestureDirection: config?.gestureDirection ?? DEFAULT_GESTURE_CONFIG.gestureDirection,
+            gestureAreaWidth: config?.gestureAreaWidth ?? DEFAULT_GESTURE_CONFIG.gestureAreaWidth,
+            gestureMinFlingVelocity: config?.gestureMinFlingVelocity ?? DEFAULT_GESTURE_CONFIG.gestureMinFlingVelocity,
+            gestureHysteresis: config?.gestureHysteresis ?? DEFAULT_GESTURE_CONFIG.gestureHysteresis,
+            disableGesture: config?.disableGesture ?? DEFAULT_GESTURE_CONFIG.disableGesture,
             documentTitle: config?.title
         }
     }
