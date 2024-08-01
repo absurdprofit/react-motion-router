@@ -35,7 +35,9 @@ jobs:
             echo "TAG_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
           fi
           COMMIT_HASH=$(git rev-parse --short HEAD)
+          LAST_COMMIT_HASH=$(git rev-parse --short HEAD~1)
           echo "COMMIT_HASH=${COMMIT_HASH}" >> $GITHUB_ENV
+          echo "LAST_COMMIT_HASH=${LAST_COMMIT_HASH}" >> $GITHUB_ENV
 
       - name: Conditional Version Update
         id: version
@@ -43,7 +45,7 @@ jobs:
         run: |
           TAG_NAME=${{ env.TAG_NAME }}
           COMMIT_HASH=${{ env.COMMIT_HASH }}
-          CHANGED_PACKAGES_JSON=$(npx lerna list --json --since ${TAG_NAME})
+          CHANGED_PACKAGES_JSON=$(npx lerna list --json --since ${LAST_COMMIT_HASH})
           CHANGED_PACKAGES_COUNT=$(echo $CHANGED_PACKAGES_JSON | jq '. | length')
 
           if [[ $CHANGED_PACKAGES_COUNT -eq 0 ]]; then
