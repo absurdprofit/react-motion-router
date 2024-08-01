@@ -43,7 +43,15 @@ jobs:
           fi
           TAG_NAME=${{ env.BRANCH_NAME }}
           COMMIT_HASH=${{ env.COMMIT_HASH }}
-          lerna list --json --since ${TAG_NAME} | jq -r '.[] | .location' | while read -r package; do
+          CHANGED_PACKAGES_JSON=$(npx lerna list --json --since ${TAG_NAME})
+          CHANGED_PACKAGES_COUNT=$(echo $CHANGED_PACKAGES_JSON | jq '. | length')
+
+          if [[ $CHANGED_PACKAGES_COUNT -eq 0 ]]; then
+            echo "No packages changed. Exiting..."
+            exit 0
+          fi
+
+          echo $CHANGED_PACKAGES_JSON | jq -r '.[].location' | while read -r package; do
             CURRENT_VERSION=$(jq -r '.version' $package/package.json)
             NEW_VERSION="${CURRENT_VERSION}-${TAG_NAME}.${COMMIT_HASH}"
             jq ".version = \"${NEW_VERSION}\"" $package/package.json > $package/package.json.tmp && mv $package/package.json.tmp $package/package.json
