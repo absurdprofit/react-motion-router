@@ -1,121 +1,43 @@
-import {Children, lazy as ReactLazy, isValidElement} from "react";
-import RouterData from "../RouterData";
-import { ScreenBaseProps } from "../ScreenBase";
-import { LazyExoticComponent, PlainObject, ScreenChild, SearchParamsDeserializer, SearchParamsSerializer } from "./types";
+import { lazy as ReactLazy } from "react";
+import { LazyExoticComponent, MatchedRoute, PathPattern } from "./types";
 
-export function getCSSData(styles: CSSStyleDeclaration, exclude: string[] = [], object: boolean = true): [string, PlainObject<string>] {
-    let text = '';
-    const styleObject: PlainObject<string> = {};
-    let j = 0;
-    for (let property in styles) {
-        if (exclude.includes(property)) continue;
-        if (j < styles.length) {
-            const propertyName = styles[property];
-            let propertyValue = styles.getPropertyValue(propertyName);
-            switch (propertyName) {
-                case "visibility":
-                    propertyValue = 'visible';
-                    break;
-            }
-            text += `${propertyName}:${propertyValue};`;
-        } else {
-            if (!object) break;
-            let propertyName = property;
-            let propertyValue = styles[propertyName as any];
-            if (
-                typeof propertyValue === "string"
-                && propertyName !== "cssText"
-                && !propertyName.includes('webkit')
-                && !propertyName.includes('grid')
-            ) {
-                switch(propertyName) {
-                    case "offset":
-                        propertyName = "cssOffset";
-                        break;
-                    
-                    case "float":
-                        propertyName = "cssFloat";
-                        break;
-                    
-                    case "visibility":
-                        propertyValue = "visible";
-                        break;
-                }
-                
-                styleObject[propertyName] = propertyValue;
-            }
-        }
-        j++;
-    }
-    return [text, styleObject];
-}
+export function resolveBaseURLFromPattern(pattern: string, pathname: string) {
+    if (!pattern.endsWith("**")) pattern += '**'; // allows us to match nested routes
+    const origin = window.location.origin;
+    const baseURLMatch = new URLPattern(pattern, origin).exec(pathname, origin);
+    if (!baseURLMatch) return null;
 
-export function getStyleObject(styles: CSSStyleDeclaration, exclude: string[] = []): PlainObject<string> {
-    const styleObject: PlainObject<string> = {};
-    for (const key in styles) {
-        if (styles[key] && styles[key].length && typeof styles[key] !== "function") {
-            if (/^\d+$/.test(key)) continue;
-            if (key === "offset") continue;
-            if (exclude.includes(key)) continue;
-            styleObject[key] = styles[key];
-        }
-    }
-    return styleObject;
-}
-
-export function clamp(num: number, min: number, max?: number) {
-    if (num < min) {
-        return min;
-    } else if (max && num > max) {
-        return max;
-    }
-    return num;
-}
-
-export interface MatchedRoute {
-    matchedPathname?: string;
-    rest?: string;
-    exact: boolean;
+    const nestedPathnameGroup = baseURLMatch.pathname.groups[1] ?? '';
+    // derive concrete baseURL
+    return new URL(pathname.replace(nestedPathnameGroup, ''), window.location.origin);
 }
 
 export function matchRoute(
-    routeTest: string | undefined,
-    route: string | undefined,
-    baseURL: string = window.location.origin
+    pathnamePattern: string,
+    pathname: string,
+    baseURLPattern: string = `${window.location.origin}/`,
+    caseSensitive: boolean = true
 ): MatchedRoute | null {
-    if (typeof routeTest === "undefined" || typeof route === "undefined") {
-        if (routeTest === route) {
-            return {
-                exact: true,
-                matchedPathname: route
-            }
-        }
-        return null;
+    if (!caseSensitive) {
+        pathnamePattern = pathnamePattern.toLowerCase();
+        pathname = pathname.toLowerCase();
     }
-    const pattern = new URLPattern(routeTest, baseURL);
-    const routeURL = new URL(route!, baseURL);
-    const match = pattern.exec(routeURL);
-    let matchedPathname = '';
-    let rest = '';
-    for (let i = 0; i < pattern.pathname.length; i++) {
-        if (pattern.pathname[i] !== routeURL.pathname[i]) {
-            rest = routeURL.pathname.substring(i);
-            break;
-        } else
-            matchedPathname += pattern.pathname[i];
-    }
+
+    const baseURL = resolveBaseURLFromPattern(baseURLPattern, pathname)?.href;
+    if (!baseURL) return null;
+
+    const match = new URLPattern({ baseURL, pathname: pathnamePattern }).exec({ pathname, baseURL });
+    const params = match?.pathname.groups ?? {};
     if (match) {
         return {
-            exact: routeTest === route,
-            matchedPathname,
-            rest
+            params
         };
     }
     return null;
 }
 
-export function includesRoute(routeString: string | undefined, routeTests: (string | undefined)[], baseURL: string = window.location.origin) {
-    return routeTests.some((routeTest) => matchRoute(routeTest, routeString, baseURL));
+export function includesRoute(pathnamePatterns: PathPattern[], pathname: string, baseURL: string = window.location.origin) {
+    return pathnamePatterns.some(({ pattern, caseSensitive }) => matchRoute(pattern, pathname, baseURL, caseSensitive));
 }
 
 export function dispatchEvent<T>(event: CustomEvent<T> | Event, target: HTMLElement | EventTarget = window) {
@@ -126,137 +48,52 @@ export function dispatchEvent<T>(event: CustomEvent<T> | Event, target: HTMLElem
     });
 }
 
-export function concatenateURL(path: string | URL, base: string | URL) {
-    if (typeof base === "string") {
-        base = new URL(base);
-    }
-    if (typeof path !== "string") {
-        path = path.pathname;
-    }
-    // replace leading slash from then add trailing slash to base
-    // when this is combined with the URL API, automatic nested occurs
-    path = path.replace(/^\//, '');
-    if (!base.pathname.endsWith('/')) {
-        base = new URL(base.href + '/');
-    }
-    return new URL(path, base);
-}
-
-export function defaultSearchParamsToObject(searchPart: string) {
-    const entries = new URLSearchParams(decodeURI(searchPart)).entries();
-    const result: PlainObject<string> = {};
-    
-    for(const [key, value] of entries) { // each 'entry' is a [key, value] tuple
-        let parsedValue = '';
-        try {
-            parsedValue = JSON.parse(value);
-        } catch (e) {
-            console.warn("Non JSON serialisable value was passed as URL route param.");
-            parsedValue = value;
-        }
-        result[key] = parsedValue;
-    }
-    return Object.keys(result).length ? result : undefined;
-}
-
-export function searchParamsToObject(searchPart: string, paramsDeserializer: SearchParamsDeserializer | null) {
-    const deserializer = paramsDeserializer || defaultSearchParamsToObject;
-    const currentParams = deserializer(searchPart) || {};
-    return currentParams;
-}
-
-export function searchParamsFromObject(params: {[key: string]: any}, paramsSerializer: SearchParamsSerializer | null) {
-    try {
-        const serializer = paramsSerializer || function(paramsObj) {
-            return new URLSearchParams(paramsObj).toString();
-        }
-        return serializer(params);
-    } catch (e) {
-        console.error(e);
-        console.warn("Non JSON serialisable value was passed as route param to Anchor.");
-    }
-    return '';
-}
-
 export function lazy<T extends React.ComponentType<any>>(
     factory: () => Promise<{ default: T }>
 ): LazyExoticComponent<T> {
     const Component = ReactLazy(factory) as LazyExoticComponent<T>;
-    Component.preload = () => {
-        const result = factory();
-        result
-        .then(moduleObject => Component.preloaded = moduleObject.default)
-        .catch(console.error);
-        return result;
+    Component.load = async () => {
+        Component.module ??= await factory();
+        return Component.module;
     };
     return Component;
 }
 
-/**
- * Searches router data tree for matching screen. Once the screen is found
- * its component is preloaded.
- * @param path 
- * @param routerData 
- * @returns 
- */
-export function prefetchRoute(path: string, routerData: RouterData) {
-    let currentRouterData: RouterData | null = routerData;
-    return new Promise<boolean>((resolve, reject) => {
-        let found = false;
-        while(currentRouterData) {
-            const routes = currentRouterData.routes;
-            Children.forEach<ScreenChild<ScreenBaseProps>>(routes, (route) => {
-                if (found) return; // stop after first
-                if (!isValidElement(route)) return;
-                const matchInfo = matchRoute(route.props.path, path);
-                if (!matchInfo) return;
-                found = true;
-                queueMicrotask(async () => {
-                    const preloadTasks = [];
-                    if ('preload' in route.props.component) {
-                        preloadTasks.push(route.props.component.preload());
-                    }
-                    if (route.props.config?.header?.component
-                            && 'preload' in route.props.config?.header?.component) {
-                        preloadTasks.push(route.props.config?.header?.component.preload());
-                    }
-                    if (route.props.config?.footer?.component
-                        && 'preload' in route.props.config?.footer?.component) {
-                        preloadTasks.push(route.props.config?.footer?.component.preload());
-                    }
-                    try {
-                        await Promise.all(preloadTasks);
-                        resolve(found);
-                    } catch (e) {
-                        reject(e);
-                    }
-                });
-            });
-            if (!found) {
-                currentRouterData = routerData.parentRouterData;
-            } else {
-                break;
-            }
-        }
-        if (!found)
-            resolve(false);
+export function isNavigationSupported() {
+    return Boolean(window.navigation);
+}
+
+export function isURLPatternSupported() {
+    // @ts-ignore: Property 'UrlPattern' does not exist 
+    return Boolean(globalThis.URLPattern);
+}
+
+export async function polyfillURLPattern() {
+    const { URLPattern } = await import(/*webpackIgnore: true*/ "urlpattern-polyfill");
+    // @ts-ignore: Property 'UrlPattern' does not exist 
+    globalThis.URLPattern = URLPattern;
+}
+
+export async function polyfillNavigation() {
+    const { applyPolyfill } = await import(/*webpackIgnore: true*/ "@virtualstate/navigation");
+    applyPolyfill({
+        history: true,
+        interceptEvents: true,
+        patch: true,
+        persist: true,
+        persistState: true
     });
 }
 
-export function getAnimationDuration(animation: Animation | null, defaultDuration: number = 0) {
-    const duration = animation?.effect?.getTiming().duration;
-    return Number(duration) || defaultDuration;
+export async function PromiseAllDynamic<T>(values: Iterable<T | PromiseLike<T>>): Promise<Awaited<T>[]> {
+    const awaited = [];
+    for (const value of values) {
+        awaited.push(await value);
+    }
+
+    return awaited;
 }
 
-export const DEFAULT_ANIMATION = {
-    in: {
-        type: 'none',
-        duration: 0
-    },
-    out: {
-        type: 'none',
-        duration: 0
-    }
-} as const;
-
-export const MAX_Z_INDEX = 2147483647;
+export function toCamelCase(value: string) {
+    return value.replace(/-([a-z])/g, (g) => g[1].toUpperCase())
+}

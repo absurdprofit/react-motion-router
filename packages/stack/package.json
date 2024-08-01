@@ -1,6 +1,6 @@
 {
   "name": "@react-motion-router/stack",
-  "version": "1.2.1",
+  "version": "2.0.0",
   "description": "",
   "main": "build/index.js",
   "publishConfig": {
@@ -11,21 +11,22 @@
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack",
-    "dev": "webpack -w"
+    "build": "webpack --env production",
+    "dev": "webpack watch --env development"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nxtexe/react-motion-router.git"
   },
   "author": "nxtexe",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/nxtexe/react-motion-router/issues"
   },
   "homepage": "https://github.com/nxtexe/react-motion-router#readme",
   "peerDependencies": {
-    "@react-motion-router/core": "*"
+    "@react-motion-router/core": "*",
+    "web-animations-extension": "*"
   },
   "gitHead": "38a495e365799d870713ad00fcffd26af293582f"
 }

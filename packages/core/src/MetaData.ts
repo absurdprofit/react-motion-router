@@ -1,7 +1,7 @@
 import { MetaKey, MetaType, MetaTypeKey } from "./common/types";
 
-export default class MetaData {
-    private _map = new Map<MetaKey, string | undefined>();
+export class MetaData {
+    #map = new Map<MetaKey, string | undefined>();
     private mutationObserver: MutationObserver;
 
     constructor() {
@@ -23,7 +23,7 @@ export default class MetaData {
     get(key: string | MetaType) {
         const metaKey = this.getMetaKey(key);
 
-        const metaContent = this._map.get(metaKey);
+        const metaContent = this.#map.get(metaKey);
         if (!metaContent) return undefined;
 
         let content: string | [string, string][];
@@ -40,20 +40,20 @@ export default class MetaData {
         const metaKey = this.getMetaKey(key);
         const metaContent = this.getMetaContent(content);
 
-        this._map.set(metaKey, metaContent);
+        this.#map.set(metaKey, metaContent);
         this.updateMetaElement(metaKey, metaContent);
     }
 
     has(key: string | MetaType) {
         const metaKey = this.getMetaKey(key);
 
-        return this._map.has(metaKey);
+        return this.#map.has(metaKey);
     }
 
     delete(key: string | MetaType) {
         const metaKey = this.getMetaKey(key);
 
-        this._map.delete(metaKey);
+        this.#map.delete(metaKey);
         document.head.querySelector(`meta[${metaKey}]`)?.remove();
     }
 
@@ -62,7 +62,7 @@ export default class MetaData {
     }
 
     entries() {
-        return this._map.entries();
+        return this.#map.entries();
     }
 
     [Symbol.iterator]() {
@@ -70,7 +70,7 @@ export default class MetaData {
     }
 
     get size() {
-        return this._map.size;
+        return this.#map.size;
     }
     
     private observeMutations(mutations: MutationRecord[]) {
@@ -89,8 +89,8 @@ export default class MetaData {
                     const metaType: MetaType = [type.nodeName as MetaTypeKey, type.value];
 
                     const key = metaType.join('=') as MetaKey;
-                    if (this._map.has(key)) {
-                        this._map.delete(key);
+                    if (this.#map.has(key)) {
+                        this.#map.delete(key);
                     }
                 }
             });
@@ -108,7 +108,7 @@ export default class MetaData {
         const metaType: MetaType = [type.nodeName as MetaTypeKey, type.value];
 
         const key = metaType.join('=') as MetaKey;
-        this._map.set(key, content?.value);
+        this.#map.set(key, content?.value);
     }
 
     private getMetaKey(key: string | MetaType) {

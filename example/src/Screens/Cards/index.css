@@ -1,0 +1,73 @@
+.cards {
+  background-color: white;
+  padding-bottom: 15px;
+  overflow: hidden;
+  button {
+    text-align: left;
+  }
+  .MuiPaper-root {
+    border-radius: 15px;
+    background-color: transparent;
+    box-shadow: none;
+    img {
+      border-radius: 15px 15px 0px 0px;
+      &:empty {
+        background-color: #efefef;
+        color: transparent;
+      }
+    }
+  }
+  .card-bg {
+    height: 100%;
+    border-radius: 15px;
+    background-color: white;
+    z-index: 0;
+    box-shadow: 0px 2px 1px -1px rgb(0 0 0 / 20%),
+      0px 1px 1px 0px rgb(0 0 0 / 14%), 0px 1px 3px 0px rgb(0 0 0 / 12%);
+  }
+  .card-list {
+    list-style: none;
+    padding: 0;
+    width: 100%;
+    height: calc(100vh - 94px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    gap: 15px;
+    overflow-y: scroll;
+    contain: strict;
+    a {
+      display: flex;
+      text-decoration: none;
+    }
+  }
+  p {
+    overflow: hidden;
+    text-overflow: clip;
+    text-align: justify;
+    line-height: 1.5rem;
+    height: 70px;
+    width: 313px;
+    max-width: calc(100vw - 52px);
+  }
+  .MuiPaper-root,
+  .MuiPaper-root p,
+  .MuiPaper-root img,
+  .MuiPaper-root h5 {
+    position: static;
+    z-index: 1;
+  }
+  &.suspense .card-list {
+    animation: cards-fade-in 0.5s ease forwards;
+  }
+}
+@keyframes cards-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

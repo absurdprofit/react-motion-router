@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "lerna run build",
-    "publish": "lerna run build && lerna publish"
+    "dev": "lerna run dev --parallel"
   },
   "repository": {
     "type": "git",
@@ -25,13 +25,16 @@
     "transition"
   ],
   "author": "nxtexe",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/nxtexe/react-motion-router/issues"
   },
   "homepage": "https://github.com/nxtexe/react-motion-router#readme",
   "devDependencies": {
-    "lerna": "^5.4.3"
+    "@types/dom-navigation": "^1.0.3",
+    "lerna": "^8.1.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.2"
   },
   "workspaces": {
     "packages": [

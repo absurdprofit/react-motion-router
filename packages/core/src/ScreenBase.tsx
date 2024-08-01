@@ -1,280 +1,207 @@
-import { Component, ElementType, Suspense, cloneElement, isValidElement, useMemo } from "react";
-import AnimationProvider from "./AnimationProvider";
+import { Component, ElementType, Suspense, cloneElement, createRef, isValidElement } from "react";
+import { ScreenTransitionProvider } from "./ScreenTransitionProvider";
 import {
-    AnimationConfig,
-    AnimationConfigFactory,
-    AnimationConfigSet,
-    AnimationKeyframeEffectConfig,
+    AnimationEffectFactory,
     LazyExoticComponent,
     PlainObject,
-    ReducedAnimationConfigSet,
-    RouteProp,
-    SwipeDirection,
-    isValidComponentConstructor
+    RoutePropBase,
+    isLazyExoticComponent,
+    isNativeLazyExoticComponent,
 } from "./common/types";
-import { RouterDataContext } from "./RouterData";
-import { SharedElement, SharedElementScene, SharedElementSceneContext } from "./SharedElement";
-import { DEFAULT_ANIMATION } from "./common/utils";
-import { RouteDataContext } from "./RouteData";
-import { NavigationBase } from ".";
+import { NestedRouterContext, RouterContext } from "./RouterContext";
+import { RoutePropContext } from "./RoutePropContext";
+import { NavigationBase } from "./NavigationBase";
+import { SharedElementSceneContext } from "./SharedElementSceneContext";
+import { SharedElementScene } from "./SharedElementScene";
 
-export interface ScreenBaseProps {
-    out?: boolean;
-    in?: boolean;
+export interface ScreenBaseComponentProps<
+    R extends RoutePropBase = RoutePropBase,
+    N extends NavigationBase = NavigationBase
+> {
+    route: R;
+    navigation: N;
+}
+
+export interface LifecycleProps<R extends RoutePropBase> extends ScreenBaseComponentProps<R, NavigationBase> {
+    signal: AbortSignal;
+}
+
+export interface ScreenBaseProps<R extends RoutePropBase = RoutePropBase> {
     component: React.JSXElementConstructor<any> | LazyExoticComponent<any>;
     fallback?: React.ReactNode;
-    path?: string;
+    path: string;
     resolvedPathname?: string;
     defaultParams?: PlainObject;
-    name?: string;
+    caseSensitive?: boolean;
+    id?: string;
     config?: {
         header?: {
             fallback?: React.ReactNode;
             component: React.JSXElementConstructor<any> | LazyExoticComponent<any>
-        },
+        };
         footer?: {
             fallback?: React.ReactNode;
             component: React.JSXElementConstructor<any> | LazyExoticComponent<any>
-        },
-        animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig | AnimationConfigFactory;
-        pseudoElement?: {
-            selector: string;
-            animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig | AnimationConfigFactory;
         };
-        keepAlive?: boolean;
-        swipeDirection?: SwipeDirection;
-        swipeAreaWidth?: number;
-        minFlingVelocity?: number;
-        hysteresis?: number;
-        disableDiscovery?: boolean;
+        animation?: AnimationEffectFactory;
+        onEnter?: (props: LifecycleProps<R>) => void | Promise<void>;
+        onExit?: (props: LifecycleProps<R>) => void | Promise<void>;
+        onEntered?: (props: LifecycleProps<R>) => void | Promise<void>;
+        onExited?: (props: LifecycleProps<R>) => void | Promise<void>;
+        onLoad?: (props: LifecycleProps<R>) => void | Promise<void>;
     }
 }
 
 export interface ScreenBaseState {
-    shouldKeepAlive: boolean;
+    focused: boolean;
+    elementType: ElementType;
 }
 
-export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState> extends Component<P, S> {
-    protected name = this.props.path === undefined ? 'not-found' : this.props.path?.toString().slice(1).replace('/', '-') || 'index';
-    protected sharedElementScene: SharedElementScene = new SharedElementScene(this.name);
-    protected ref: HTMLElement | null = null;
-    private onRef = this.setRef.bind(this);
-    private animation: AnimationConfigSet | (() => AnimationConfigSet) = DEFAULT_ANIMATION;
-    private pseudoElementAnimation: AnimationConfigSet | (() => AnimationConfigSet) = DEFAULT_ANIMATION;
-    protected elementType: ElementType | string = "div";
-    protected animationProviderRef: HTMLElement | null = null;
-    protected _routeData: RouteProp<P, PlainObject> = {
-        params: {},
-        config: this.props.config ?? {},
-        path: this.props.path,
-        preloaded: false,
-        setParams: this.setParams.bind(this),
-        setConfig: this.setConfig.bind(this),
-        focused: false
-    };
-    static contextType = RouterDataContext;
-    context!: React.ContextType<typeof RouterDataContext>;
+export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState, R extends RoutePropBase<ScreenBaseProps["config"]> = RoutePropBase<ScreenBaseProps["config"]>> extends Component<P, S> {
+    public readonly sharedElementScene: SharedElementScene;
+    #transitionProvider = createRef<ScreenTransitionProvider>();
+    protected readonly ref = createRef<HTMLDivElement>();
+    protected readonly nestedRouterData;
+    static readonly contextType = RouterContext;
+    declare context: React.ContextType<typeof RouterContext>;
 
     state: S = {
-        shouldKeepAlive: this.props.out && this.props.config?.keepAlive,
+        focused: false,
+        elementType: 'div'
     } as S;
 
-    componentDidMount() {
-        this.sharedElementScene.getScreenRect = () => this.ref?.getBoundingClientRect() || new DOMRect();
-        
-        const routeData = this.routeData;
-        this.animation = this.setupAnimation(routeData.config.animation) ?? this.context!.animation;
-        this.pseudoElementAnimation = this.setupAnimation(routeData.config.pseudoElement?.animation) ?? DEFAULT_ANIMATION;
+    constructor(props: P, context: React.ContextType<typeof RouterContext>) {
+        super(props);
 
-        this.context!.mountedScreen = this;
-        this.forceUpdate();
-    }
-
-    shouldComponentUpdate(nextProps: P) {
-        if (nextProps.out && !nextProps.in) {
-            return true;
-        }
-        if (nextProps.in && !nextProps.out) {
-            return true;
-        }
-        if (nextProps.in !== this.props.in || nextProps.out !== this.props.out) {
-            return true;
-        }
-        return false;
+        this.sharedElementScene = new SharedElementScene(`${this.id}-shared-element-scene`);
+        this.sharedElementScene.getScreenRect = () => this.ref.current?.getBoundingClientRect() || new DOMRect();
+        this.nestedRouterData = { parentScreen: this as ScreenBase, parentRouter: context };
     }
 
     protected setParams(params: PlainObject) {
-        const routeData = this.routeData;
-        routeData.params = {
-            ...routeData.params,
+        params = {
+            ...this.routeProp.params,
             ...params
         };
-        this.context!.routesData.set(this.props.path, routeData);
+        const config = this.routeProp.config;
+        this.context.screenState.set(this.props.path, { config, params });
         this.forceUpdate();
     }
 
     protected setConfig(config: P['config']) {
-        const routeData = this.routeData;
-        routeData.config = {
-            ...routeData.config,
+        config = {
+            ...this.routeProp.config,
             ...config
         };
-        this.context!.routesData.set(this.props.path, routeData);
+        const params = this.routeProp.params;
+        this.context.screenState.set(this.props.path, { config, params });
         this.forceUpdate();
     }
 
-    protected get routeData() {
-        this._routeData.params = {
-            ...this.props.defaultParams, // passed as prop
-            ...this.context!.routesData.get(this.props.path)?.params, // passed by other screens using navigate
-            ...this._routeData.params // passed by setParams
-        };
-        this._routeData.config = {
-            ...this.props.config, // passed as prop
-            ...this.context!.routesData.get(this.props.path)?.config, // passed by other screens using navigate
-            ...this._routeData.config // passed by setConfig
-        };
-        return this._routeData;
+    get id() {
+        if (this.props.id) return this.props.id;
+        return this.props.path
+            .toLowerCase()
+            .replace(/[^\w-]/g, '-') // Remove non-alphanumeric chars
+            .replace(/-+/g, '-') // Replace multiple hyphens with a single one
+            .replace(/^-|-$/g, ''); // Remove leading and trailing hyphens;
     }
 
-    setupAnimation(animation?: ReducedAnimationConfigSet | AnimationConfig | AnimationKeyframeEffectConfig | AnimationConfigFactory) {
-        if (animation) {
-            if (typeof animation === "function") {
-                return this.animationFactory.bind(this, animation);
-            } else {
-                if ('in' in animation) {
-                    return {
-                        in: animation.in,
-                        out: animation.out || animation.in
-                    };
-                } else {
-                    return {
-                        in: animation,
-                        out: animation
-                    };
-                }
-            }
-        }
-        return null;
+    get focused() {
+        return this.state.focused;
     }
 
-    animationFactory(animation?: AnimationKeyframeEffectConfig | AnimationConfig | ReducedAnimationConfigSet | AnimationConfigFactory): AnimationConfigSet {
-        if (typeof animation === "function") {
-            let currentPath = this.context!.navigation!.history.next;
-            if (!this.context!.backNavigating) {
-                currentPath = this.context!.navigation!.history.previous;
-            }
-            let nextPath = this.context!.navigation!.history.current;
-
-            const animationConfig = animation(
-                currentPath || '',
-                nextPath,
-                this.context!.gestureNavigating
-            );
-
-            if ('in' in animationConfig) {
-                return {
-                    in: animationConfig.in,
-                    out: animationConfig.out || animationConfig.in
-                };
-            } else {
-                return {
-                    in: animationConfig,
-                    out: animationConfig
-                };
-            }
-        }
-
-        return this.context!.animation;
+    blur() {
+        return new Promise<void>(resolve => this.setState({ focused: false }, resolve));
     }
 
-    onExited() {}
-    
-    onExit() {
-        if (this.context!.backNavigating)
-            this.setState({shouldKeepAlive: false});
-        else {
-            this.setState({shouldKeepAlive: true});
-        }
-
-        if (this.context!.ghostLayer) {
-            this.context!.ghostLayer.currentScene = this.sharedElementScene;
-        }
+    focus() {
+        return new Promise<void>(resolve => this.setState({ focused: true }, resolve));
     }
 
-    onEnter() {
-        if (this.context!.ghostLayer) {
-            this.context!.ghostLayer.nextScene = this.sharedElementScene;
+    async load(signal: AbortSignal) {
+        let Component = this.props.component;
+        let result;
+        if ('load' in Component) {
+            result = await Component.load();
+        } else {
+            result = { default: Component };
         }
+
+        const navigation = this.context.navigation;
+        const route = this.routeProp;
+        await this.props.config?.onLoad?.({ navigation, route, signal });
+
+        return result;
     }
 
-    onEntered() {}
+    abstract get routeProp(): R;
+    abstract get config(): R["config"];
+    abstract get params(): R["params"];
 
-    private setRef(ref: HTMLElement | null) {
-        if (this.ref !== ref) {
-            this.ref = ref;
-        }
+    async onExited(signal: AbortSignal): Promise<void> {
+        await this.routeProp.config.onExited?.({
+            route: this.routeProp,
+            navigation: this.context.navigation,
+            signal
+        });
+    }
+
+    async onExit(signal: AbortSignal): Promise<void> {
+        await this.routeProp.config.onExit?.({
+            route: this.routeProp,
+            navigation: this.context.navigation,
+            signal
+        });
+    }
+
+    async onEnter(signal: AbortSignal): Promise<void> {
+        await this.routeProp.config.onEnter?.({
+            route: this.routeProp,
+            navigation: this.context.navigation,
+            signal
+        });
+    }
+
+    async onEntered(signal: AbortSignal): Promise<void> {
+        await this.routeProp.config.onEntered?.({
+            route: this.routeProp,
+            navigation: this.context.navigation,
+            signal
+        });
     }
 
     get resolvedPathname() {
         return this.props.resolvedPathname;
     }
 
+    get path() {
+        return this.props.path;
+    }
+
+    get transitionProvider() {
+        return this.#transitionProvider;
+    }
+
     render() {
-        const routeData = this.routeData;
-        let Component = this.props.component as React.JSXElementConstructor<any>;
-        let HeaderComponent = routeData.config.header?.component as React.JSXElementConstructor<any>;
-        let FooterComponent = routeData.config.footer?.component as React.JSXElementConstructor<any>;
-        let preloaded = false;
-        let headerPreloaded = false;
-        let footerPreloaded = false;
-        if ('preloaded' in Component && Component.preloaded) {
-            Component = Component.preloaded as React.JSXElementConstructor<any>;
-            preloaded = true;
-        }
-        if (HeaderComponent) {
-            if ('preloaded' in HeaderComponent && HeaderComponent.preloaded) {
-                HeaderComponent = HeaderComponent.preloaded as React.JSXElementConstructor<any>;
-                headerPreloaded = true;
-            }
-        }
-        if (FooterComponent) {
-            if ('preloaded' in FooterComponent && FooterComponent.preloaded) {
-                FooterComponent = FooterComponent.preloaded as React.JSXElementConstructor<any>;
-                footerPreloaded = true;
-            }
-        }
-        let pseudoElement = undefined;
-        if (routeData.config.pseudoElement) {
-            pseudoElement = {
-                selector: routeData.config.pseudoElement.selector,
-                animation: this.pseudoElementAnimation
-            };
-        }
-        routeData.preloaded = preloaded;
-        routeData.focused = Boolean(this.props.in);
-        this.sharedElementScene.keepAlive = Boolean(routeData.config.keepAlive);
+        const navigation = this.context.navigation;
+        const routeProp = this.routeProp;
+        const Component = this.props.component;
+        const HeaderComponent = routeProp.config.header?.component;
+        const FooterComponent = routeProp.config.footer?.component;
+
         return (
-            <AnimationProvider
-                onRef={ref => this.animationProviderRef = ref}
-                renderAs={this.elementType}
-                onExit={this.onExit.bind(this)}
-                onExited={this.onExited.bind(this)}
-                onEnter={this.onEnter.bind(this)}
-                onEntered={this.onEntered.bind(this)}
-                in={this.props.in || false}
-                out={this.props.out || false}
-                name={this.props.name?.toLowerCase().replace(' ', '-') ?? this.name}
-                resolvedPathname={this.props.resolvedPathname}
-                animation={this.animation}
-                pseudoElement={pseudoElement}
-                backNavigating={this.context!.backNavigating}
-                keepAlive={this.state.shouldKeepAlive ? routeData.config.keepAlive || false : false}
-                navigation={this.context!.navigation}
+            <ScreenTransitionProvider
+                ref={this.#transitionProvider}
+                renderAs={this.state.elementType}
+                id={`${this.id}-transition-provider`}
+                animation={routeProp.config.animation}
+                navigation={navigation}
+                focused={this.state.focused}
             >
                 <div
-                    id={this.name}
-                    ref={this.onRef}
+                    id={this.id}
+                    ref={this.ref}
                     className="screen"
                     style={{
                         height: '100%',
@@ -285,41 +212,42 @@ export default abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseP
                     }}
                 >
                     <SharedElementSceneContext.Provider value={this.sharedElementScene}>
-                        <RouteDataContext.Provider value={routeData}>
-                            <Suspense fallback={<ComponentWithRouteData component={routeData.config.header?.fallback} route={{...routeData, preloaded: headerPreloaded}} navigation={this.context!.navigation} />}>
-                                <ComponentWithRouteData component={HeaderComponent} route={routeData} navigation={this.context!.navigation} />
-                            </Suspense>
-                            <Suspense fallback={<ComponentWithRouteData component={this.props.fallback} route={routeData} navigation={this.context!.navigation} />}>
-                                <ComponentWithRouteData component={Component} route={routeData} navigation={this.context!.navigation} />
-                            </Suspense>
-                            <Suspense fallback={<ComponentWithRouteData component={routeData.config.footer?.fallback} route={{...routeData, preloaded: footerPreloaded}} navigation={this.context!.navigation} />}>
-                                <ComponentWithRouteData component={FooterComponent} route={routeData} navigation={this.context!.navigation} />
-                            </Suspense>
-                        </RouteDataContext.Provider>
+                        <RoutePropContext.Provider value={routeProp}>
+                            <NestedRouterContext.Provider value={this.nestedRouterData}>
+                                <Suspense fallback={<ComponentWithRouteProps component={routeProp.config.header?.fallback} route={routeProp} navigation={navigation} />}>
+                                    <ComponentWithRouteProps component={HeaderComponent} route={routeProp} navigation={navigation} />
+                                </Suspense>
+                                <Suspense fallback={<ComponentWithRouteProps component={this.props.fallback} route={routeProp} navigation={navigation} />}>
+                                    <ComponentWithRouteProps component={Component} route={routeProp} navigation={navigation} />
+                                </Suspense>
+                                <Suspense fallback={<ComponentWithRouteProps component={routeProp.config.footer?.fallback} route={routeProp} navigation={navigation} />}>
+                                    <ComponentWithRouteProps component={FooterComponent} route={routeProp} navigation={navigation} />
+                                </Suspense>
+                            </NestedRouterContext.Provider>
+                        </RoutePropContext.Provider>
                     </SharedElementSceneContext.Provider>
                 </div>
-            </AnimationProvider>
+            </ScreenTransitionProvider>
         );
     }
 }
 
-interface ComponentWithRouteDataProps<P extends ScreenBaseProps> {
-    component: React.JSXElementConstructor<any>  | LazyExoticComponent<any> | React.ReactNode;
-    route: RouteProp<P, PlainObject>;
-    navigation: NavigationBase;
+interface ComponentWithRoutePropsProps extends ScreenBaseComponentProps<RoutePropBase, NavigationBase> {
+    component: React.JSXElementConstructor<any> | LazyExoticComponent<any> | React.ReactNode;
 }
-function ComponentWithRouteData<P extends ScreenBaseProps>({component, route, navigation}: ComponentWithRouteDataProps<P>) {
+function ComponentWithRouteProps({ component, route, navigation }: ComponentWithRoutePropsProps) {
+    if (isLazyExoticComponent(component) && component.module?.default) {
+        component = component.module.default;
+    }
     const Component = component ?? null;
     if (isValidElement(Component)) {
         return cloneElement<any>(Component, {
-            orientation: screen.orientation,
             navigation,
             route
         });
-    } else if (isValidComponentConstructor(Component)) {
+    } else if (typeof Component === "function" || isNativeLazyExoticComponent(Component)) {
         return (
             <Component
-                orientation={screen.orientation}
                 navigation={navigation}
                 route={route}
             />

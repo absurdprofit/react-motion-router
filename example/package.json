@@ -2,6 +2,8 @@
   "name": "@react-motion-router/example",
   "description": "Example React Motion Router app",
   "private": true,
+  "type": "module",
+  "homepage": "https://nxtexe.github.io/react-motion-router",
   "dependencies": {
     "@emotion/react": "^11.7.1",
     "@emotion/styled": "^11.6.0",
@@ -16,25 +18,32 @@
     "@types/node": "^12.20.37",
     "@types/react": "^18.0.4",
     "@types/react-dom": "^18.0.0",
+    "@vitejs/plugin-react": "^4.2.0",
     "framer-motion": "^6.3.3",
     "o9n": "^2.1.1",
     "react": "^18.2.0",
     "react-dom": "^18.0.0",
-    "react-scripts": "^5.0.0",
     "react-swipeable-views": "^0.14.0",
     "react-swipeable-views-utils": "^0.14.0",
     "source-map-explorer": "^2.5.2",
     "styled-components": "^5.3.3",
-    "typescript": "^4.4.4",
+    "typescript": "^5.5.2",
+    "vite": "^5.0.2",
+    "vite-plugin-svgr": "^4.2.0",
+    "vite-tsconfig-paths": "^4.2.1",
     "web-gesture-events": "0.0.10",
     "web-vitals": "^1.1.2"
   },
   "scripts": {
-    "analyse": "source-map-explorer 'build/static/js/*.js'",
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "analyse": "source-map-explorer 'build/assets/*.js'",
+    "dev": "vite --host",
+    "lint": "tsc",
+    "prebuild": "npm run lint",
+    "build": "vite build --base=/react-motion-router",
+    "preview": "vite preview",
+    "test": "vite test",
+    "predeploy": "lerna run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
@@ -44,22 +53,29 @@
   },
   "browserslist": {
     "production": [
-      "Chrome >= 60",
-      "Safari >= 10.1",
-      "iOS >= 10.3",
-      "Firefox >= 54",
-      "Edge >= 15"
+      "Chrome >= 89",
+      "Safari >= 17.4",
+      "iOS >= 17.4",
+      "Firefox >= 89",
+      "Edge >= 89"
     ],
     "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
+      "Chrome >= 89",
+      "Safari >= 17.4",
+      "iOS >= 17.4",
+      "Firefox >= 89",
+      "Edge >= 89"
     ]
   },
   "devDependencies": {
     "@types/react-swipeable-views": "^0.13.1",
     "@types/react-swipeable-views-utils": "^0.13.3",
     "@types/react-transition-group": "^4.4.4",
-    "@types/styled-components": "^5.1.15"
+    "@types/styled-components": "^5.1.15",
+    "autoprefixer": "^10.4.16",
+    "gh-pages": "^6.1.1",
+    "postcss-nesting": "^12.0.1",
+    "rollup-plugin-license": "^3.2.0",
+    "vitest": "^0.34.6"
   }
 }
