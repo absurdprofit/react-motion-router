@@ -9,7 +9,6 @@ import {
 import { NestedRouterContext, RouterContext } from './RouterContext';
 import { dispatchEvent, matchRoute, resolveBaseURLFromPattern } from './common/utils';
 import { Component, createRef, isValidElement, Children } from 'react';
-import { DEFAULT_GESTURE_CONFIG } from './common/constants';
 import { ScreenBase, ScreenBaseProps } from './ScreenBase';
 import { LoadEvent } from './common/events';
 
