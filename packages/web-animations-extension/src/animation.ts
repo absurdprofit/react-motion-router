@@ -643,6 +643,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 
 		if (toGestureTimeline) {
 			this.#timeline = newTimeline;
+			newTimeline.addEventListener('update', this.#onGestureTimelineUpdate);
 			this.#applyPendingPlaybackRate();
 			this.#autoAlignStartTime = true;
 			this.#startTime = null;
@@ -653,7 +654,6 @@ export class Animation extends EventTarget implements NativeAnimation {
 					this.#schedulePendingTask();
 				}
 				this.#pending.task = 'play';
-				newTimeline.addEventListener('update', this.#onGestureTimelineUpdate);
 				this.#children.forEach(child => child.pause());
 			}
 			if (previousPlayState === 'paused' && previousProgress !== null) {
