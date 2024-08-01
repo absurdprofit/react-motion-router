@@ -54,4 +54,4 @@ jobs:
           else
             DIST_TAG="${GITHUB_REF##*/}"
           fi
-          npx lerna publish from-package --yes --dist-tag $DIST_TAG
+          npx lerna publish from-package --yes --force-publish --dist-tag $DIST_TAG
