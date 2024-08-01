@@ -8,7 +8,7 @@
     "build": "lerna run build",
     "dev": "lerna run dev --parallel",
     "prepublish": "npm run build",
-    "publish": "lerna publish from-package --yes"
+    "publish": "lerna publish from-package --yes --dist-tag next"
   },
   "repository": {
     "type": "git",
