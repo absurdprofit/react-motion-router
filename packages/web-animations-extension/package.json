@@ -18,8 +18,7 @@
   },
   "scripts": {
     "build": "webpack --env production",
-    "dev": "webpack watch --env development",
-    "prepublish": "npm run build"
+    "dev": "webpack watch --env development"
   },
   "bugs": {
     "url": "https://github.com/nxtexe/react-motion-router/issues"
