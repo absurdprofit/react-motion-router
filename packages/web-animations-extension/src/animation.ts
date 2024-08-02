@@ -240,7 +240,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 	#updateFinishedState(didSeek: boolean) {
 		const timelineTime = this.#timeline?.currentTime ?? null;
 		const unit = this.#timeline instanceof GestureTimeline ? 'percent' : 'ms';
-		let unconstrainedCurrentTime = cssNumberishToNumber(timelineTime, unit);
+		let unconstrainedCurrentTime = cssNumberishToNumber(this.currentTime, unit);
 
 		if (unconstrainedCurrentTime && this.#startTime !== null && !this.pending) {
 			let { delay = 0, endDelay = 0, iterations = 1, duration = 'auto' } = this.#effect?.getTiming() ?? {};
