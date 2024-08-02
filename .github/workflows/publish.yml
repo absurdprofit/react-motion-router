@@ -54,7 +54,8 @@ jobs:
 
           if [[ $CHANGED_PACKAGES_COUNT -eq 0 ]]; then
             echo "No packages changed. Exiting..."
-            exit 1
+            echo "versioned=false" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
           echo $CHANGED_PACKAGES_JSON | jq -r '.[].location' | while read -r package; do
@@ -71,12 +72,14 @@ jobs:
             fi
           done
 
+          echo "versioned=true" >> "$GITHUB_OUTPUT"
+
       - name: Assume unchanged for all package.json files
         run: |
           git ls-files -m | grep 'package.json' | xargs -I {} git update-index --assume-unchanged {}
 
       - name: Publish packages
-        if: ${{ steps.version.conclusion != 'failure' }}
+        if: ${{ steps.version.outputs.versioned == 'true' }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
