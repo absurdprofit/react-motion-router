@@ -27,11 +27,11 @@ export default function Overlays(props: OverlaysProps) {
         }
     }, [props.navigation]);
 
-    const modalConfig = {
-        swipeDirection: 'down',
-        swipeAreaWidth: window.innerHeight / 1.5,
-        disableDiscovery: false,
-        hysteresis: 15,
+    const modalConfig: Stack.ScreenProps["config"] = {
+        gestureDirection: 'down',
+        gestureAreaWidth: window.innerHeight / 1.5,
+        disableGesture: false,
+        gestureHysteresis: .15,
         presentation: "modal"
     } as const;
     return (

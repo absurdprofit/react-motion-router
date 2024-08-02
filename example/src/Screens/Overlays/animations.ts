@@ -1,6 +1,6 @@
 import { AnimationEffectFactoryProps } from '@react-motion-router/core';
 import { isIOS, isPWA } from '../../common/utils';
-import { ParallelEffect, springToLinear } from 'web-animations-extension';
+import { GestureTimeline, ParallelEffect, springToLinear } from 'web-animations-extension';
 
 export function BackdropAnimation({ ref, direction, playbackRate, index }: AnimationEffectFactoryProps) {
     const duration = isIOS() && !isPWA() ? 0 : 300;
@@ -98,8 +98,10 @@ const springTiming = springToLinear({
 export function SheetAnimation({ ref, direction, playbackRate, index, ...props }: AnimationEffectFactoryProps) {
     if (isIOS() && !isPWA())
         ref = null;
+
+    const timing = props.timeline instanceof GestureTimeline ? { easing: "linear", duration: 300 } : springTiming;
     const options: KeyframeEffectOptions = {
-        ...springTiming,
+        ...timing,
         playbackRate,
         fill: "forwards"
     };
