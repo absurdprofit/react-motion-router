@@ -1,6 +1,6 @@
 {
   "name": "@react-motion-router/stack",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "",
   "main": "build/index.js",
   "publishConfig": {
@@ -12,8 +12,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack --env production",
-    "dev": "webpack watch --env development",
-    "prepublish": "npm run build"
+    "dev": "webpack watch --env development"
   },
   "repository": {
     "type": "git",
