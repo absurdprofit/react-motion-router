@@ -11,8 +11,7 @@ interface BaseAnchorProps extends React.DetailedHTMLProps<React.AnchorHTMLAttrib
 }
 
 interface ForwardAnchorProps extends BaseAnchorProps {
-    params?: PlainObject;
-    query?: PlainObject<string | boolean | number>;
+    params?: PlainObject<string | boolean | number>;
     href: string;
     type?: NavigateOptions["type"];
     preload?: boolean;
@@ -24,18 +23,22 @@ interface BackAnchorProps extends BaseAnchorProps {
 
 type AnchorProps = XOR<ForwardAnchorProps, BackAnchorProps>;
 
+function useNavigationOrDefault(navigation?: Navigation) {
+    const defaultNavigation = useNavigation();
+    return navigation ?? defaultNavigation;
+}
+
 export function Anchor(props: AnchorProps) {
     const {
-        navigation = useNavigation(),
         preload,
         goBack,
         params = {},
-        query = {},
         type = "push",
         href: hrefProp,
         onClick: onClickProp,
         ...aProps
     } = props;
+    const navigation = useNavigationOrDefault(props.navigation);
     const [href, setHref] = useState<string | undefined>(undefined);
     const routerId = navigation?.routerId;
     const isExternal = !href?.includes(window.location.origin);
@@ -50,12 +53,12 @@ export function Anchor(props: AnchorProps) {
         if (goBack) {
             setHref(navigation.previous?.url?.href);
         } else if (hrefProp) {
-            const search = searchParamsFromObject(query);
+            const search = searchParamsFromObject(params);
             const uri = new URL(hrefProp, navigation.baseURL);
             uri.search = search;
             setHref(uri.href);
         }
-    }, [hrefProp, query]);
+    }, [hrefProp, params]);
 
     const onClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         if (goBack) {
@@ -63,7 +66,7 @@ export function Anchor(props: AnchorProps) {
             navigation.goBack();
         } else if (type === "replace" && hrefProp) {
             e.preventDefault();
-            navigation.navigate(hrefProp, { params }, { type });
+            navigation.replace(hrefProp);
         }
         onClickProp?.(e);
     };
