@@ -23,7 +23,7 @@ export interface RouterProps extends RouterBaseProps<Screen> {
 export interface RouterState extends RouterBaseState {
     backNavigating: boolean;
     transition: NavigationTransition | LoadEvent["transition"] | null;
-    screenStack: ScreenChild<ScreenProps, Screen>[];
+    screenStack: ScreenChild<Screen>[];
     gestureDirection: SwipeDirection;
     gestureAreaWidth: number;
     gestureMinFlingVelocity: number;
@@ -215,7 +215,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             resolvedPathname: pathname,
             key,
             ref: createRef<Screen>()
-        }) as ScreenChild<ScreenProps, Screen>;
+        }) as ScreenChild<Screen>;
     }
 
     private getScreenChildByPathname(pathname: string) {
@@ -280,7 +280,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             const fromKey = e.transition?.from?.key ?? null;
             const destinationKey = e.destination.key;
             const transition = e.transition;
-            const screenStack = new Array<ScreenChild<ScreenProps, Screen>>();
+            const screenStack = new Array<ScreenChild<Screen>>();
             const entries = this.navigation.entries;
             entries.forEach((entry) => {
                 if (!entry.url) return null;
