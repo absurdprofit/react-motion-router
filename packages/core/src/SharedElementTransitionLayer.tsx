@@ -178,6 +178,7 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
         const currentScene = this.outgoingScreen?.current?.sharedElementScene;
         const nextScene = this.incomingScreen?.current?.sharedElementScene;
         if (!currentScene || !nextScene) return null;
+        if (currentScene === nextScene) return null;
         currentScene.previousScene = null;
         nextScene.previousScene = currentScene;
         const parallelEffects = new Array<ParallelEffect>();

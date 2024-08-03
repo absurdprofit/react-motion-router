@@ -56,7 +56,7 @@ function Routes() {
           onEnter({ navigation }) {
             setTimeout(() => {
               navigation.replace('cards-2');
-            }, 150);
+            }, 500);
           },
           header: { component: () => <Navbar title="Cards Demo" /> },
           animation: slideToStatic
