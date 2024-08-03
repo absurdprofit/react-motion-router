@@ -229,88 +229,19 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                 return;
 
         switch (e.navigationType) {
+            case "load":
+                this.handleLoad(e);
+                break;
+
             case "reload":
             case "replace":
                 this.handleReplace(e);
-                break;
-
-            case "load":
-                this.handleLoad(e);
                 break;
 
             default:
                 this.handleDefault(e);
                 break;
         }
-    }
-
-    private handleReplace(e: NavigateEvent) {
-        const screenStack = this.state.screenStack;
-        const destinationPathname = new URL(e.destination.url).pathname;
-        const destinationScreen = this.screenChildFromPathname(destinationPathname);
-        if (!isValidScreenChild<Screen>(destinationScreen)) return e.preventDefault();
-        const handler = () => {
-            const { params, config } = e.destination.getState() as HistoryEntryState ?? {};
-            const destination = e.destination;
-            const isHotReplace = this.state.transition !== null;
-            const transition = this.state.transition ?? window.navigation.transition;
-            const fromKey = transition?.from?.key ?? null;
-            const destinationKey = window.navigation.currentEntry?.key ?? destination.key;
-            const resolvedPathname = new URL(e.destination.url).pathname;
-            const queryParams = searchParamsToObject(new URL(destination.url).search);
-            const currentIndex = screenStack.findIndex(screen => screen.key === this.navigation.current?.key);
-            const backNavigating = this.state.backNavigating;
-            const outgoingScreen = this.getScreenRefByKey(String(fromKey));
-            screenStack.splice(
-                currentIndex,
-                1,
-                cloneElement(destinationScreen, {
-                    config: {
-                        title: document.title,
-                        ...this.props.config.screenConfig,
-                        ...destinationScreen.props.config,
-                        ...config
-                    },
-                    defaultParams: {
-                        ...destinationScreen.props.defaultParams,
-                        ...queryParams,
-                        ...params,
-                    },
-                    resolvedPathname,
-                    key: destinationKey,
-                    ref: createRef<Screen>()
-                })
-            );
-
-            if (isHotReplace) {
-                this.screenTransitionLayer.current?.animation.commitStyles();
-                this.screenTransitionLayer.current?.animation.cancel();
-            }
-            return new Promise<void>((resolve, reject) => startTransition(() => {
-                this.setState({ destinationKey, fromKey, transition, screenStack }, async () => {
-                    const signal = e.signal;
-                    const incomingScreen = this.getScreenRefByKey(String(destinationKey));
-                    // TODO: outgoing screen ref is null here, fix this
-                    const pendingLifecycleHandlers = this.dispatchLifecycleHandlers(incomingScreen, outgoingScreen, signal).catch(reject);
-                    if (isHotReplace) {
-                        // TODO: fix this, progress is out of whack
-                        let { progress } = this.screenTransitionLayer.current?.animation.effect?.getComputedTiming() ?? {};
-                        progress ??= 0;
-                        const animation = this.screenTransition(incomingScreen, outgoingScreen, backNavigating);
-                        if (animation?.effect) {
-                            const { endTime = 0 } = animation.effect.getComputedTiming();
-                            animation.currentTime = cssNumberishToNumber(endTime) * progress;
-                        }
-                        animation?.updatePlaybackRate(1);
-                        await animation?.finished.catch(reject);
-                    }
-                    await pendingLifecycleHandlers;
-                    this.setState({ destinationKey: null, fromKey: null, transition: null }, resolve);
-                });
-            }));
-        };
-
-        e.intercept({ handler });
     }
 
     private handleLoad(e: LoadEvent) {
@@ -379,6 +310,70 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                 });
             }));
         }
+
+        e.intercept({ handler });
+    }
+
+    private handleReplace(e: NavigateEvent) {
+        const screenStack = this.state.screenStack;
+        const destinationPathname = new URL(e.destination.url).pathname;
+        const destinationScreen = this.screenChildFromPathname(destinationPathname);
+        if (!isValidScreenChild<Screen>(destinationScreen)) return e.preventDefault();
+        const handler = () => {
+            const { params, config } = e.destination.getState() as HistoryEntryState ?? {};
+            const destination = e.destination;
+            const isHotReplace = this.state.transition !== null;
+            const transition = this.state.transition ?? window.navigation.transition;
+            const fromKey = transition?.from?.key ?? null;
+            const destinationKey = window.navigation.currentEntry?.key ?? destination.key;
+            const resolvedPathname = new URL(e.destination.url).pathname;
+            const queryParams = searchParamsToObject(new URL(destination.url).search);
+            const currentIndex = screenStack.findIndex(screen => screen.key === this.navigation.current?.key);
+            const backNavigating = this.state.backNavigating;
+            const outgoingScreen = this.getScreenRefByKey(String(fromKey));
+            screenStack.splice(
+                currentIndex,
+                1,
+                cloneElement(destinationScreen, {
+                    config: {
+                        title: document.title,
+                        ...this.props.config.screenConfig,
+                        ...destinationScreen.props.config,
+                        ...config
+                    },
+                    defaultParams: {
+                        ...destinationScreen.props.defaultParams,
+                        ...queryParams,
+                        ...params,
+                    },
+                    resolvedPathname,
+                    key: destinationKey,
+                    ref: createRef<Screen>()
+                })
+            );
+
+            return new Promise<void>((resolve, reject) => startTransition(() => {
+                this.setState({ destinationKey, fromKey, transition, screenStack }, async () => {
+                    const signal = e.signal;
+                    const incomingScreen = this.getScreenRefByKey(String(destinationKey));
+                    // TODO: outgoing screen ref is null here, fix this
+                    const pendingLifecycleHandlers = this.dispatchLifecycleHandlers(incomingScreen, outgoingScreen, signal).catch(reject);
+                    if (isHotReplace) {
+                        const currentTime = this.screenTransitionLayer.current?.animation.currentTime ?? 0;
+                        this.screenTransitionLayer.current?.animation.cancel();
+                        await new Promise(requestAnimationFrame);
+                        const animation = this.screenTransition(incomingScreen, outgoingScreen, backNavigating);
+                        if (animation) {
+                            animation.currentTime = currentTime;
+                        }
+                        animation?.updatePlaybackRate(1);
+                        await animation?.finished.catch(reject);
+                    }
+                    await pendingLifecycleHandlers;
+                    this.setState({ destinationKey: null, fromKey: null, transition: null }, resolve);
+                });
+            }));
+        };
 
         e.intercept({ handler });
     }

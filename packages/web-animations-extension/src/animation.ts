@@ -109,6 +109,11 @@ export class Animation extends EventTarget implements NativeAnimation {
 		});
 	}
 
+	#cancelPendingTask() {
+		cancelAnimationFrame(this.#pendingTaskRequestId);
+		this.#pending.task = null;
+	}
+
 	#commitPendingPlay() {
 		const timelineTime = this.timeline?.currentTime ?? null;
 		if (timelineTime === null) {
@@ -469,15 +474,13 @@ export class Animation extends EventTarget implements NativeAnimation {
 
 		if (this.#pending.task === 'pause' && this.#startTime !== null) {
 			this.#holdTime = null;
-			this.#pending.task = null;
-			cancelAnimationFrame(this.#pendingTaskRequestId);
+			this.#cancelPendingTask();
 			this.#readyPromise.resolve(this);
 		}
 
 
 		if (this.#pending.task === 'play' && this.#startTime !== null) {
-			this.#pending.task = null;
-			cancelAnimationFrame(this.#pendingTaskRequestId);
+			this.#cancelPendingTask();
 			this.#readyPromise.resolve(this);
 		}
 
@@ -502,13 +505,11 @@ export class Animation extends EventTarget implements NativeAnimation {
 
 	cancel() {
 		if (this.playState !== 'idle') {
-			this.#pending.task = null;
-
 			this.#applyPendingPlaybackRate();
 			this.#readyPromise.reject(new DOMException("The user aborted a request", "AbortError"));
 
-			this.#schedulePendingTask();
-			this.#readyPromise.resolve(this);
+			this.#cancelPendingTask();
+			this.#readyPromise = new PromiseWrapper();
 
 			if (this.#finishedPromise.state === 'pending') {
 				this.#finishedPromise.reject(new DOMException("The user aborted a request", "AbortError"));
@@ -609,8 +610,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 			this.#holdTime = cssNumberishToNumber(seekTime!, unit);
 			this.#applyPendingPlaybackRate();
 			this.#startTime = null;
-			this.#pending.task = null;
-			cancelAnimationFrame(this.#pendingTaskRequestId);
+			this.#cancelPendingTask();
 			this.#readyPromise.resolve(this);
 		}
 
@@ -703,7 +703,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 	set effect(effect: AnimationEffect | null) {
 		if (effect === this.#effect) return;
 		if (this.pending) {
-			this.#schedulePendingTask();
+			this.#cancelPendingTask();
 		}
 
 		if (this.#effect)

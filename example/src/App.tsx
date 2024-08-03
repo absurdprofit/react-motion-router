@@ -56,7 +56,7 @@ function Routes() {
           onEnter({ navigation }) {
             setTimeout(() => {
               navigation.replace('cards-2');
-            }, 500);
+            }, 150);
           },
           header: { component: () => <Navbar title="Cards Demo" /> },
           animation: slideToStatic
@@ -102,6 +102,11 @@ function Routes() {
         component={Tiles}
         fallback={<div className='screen-fallback tiles'></div>}
         config={{
+          onEnter({ navigation }) {
+            setTimeout(() => {
+              navigation.replace('slides');
+            }, 150);
+          },
           header: { component: () => <Navbar title="Tiles" /> },
           animation: slideToStatic
         }}
