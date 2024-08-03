@@ -2,7 +2,7 @@ import { associatedAnimation } from "./common/associated-animation";
 import { MAX_DURATION_PERCENTAGE, MIN_DURATION_PERCENTAGE, RESOLVED_AUTO_DURATION } from "./common/constants";
 import { NativeAnimation, isNull } from "./common/types";
 import { cssNumberishToNumber, msFromPercent, msFromTime } from "./common/utils";
-import { GestureTimeline, GestureTimelineUpdateEvent } from "./gesture-timeline";
+import { GestureTimeline } from "./gesture-timeline";
 import { GroupEffect } from "./group-effect";
 import { KeyframeEffect } from "./keyframe-effect";
 import { PromiseWrapper } from "./promise-wrapper";

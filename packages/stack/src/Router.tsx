@@ -5,7 +5,7 @@ import { ScreenProps, Screen } from './Screen';
 import { HistoryEntryState, isHorizontalDirection, isRefObject, SwipeDirection } from './common/types';
 import { Children, createRef, cloneElement, startTransition } from 'react';
 import { SwipeStartEvent, SwipeEndEvent } from 'web-gesture-events';
-import { cssNumberishToNumber, GestureTimeline } from 'web-animations-extension';
+import { GestureTimeline } from 'web-animations-extension';
 import { deepEquals, isRollback, searchParamsToObject } from './common/utils';
 import { GestureCancelEvent, GestureEndEvent, GestureStartEvent } from './common/events';
 import { DEFAULT_GESTURE_CONFIG } from './common/constants';
