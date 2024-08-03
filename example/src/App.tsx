@@ -53,9 +53,6 @@ function Routes() {
         id="Cards Demo"
         component={Cards}
         config={{
-          onEnter(props) {
-              props.navigation
-          },
           header: { component: () => <Navbar title="Cards Demo" /> },
           animation: slideToStatic
         }}
