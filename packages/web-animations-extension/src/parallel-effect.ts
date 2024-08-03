@@ -1,6 +1,6 @@
 import { associatedAnimation } from "./common/associated-animation";
 import { DEFAULT_TIMING } from "./common/constants";
-import { calculateCurrentIterationIndex, computedTimingToPercent, cssNumberishToNumber, getPhase, msFromPercent, msFromTime } from "./common/utils";
+import { calculateCurrentIterationIndex, computedTimingToPercent, cssNumberishToNumber, getPhase, msFromTime } from "./common/utils";
 import { GestureTimeline } from "./gesture-timeline";
 import { GroupEffect } from "./group-effect";
 

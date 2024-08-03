@@ -61,7 +61,7 @@ const CardComponent = ({ observer, navigation, hero }: CardProps) => {
     };
     return (
         <li role="menuitem">
-            <Anchor href='details' query={params} onClick={onClick}>
+            <Anchor href='details' params={params} onClick={onClick}>
                 <ButtonBase aria-label={`Character profile: ${hero.name}`} disableRipple>
                     <SharedElement id={`${hero.id}-card-bg`} config={{deepClone: false}}>
                         <div

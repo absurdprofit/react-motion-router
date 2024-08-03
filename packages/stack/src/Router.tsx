@@ -229,69 +229,19 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                 return;
 
         switch (e.navigationType) {
+            case "load":
+                this.handleLoad(e);
+                break;
+
             case "reload":
             case "replace":
                 this.handleReplace(e);
-                break;
-
-            case "load":
-                this.handleLoad(e);
                 break;
 
             default:
                 this.handleDefault(e);
                 break;
         }
-    }
-
-    private handleReplace(e: NavigateEvent) {
-        const screenStack = this.state.screenStack;
-        const destinationPathname = new URL(e.destination.url).pathname;
-        const destinationScreen = this.screenChildFromPathname(destinationPathname);
-        if (!isValidScreenChild<Screen>(destinationScreen)) return e.preventDefault();
-        const handler = () => {
-            const { params, config } = e.destination.getState() as HistoryEntryState ?? {};
-            const destination = e.destination;
-            const transition = window.navigation.transition;
-            const fromKey = transition?.from.key ?? null;
-            const destinationKey = e.destination.key;
-            const resolvedPathname = new URL(e.destination.url).pathname;
-            const queryParams = searchParamsToObject(new URL(destination.url).search);
-            const currentIndex = screenStack.findIndex(screen => screen.key === this.navigation.current?.key);
-            screenStack.splice(
-                currentIndex,
-                1, // Remove all screens after current
-                cloneElement(destinationScreen, {
-                    config: {
-                        title: document.title,
-                        ...this.props.config.screenConfig,
-                        ...destinationScreen.props.config,
-                        ...config
-                    },
-                    defaultParams: {
-                        ...destinationScreen.props.defaultParams,
-                        ...queryParams,
-                        ...params,
-                    },
-                    resolvedPathname,
-                    key: window.navigation.currentEntry?.key,
-                    ref: createRef<Screen>()
-                })
-            );
-
-            return new Promise<void>((resolve, reject) => startTransition(() => {
-                this.setState({ destinationKey, fromKey, transition, screenStack }, async () => {
-                    const signal = e.signal;
-                    if (this.navigation.current?.key === undefined)
-                        reject(new Error("Current key is undefined"));
-                    const currentScreen = this.getScreenRefByKey(this.navigation.current.key);
-                    await this.dispatchLifecycleHandlers(currentScreen?.current ?? null, null, signal).catch(reject);
-                    this.setState({ destinationKey: null, fromKey: null }, resolve);
-                });
-            }));
-        };
-
-        e.intercept({ handler });
     }
 
     private handleLoad(e: LoadEvent) {
@@ -355,11 +305,74 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                         reject(new Error("Current key is undefined"));
 
                     const currentScreen = this.getScreenRefByKey(this.navigation.current.key);
-                    await this.dispatchLifecycleHandlers(currentScreen?.current ?? null, null, signal).catch(reject);
-                    this.setState({ destinationKey: null, fromKey: null }, resolve);
+                    await this.dispatchLifecycleHandlers(currentScreen, null, signal).catch(reject);
+                    this.setState({ destinationKey: null, fromKey: null, transition: null }, resolve);
                 });
             }));
         }
+
+        e.intercept({ handler });
+    }
+
+    private handleReplace(e: NavigateEvent) {
+        const screenStack = this.state.screenStack;
+        const destinationPathname = new URL(e.destination.url).pathname;
+        const destinationScreen = this.screenChildFromPathname(destinationPathname);
+        if (!isValidScreenChild<Screen>(destinationScreen)) return e.preventDefault();
+        const handler = () => {
+            const { params, config } = e.destination.getState() as HistoryEntryState ?? {};
+            const destination = e.destination;
+            const isHotReplace = this.state.transition !== null;
+            const transition = this.state.transition ?? window.navigation.transition;
+            const fromKey = transition?.from?.key ?? null;
+            const destinationKey = window.navigation.currentEntry?.key ?? destination.key;
+            const resolvedPathname = new URL(e.destination.url).pathname;
+            const queryParams = searchParamsToObject(new URL(destination.url).search);
+            const currentIndex = screenStack.findIndex(screen => screen.key === this.navigation.current?.key);
+            const backNavigating = this.state.backNavigating;
+            screenStack.splice(
+                currentIndex,
+                1,
+                cloneElement(destinationScreen, {
+                    config: {
+                        title: document.title,
+                        ...this.props.config.screenConfig,
+                        ...destinationScreen.props.config,
+                        ...config
+                    },
+                    defaultParams: {
+                        ...destinationScreen.props.defaultParams,
+                        ...queryParams,
+                        ...params,
+                    },
+                    resolvedPathname,
+                    key: destinationKey,
+                    ref: createRef<Screen>()
+                })
+            );
+
+            return new Promise<void>((resolve, reject) => startTransition(() => {
+                this.setState({ destinationKey, fromKey, transition, screenStack }, async () => {
+                    const signal = e.signal;
+                    const outgoingScreen = this.getScreenRefByKey(String(fromKey));
+                    const incomingScreen = this.getScreenRefByKey(String(destinationKey));
+                    const pendingLifecycleHandlers = this.dispatchLifecycleHandlers(incomingScreen, null, signal).catch(reject);
+                    if (isHotReplace) {
+                        const currentTime = this.screenTransitionLayer.current?.animation.currentTime ?? 0;
+                        this.screenTransitionLayer.current?.animation.cancel();
+                        await new Promise(requestAnimationFrame);
+                        const animation = this.screenTransition(incomingScreen, outgoingScreen, backNavigating);
+                        if (animation) {
+                            animation.currentTime = currentTime;
+                        }
+                        animation?.updatePlaybackRate(1);
+                        await animation?.finished.catch(reject);
+                    }
+                    await pendingLifecycleHandlers;
+                    this.setState({ destinationKey: null, fromKey: null, transition: null }, resolve);
+                });
+            }));
+        };
 
         e.intercept({ handler });
     }
@@ -421,15 +434,14 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                     const signal = e.signal;
                     const outgoingScreen = this.getScreenRefByKey(String(fromKey));
                     const incomingScreen = this.getScreenRefByKey(String(destinationKey));
-                    const pendingLifecycleHandlers = this.dispatchLifecycleHandlers(incomingScreen?.current ?? null, outgoingScreen?.current ?? null, signal).catch(reject);
+                    const pendingLifecycleHandlers = this.dispatchLifecycleHandlers(incomingScreen, outgoingScreen, signal).catch(reject);
                     if (!isRollback(e.info)) {
                         const animation = this.screenTransition(incomingScreen, outgoingScreen, backNavigating);
                         animation?.updatePlaybackRate(1);
-                        signal.addEventListener('abort', () => animation?.finish());
-                        await animation?.finished.catch(reject);
+                        animation?.finished.catch(reject);
                     }
                     await pendingLifecycleHandlers;
-                    this.setState({ destinationKey: null, fromKey: null }, resolve);
+                    this.setState({ destinationKey: null, fromKey: null, transition: null }, resolve);
                 });
             }));
         }
@@ -437,22 +449,22 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         e.intercept({ handler });
     }
 
-    private async dispatchLifecycleHandlers(incomingScreen: Screen | null, outgoingScreen: Screen | null, signal: AbortSignal) {
+    private async dispatchLifecycleHandlers(incomingScreen: React.RefObject<Screen> | null, outgoingScreen: React.RefObject<Screen> | null, signal: AbortSignal) {
         let animationStarted = false;
         this.addEventListener('transition-start', () => animationStarted = true, { once: true });
 
         await Promise.all([
-            outgoingScreen?.onExit(signal).then(() => outgoingScreen.blur()),
-            incomingScreen?.onEnter(signal).then(() => incomingScreen.focus()),
-            incomingScreen?.load(signal)
+            outgoingScreen?.current?.onExit(signal).then(() => outgoingScreen.current?.blur()),
+            incomingScreen?.current?.onEnter(signal).then(() => incomingScreen.current?.focus()),
+            incomingScreen?.current?.load(signal)
         ]);
 
-        if (incomingScreen && outgoingScreen && animationStarted)
+        if (animationStarted)
             await new Promise((resolve) => this.addEventListener('transition-end', resolve, { once: true }));
 
         await Promise.all([
-            outgoingScreen?.onExited(signal),
-            incomingScreen?.onEntered(signal)
+            outgoingScreen?.current?.onExited(signal),
+            incomingScreen?.current?.onEntered(signal)
         ]);
     }
 

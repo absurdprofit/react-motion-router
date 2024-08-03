@@ -2,7 +2,7 @@ import { associatedAnimation } from "./common/associated-animation";
 import { MAX_DURATION_PERCENTAGE, MIN_DURATION_PERCENTAGE, RESOLVED_AUTO_DURATION } from "./common/constants";
 import { NativeAnimation, isNull } from "./common/types";
 import { cssNumberishToNumber, msFromPercent, msFromTime } from "./common/utils";
-import { GestureTimeline, GestureTimelineUpdateEvent } from "./gesture-timeline";
+import { GestureTimeline } from "./gesture-timeline";
 import { GroupEffect } from "./group-effect";
 import { KeyframeEffect } from "./keyframe-effect";
 import { PromiseWrapper } from "./promise-wrapper";
@@ -107,6 +107,11 @@ export class Animation extends EventTarget implements NativeAnimation {
 				.then(this.#dispatchCancelledEvent)
 				.then(() => this.#replaceState = 'removed');
 		});
+	}
+
+	#cancelPendingTask() {
+		cancelAnimationFrame(this.#pendingTaskRequestId);
+		this.#pending.task = null;
 	}
 
 	#commitPendingPlay() {
@@ -469,15 +474,13 @@ export class Animation extends EventTarget implements NativeAnimation {
 
 		if (this.#pending.task === 'pause' && this.#startTime !== null) {
 			this.#holdTime = null;
-			this.#pending.task = null;
-			cancelAnimationFrame(this.#pendingTaskRequestId);
+			this.#cancelPendingTask();
 			this.#readyPromise.resolve(this);
 		}
 
 
 		if (this.#pending.task === 'play' && this.#startTime !== null) {
-			this.#pending.task = null;
-			cancelAnimationFrame(this.#pendingTaskRequestId);
+			this.#cancelPendingTask();
 			this.#readyPromise.resolve(this);
 		}
 
@@ -502,13 +505,11 @@ export class Animation extends EventTarget implements NativeAnimation {
 
 	cancel() {
 		if (this.playState !== 'idle') {
-			this.#pending.task = null;
-
 			this.#applyPendingPlaybackRate();
 			this.#readyPromise.reject(new DOMException("The user aborted a request", "AbortError"));
 
-			this.#schedulePendingTask();
-			this.#readyPromise.resolve(this);
+			this.#cancelPendingTask();
+			this.#readyPromise = new PromiseWrapper();
 
 			if (this.#finishedPromise.state === 'pending') {
 				this.#finishedPromise.reject(new DOMException("The user aborted a request", "AbortError"));
@@ -609,8 +610,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 			this.#holdTime = cssNumberishToNumber(seekTime!, unit);
 			this.#applyPendingPlaybackRate();
 			this.#startTime = null;
-			this.#pending.task = null;
-			cancelAnimationFrame(this.#pendingTaskRequestId);
+			this.#cancelPendingTask();
 			this.#readyPromise.resolve(this);
 		}
 
@@ -703,7 +703,7 @@ export class Animation extends EventTarget implements NativeAnimation {
 	set effect(effect: AnimationEffect | null) {
 		if (effect === this.#effect) return;
 		if (this.pending) {
-			this.#schedulePendingTask();
+			this.#cancelPendingTask();
 		}
 
 		if (this.#effect)

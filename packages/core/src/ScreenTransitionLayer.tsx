@@ -97,8 +97,11 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
         this.animation.play();
         this.onTransitionStart();
 
-        this.animation.addEventListener('cancel', this.onTransitionCancel.bind(this), { once: true });
-
+        this.animation.oncancel = () => {
+            this.sharedElementTransitionLayer.current?.ref.current?.close();
+            this.onTransitionCancel();
+            this.animation.effect = null;
+        }
         this.animation.finished.then(() => {
             this.animation.commitStyles();
             this.onTransitionEnd();
