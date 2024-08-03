@@ -22,11 +22,11 @@ export interface ScreenBaseComponentProps<
     navigation: N;
 }
 
-export interface LifecycleProps<R extends RoutePropBase> extends ScreenBaseComponentProps<R, NavigationBase> {
+export interface LifecycleProps<R extends RoutePropBase, N extends NavigationBase = NavigationBase> extends ScreenBaseComponentProps<R, N> {
     signal: AbortSignal;
 }
 
-export interface ScreenBaseConfig<R extends RoutePropBase = RoutePropBase> {
+export interface ScreenBaseConfig<R extends RoutePropBase = RoutePropBase, N extends NavigationBase = NavigationBase> {
     header?: {
         fallback?: React.ReactNode;
         component: React.JSXElementConstructor<any> | LazyExoticComponent<any>
@@ -36,11 +36,11 @@ export interface ScreenBaseConfig<R extends RoutePropBase = RoutePropBase> {
         component: React.JSXElementConstructor<any> | LazyExoticComponent<any>
     };
     animation?: AnimationEffectFactory;
-    onEnter?: (props: LifecycleProps<R>) => void | Promise<void>;
-    onExit?: (props: LifecycleProps<R>) => void | Promise<void>;
-    onEntered?: (props: LifecycleProps<R>) => void | Promise<void>;
-    onExited?: (props: LifecycleProps<R>) => void | Promise<void>;
-    onLoad?: (props: LifecycleProps<R>) => void | Promise<void>;
+    onEnter?: (props: LifecycleProps<R, N>) => void | Promise<void>;
+    onExit?: (props: LifecycleProps<R, N>) => void | Promise<void>;
+    onEntered?: (props: LifecycleProps<R, N>) => void | Promise<void>;
+    onExited?: (props: LifecycleProps<R, N>) => void | Promise<void>;
+    onLoad?: (props: LifecycleProps<R, N>) => void | Promise<void>;
 }
 
 export interface ScreenBaseProps {
@@ -59,7 +59,11 @@ export interface ScreenBaseState {
     elementType: ElementType;
 }
 
-export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState, R extends RoutePropBase<P["config"]> = RoutePropBase<P["config"]>> extends Component<P, S> {
+export abstract class ScreenBase<
+    P extends ScreenBaseProps = ScreenBaseProps,
+    S extends ScreenBaseState = ScreenBaseState,
+    R extends RoutePropBase<P["config"]> = RoutePropBase<P["config"]>
+> extends Component<P, S> {
     public readonly sharedElementScene: SharedElementScene;
     #transitionProvider = createRef<ScreenTransitionProvider>();
     protected readonly ref = createRef<HTMLDivElement>();
