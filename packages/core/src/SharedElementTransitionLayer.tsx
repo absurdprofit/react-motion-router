@@ -212,6 +212,7 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
                     startClone.remove();
                 };
                 this.props.navigation.addEventListener('transition-end', onFinish, { once: true });
+                this.props.navigation.addEventListener('transition-cancel', onFinish, { once: true });
 
                 parallelEffects.push(this.getAnimationEffect(
                     { instance: start, clone: startClone },

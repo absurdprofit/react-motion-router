@@ -5,7 +5,7 @@ import { ScreenProps, Screen } from './Screen';
 import { HistoryEntryState, isHorizontalDirection, isRefObject, SwipeDirection } from './common/types';
 import { Children, createRef, cloneElement, startTransition } from 'react';
 import { SwipeStartEvent, SwipeEndEvent } from 'web-gesture-events';
-import { GestureTimeline } from 'web-animations-extension';
+import { cssNumberishToNumber, GestureTimeline } from 'web-animations-extension';
 import { deepEquals, isRollback, searchParamsToObject } from './common/utils';
 import { GestureCancelEvent, GestureEndEvent, GestureStartEvent } from './common/events';
 import { DEFAULT_GESTURE_CONFIG } from './common/constants';
@@ -252,15 +252,16 @@ export class Router extends RouterBase<RouterProps, RouterState> {
         const handler = () => {
             const { params, config } = e.destination.getState() as HistoryEntryState ?? {};
             const destination = e.destination;
-            const transition = window.navigation.transition;
-            const fromKey = transition?.from.key ?? null;
-            const destinationKey = e.destination.key;
+            const transition = this.state.transition ?? window.navigation.transition;
+            const fromKey = transition?.from?.key ?? null;
+            const destinationKey = window.navigation.currentEntry?.key ?? destination.key;
             const resolvedPathname = new URL(e.destination.url).pathname;
             const queryParams = searchParamsToObject(new URL(destination.url).search);
             const currentIndex = screenStack.findIndex(screen => screen.key === this.navigation.current?.key);
+            const backNavigating = this.state.backNavigating;
             screenStack.splice(
                 currentIndex,
-                1, // Remove all screens after current
+                1,
                 cloneElement(destinationScreen, {
                     config: {
                         title: document.title,
@@ -274,18 +275,31 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                         ...params,
                     },
                     resolvedPathname,
-                    key: window.navigation.currentEntry?.key,
+                    key: destinationKey,
                     ref: createRef<Screen>()
                 })
             );
 
+            // let { progress } = this.screenTransitionLayer.current?.animation.effect?.getComputedTiming() ?? {};
+            // progress ??= 0;
+            const progress = 0.1;   
             return new Promise<void>((resolve, reject) => startTransition(() => {
                 this.setState({ destinationKey, fromKey, transition, screenStack }, async () => {
                     const signal = e.signal;
-                    if (this.navigation.current?.key === undefined)
-                        reject(new Error("Current key is undefined"));
-                    const currentScreen = this.getScreenRefByKey(this.navigation.current.key);
-                    await this.dispatchLifecycleHandlers(currentScreen?.current ?? null, null, signal).catch(reject);
+                    const outgoingScreen = this.getScreenRefByKey(String(fromKey));
+                    const incomingScreen = this.getScreenRefByKey(String(destinationKey));
+                    const pendingLifecycleHandlers = this.dispatchLifecycleHandlers(incomingScreen?.current ?? null, null, signal).catch(reject);
+                    if (!isRollback(e.info)) {
+                        const animation = this.screenTransition(incomingScreen, outgoingScreen, backNavigating);
+                        if (animation?.effect) {
+                            const { endTime = 0 } = animation.effect.getComputedTiming();
+                            animation.currentTime = cssNumberishToNumber(endTime) * progress;
+                        }
+                        animation?.updatePlaybackRate(1);
+                        signal.addEventListener('abort', () => animation?.finish());
+                        await animation?.finished.catch(reject);
+                    }
+                    await pendingLifecycleHandlers;
                     this.setState({ destinationKey: null, fromKey: null }, resolve);
                 });
             }));
@@ -425,8 +439,8 @@ export class Router extends RouterBase<RouterProps, RouterState> {
                     if (!isRollback(e.info)) {
                         const animation = this.screenTransition(incomingScreen, outgoingScreen, backNavigating);
                         animation?.updatePlaybackRate(1);
-                        signal.addEventListener('abort', () => animation?.finish());
-                        await animation?.finished.catch(reject);
+                        signal.addEventListener('abort', () => animation?.cancel());
+                        animation?.finished.catch(reject);
                     }
                     await pendingLifecycleHandlers;
                     this.setState({ destinationKey: null, fromKey: null }, resolve);
@@ -447,7 +461,7 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             incomingScreen?.load(signal)
         ]);
 
-        if (incomingScreen && outgoingScreen && animationStarted)
+        if (animationStarted)
             await new Promise((resolve) => this.addEventListener('transition-end', resolve, { once: true }));
 
         await Promise.all([

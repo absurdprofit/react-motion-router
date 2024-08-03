@@ -44,11 +44,13 @@ export class ScreenTransitionProvider extends Component<ScreenTransitionProvider
     componentDidMount() {
         this.props.navigation.addEventListener('transition-start', this.onAnimationStart);
         this.props.navigation.addEventListener('transition-end', this.onAnimationEnd);
+        this.props.navigation.addEventListener('transition-cancel', this.onAnimationEnd);
     }
 
     componentWillUnmount() {
         this.props.navigation.removeEventListener('transition-start', this.onAnimationStart);
         this.props.navigation.removeEventListener('transition-end', this.onAnimationEnd);
+        this.props.navigation.removeEventListener('transition-cancel', this.onAnimationEnd);
     }
 
     get animationEffect() {

@@ -53,6 +53,11 @@ function Routes() {
         id="Cards Demo"
         component={Cards}
         config={{
+          onEnter({ navigation }) {
+            setTimeout(() => {
+              navigation.replace('cards-2');
+            }, 150);
+          },
           header: { component: () => <Navbar title="Cards Demo" /> },
           animation: slideToStatic
         }}
