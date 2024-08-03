@@ -26,7 +26,24 @@ export interface LifecycleProps<R extends RoutePropBase> extends ScreenBaseCompo
     signal: AbortSignal;
 }
 
-export interface ScreenBaseProps<R extends RoutePropBase = RoutePropBase> {
+export interface ScreenBaseConfig<R extends RoutePropBase = RoutePropBase> {
+    header?: {
+        fallback?: React.ReactNode;
+        component: React.JSXElementConstructor<any> | LazyExoticComponent<any>
+    };
+    footer?: {
+        fallback?: React.ReactNode;
+        component: React.JSXElementConstructor<any> | LazyExoticComponent<any>
+    };
+    animation?: AnimationEffectFactory;
+    onEnter?: (props: LifecycleProps<R>) => void | Promise<void>;
+    onExit?: (props: LifecycleProps<R>) => void | Promise<void>;
+    onEntered?: (props: LifecycleProps<R>) => void | Promise<void>;
+    onExited?: (props: LifecycleProps<R>) => void | Promise<void>;
+    onLoad?: (props: LifecycleProps<R>) => void | Promise<void>;
+}
+
+export interface ScreenBaseProps {
     component: React.JSXElementConstructor<any> | LazyExoticComponent<any>;
     fallback?: React.ReactNode;
     path: string;
@@ -34,22 +51,7 @@ export interface ScreenBaseProps<R extends RoutePropBase = RoutePropBase> {
     defaultParams?: PlainObject;
     caseSensitive?: boolean;
     id?: string;
-    config?: {
-        header?: {
-            fallback?: React.ReactNode;
-            component: React.JSXElementConstructor<any> | LazyExoticComponent<any>
-        };
-        footer?: {
-            fallback?: React.ReactNode;
-            component: React.JSXElementConstructor<any> | LazyExoticComponent<any>
-        };
-        animation?: AnimationEffectFactory;
-        onEnter?: (props: LifecycleProps<R>) => void | Promise<void>;
-        onExit?: (props: LifecycleProps<R>) => void | Promise<void>;
-        onEntered?: (props: LifecycleProps<R>) => void | Promise<void>;
-        onExited?: (props: LifecycleProps<R>) => void | Promise<void>;
-        onLoad?: (props: LifecycleProps<R>) => void | Promise<void>;
-    }
+    config?: ScreenBaseConfig;
 }
 
 export interface ScreenBaseState {
