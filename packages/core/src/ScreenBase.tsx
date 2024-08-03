@@ -59,7 +59,7 @@ export interface ScreenBaseState {
     elementType: ElementType;
 }
 
-export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState, R extends RoutePropBase<ScreenBaseProps["config"]> = RoutePropBase<ScreenBaseProps["config"]>> extends Component<P, S> {
+export abstract class ScreenBase<P extends ScreenBaseProps = ScreenBaseProps, S extends ScreenBaseState = ScreenBaseState, R extends RoutePropBase<P["config"]> = RoutePropBase<P["config"]>> extends Component<P, S> {
     public readonly sharedElementScene: SharedElementScene;
     #transitionProvider = createRef<ScreenTransitionProvider>();
     protected readonly ref = createRef<HTMLDivElement>();

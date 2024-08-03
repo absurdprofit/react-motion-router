@@ -1,7 +1,7 @@
 import { RouterBase, includesRoute, isValidScreenChild, matchRoute } from '@react-motion-router/core';
-import type { LoadEvent, NestedRouterContext, PlainObject, RouterBaseProps, RouterBaseState, ScreenChild } from '@react-motion-router/core';
+import type { LoadEvent, NestedRouterContext, PlainObject, RouterBaseConfig, RouterBaseProps, RouterBaseState, ScreenChild } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
-import { ScreenProps, Screen } from './Screen';
+import { ScreenProps, Screen, ScreenConfig } from './Screen';
 import { HistoryEntryState, isHorizontalDirection, isRefObject, StackRouterEventMap, SwipeDirection } from './common/types';
 import { Children, createRef, cloneElement, startTransition } from 'react';
 import { SwipeStartEvent, SwipeEndEvent } from 'web-gesture-events';
@@ -10,14 +10,16 @@ import { deepEquals, isRollback, searchParamsToObject } from './common/utils';
 import { GestureCancelEvent, GestureEndEvent, GestureStartEvent } from './common/events';
 import { DEFAULT_GESTURE_CONFIG } from './common/constants';
 
+export interface RouterConfig extends RouterBaseConfig {
+    screenConfig?: ScreenConfig;
+    disableBrowserRouting?: boolean;
+    initialPath?: string;
+    shouldIntercept?(navigateEvent: NavigateEvent): boolean;
+    onIntercept?(navigateEvent: NavigateEvent): boolean;
+}
+
 export interface RouterProps extends RouterBaseProps<Screen> {
-    config: RouterBaseProps["config"] & {
-        screenConfig?: ScreenProps["config"];
-        disableBrowserRouting?: boolean;
-        initialPath?: string;
-        shouldIntercept?(navigateEvent: NavigateEvent): boolean;
-        onIntercept?(navigateEvent: NavigateEvent): boolean;
-    }
+    config?: RouterConfig;
 }
 
 export interface RouterState extends RouterBaseState {
@@ -204,7 +206,7 @@ export class Router extends RouterBase<RouterProps, RouterState, StackRouterEven
         return cloneElement(screenChild, {
             config: {
                 title: document.title,
-                ...this.props.config.screenConfig,
+                ...this.props.config?.screenConfig,
                 ...screenChild.props.config,
                 ...config
             },
@@ -246,7 +248,7 @@ export class Router extends RouterBase<RouterProps, RouterState, StackRouterEven
     }
 
     protected shouldIntercept(e: NavigateEvent): boolean {
-        if (this.props.config.shouldIntercept)
+        if (this.props.config?.shouldIntercept)
             return this.props.config.shouldIntercept(e);
         return e.canIntercept
             && !e.formData
@@ -255,7 +257,7 @@ export class Router extends RouterBase<RouterProps, RouterState, StackRouterEven
     }
 
     protected intercept(e: NavigateEvent | LoadEvent): void {
-        if (this.props.config.onIntercept && e.navigationType !== "load")
+        if (this.props.config?.onIntercept && e.navigationType !== "load")
             if (this.props.config.onIntercept(e) || e.defaultPrevented)
                 return;
 
@@ -293,7 +295,7 @@ export class Router extends RouterBase<RouterProps, RouterState, StackRouterEven
 
             return new Promise<void>((resolve, reject) => startTransition(() => {
                 this.setState({ screenStack, fromKey, transition, destinationKey }, async () => {
-                    const { initialPath } = this.props.config;
+                    const { initialPath } = this.props.config ?? {};
                     const [firstEntry] = entries;
                     if (
                         initialPath

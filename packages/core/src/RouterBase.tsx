@@ -9,15 +9,17 @@ import {
 import { NestedRouterContext, RouterContext } from './RouterContext';
 import { dispatchEvent, matchRoute, resolveBaseURLFromPattern } from './common/utils';
 import { Component, createRef, isValidElement, Children } from 'react';
-import { ScreenBase } from './ScreenBase';
+import { ScreenBase, ScreenBaseConfig } from './ScreenBase';
 import { LoadEvent } from './common/events';
+
+export interface RouterBaseConfig {
+    screenConfig?: ScreenBaseConfig;
+    basePath?: string;
+}
 
 export interface RouterBaseProps<S extends ScreenBase = ScreenBase> {
     id?: string;
-    config: {
-        screenConfig?: S["props"]["config"];
-        basePath?: string;
-    };
+    config?: RouterBaseConfig;
     children: ScreenChild<S> | ScreenChild<S>[];
 }
 
@@ -169,7 +171,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     get baseURLPattern() {
         let baseURL = window.location.origin + "/";
         const defaultBasePathname = this.isRoot ? new URL(".", document.baseURI).href.replace(baseURL, '') : ".";
-        let basePathname = this.props.config.basePath ?? defaultBasePathname;
+        let basePathname = this.props.config?.basePath ?? defaultBasePathname;
 
         if (this.parent && this.parentScreen) {
             const { resolvedPathname = window.location.pathname, path } = this.parentScreen;

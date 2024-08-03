@@ -23,7 +23,7 @@ export interface ScreenProps extends ScreenBaseProps {
 
 export interface ScreenState extends ScreenBaseState { }
 
-export class Screen extends ScreenBase<ScreenProps, ScreenState> {
+export class Screen extends ScreenBase<ScreenProps, ScreenState, RouteProp> {
     readonly routeProp;
 
     constructor(props: ScreenProps, context: React.ContextType<typeof RouterContext>) {
