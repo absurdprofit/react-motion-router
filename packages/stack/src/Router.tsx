@@ -330,7 +330,6 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             const queryParams = searchParamsToObject(new URL(destination.url).search);
             const currentIndex = screenStack.findIndex(screen => screen.key === this.navigation.current?.key);
             const backNavigating = this.state.backNavigating;
-            const outgoingScreen = this.getScreenRefByKey(String(fromKey));
             screenStack.splice(
                 currentIndex,
                 1,
@@ -355,9 +354,9 @@ export class Router extends RouterBase<RouterProps, RouterState> {
             return new Promise<void>((resolve, reject) => startTransition(() => {
                 this.setState({ destinationKey, fromKey, transition, screenStack }, async () => {
                     const signal = e.signal;
+                    const outgoingScreen = this.getScreenRefByKey(String(fromKey));
                     const incomingScreen = this.getScreenRefByKey(String(destinationKey));
-                    // TODO: outgoing screen ref is null here, fix this
-                    const pendingLifecycleHandlers = this.dispatchLifecycleHandlers(incomingScreen, outgoingScreen, signal).catch(reject);
+                    const pendingLifecycleHandlers = this.dispatchLifecycleHandlers(incomingScreen, null, signal).catch(reject);
                     if (isHotReplace) {
                         const currentTime = this.screenTransitionLayer.current?.animation.currentTime ?? 0;
                         this.screenTransitionLayer.current?.animation.cancel();
