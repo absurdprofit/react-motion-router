@@ -1,27 +1,29 @@
 import { ScreenBase } from '@react-motion-router/core';
-import type { PlainObject, RouterContext, ScreenBaseProps, ScreenBaseState, ScreenBaseComponentProps } from '@react-motion-router/core';
+import type { PlainObject, RouterContext, ScreenBaseProps, ScreenBaseState, ScreenBaseComponentProps, ScreenBaseConfig } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { RouteProp, SwipeDirection } from './common/types';
 import { Router } from './Router';
 
 export interface ScreenComponentProps<T extends PlainObject = {}> extends ScreenBaseComponentProps<RouteProp<T>, Navigation> { }
 
+export interface ScreenConfig extends ScreenBaseConfig<RouteProp> {
+    title?: string;
+    presentation?: "default" | "dialog" | "modal";
+    keepAlive?: boolean;
+    gestureDirection?: SwipeDirection;
+    gestureAreaWidth?: number;
+    gestureMinFlingVelocity?: number;
+    gestureHysteresis?: number;
+    disableGesture?: boolean;
+}
+
 export interface ScreenProps extends ScreenBaseProps {
-    config?: ScreenBaseProps["config"] & {
-        title?: string;
-        presentation?: "default" | "dialog" | "modal";
-        keepAlive?: boolean;
-        gestureDirection?: SwipeDirection;
-        gestureAreaWidth?: number;
-        gestureMinFlingVelocity?: number;
-        gestureHysteresis?: number;
-        disableGesture?: boolean;
-    }
+    config?: ScreenConfig;
 }
 
 export interface ScreenState extends ScreenBaseState { }
 
-export class Screen extends ScreenBase<ScreenProps, ScreenState> {
+export class Screen extends ScreenBase<ScreenProps, ScreenState, RouteProp> {
     readonly routeProp;
 
     constructor(props: ScreenProps, context: React.ContextType<typeof RouterContext>) {
