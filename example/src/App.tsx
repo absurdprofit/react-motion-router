@@ -23,7 +23,7 @@ function Routes() {
   return (
     <Stack.Router config={{
       screenConfig: {
-        disableGesture: false,
+        gestureDisabled: false,
         gestureMinFlingVelocity: 1000,
         animation
       },
@@ -44,7 +44,7 @@ function Routes() {
         defaultParams={{ hero: 0 }}
         fallback={<div className='screen-fallback slides'></div>}
         config={{
-          disableGesture: true,
+          gestureDisabled: true,
           animation: SlidesAnimation,
         }}
       />

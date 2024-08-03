@@ -30,7 +30,7 @@ export default function Overlays(props: OverlaysProps) {
     const modalConfig: Stack.ScreenProps["config"] = {
         gestureDirection: 'down',
         gestureAreaWidth: window.innerHeight / 1.5,
-        disableGesture: false,
+        gestureDisabled: false,
         gestureHysteresis: .15,
         presentation: "modal"
     } as const;

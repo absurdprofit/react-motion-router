@@ -14,7 +14,7 @@ export interface ScreenConfig extends ScreenBaseConfig<RouteProp> {
     gestureAreaWidth?: number;
     gestureMinFlingVelocity?: number;
     gestureHysteresis?: number;
-    disableGesture?: boolean;
+    gestureDisabled?: boolean;
 }
 
 export interface ScreenProps extends ScreenBaseProps {

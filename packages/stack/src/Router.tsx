@@ -30,7 +30,7 @@ export interface RouterState extends RouterBaseState {
     gestureAreaWidth: number;
     gestureMinFlingVelocity: number;
     gestureHysteresis: number;
-    disableGesture: boolean;
+    gestureDisabled: boolean;
     fromKey: React.Key | null
     destinationKey: React.Key | null;
     documentTitle?: string;
@@ -46,7 +46,7 @@ export class Router extends RouterBase<RouterProps, RouterState, StackRouterEven
             gestureDirection: "horizontal",
             gestureAreaWidth: 50,
             gestureHysteresis: 0.5,
-            disableGesture: true,
+            gestureDisabled: true,
             gestureMinFlingVelocity: 500,
             transition: null,
             backNavigating: false,
@@ -72,7 +72,7 @@ export class Router extends RouterBase<RouterProps, RouterState, StackRouterEven
             gestureAreaWidth: config?.gestureAreaWidth ?? DEFAULT_GESTURE_CONFIG.gestureAreaWidth,
             gestureMinFlingVelocity: config?.gestureMinFlingVelocity ?? DEFAULT_GESTURE_CONFIG.gestureMinFlingVelocity,
             gestureHysteresis: config?.gestureHysteresis ?? DEFAULT_GESTURE_CONFIG.gestureHysteresis,
-            disableGesture: config?.disableGesture ?? DEFAULT_GESTURE_CONFIG.disableGesture,
+            gestureDisabled: config?.gestureDisabled ?? DEFAULT_GESTURE_CONFIG.gestureDisabled,
             documentTitle: config?.title
         }
     }
@@ -98,7 +98,7 @@ export class Router extends RouterBase<RouterProps, RouterState, StackRouterEven
 
     private canGestureNavigate(e: SwipeStartEvent) {
         if (!this.ref.current) return false;
-        if (this.state.disableGesture) return false;
+        if (this.state.gestureDisabled) return false;
         const clientRect = this.ref.current.getBoundingClientRect();
         const { direction } = e;
         if ((direction === "down" || direction === "right") && !this.navigation.canGoBack) return false;
