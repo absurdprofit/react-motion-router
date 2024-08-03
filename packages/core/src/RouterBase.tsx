@@ -9,7 +9,7 @@ import {
 import { NestedRouterContext, RouterContext } from './RouterContext';
 import { dispatchEvent, matchRoute, resolveBaseURLFromPattern } from './common/utils';
 import { Component, createRef, isValidElement, Children } from 'react';
-import { ScreenBase, ScreenBaseProps } from './ScreenBase';
+import { ScreenBase } from './ScreenBase';
 import { LoadEvent } from './common/events';
 
 export interface RouterBaseProps<S extends ScreenBase = ScreenBase> {
@@ -18,7 +18,7 @@ export interface RouterBaseProps<S extends ScreenBase = ScreenBase> {
         screenConfig?: S["props"]["config"];
         basePath?: string;
     };
-    children: ScreenChild<S["props"], S> | ScreenChild<S["props"], S>[];
+    children: ScreenChild<S> | ScreenChild<S>[];
 }
 
 export interface RouterBaseState {}
@@ -108,7 +108,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         return new Promise<boolean>((resolve, reject) => {
             let found = false;
             const routes = this.props.children;
-            Children.forEach<ScreenChild<ScreenBaseProps>>(routes, (route) => {
+            Children.forEach<ScreenChild>(routes, (route) => {
                 if (found) return; // stop after first
                 if (!isValidElement(route)) return;
                 const { path, caseSensitive } = route.props;

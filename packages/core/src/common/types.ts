@@ -11,7 +11,7 @@ import {
 import { SharedElement } from '../SharedElement';
 import { StandardPropertiesHyphen } from 'csstype';
 
-export type ScreenChild<P extends ScreenBaseProps = ScreenBaseProps, E extends ScreenBase<P> = ScreenBase<P>> = React.CElement<P, E>;
+export type ScreenChild<E extends ScreenBase = ScreenBase> = E extends ScreenBase<infer P> ? React.CElement<P, E> : never;
 
 export interface AnimationEffectFactoryProps<R extends HTMLElement = HTMLElement> {
     ref: R | null;
@@ -45,7 +45,7 @@ export interface RoutePropBase<C extends ScreenBaseProps["config"] = {}, P exten
     setConfig(config: Partial<NonNullable<C>>): void;
 }
 
-export function isValidScreenChild<S extends ScreenBase>(value: any): value is ScreenChild<S["props"], S> {
+export function isValidScreenChild<S extends ScreenBase>(value: any): value is ScreenChild<S> {
     if (!isValidElement(value)) return false;
     return Object.getPrototypeOf(value.type) === ScreenBase;
 }
