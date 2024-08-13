@@ -12,7 +12,7 @@ export class Navigation extends NavigationBase<StackRouterEventMap> {
     protected readonly router: Router;
 
     constructor(router: Router) {
-        super(router);
+        super();
         this.router = router;
     }
 

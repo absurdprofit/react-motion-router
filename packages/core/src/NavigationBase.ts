@@ -3,12 +3,11 @@ import { MetaData } from "./MetaData";
 import { RouterBase } from "./RouterBase";
 
 export abstract class NavigationBase<E extends RouterBaseEventMap = RouterBaseEventMap> {
-    protected readonly router: RouterBase;
+    protected abstract readonly router: RouterBase;
     private static rootNavigatorRef: WeakRef<NavigationBase> | null = null;
     public readonly metaData = new MetaData();
 
-    constructor(router: RouterBase) {
-        this.router = router;
+    constructor() {
         const rootNavigator = NavigationBase.rootNavigatorRef?.deref();
         if (!rootNavigator || !rootNavigator.isInDocument)
             NavigationBase.rootNavigatorRef = new WeakRef(this);
