@@ -3,12 +3,12 @@ import {
     includesRoute,
     resolveBaseURLFromPattern,
 } from '@react-motion-router/core';
-import { GoBackOptions, GoForwardOptions, NavigateOptions, NavigationBaseOptions, NavigationProps, StackRouterEventMap } from './common/types';
+import { GoBackOptions, GoForwardOptions, NavigateOptions, NavigationBaseOptions, NavigationProps, RouterEventMap } from './common/types';
 import { BackEvent, ForwardEvent, NavigateEvent } from './common/events';
 import { HistoryEntry } from './HistoryEntry';
 import { Router } from './Router';
 
-export class Navigation extends NavigationBase<StackRouterEventMap> {
+export class Navigation extends NavigationBase<RouterEventMap> {
     protected readonly router: Router;
 
     constructor(router: Router) {

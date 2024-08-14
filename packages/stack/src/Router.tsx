@@ -2,7 +2,7 @@ import { RouterBase, includesRoute, isValidScreenChild, matchRoute } from '@reac
 import type { LoadEvent, NestedRouterContext, PlainObject, RouterBaseConfig, RouterBaseProps, RouterBaseState, ScreenChild } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { ScreenProps, Screen, ScreenConfig } from './Screen';
-import { HistoryEntryState, isHorizontalDirection, isRefObject, StackRouterEventMap, SwipeDirection } from './common/types';
+import { HistoryEntryState, isHorizontalDirection, isRefObject, RouterEventMap, SwipeDirection } from './common/types';
 import { Children, createRef, cloneElement, startTransition } from 'react';
 import { SwipeStartEvent, SwipeEndEvent } from 'web-gesture-events';
 import { GestureTimeline } from 'web-animations-extension';
@@ -36,7 +36,7 @@ export interface RouterState extends RouterBaseState {
     documentTitle?: string;
 }
 
-export class Router extends RouterBase<RouterProps, RouterState, StackRouterEventMap> {
+export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap> {
     public readonly navigation = new Navigation(this);
 
     constructor(props: RouterProps, context: React.ContextType<typeof NestedRouterContext>) {

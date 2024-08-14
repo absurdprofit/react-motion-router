@@ -37,7 +37,7 @@ export function isRefObject<T>(value?: React.LegacyRef<T>): value is RefObject<T
 	return false;
 }
 
-export interface StackRouterEventMap extends RouterBaseEventMap {
+export interface RouterEventMap extends RouterBaseEventMap {
 	"navigate": NavigateEvent;
 	"back": BackEvent;
 	"forward": ForwardEvent;
