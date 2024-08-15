@@ -67,7 +67,7 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
         const startRect = start.instance.getBoundingClientRect();
         const endRect = end.instance.getBoundingClientRect();
         const config: KeyframeEffectOptions = {
-            fill: "forwards" as const,
+            fill: "both" as const,
             duration: "auto",
             easing: "ease",
             ...start.instance.props.config,

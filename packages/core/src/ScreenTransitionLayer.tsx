@@ -125,6 +125,8 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
                         width: '100%',
                         height: '100%',
                         display: 'grid',
+                        contain: 'layout',
+                        isolation: 'isolate',
                         '--motion-progress': this.state.progress
                     } as React.CSSProperties}
                 >
