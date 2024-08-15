@@ -53,6 +53,8 @@ function Routes() {
         id="Cards Demo"
         component={Cards}
         config={{
+          title: "Cards Demo",
+          gestureDirection: "right",
           header: { component: () => <Navbar title="Cards Demo" /> },
           animation: slideToStatic
         }}
@@ -64,6 +66,7 @@ function Routes() {
         component={Cards2}
         config={{
           title: "Cards Demo 2",
+          gestureDirection: "right",
           header: { component: () => <Navbar title="Cards Demo 2" /> },
           animation: slideToStatic
         }}

@@ -2,7 +2,7 @@ import { RouterBase, includesRoute, isValidScreenChild, matchRoute } from '@reac
 import type { LoadEvent, NestedRouterContext, PlainObject, RouterBaseConfig, RouterBaseProps, RouterBaseState, ScreenChild } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { ScreenProps, Screen, ScreenConfig } from './Screen';
-import { HistoryEntryState, isHorizontalDirection, isRefObject, RouterEventMap, SwipeDirection } from './common/types';
+import { HistoryEntryState, isHorizontalDirection, isOutOfBounds, isRefObject, isSupportedDirection, RouterEventMap, SwipeDirection } from './common/types';
 import { Children, createRef, cloneElement, startTransition } from 'react';
 import { SwipeStartEvent, SwipeEndEvent } from 'web-gesture-events';
 import { GestureTimeline } from 'web-animations-extension';
@@ -103,12 +103,9 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
         const { direction } = e;
         if ((direction === "down" || direction === "right") && !this.navigation.canGoBack) return false;
         if ((direction === "up" || direction === "left") && !this.navigation.canGoForward) return false;
-        if (isHorizontalDirection(direction) !== isHorizontalDirection(this.state.gestureDirection)) return false;
-        if (direction === "right" && Math.abs(e.x - clientRect.left) >= this.state.gestureAreaWidth) return false;
-        if (direction === "left" && Math.abs(e.x - clientRect.right) >= this.state.gestureAreaWidth) return false;
-        if (direction === "down" && Math.abs(e.y - clientRect.top) >= this.state.gestureAreaWidth) return false;
-        if (direction === "up" && Math.abs(e.y - clientRect.bottom) >= this.state.gestureAreaWidth) return false;
-        return true;
+        if (isOutOfBounds(direction, e, clientRect, this.state.gestureAreaWidth)) return false;
+
+        return isSupportedDirection(direction, this.state.gestureDirection);
     }
 
     private onSwipeStart = (e: SwipeStartEvent) => {
@@ -217,7 +214,7 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
             resolvedPathname: pathname,
             key,
             ref: createRef<Screen>()
-        }) as ScreenChild<Screen>;
+        });
     }
 
     private getScreenChildByPathname(pathname: string) {

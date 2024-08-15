@@ -8,6 +8,7 @@ export function GestureRegion({disabled, children, ...props}: GestureRegionProps
     const ref = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        if (disabled) return;
         const onSwipeStart = (e: SwipeStartEvent) => {
             e.stopPropagation();
             e.preventDefault();
@@ -18,7 +19,7 @@ export function GestureRegion({disabled, children, ...props}: GestureRegionProps
         return () => {
             ref.current?.removeEventListener('swipestart', onSwipeStart);
         }
-    }, [ref]);
+    }, [ref, disabled]);
 
     return (
         <div
