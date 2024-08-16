@@ -23,7 +23,6 @@ export interface RouterProps extends RouterBaseProps<Screen> {
 }
 
 export interface RouterState extends RouterBaseState {
-    backNavigating: boolean;
     transition: NavigationTransition | LoadEvent["transition"] | null;
     screenStack: ScreenChild<Screen>[];
     gestureDirection: SwipeDirection;
@@ -50,7 +49,6 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
             gestureDisabled: true,
             gestureMinFlingVelocity: 500,
             transition: null,
-            backNavigating: false,
             documentTitle: document.title,
             fromKey: null,
             destinationKey: null,
@@ -169,6 +167,13 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
                 this.state.controller?.abort("gesture-cancel");
             });
         }
+    }
+
+    private get backNavigating() {
+        const fromIndex = this.state.screenStack.findIndex(screen => screen.key === this.state.fromKey);
+        const destinationIndex = this.state.screenStack.findIndex(screen => screen.key === this.state.destinationKey);
+
+        return destinationIndex >= 0 && destinationIndex < fromIndex;
     }
 
     protected get screens() {
@@ -343,7 +348,6 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
             const transition = this.state.transition ?? window.navigation.transition;
             const fromKey = transition?.from?.key ?? null;
             const currentIndex = screenStack.findIndex(screen => screen.key === this.navigation.current?.key);
-            const backNavigating = this.state.backNavigating;
             screenStack.splice(
                 currentIndex,
                 1,
@@ -351,7 +355,7 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
             );
 
             return new Promise<void>((resolve, reject) => startTransition(() => {
-                this.setState({ destinationKey, fromKey, transition, screenStack, backNavigating }, async () => {
+                this.setState({ destinationKey, fromKey, transition, screenStack }, async () => {
                     const signal = e.signal;
                     const outgoingScreen = this.getScreenRefByKey(String(fromKey));
                     const incomingScreen = this.getScreenRefByKey(String(destinationKey));
@@ -401,7 +405,6 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
             const fromKey = (screenStack[fromIndex]?.key || transition?.from.key) ?? null;
             const destinationIndex = screenStack.findIndex(screen => screen.key === e.destination.key);
             const destinationKey = (screenStack[destinationIndex]?.key || window.navigation.currentEntry?.key) ?? null;
-            const backNavigating = destinationIndex >= 0 && destinationIndex < fromIndex;
             if (e.navigationType === "push") {
                 const { params, config } = destination.getState() as HistoryEntryState ?? {};
                 const destinationPathname = new URL(destination.url).pathname;
@@ -417,7 +420,7 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
 
             const controller = new AbortController();
             return new Promise<void>((resolve, reject) => startTransition(() => {
-                this.setState({ controller, destinationKey, fromKey, transition, screenStack, backNavigating }, async () => {
+                this.setState({ controller, destinationKey, fromKey, transition, screenStack }, async () => {
                     controller.signal.onabort = reject;
                     const signal = e.signal;
                     const outgoingScreen = this.getScreenRefByKey(String(fromKey));
@@ -460,7 +463,7 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
         incomingScreen: React.RefObject<Screen> | null,
         outgoingScreen: React.RefObject<Screen> | null
     ) {
-        const { backNavigating } = this.state;
+        const { backNavigating } = this;
         if (this.screenTransitionLayer.current && incomingScreen && outgoingScreen) {
             this.screenTransitionLayer.current.direction = backNavigating ? 'reverse' : 'normal';
             if (incomingScreen.current?.transitionProvider.current) {
