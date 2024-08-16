@@ -25,7 +25,8 @@ function Routes() {
       screenConfig: {
         gestureDisabled: false,
         gestureMinFlingVelocity: 1000,
-        animation
+        animation,
+        gestureDirection: "horizontal"
       },
       initialPath: '.',
       basePath: '/(react-motion-router/)?',

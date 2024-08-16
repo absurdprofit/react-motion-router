@@ -6,7 +6,7 @@ import { HistoryEntryState, isHorizontalDirection, isOutOfBounds, isRefObject, i
 import { Children, createRef, cloneElement, startTransition } from 'react';
 import { SwipeStartEvent, SwipeEndEvent } from 'web-gesture-events';
 import { GestureTimeline } from 'web-animations-extension';
-import { deepEquals, isRollback, searchParamsToObject } from './common/utils';
+import { deepEquals, isGesture, searchParamsToObject } from './common/utils';
 import { GestureCancelEvent, GestureEndEvent, GestureStartEvent } from './common/events';
 import { DEFAULT_GESTURE_CONFIG } from './common/constants';
 
@@ -34,6 +34,7 @@ export interface RouterState extends RouterBaseState {
     fromKey: React.Key | null
     destinationKey: React.Key | null;
     documentTitle?: string;
+    controller: AbortController | null;
 }
 
 export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap> {
@@ -52,7 +53,8 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
             backNavigating: false,
             documentTitle: document.title,
             fromKey: null,
-            destinationKey: null
+            destinationKey: null,
+            controller: null
         };
     }
 
@@ -141,10 +143,11 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
             rangeStart,
             rangeEnd
         });
+        const gesture = true;
         if (direction === "down" || direction === "right")
-            this.navigation.goBack();
+            window.navigation.traverseTo(this.navigation.previous!.key, { info: { gesture } });
         else
-            this.navigation.goForward();
+            window.navigation.traverseTo(this.navigation.next!.key, { info: { gesture } });
 
         this.dispatchEvent(new GestureStartEvent(e));
     }
@@ -155,18 +158,15 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
         const playbackRate = this.screenTransitionLayer.current.animation.playbackRate;
         this.screenTransitionLayer.current.animation.timeline = document.timeline;
         const hysteresisReached = playbackRate > 0 ? progress > this.state.gestureHysteresis : progress < this.state.gestureHysteresis;
-        let rollback = false;
         if (e.velocity < this.state.gestureMinFlingVelocity && !hysteresisReached) {
             this.screenTransitionLayer.current.animation.reverse();
-            rollback = true;
             this.dispatchEvent(new GestureCancelEvent());
         } else {
             this.dispatchEvent(new GestureEndEvent(e));
         }
-        const { fromKey } = this.state;
-        if (rollback && fromKey) {
-            this.state.transition?.finished.then(() => {
-                window.navigation.traverseTo(fromKey.toString(), { info: { rollback } });
+        if (!hysteresisReached) {
+            this.screenTransitionLayer.current.animation.finished.then(() => {
+                this.state.controller?.abort("gesture-cancel");
             });
         }
     }
@@ -284,7 +284,9 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
             entries.forEach((entry) => {
                 if (!entry.url) return null;
                 const { params, config } = entry.getState<HistoryEntryState>() ?? {};
-                const queryParams = searchParamsToObject(entry.url.search);
+                const searchPart = entry.url.search;
+                const searchParams = new URLSearchParams(searchPart);
+                const queryParams = searchParamsToObject(searchParams);
                 const screen = this.screenChildFromPathname(entry.url.pathname, entry.key, config, { ...queryParams, ...params });
                 if (!screen) return null;
                 screenStack.push(screen);
@@ -332,7 +334,7 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
         const destination = e.destination;
         const destinationPathname = new URL(destination.url).pathname;
         const { params, config } = destination.getState() as HistoryEntryState ?? {};
-        const queryParams = searchParamsToObject(new URL(destination.url).search);
+        const queryParams = searchParamsToObject(new URL(destination.url).searchParams);
         const destinationKey = window.navigation.currentEntry?.key ?? destination.key;
         const destinationScreen = this.screenChildFromPathname(destinationPathname, destinationKey, config, { ...queryParams, ...params });
         if (!destinationScreen) return e.preventDefault();
@@ -349,7 +351,7 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
             );
 
             return new Promise<void>((resolve, reject) => startTransition(() => {
-                this.setState({ destinationKey, fromKey, transition, screenStack }, async () => {
+                this.setState({ destinationKey, fromKey, transition, screenStack, backNavigating }, async () => {
                     const signal = e.signal;
                     const outgoingScreen = this.getScreenRefByKey(String(fromKey));
                     const incomingScreen = this.getScreenRefByKey(String(destinationKey));
@@ -358,7 +360,7 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
                         const currentTime = this.screenTransitionLayer.current?.animation.currentTime ?? 0;
                         this.screenTransitionLayer.current?.animation.cancel();
                         await new Promise(requestAnimationFrame);
-                        const animation = this.screenTransition(incomingScreen, outgoingScreen, backNavigating);
+                        const animation = this.screenTransition(incomingScreen, outgoingScreen);
                         if (animation) {
                             animation.currentTime = currentTime;
                         }
@@ -403,7 +405,7 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
             if (e.navigationType === "push") {
                 const { params, config } = destination.getState() as HistoryEntryState ?? {};
                 const destinationPathname = new URL(destination.url).pathname;
-                const queryParams = searchParamsToObject(new URL(destination.url).search);
+                const queryParams = searchParamsToObject(new URL(destination.url).searchParams);
                 const destinationScreen = this.screenChildFromPathname(destinationPathname, destinationKey, config, { ...queryParams, ...params });
                 if (!destinationScreen) return Promise.resolve();
                 screenStack.splice(
@@ -413,24 +415,26 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
                 );
             }
 
+            const controller = new AbortController();
             return new Promise<void>((resolve, reject) => startTransition(() => {
-                this.setState({ destinationKey, fromKey, transition, screenStack, backNavigating }, async () => {
+                this.setState({ controller, destinationKey, fromKey, transition, screenStack, backNavigating }, async () => {
+                    controller.signal.onabort = reject;
                     const signal = e.signal;
                     const outgoingScreen = this.getScreenRefByKey(String(fromKey));
                     const incomingScreen = this.getScreenRefByKey(String(destinationKey));
                     const pendingLifecycleHandlers = this.dispatchLifecycleHandlers(incomingScreen, outgoingScreen, signal).catch(reject);
-                    if (!isRollback(e.info)) {
-                        const animation = this.screenTransition(incomingScreen, outgoingScreen, backNavigating);
-                        animation?.updatePlaybackRate(1);
-                        animation?.finished.catch(reject);
-                    }
+                    const animation = this.screenTransition(incomingScreen, outgoingScreen);
+                    animation?.updatePlaybackRate(1);
+                    animation?.finished.catch(reject);
                     await pendingLifecycleHandlers;
-                    this.setState({ destinationKey: null, fromKey: null, transition: null }, resolve);
+                    this.setState({ destinationKey: null, fromKey: null, transition: null, controller: null }, resolve);
                 });
             }));
         }
 
-        e.intercept({ handler });
+        const commit = isGesture(e.info) ? "after-transition" : "immediate";
+        const options = { handler, commit };
+        e.intercept(options);
     }
 
     private async dispatchLifecycleHandlers(incomingScreen: React.RefObject<Screen> | null, outgoingScreen: React.RefObject<Screen> | null, signal: AbortSignal) {
@@ -438,8 +442,8 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
         this.addEventListener('transition-start', () => animationStarted = true, { once: true });
 
         await Promise.all([
-            outgoingScreen?.current?.onExit(signal).then(() => outgoingScreen.current?.blur()),
-            incomingScreen?.current?.onEnter(signal).then(() => incomingScreen.current?.focus()),
+            outgoingScreen?.current?.onExit(signal),
+            incomingScreen?.current?.onEnter(signal),
             incomingScreen?.current?.load(signal)
         ]);
 
@@ -447,16 +451,16 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
             await new Promise((resolve) => this.addEventListener('transition-end', resolve, { once: true }));
 
         await Promise.all([
-            outgoingScreen?.current?.onExited(signal),
-            incomingScreen?.current?.onEntered(signal)
+            outgoingScreen?.current?.onExited(signal).then(() => outgoingScreen.current?.blur({ signal })),
+            incomingScreen?.current?.onEntered(signal).then(() => incomingScreen.current?.focus({ signal }))
         ]);
     }
 
     private screenTransition(
         incomingScreen: React.RefObject<Screen> | null,
-        outgoingScreen: React.RefObject<Screen> | null,
-        backNavigating: boolean
+        outgoingScreen: React.RefObject<Screen> | null
     ) {
+        const { backNavigating } = this.state;
         if (this.screenTransitionLayer.current && incomingScreen && outgoingScreen) {
             this.screenTransitionLayer.current.direction = backNavigating ? 'reverse' : 'normal';
             if (incomingScreen.current?.transitionProvider.current) {

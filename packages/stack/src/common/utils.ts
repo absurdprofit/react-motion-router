@@ -1,7 +1,7 @@
 import { PlainObject } from "@react-motion-router/core";
 
-export function searchParamsToObject(searchPart: string) {
-	const entries = new URLSearchParams(decodeURI(searchPart)).entries();
+export function searchParamsToObject(searchParams: URLSearchParams) {
+	const entries = searchParams.entries();
 	const result: PlainObject<string> = {};
 
 	for (const [key, value] of entries) { // each 'entry' is a [key, value] tuple
@@ -27,9 +27,9 @@ export function searchParamsFromObject(params: { [key: string]: any }) {
 	return '';
 }
 
-export function isRollback(info?: unknown) {
-	if (info && typeof info === 'object' && 'rollback' in info)
-		return Boolean(info.rollback);
+export function isGesture(info?: unknown) {
+	if (info && typeof info === 'object' && 'gesture' in info)
+		return Boolean(info.gesture);
 	return false;
 }
 
