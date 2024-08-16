@@ -435,7 +435,13 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
             }));
         }
 
-        const commit = isGesture(e.info) ? "after-transition" : "immediate";
+        let commit;
+        if (isGesture(e.info)) {
+            commit = "after-transition";
+            this.addEventListener("gesture-end", () => e.commit(), { once: true });
+        } else {
+            commit = "immediate";
+        }
         const options = { handler, commit };
         e.intercept(options);
     }

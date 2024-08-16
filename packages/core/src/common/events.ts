@@ -39,7 +39,7 @@ export class MotionProgressEndEvent extends Event {
 	}
 }
 
-export class LoadEvent extends Event implements Omit<NavigateEvent, 'navigationType'> {
+export class LoadEvent extends Event implements Omit<NavigateEvent, 'navigationType' | 'commit'> {
 	#navigationType = "load" as const;
 	#userInitiated: boolean = false;
 	#canIntercept: boolean = true;

@@ -118,3 +118,9 @@ export function isStylableElement(element: any): element is StylableElement {
 export interface ScreenBaseFocusOptions {
     signal?: AbortSignal;
 }
+
+declare global {
+    interface NavigateEvent extends Event {
+        commit(): void;
+    }
+}

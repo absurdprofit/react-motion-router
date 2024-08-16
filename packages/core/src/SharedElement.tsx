@@ -78,7 +78,6 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
     }
 
     public unhide() {
-        console.log(this.ref.current);
         if (!this.ref.current) return;
         this.ref.current.style.visibility = 'visible';
     }
