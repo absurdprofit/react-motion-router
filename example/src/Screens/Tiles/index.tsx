@@ -19,6 +19,7 @@ export default class Tiles extends React.Component<TilesProps, TilesState> {
 
     componentDidMount() {
         this.props.navigation.preloadRoute('slides');
+        console.log(this.props.navigation.committed);
         this.props.navigation.transition?.finished.then(() => {
             if (!Tiles.isFirstLoad) {
                 Tiles.isFirstLoad = true;

@@ -9,6 +9,7 @@ import { GestureTimeline } from 'web-animations-extension';
 import { deepEquals, isGesture, searchParamsToObject } from './common/utils';
 import { GestureCancelEvent, GestureEndEvent, GestureStartEvent } from './common/events';
 import { DEFAULT_GESTURE_CONFIG } from './common/constants';
+import { PromiseWrapper } from './common/promise-wrapper';
 
 export interface RouterConfig extends RouterBaseConfig {
     screenConfig?: ScreenConfig;
@@ -38,6 +39,7 @@ export interface RouterState extends RouterBaseState {
 
 export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap> {
     public readonly navigation = new Navigation(this);
+    #committed: PromiseWrapper<NavigationHistoryEntry> | null = null;
 
     constructor(props: RouterProps, context: React.ContextType<typeof NestedRouterContext>) {
         super(props, context);
@@ -81,6 +83,10 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
         super.componentDidMount();
         this.ref.current?.addEventListener('swipestart', this.onSwipeStart);
         this.ref.current?.addEventListener('swipeend', this.onSwipeEnd);
+        window.navigation.addEventListener("currententrychange", this.onCurrentEntryChange);
+        window.navigation.addEventListener("navigate", this.onNavigate);
+        window.navigation.addEventListener("navigatesuccess", this.onNavigateSuccess);
+        window.navigation.addEventListener("navigateerror", this.onNavigateError);
     }
 
     shouldComponentUpdate(nextProps: Readonly<RouterProps>, nextState: Readonly<RouterState>): boolean {
@@ -94,6 +100,28 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
     componentWillUnmount(): void {
         this.ref.current?.removeEventListener('swipestart', this.onSwipeStart);
         this.ref.current?.removeEventListener('swipeend', this.onSwipeEnd);
+        window.navigation.removeEventListener("currententrychange", this.onCurrentEntryChange);
+        window.navigation.removeEventListener("navigate", this.onNavigate);
+        window.navigation.removeEventListener("navigatesuccess", this.onNavigateSuccess);
+        window.navigation.removeEventListener("navigateerror", this.onNavigateError);
+    }
+
+    private onNavigate = () => {
+        this.#committed = new PromiseWrapper();
+    }
+
+    private onCurrentEntryChange = () => {
+        this.#committed?.nativeResolve?.(window.navigation.currentEntry!);
+    }
+
+    private onNavigateSuccess = () => {
+        this.#committed = null;
+    }
+
+    private onNavigateError = () => {
+        if (this.#committed?.state === "pending")
+            this.#committed.nativeReject?.(void 0); // TODO: find out what the spec does for cancelled navigations
+        this.#committed = null;
     }
 
     private canGestureNavigate(e: SwipeStartEvent) {
@@ -167,6 +195,10 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
                 this.state.controller?.abort("gesture-cancel");
             });
         }
+    }
+
+    public get committed() {
+        return this.#committed?.promise ?? null;
     }
 
     private get backNavigating() {

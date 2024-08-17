@@ -8,16 +8,14 @@ import { BackEvent, ForwardEvent, NavigateEvent } from './common/events';
 import { HistoryEntry } from './HistoryEntry';
 import { Router } from './Router';
 
+
+
 export class Navigation extends NavigationBase<RouterEventMap> {
     protected readonly router: Router;
 
     constructor(router: Router) {
         super();
         this.router = router;
-    }
-
-    traverseTo(key: string) {
-        return window.navigation.traverseTo(key);
     }
 
     replace(route: string, props: NavigationProps = {}, options: NavigationBaseOptions = {}) {
@@ -30,6 +28,28 @@ export class Navigation extends NavigationBase<RouterEventMap> {
 
     reload(props: NavigationProps = {}) {
         return window.navigation.reload({ state: props });
+    }
+
+    traverseTo(key: string, options: NavigationBaseOptions = {}) {
+        const result = window.navigation.traverseTo(key);
+        const transition = window.navigation.transition!;
+
+        const fromIndex = transition.from.index;
+        const destinationIndex = window.navigation.entries().findIndex(entry => entry.key === key);
+
+        const controller = new AbortController();
+        controller.signal.addEventListener('abort', () => this.traverseTo(transition.from.key), { once: true });
+        options.signal?.addEventListener('abort', controller.abort, { once: true });
+
+        let event;
+        if (fromIndex > destinationIndex) {
+            event = this.createBackEvent(controller.signal, result.committed, transition);
+        } else {
+            event = this.createForwardEvent(controller.signal, result.committed, transition);
+        }
+        this.dispatchEvent?.(event);
+
+        return result;
     }
 
     navigate(
@@ -47,7 +67,7 @@ export class Navigation extends NavigationBase<RouterEventMap> {
         controller.signal.addEventListener('abort', () => this.goBack(), { once: true });
         options.signal?.addEventListener('abort', controller.abort, { once: true });
 
-        const event = this.createNavigateEvent(route, props, history, controller.signal, result, transition);
+        const event = this.createNavigateEvent(route, props, history, controller.signal, result.committed, transition);
         this.dispatchEvent?.(event);
 
         return result;
@@ -64,7 +84,7 @@ export class Navigation extends NavigationBase<RouterEventMap> {
         controller.signal.addEventListener('abort', () => this.goForward(), { once: true });
         options.signal?.addEventListener('abort', controller.abort, { once: true });
 
-        const event = this.createBackEvent(controller.signal, result, transition);
+        const event = this.createBackEvent(controller.signal, result.committed, transition);
         this.dispatchEvent?.(event);
 
         return result;
@@ -81,7 +101,7 @@ export class Navigation extends NavigationBase<RouterEventMap> {
         controller.signal.addEventListener('abort', () => this.goBack(), { once: true });
         options.signal?.addEventListener('abort', controller.abort, { once: true });
 
-        const event = this.createForwardEvent(controller.signal, result, transition);
+        const event = this.createForwardEvent(controller.signal, result.committed, transition);
         this.dispatchEvent?.(event);
 
         return result;
@@ -89,20 +109,20 @@ export class Navigation extends NavigationBase<RouterEventMap> {
 
     private createBackEvent(
         signal: AbortSignal,
-        result: NavigationResult,
+        committed: Promise<NavigationHistoryEntry>,
         transition: NavigationTransition
     ) {
         if (!this.routerId) throw new Error("Router ID is not set");
-        return new BackEvent(this.routerId, signal, result, transition);
+        return new BackEvent(this.routerId, signal, committed, transition);
     }
 
     private createForwardEvent(
         signal: AbortSignal,
-        result: NavigationResult,
+        committed: Promise<NavigationHistoryEntry>,
         transition: NavigationTransition
     ) {
         if (!this.routerId) throw new Error("Router ID is not set");
-        return new ForwardEvent(this.routerId, signal, result, transition);
+        return new ForwardEvent(this.routerId, signal, committed, transition);
     }
 
     private createNavigateEvent(
@@ -110,7 +130,7 @@ export class Navigation extends NavigationBase<RouterEventMap> {
         props: NavigationProps,
         type: NavigateOptions["type"],
         signal: AbortSignal,
-        result: NavigationResult,
+        committed: Promise<NavigationHistoryEntry>,
         transition: NavigationTransition
     ) {
         if (!this.routerId) throw new Error("Router ID is not set");
@@ -120,9 +140,13 @@ export class Navigation extends NavigationBase<RouterEventMap> {
             props,
             type,
             signal,
-            result,
+            committed,
             transition
         );
+    }
+
+    get committed() {
+        return this.router.committed;
     }
 
     get transition() {
