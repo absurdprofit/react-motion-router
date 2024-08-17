@@ -119,6 +119,10 @@ export interface ScreenBaseFocusOptions {
     signal?: AbortSignal;
 }
 
+export interface LoadNavigationTransition extends Omit<NavigationTransition, "navigationType"> {
+    navigationType: "load";
+}
+
 declare global {
     interface NavigateEvent extends Event {
         commit(): void;

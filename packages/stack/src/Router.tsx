@@ -118,9 +118,9 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
         this.#committed = null;
     }
 
-    private onNavigateError = () => {
+    private onNavigateError = ({ error }: ErrorEvent) => {
         if (this.#committed?.state === "pending")
-            this.#committed.nativeReject?.(void 0); // TODO: find out what the spec does for cancelled navigations
+            this.#committed.nativeReject?.(error); // TODO: find out what the spec does for cancelled navigations
         this.#committed = null;
     }
 
