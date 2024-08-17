@@ -120,14 +120,18 @@ export abstract class ScreenBase<
 
     blur(options?: ScreenBaseFocusOptions) {
         const { focused } = this.state;
-        options?.signal?.addEventListener("abort", () => this.setState({ focused }), { once: true });
-        return new Promise<void>(resolve => this.setState({ focused: false }, resolve));
+        return new Promise<void>((resolve, reject) => {
+            options?.signal?.addEventListener("abort", () => this.setState({ focused }, reject), { once: true });
+            this.setState({ focused: false }, resolve);
+        });
     }
 
     focus(options?: ScreenBaseFocusOptions) {
         const { focused } = this.state;
-        options?.signal?.addEventListener("abort", () => this.setState({ focused }), { once: true });
-        return new Promise<void>(resolve => this.setState({ focused: true }, resolve));
+        return new Promise<void>((resolve, reject) => {
+            options?.signal?.addEventListener("abort", () => this.setState({ focused }, reject), { once: true });
+            this.setState({ focused: true }, resolve);
+        });
     }
 
     async load(signal: AbortSignal) {
