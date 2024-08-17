@@ -8,8 +8,6 @@ import { BackEvent, ForwardEvent, NavigateEvent } from './common/events';
 import { HistoryEntry } from './HistoryEntry';
 import { Router } from './Router';
 
-
-
 export class Navigation extends NavigationBase<RouterEventMap> {
     protected readonly router: Router;
 
