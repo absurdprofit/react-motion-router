@@ -33,6 +33,8 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState, RouteProp> {
         const setConfig = this.setConfig.bind(this);
         const getProps = () => this.props;
         const getState = () => this.state;
+        const getConfig = () => this.config;
+        const getParams = () => this.params;
         this.routeProp = {
             setParams,
             setConfig,
@@ -46,16 +48,10 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState, RouteProp> {
                 return getState().focused;
             },
             get config() {
-                return {
-                    ...getProps().config,
-                    ...context.screenState.get(this.path)?.config
-                };
+                return getConfig();
             },
             get params() {
-                return {
-                    ...getProps().defaultParams,
-                    ...context.screenState.get(this.path)?.params
-                };
+                return getParams();
             }
         };
     }
@@ -70,27 +66,13 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState, RouteProp> {
             return { elementType: "div" };
     }
 
-    get config() {
-        return {
-            ...this.props.config,
-            ...this.context.screenState.get(this.props.path)?.config
-        };
-    }
-
-    get params() {
-        return {
-            ...this.props.defaultParams,
-            ...this.context.screenState.get(this.props.path)?.params
-        };
-    }
-
     protected setParams(params: PlainObject): void {
         super.setParams(params);
         if (this.state.focused)
             window.navigation.updateCurrentEntry({ state: { params } });
     }
 
-    protected setConfig(config: ScreenProps["config"]): void {
+    protected setConfig(config: NonNullable<ScreenProps["config"]>): void {
         super.setConfig(config);
         if (this.state.focused)
             window.navigation.updateCurrentEntry({ state: { config } });

@@ -55,14 +55,16 @@ export interface ScreenBaseProps {
     config?: ScreenBaseConfig;
 }
 
-export interface ScreenBaseState {
+export interface ScreenBaseState<C extends ScreenBaseProps["config"] = ScreenBaseProps["config"], P extends PlainObject = PlainObject> {
     focused: boolean;
+    config: C;
+    params: P;
     elementType: ElementType;
 }
 
 export abstract class ScreenBase<
     P extends ScreenBaseProps = ScreenBaseProps,
-    S extends ScreenBaseState = ScreenBaseState,
+    S extends ScreenBaseState<P["config"]> = ScreenBaseState<P["config"]>,
     R extends RoutePropBase<P["config"]> = RoutePropBase<P["config"]>
 > extends Component<P, S> {
     public readonly sharedElementScene: SharedElementScene;
@@ -74,6 +76,8 @@ export abstract class ScreenBase<
 
     state: S = {
         focused: false,
+        config: {},
+        params: {},
         elementType: 'div'
     } as S;
 
@@ -86,23 +90,11 @@ export abstract class ScreenBase<
     }
 
     protected setParams(params: PlainObject) {
-        params = {
-            ...this.routeProp.params,
-            ...params
-        };
-        const config = this.routeProp.config;
-        this.context.screenState.set(this.props.path, { config, params });
-        this.forceUpdate();
+        this.setState({ params });
     }
 
-    protected setConfig(config: P['config']) {
-        config = {
-            ...this.routeProp.config,
-            ...config
-        };
-        const params = this.routeProp.params;
-        this.context.screenState.set(this.props.path, { config, params });
-        this.forceUpdate();
+    protected setConfig(config: R['config']) {
+        this.setState({ config });
     }
 
     get id() {
@@ -116,6 +108,20 @@ export abstract class ScreenBase<
 
     get focused() {
         return this.state.focused;
+    }
+
+    get config(): R["config"] {
+        return {
+            ...this.props.config,
+            ...this.state.config
+        } as R["config"];
+    }
+
+    get params(): R["params"] {
+        return {
+            ...this.props.defaultParams,
+            ...this.state.params
+        }
     }
 
     blur(options?: ScreenBaseFocusOptions) {
@@ -151,8 +157,6 @@ export abstract class ScreenBase<
     }
 
     abstract get routeProp(): R;
-    abstract get config(): R["config"];
-    abstract get params(): R["params"];
 
     async onExited(signal: AbortSignal): Promise<void> {
         await this.routeProp.config.onExited?.({
