@@ -10,7 +10,7 @@ if (!isNavigationSupported())
 if (!isURLPatternSupported())
   await polyfillURLPattern();
 
-const container = document.getElementById('root');
+const container = document.getElementById('app');
 
 if (container) {
   const root = createRoot(container);
