@@ -2,7 +2,7 @@ import { RouterBase, includesRoute, isValidScreenChild, matchRoute } from '@reac
 import type { LoadEvent, NestedRouterContext, PlainObject, RouterBaseConfig, RouterBaseProps, RouterBaseState, ScreenChild } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { ScreenProps, Screen, ScreenConfig } from './Screen';
-import { HistoryEntryState, isHorizontalDirection, isOutOfBounds, isRefObject, isSupportedDirection, RouterEventMap, SwipeDirection } from './common/types';
+import { HistoryEntryState, isHorizontalDirection, isOutOfBounds, isRefObject, isSupportedDirection, RouterEventMap, ScreenInternalProps, SwipeDirection } from './common/types';
 import { Children, createRef, cloneElement, startTransition } from 'react';
 import { SwipeStartEvent, SwipeEndEvent } from 'web-gesture-events';
 import { GestureTimeline } from 'web-animations-extension';
@@ -23,6 +23,7 @@ export interface RouterProps extends RouterBaseProps<Screen> {
     config?: RouterConfig;
 }
 
+type InjectedScreenProps = Pick<ScreenInternalProps & ScreenProps, "config" | "id" | "resolvedPathname">;
 export interface RouterState extends RouterBaseState {
     transition: NavigationTransition | LoadEvent["transition"] | null;
     screenStack: ScreenChild<Screen>[];
@@ -223,35 +224,30 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
             });
     }
 
-    private screenChildFromPathname(pathname: string, key: React.Key | null, config: ScreenProps["config"], params: PlainObject) {
+    private screenChildFromPathname(pathname: string, key: React.Key | null) {
         const screenChild = Children.toArray(this.props.children)
-            .find(child => {
-                if (!isValidScreenChild(child)) return;
+            .find((child): child is ScreenChild<Screen> => {
+                if (!isValidScreenChild(child)) return false;
                 return matchRoute(
                     child.props.path,
                     pathname,
                     this.baseURLPattern.pathname,
                     child.props.caseSensitive
-                );
+                ) !== null;
             });
 
-        if (!isValidScreenChild<Screen>(screenChild)) return null;
-
+        if (!screenChild) return null;
         return cloneElement(screenChild, {
             config: {
                 title: document.title,
                 ...this.props.config?.screenConfig,
-                ...screenChild.props.config,
-                ...config
+                ...screenChild.props.config
             },
-            defaultParams: {
-                ...screenChild.props.defaultParams,
-                ...params
-            },
+            id: key,
             resolvedPathname: pathname,
             key,
             ref: createRef<Screen>()
-        });
+        } as InjectedScreenProps);
     }
 
     private getScreenChildByPathname(pathname: string) {
@@ -320,11 +316,7 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
             const entries = this.navigation.entries;
             entries.forEach((entry) => {
                 if (!entry.url) return null;
-                const { params, config } = entry.getState<HistoryEntryState>() ?? {};
-                const searchPart = entry.url.search;
-                const searchParams = new URLSearchParams(searchPart);
-                const queryParams = searchParamsToObject(searchParams);
-                const screen = this.screenChildFromPathname(entry.url.pathname, entry.key, config, { ...queryParams, ...params });
+                const screen = this.screenChildFromPathname(entry.url.pathname, entry.key);
                 if (!screen) return null;
                 screenStack.push(screen);
             });
@@ -370,10 +362,8 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
         const screenStack = this.state.screenStack;
         const destination = e.destination;
         const destinationPathname = new URL(destination.url).pathname;
-        const { params, config } = destination.getState() as HistoryEntryState ?? {};
-        const queryParams = searchParamsToObject(new URL(destination.url).searchParams);
         const destinationKey = window.navigation.currentEntry?.key ?? destination.key;
-        const destinationScreen = this.screenChildFromPathname(destinationPathname, destinationKey, config, { ...queryParams, ...params });
+        const destinationScreen = this.screenChildFromPathname(destinationPathname, destinationKey);
         if (!destinationScreen) return e.preventDefault();
         const handler = () => {
             const isHotReplace = this.state.transition !== null;
@@ -438,10 +428,8 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
             const destinationIndex = screenStack.findIndex(screen => screen.key === e.destination.key);
             const destinationKey = (screenStack[destinationIndex]?.key || window.navigation.currentEntry?.key) ?? null;
             if (e.navigationType === "push") {
-                const { params, config } = destination.getState() as HistoryEntryState ?? {};
                 const destinationPathname = new URL(destination.url).pathname;
-                const queryParams = searchParamsToObject(new URL(destination.url).searchParams);
-                const destinationScreen = this.screenChildFromPathname(destinationPathname, destinationKey, config, { ...queryParams, ...params });
+                const destinationScreen = this.screenChildFromPathname(destinationPathname, destinationKey);
                 if (!destinationScreen) return Promise.resolve();
                 screenStack.splice(
                     fromIndex + 1,

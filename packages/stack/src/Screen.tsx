@@ -1,8 +1,10 @@
 import { ScreenBase } from '@react-motion-router/core';
 import type { PlainObject, RouterContext, ScreenBaseProps, ScreenBaseState, ScreenBaseComponentProps, ScreenBaseConfig } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
-import { RouteProp, SwipeDirection } from './common/types';
+import { HistoryEntryState, RouteProp, ScreenInternalProps, SwipeDirection } from './common/types';
 import { Router } from './Router';
+import { searchParamsToObject } from './common/utils';
+import { HistoryEntry } from './HistoryEntry';
 
 export interface ScreenComponentProps<T extends PlainObject = {}> extends ScreenBaseComponentProps<RouteProp<T>, Navigation> { }
 
@@ -24,36 +26,17 @@ export interface ScreenProps extends ScreenBaseProps {
 export interface ScreenState extends ScreenBaseState { }
 
 export class Screen extends ScreenBase<ScreenProps, ScreenState, RouteProp> {
-    readonly routeProp;
+    #historyEntry: HistoryEntry;
 
     constructor(props: ScreenProps, context: React.ContextType<typeof RouterContext>) {
         super(props, context);
 
-        const setParams = this.setParams.bind(this);
-        const setConfig = this.setConfig.bind(this);
-        const getProps = () => this.props;
-        const getState = () => this.state;
-        const getConfig = () => this.config;
-        const getParams = () => this.params;
-        this.routeProp = {
-            setParams,
-            setConfig,
-            get path() {
-                return getProps().path;
-            },
-            get resolvedPathname() {
-                return getProps().resolvedPathname;
-            },
-            get focused() {
-                return getState().focused;
-            },
-            get config() {
-                return getConfig();
-            },
-            get params() {
-                return getParams();
-            }
-        };
+        const router = context as Router;
+        const id = this.internalProps.id;
+        const historyEntry = router.navigation.entries.find(entry => entry.key === id);
+        if (!historyEntry)
+            throw new Error(`No history entry found for: ${id}`);
+        this.#historyEntry = historyEntry;
     }
 
     static getDerivedStateFromProps(props: ScreenProps) {
@@ -68,17 +51,85 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState, RouteProp> {
 
     protected setParams(params: PlainObject): void {
         super.setParams(params);
-        if (this.state.focused)
-            window.navigation.updateCurrentEntry({ state: { params } });
+        this.setHistoryState({ params });
     }
 
     protected setConfig(config: NonNullable<ScreenProps["config"]>): void {
         super.setConfig(config);
-        if (this.state.focused)
-            window.navigation.updateCurrentEntry({ state: { config } });
+        this.setHistoryState({ config });
     }
+
     protected get router() {
         return this.context as Router;
+    }
+
+    get internalProps() {
+        return this.props as unknown as ScreenInternalProps;
+    }
+
+    get resolvedPathname() {
+        return this.internalProps.resolvedPathname;
+    }
+
+    get historyEntryState() {
+        const entry = this.#historyEntry;
+        if (entry?.url) {
+            const state = entry.getState<HistoryEntryState>() ?? {};
+            const queryParams = searchParamsToObject(entry.url?.searchParams);
+            state.params = {
+                ...state.params,
+                ...queryParams
+            };
+
+            return state;
+        }
+        return {};
+    }
+
+    get id() {
+        return this.internalProps.id;
+    }
+
+    get params() {
+        return {
+            ...this.props.defaultParams,
+            ...this.historyEntryState.params,
+            ...this.state.params
+        };
+    }
+
+    get config() {
+        return {
+            ...this.props.config,
+            ...this.historyEntryState.config,
+            ...this.state.config
+        };
+    }
+
+    protected get routeProp() {
+        const setParams = this.setParams.bind(this);
+        const setConfig = this.setConfig.bind(this);
+        const{ path } = this.props;
+        const { focused } = this.state;
+        const { params, config, resolvedPathname } = this;
+        return {
+            setParams,
+            setConfig,
+            path,
+            resolvedPathname,
+            focused,
+            params,
+            config
+        };
+    }
+
+    protected setHistoryState(newState: PlainObject) {
+        if (!this.state.focused) return;
+        const state = {
+            ...window.navigation.currentEntry?.getState() ?? {},
+            ...newState
+        };
+        window.navigation.updateCurrentEntry({ state });
     }
 
     private onClickOutside(e: MouseEvent) {

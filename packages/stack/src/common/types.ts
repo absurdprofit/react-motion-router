@@ -73,3 +73,8 @@ export function isOutOfBounds(direction: SwipeDirection, { x, y }: { x: number, 
 export function isHorizontalDirection(direction: SwipeDirection): direction is 'left' | 'right' | 'horizontal' {
 	return direction === 'left' || direction === 'right' || direction === 'horizontal';
 }
+
+export interface ScreenInternalProps {
+    resolvedPathname: string;
+    id: string;
+}
