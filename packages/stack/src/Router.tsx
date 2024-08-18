@@ -488,9 +488,12 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
         if (animationStarted)
             await new Promise((resolve) => this.addEventListener('transition-end', resolve, { once: true }));
 
+        // if gesture navigation cancelled then exit here
+        if (this.state.controller?.signal.aborted) return;
+
         await Promise.all([
-            outgoingScreen?.current?.onExited(signal).then(() => outgoingScreen.current?.blur({ signal })),
-            incomingScreen?.current?.onEntered(signal).then(() => incomingScreen.current?.focus({ signal }))
+            outgoingScreen?.current?.onExited(signal).then(() => outgoingScreen.current?.blur()),
+            incomingScreen?.current?.onEntered(signal).then(() => incomingScreen.current?.focus())
         ]);
     }
 
