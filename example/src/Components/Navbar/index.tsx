@@ -9,7 +9,14 @@ interface NavbarProps {
 }
 function Navbar(props: NavbarProps) {
     const navigation = useNavigation();
-    const route = useRoute();
+    const route = useRoute<{ count: number }>();
+    const { count = 0 } = route.params;
+    const setCount = (count: number) => {
+        route.setParams({ count });
+    }
+    const clearCount = () => {
+        route.setParams({ count: 0 });
+    }
 
     return (
         <SharedElement id="navbar" config={{
@@ -18,7 +25,7 @@ function Navbar(props: NavbarProps) {
             <div className="navbar">
                 <div className="back">
                     {
-                        navigation.canGoBack ?
+                        navigation.canGoBack() ?
                             <BackButton />
                             :
                             undefined
@@ -26,8 +33,10 @@ function Navbar(props: NavbarProps) {
                 </div>
                 <div className="title">
                     <SharedElement id={props.title.toLowerCase().split(' ').join('-') + "-title"} config={{ transformOrigin: 'center center' }}>
-                        <h2>{props.title}</h2>
+                        <h2>{props.title} - {count}</h2>
                     </SharedElement>
+                    <button onClick={() => setCount(count + 1)}>Inc</button>
+                    <button onClick={() => clearCount()}>Clear</button>
                 </div>
             </div>
         </SharedElement>

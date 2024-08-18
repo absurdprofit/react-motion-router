@@ -45,7 +45,7 @@
   }
 }
 
-#-transition-provider[inert] {
+#overlays-home-transition-provider[inert] {
   transform: scale(0.95) translateY(15px);
   border-radius: 15px;
 }

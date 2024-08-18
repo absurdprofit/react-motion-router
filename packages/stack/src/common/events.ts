@@ -7,7 +7,7 @@ export class NavigateEvent extends Event {
 	readonly props: NavigationProps;
 	readonly navigationType: NonNullable<NavigateOptions["type"]>;
 	readonly signal: AbortSignal;
-	readonly result: NavigationResult;
+	readonly committed: Promise<NavigationHistoryEntry>;
 	readonly transition: NavigationTransition;
 
 	constructor(
@@ -16,7 +16,7 @@ export class NavigateEvent extends Event {
 		props: NavigationProps,
 		type: NavigateOptions["type"],
 		signal: AbortSignal,
-		result: NavigationResult,
+		committed: Promise<NavigationHistoryEntry>,
 		transition: NavigationTransition
 	) {
 		super('navigate');
@@ -25,7 +25,7 @@ export class NavigateEvent extends Event {
 		this.props = props;
 		this.navigationType = type ?? "push";
 		this.signal = signal;
-		this.result = result;
+		this.committed = committed;
 		this.transition = transition;
 	}
 }
@@ -33,14 +33,14 @@ export class NavigateEvent extends Event {
 export class BackEvent extends Event {
 	readonly routerId: string;
 	readonly signal: AbortSignal;
-	readonly result: NavigationResult;
+	readonly committed: Promise<NavigationHistoryEntry>;
 	readonly transition: NavigationTransition;
 
-	constructor(routerId: string, signal: AbortSignal, result: NavigationResult, transition: NavigationTransition) {
+	constructor(routerId: string, signal: AbortSignal, committed: Promise<NavigationHistoryEntry>, transition: NavigationTransition) {
 		super('back');
 		this.routerId = routerId;
 		this.signal = signal;
-		this.result = result;
+		this.committed = committed;
 		this.transition = transition;
 	}
 }
@@ -48,14 +48,14 @@ export class BackEvent extends Event {
 export class ForwardEvent extends Event {
 	readonly routerId: string;
 	readonly signal: AbortSignal;
-	readonly result: NavigationResult;
+	readonly committed: Promise<NavigationHistoryEntry>;
 	readonly transition: NavigationTransition;
 
-	constructor(routerId: string, signal: AbortSignal, result: NavigationResult, transition: NavigationTransition) {
+	constructor(routerId: string, signal: AbortSignal, committed: Promise<NavigationHistoryEntry>, transition: NavigationTransition) {
 		super('forward');
 		this.routerId = routerId;
 		this.signal = signal;
-		this.result = result;
+		this.committed = committed;
 		this.transition = transition;
 	}
 }

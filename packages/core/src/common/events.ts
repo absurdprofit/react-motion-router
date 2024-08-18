@@ -1,3 +1,4 @@
+import { LoadNavigationTransition } from "./types";
 import { PromiseAllDynamic } from "./utils";
 
 export class TransitionStartEvent extends Event {
@@ -39,7 +40,7 @@ export class MotionProgressEndEvent extends Event {
 	}
 }
 
-export class LoadEvent extends Event implements Omit<NavigateEvent, 'navigationType'> {
+export class LoadEvent extends Event implements Omit<NavigateEvent, 'navigationType' | 'commit'> {
 	#navigationType = "load" as const;
 	#userInitiated: boolean = false;
 	#canIntercept: boolean = true;
@@ -51,7 +52,7 @@ export class LoadEvent extends Event implements Omit<NavigateEvent, 'navigationT
 	#abortable = new AbortController();
 	#intercepted = false;
 	#thenables: Promise<void>[] = [];
-	#transition: { from: NavigationHistoryEntry | null, finished: Promise<void>, navigationType: "load" } | null = null;
+	#transition: LoadNavigationTransition | null = null;
 
 	constructor() {
 		super('navigate', { cancelable: false, bubbles: false, composed: false });
@@ -83,15 +84,17 @@ export class LoadEvent extends Event implements Omit<NavigateEvent, 'navigationT
 	intercept(options?: NavigationInterceptOptions | undefined): void {
 		if (this.#intercepted) throw new DOMException("Failed to execute 'intercept' on 'NavigateEvent': intercept() may only be called while the navigate event is being dispatched.");
 		let finish: Function | null = null;
-		this.#transition = {
-			finished: new Promise((resolve) => finish = resolve),
-			from: window.navigation.currentEntry,
-			navigationType: "load" as const
-		};
+		if (!this.#transition) {
+			this.#transition = {
+				finished: new Promise((resolve) => finish = resolve),
+				from: window.navigation.currentEntry!,
+				navigationType: "load" as const
+			};
+		}
 		const thenable = options?.handler?.();
 		if (thenable) this.#thenables.push(thenable);
 		if (this.#thenables.length === 1) {
-			this.#transition.finished = PromiseAllDynamic(this.#thenables).then(() => {
+			PromiseAllDynamic(this.#thenables).then(() => {
 				this.#intercepted = true;
 				window.removeEventListener('navigate', this.#onNavigate);
 				finish?.();

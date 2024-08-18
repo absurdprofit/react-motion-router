@@ -1,14 +1,15 @@
-import { RouterBase, includesRoute, isValidScreenChild, matchRoute } from '@react-motion-router/core';
-import type { LoadEvent, NestedRouterContext, PlainObject, RouterBaseConfig, RouterBaseProps, RouterBaseState, ScreenChild } from '@react-motion-router/core';
+import { RouterBase, cloneAndInject, includesRoute, isValidScreenChild, matchRoute } from '@react-motion-router/core';
+import type { ClonedElementType, LoadEvent, NestedRouterContext, RouterBaseConfig, RouterBaseProps, RouterBaseState, ScreenChild } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { ScreenProps, Screen, ScreenConfig } from './Screen';
-import { HistoryEntryState, isHorizontalDirection, isOutOfBounds, isRefObject, isSupportedDirection, RouterEventMap, SwipeDirection } from './common/types';
-import { Children, createRef, cloneElement, startTransition } from 'react';
+import { HistoryEntryState, isHorizontalDirection, isOutOfBounds, isRefObject, isSupportedDirection, RouterEventMap, ScreenInternalProps, SwipeDirection } from './common/types';
+import { Children, createRef, startTransition } from 'react';
 import { SwipeStartEvent, SwipeEndEvent } from 'web-gesture-events';
 import { GestureTimeline } from 'web-animations-extension';
-import { deepEquals, isRollback, searchParamsToObject } from './common/utils';
+import { deepEquals, isGesture, isRollback } from './common/utils';
 import { GestureCancelEvent, GestureEndEvent, GestureStartEvent } from './common/events';
 import { DEFAULT_GESTURE_CONFIG } from './common/constants';
+import { PromiseWrapper } from './common/promise-wrapper';
 
 export interface RouterConfig extends RouterBaseConfig {
     screenConfig?: ScreenConfig;
@@ -22,10 +23,10 @@ export interface RouterProps extends RouterBaseProps<Screen> {
     config?: RouterConfig;
 }
 
+type InjectedScreenProps = Pick<ScreenInternalProps & ScreenProps, "config" | "id" | "resolvedPathname">;
 export interface RouterState extends RouterBaseState {
-    backNavigating: boolean;
     transition: NavigationTransition | LoadEvent["transition"] | null;
-    screenStack: ScreenChild<Screen>[];
+    screenStack: ClonedElementType<ScreenChild<Screen>, InjectedScreenProps>[];
     gestureDirection: SwipeDirection;
     gestureAreaWidth: number;
     gestureMinFlingVelocity: number;
@@ -34,10 +35,12 @@ export interface RouterState extends RouterBaseState {
     fromKey: React.Key | null
     destinationKey: React.Key | null;
     documentTitle?: string;
+    controller: AbortController | null;
 }
 
 export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap> {
     public readonly navigation = new Navigation(this);
+    #committed: PromiseWrapper<NavigationHistoryEntry> | null = null;
 
     constructor(props: RouterProps, context: React.ContextType<typeof NestedRouterContext>) {
         super(props, context);
@@ -49,10 +52,10 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
             gestureDisabled: true,
             gestureMinFlingVelocity: 500,
             transition: null,
-            backNavigating: false,
             documentTitle: document.title,
             fromKey: null,
-            destinationKey: null
+            destinationKey: null,
+            controller: null
         };
     }
 
@@ -81,6 +84,10 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
         super.componentDidMount();
         this.ref.current?.addEventListener('swipestart', this.onSwipeStart);
         this.ref.current?.addEventListener('swipeend', this.onSwipeEnd);
+        window.navigation.addEventListener("currententrychange", this.onCurrentEntryChange);
+        window.navigation.addEventListener("navigate", this.onNavigate);
+        window.navigation.addEventListener("navigatesuccess", this.onNavigateSuccess);
+        window.navigation.addEventListener("navigateerror", this.onNavigateError);
     }
 
     shouldComponentUpdate(nextProps: Readonly<RouterProps>, nextState: Readonly<RouterState>): boolean {
@@ -94,6 +101,34 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
     componentWillUnmount(): void {
         this.ref.current?.removeEventListener('swipestart', this.onSwipeStart);
         this.ref.current?.removeEventListener('swipeend', this.onSwipeEnd);
+        window.navigation.removeEventListener("currententrychange", this.onCurrentEntryChange);
+        window.navigation.removeEventListener("navigate", this.onNavigate);
+        window.navigation.removeEventListener("navigatesuccess", this.onNavigateSuccess);
+        window.navigation.removeEventListener("navigateerror", this.onNavigateError);
+    }
+
+    private onNavigate = () => {
+        this.#committed = new PromiseWrapper();
+    }
+
+    private onCurrentEntryChange = () => {
+        this.#committed?.nativeResolve?.(window.navigation.currentEntry!);
+    }
+
+    private onNavigateSuccess = () => {
+        this.#committed = null;
+    }
+
+    private onNavigateError = ({ error }: ErrorEvent) => {
+        if (this.#committed?.state === "pending")
+            this.#committed.nativeReject?.(error); // TODO: find out what the spec does for cancelled navigations
+        this.#committed = null;
+    }
+
+    private onGestureCancel = () => {
+        if (!this.state.transition)
+            throw new Error("Rollback failed, transition is null");
+        window.navigation.traverseTo(this.state.transition.from.key, { info: { rollback: true } });
     }
 
     private canGestureNavigate(e: SwipeStartEvent) {
@@ -101,8 +136,8 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
         if (this.state.gestureDisabled) return false;
         const clientRect = this.ref.current.getBoundingClientRect();
         const { direction } = e;
-        if ((direction === "down" || direction === "right") && !this.navigation.canGoBack) return false;
-        if ((direction === "up" || direction === "left") && !this.navigation.canGoForward) return false;
+        if ((direction === "down" || direction === "right") && !this.navigation.canGoBack()) return false;
+        if ((direction === "up" || direction === "left") && !this.navigation.canGoForward()) return false;
         if (isOutOfBounds(direction, e, clientRect, this.state.gestureAreaWidth)) return false;
 
         return isSupportedDirection(direction, this.state.gestureDirection);
@@ -141,10 +176,11 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
             rangeStart,
             rangeEnd
         });
+        const gesture = true;
         if (direction === "down" || direction === "right")
-            this.navigation.goBack();
+            window.navigation.traverseTo(this.navigation.previous!.key, { info: { gesture } });
         else
-            this.navigation.goForward();
+            window.navigation.traverseTo(this.navigation.next!.key, { info: { gesture } });
 
         this.dispatchEvent(new GestureStartEvent(e));
     }
@@ -155,20 +191,28 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
         const playbackRate = this.screenTransitionLayer.current.animation.playbackRate;
         this.screenTransitionLayer.current.animation.timeline = document.timeline;
         const hysteresisReached = playbackRate > 0 ? progress > this.state.gestureHysteresis : progress < this.state.gestureHysteresis;
-        let rollback = false;
         if (e.velocity < this.state.gestureMinFlingVelocity && !hysteresisReached) {
             this.screenTransitionLayer.current.animation.reverse();
-            rollback = true;
             this.dispatchEvent(new GestureCancelEvent());
         } else {
             this.dispatchEvent(new GestureEndEvent(e));
         }
-        const { fromKey } = this.state;
-        if (rollback && fromKey) {
-            this.state.transition?.finished.then(() => {
-                window.navigation.traverseTo(fromKey.toString(), { info: { rollback } });
+        if (!hysteresisReached) {
+            this.screenTransitionLayer.current.animation.finished.then(() => {
+                this.state.controller?.abort("gesture-cancel");
             });
         }
+    }
+
+    public get committed() {
+        return this.#committed?.promise ?? null;
+    }
+
+    private get backNavigating() {
+        const fromIndex = this.state.screenStack.findIndex(screen => screen.key === this.state.fromKey);
+        const destinationIndex = this.state.screenStack.findIndex(screen => screen.key === this.state.destinationKey);
+
+        return destinationIndex >= 0 && destinationIndex < fromIndex;
     }
 
     protected get screens() {
@@ -186,35 +230,31 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
             });
     }
 
-    private screenChildFromPathname(pathname: string, key: React.Key | null, config: ScreenProps["config"], params: PlainObject) {
+    private screenChildFromPathname(pathname: string, key: React.Key | null) {
         const screenChild = Children.toArray(this.props.children)
-            .find(child => {
-                if (!isValidScreenChild(child)) return;
+            .find((child): child is ScreenChild<Screen> => {
+                if (!isValidScreenChild(child)) return false;
                 return matchRoute(
                     child.props.path,
                     pathname,
                     this.baseURLPattern.pathname,
                     child.props.caseSensitive
-                );
+                ) !== null;
             });
 
-        if (!isValidScreenChild<Screen>(screenChild)) return null;
-
-        return cloneElement(screenChild, {
+        if (!screenChild) return null;
+        key ??= crypto.randomUUID();
+        return cloneAndInject(screenChild, {
             config: {
                 title: document.title,
                 ...this.props.config?.screenConfig,
-                ...screenChild.props.config,
-                ...config
+                ...screenChild.props.config
             },
-            defaultParams: {
-                ...screenChild.props.defaultParams,
-                ...params
-            },
+            id: key,
             resolvedPathname: pathname,
             key,
             ref: createRef<Screen>()
-        });
+        } as InjectedScreenProps);
     }
 
     private getScreenChildByPathname(pathname: string) {
@@ -279,13 +319,11 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
             const fromKey = e.transition?.from?.key ?? null;
             const destinationKey = e.destination.key;
             const transition = e.transition;
-            const screenStack = new Array<ScreenChild<Screen>>();
+            const screenStack: RouterState["screenStack"] = new Array();
             const entries = this.navigation.entries;
             entries.forEach((entry) => {
                 if (!entry.url) return null;
-                const { params, config } = entry.getState<HistoryEntryState>() ?? {};
-                const queryParams = searchParamsToObject(entry.url.search);
-                const screen = this.screenChildFromPathname(entry.url.pathname, entry.key, config, { ...queryParams, ...params });
+                const screen = this.screenChildFromPathname(entry.url.pathname, entry.key);
                 if (!screen) return null;
                 screenStack.push(screen);
             });
@@ -331,17 +369,14 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
         const screenStack = this.state.screenStack;
         const destination = e.destination;
         const destinationPathname = new URL(destination.url).pathname;
-        const { params, config } = destination.getState() as HistoryEntryState ?? {};
-        const queryParams = searchParamsToObject(new URL(destination.url).search);
         const destinationKey = window.navigation.currentEntry?.key ?? destination.key;
-        const destinationScreen = this.screenChildFromPathname(destinationPathname, destinationKey, config, { ...queryParams, ...params });
+        const destinationScreen = this.screenChildFromPathname(destinationPathname, destinationKey);
         if (!destinationScreen) return e.preventDefault();
         const handler = () => {
             const isHotReplace = this.state.transition !== null;
             const transition = this.state.transition ?? window.navigation.transition;
             const fromKey = transition?.from?.key ?? null;
             const currentIndex = screenStack.findIndex(screen => screen.key === this.navigation.current?.key);
-            const backNavigating = this.state.backNavigating;
             screenStack.splice(
                 currentIndex,
                 1,
@@ -358,7 +393,7 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
                         const currentTime = this.screenTransitionLayer.current?.animation.currentTime ?? 0;
                         this.screenTransitionLayer.current?.animation.cancel();
                         await new Promise(requestAnimationFrame);
-                        const animation = this.screenTransition(incomingScreen, outgoingScreen, backNavigating);
+                        const animation = this.screenTransition(incomingScreen, outgoingScreen);
                         if (animation) {
                             animation.currentTime = currentTime;
                         }
@@ -381,6 +416,7 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
         if (!isValidScreenChild<Screen>(this.getScreenChildByPathname(destinationPathname)))
             return e.preventDefault();
         const handler = () => {
+            if (isRollback(e.info)) return Promise.resolve();
             const transition = window.navigation.transition;
             let fromIndex = screenStack.findIndex(screen => screen.key === transition?.from.key);
             if (fromIndex === -1 && e.navigationType === "traverse") {
@@ -399,12 +435,9 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
             const fromKey = (screenStack[fromIndex]?.key || transition?.from.key) ?? null;
             const destinationIndex = screenStack.findIndex(screen => screen.key === e.destination.key);
             const destinationKey = (screenStack[destinationIndex]?.key || window.navigation.currentEntry?.key) ?? null;
-            const backNavigating = destinationIndex >= 0 && destinationIndex < fromIndex;
             if (e.navigationType === "push") {
-                const { params, config } = destination.getState() as HistoryEntryState ?? {};
                 const destinationPathname = new URL(destination.url).pathname;
-                const queryParams = searchParamsToObject(new URL(destination.url).search);
-                const destinationScreen = this.screenChildFromPathname(destinationPathname, destinationKey, config, { ...queryParams, ...params });
+                const destinationScreen = this.screenChildFromPathname(destinationPathname, destinationKey);
                 if (!destinationScreen) return Promise.resolve();
                 screenStack.splice(
                     fromIndex + 1,
@@ -413,24 +446,33 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
                 );
             }
 
+            const controller = new AbortController();
             return new Promise<void>((resolve, reject) => startTransition(() => {
-                this.setState({ destinationKey, fromKey, transition, screenStack, backNavigating }, async () => {
+                this.setState({ controller, destinationKey, fromKey, transition, screenStack }, async () => {
+                    controller.signal.onabort = reject;
                     const signal = e.signal;
                     const outgoingScreen = this.getScreenRefByKey(String(fromKey));
                     const incomingScreen = this.getScreenRefByKey(String(destinationKey));
                     const pendingLifecycleHandlers = this.dispatchLifecycleHandlers(incomingScreen, outgoingScreen, signal).catch(reject);
-                    if (!isRollback(e.info)) {
-                        const animation = this.screenTransition(incomingScreen, outgoingScreen, backNavigating);
-                        animation?.updatePlaybackRate(1);
-                        animation?.finished.catch(reject);
-                    }
+                    const animation = this.screenTransition(incomingScreen, outgoingScreen);
+                    animation?.updatePlaybackRate(1);
+                    animation?.finished.catch(reject);
                     await pendingLifecycleHandlers;
-                    this.setState({ destinationKey: null, fromKey: null, transition: null }, resolve);
+                    this.setState({ destinationKey: null, fromKey: null, transition: null, controller: null }, resolve);
                 });
             }));
         }
 
-        e.intercept({ handler });
+        let commit;
+        if (isGesture(e.info)) {
+            commit = "after-transition";
+            this.addEventListener("gesture-end", () => e.commit?.(), { once: true });
+            this.addEventListener("gesture-cancel", this.onGestureCancel, { once: true });
+        } else {
+            commit = "immediate";
+        }
+        const options = { handler, commit };
+        e.intercept(options);
     }
 
     private async dispatchLifecycleHandlers(incomingScreen: React.RefObject<Screen> | null, outgoingScreen: React.RefObject<Screen> | null, signal: AbortSignal) {
@@ -438,8 +480,8 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
         this.addEventListener('transition-start', () => animationStarted = true, { once: true });
 
         await Promise.all([
-            outgoingScreen?.current?.onExit(signal).then(() => outgoingScreen.current?.blur()),
-            incomingScreen?.current?.onEnter(signal).then(() => incomingScreen.current?.focus()),
+            outgoingScreen?.current?.onExit(signal),
+            incomingScreen?.current?.onEnter(signal),
             incomingScreen?.current?.load(signal)
         ]);
 
@@ -447,16 +489,16 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
             await new Promise((resolve) => this.addEventListener('transition-end', resolve, { once: true }));
 
         await Promise.all([
-            outgoingScreen?.current?.onExited(signal),
-            incomingScreen?.current?.onEntered(signal)
+            outgoingScreen?.current?.onExited(signal).then(() => outgoingScreen.current?.blur({ signal })),
+            incomingScreen?.current?.onEntered(signal).then(() => incomingScreen.current?.focus({ signal }))
         ]);
     }
 
     private screenTransition(
         incomingScreen: React.RefObject<Screen> | null,
-        outgoingScreen: React.RefObject<Screen> | null,
-        backNavigating: boolean
+        outgoingScreen: React.RefObject<Screen> | null
     ) {
+        const { backNavigating } = this;
         if (this.screenTransitionLayer.current && incomingScreen && outgoingScreen) {
             this.screenTransitionLayer.current.direction = backNavigating ? 'reverse' : 'normal';
             if (incomingScreen.current?.transitionProvider.current) {

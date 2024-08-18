@@ -1,5 +1,5 @@
-#player-transition-provider,
-#sheet-transition-provider {
+#root-overlays-player-transition-provider,
+#root-overlays-sheet-transition-provider {
   transform: translateY(15vh);
   overflow: visible;
   &::backdrop {

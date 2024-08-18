@@ -25,7 +25,8 @@ function Routes() {
       screenConfig: {
         gestureDisabled: false,
         gestureMinFlingVelocity: 1000,
-        animation
+        animation,
+        gestureDirection: "horizontal"
       },
       initialPath: '.',
       basePath: '/(react-motion-router/)?',
@@ -33,13 +34,11 @@ function Routes() {
     }}>
       <Stack.Screen
         path='overlays/**'
-        id="Overlays"
         component={Overlays}
         fallback={<div className='screen-fallback overlays'></div>}
       />
       <Stack.Screen
         path={'slides'}
-        id="Slides"
         component={Slides}
         defaultParams={{ hero: 0 }}
         fallback={<div className='screen-fallback slides'></div>}
@@ -50,7 +49,7 @@ function Routes() {
       />
       <Stack.Screen
         path={'cards'}
-        id="Cards Demo"
+        name="Cards Demo"
         component={Cards}
         config={{
           title: "Cards Demo",
@@ -62,7 +61,7 @@ function Routes() {
       />
       <Stack.Screen
         path={'cards-2'}
-        id="Cards Demo 2"
+        name="Cards Demo 2"
         component={Cards2}
         config={{
           title: "Cards Demo 2",
@@ -74,7 +73,6 @@ function Routes() {
       />
       <Stack.Screen
         path={"details"}
-        id="Details"
         component={Details}
         config={{
           animation: STATIC_ANIMATION,
@@ -87,7 +85,6 @@ function Routes() {
       />
       <Stack.Screen
         path={"."}
-        id='Home'
         component={Home}
         config={{
           header: { component: () => <Navbar title="React Motion Router" /> }
@@ -96,7 +93,6 @@ function Routes() {
       />
       <Stack.Screen
         path="tiles"
-        id="Tiles"
         component={Tiles}
         fallback={<div className='screen-fallback tiles'></div>}
         config={{
@@ -105,7 +101,7 @@ function Routes() {
         }}
       />
       <Stack.Screen
-        id="Not Found"
+        name="Not Found"
         path="*"
         component={NotFound}
         fallback={<div className='screen-fallback not-found'></div>}

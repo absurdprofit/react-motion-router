@@ -8,9 +8,9 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import './index.css';
 
-interface OverlaysProps extends ScreenComponentProps { }
+interface HomeProps extends ScreenComponentProps { }
 
-export default function Overlays({ navigation }: OverlaysProps) {
+export default function Home({ navigation }: HomeProps) {
     const playerRef = useRef<HTMLDivElement | null>(null);
 
     const openPlayer = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {

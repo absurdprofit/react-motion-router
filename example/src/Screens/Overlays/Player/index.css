@@ -1,6 +1,10 @@
-#player-transition-provider {
+#root-overlays-player-transition-provider {
   contain: paint;
   transform: translateY(15vh);
+  border-radius: 15px 15px 0px 0px;
+}
+#root-overlays-player-transition-provider::backdrop {
+  background-color: rgba(0, 0, 0, 0.8);
 }
 .modal {
   .play-controls {
