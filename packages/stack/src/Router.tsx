@@ -6,7 +6,7 @@ import { HistoryEntryState, isHorizontalDirection, isOutOfBounds, isRefObject, i
 import { Children, createRef, startTransition } from 'react';
 import { SwipeStartEvent, SwipeEndEvent } from 'web-gesture-events';
 import { GestureTimeline } from 'web-animations-extension';
-import { deepEquals, isGesture } from './common/utils';
+import { deepEquals, isGesture, isRollback } from './common/utils';
 import { GestureCancelEvent, GestureEndEvent, GestureStartEvent } from './common/events';
 import { DEFAULT_GESTURE_CONFIG } from './common/constants';
 import { PromiseWrapper } from './common/promise-wrapper';
@@ -123,6 +123,12 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
         if (this.#committed?.state === "pending")
             this.#committed.nativeReject?.(error); // TODO: find out what the spec does for cancelled navigations
         this.#committed = null;
+    }
+
+    private onGestureCancel = () => {
+        if (!this.state.transition)
+            throw new Error("Rollback failed, transition is null");
+        window.navigation.traverseTo(this.state.transition.from.key, { info: { rollback: true } });
     }
 
     private canGestureNavigate(e: SwipeStartEvent) {
@@ -410,6 +416,7 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
         if (!isValidScreenChild<Screen>(this.getScreenChildByPathname(destinationPathname)))
             return e.preventDefault();
         const handler = () => {
+            if (isRollback(e.info)) return Promise.resolve();
             const transition = window.navigation.transition;
             let fromIndex = screenStack.findIndex(screen => screen.key === transition?.from.key);
             if (fromIndex === -1 && e.navigationType === "traverse") {
@@ -459,7 +466,8 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
         let commit;
         if (isGesture(e.info)) {
             commit = "after-transition";
-            this.addEventListener("gesture-end", () => e.commit(), { once: true });
+            this.addEventListener("gesture-end", () => e.commit?.(), { once: true });
+            this.addEventListener("gesture-cancel", this.onGestureCancel, { once: true });
         } else {
             commit = "immediate";
         }

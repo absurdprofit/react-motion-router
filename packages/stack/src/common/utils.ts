@@ -36,6 +36,12 @@ export function isGesture(info?: unknown) {
 	return false;
 }
 
+export function isRollback(info?: unknown) {
+	if (info && typeof info === 'object' && 'rollback' in info)
+		return Boolean(info.rollback);
+	return false;
+}
+
 export function deepEquals<T>(obj1: T, obj2: T): boolean {
 	if (obj1 === obj2) {
 		return true;

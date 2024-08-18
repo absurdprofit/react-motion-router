@@ -125,7 +125,7 @@ export interface LoadNavigationTransition extends Omit<NavigationTransition, "na
 
 declare global {
     interface NavigateEvent extends Event {
-        commit(): void;
+        commit?(): void;
     }
 }
 
