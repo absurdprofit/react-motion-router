@@ -25,7 +25,7 @@ function Navbar(props: NavbarProps) {
             <div className="navbar">
                 <div className="back">
                     {
-                        navigation.canGoBack ?
+                        navigation.canGoBack() ?
                             <BackButton />
                             :
                             undefined

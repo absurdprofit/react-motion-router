@@ -72,10 +72,9 @@ export class Navigation extends NavigationBase<RouterEventMap> {
     }
 
     goBack(options: GoBackOptions = {}) {
-        if (!this.canGoBack) return;
+        if (!this.canGoBack()) return;
 
-        const previous = this.previous!;
-        const result = window.navigation.traverseTo(previous.key);
+        const result = window.navigation.traverseTo(this.previous.key);
         const transition = window.navigation.transition!;
 
         const controller = new AbortController();
@@ -89,10 +88,9 @@ export class Navigation extends NavigationBase<RouterEventMap> {
     }
 
     goForward(options: GoForwardOptions = {}) {
-        if (!this.canGoForward) return;
+        if (!this.canGoForward()) return;
 
-        const next = this.next!;
-        const result = window.navigation.traverseTo(next.key);
+        const result = window.navigation.traverseTo(this.next.key);
         const transition = window.navigation.transition!;
 
         const controller = new AbortController();
@@ -208,11 +206,11 @@ export class Navigation extends NavigationBase<RouterEventMap> {
         return this.entries[this.index];
     }
 
-    get canGoBack() {
+    canGoBack(this: Navigation): this is Navigation & { previous: HistoryEntry } {
         return Boolean(this.previous?.sameDocument);
     }
 
-    get canGoForward() {
+    canGoForward(this: Navigation): this is Navigation & { next: HistoryEntry } {
         return Boolean(this.next?.sameDocument);
     }
 }

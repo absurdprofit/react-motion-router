@@ -130,8 +130,8 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
         if (this.state.gestureDisabled) return false;
         const clientRect = this.ref.current.getBoundingClientRect();
         const { direction } = e;
-        if ((direction === "down" || direction === "right") && !this.navigation.canGoBack) return false;
-        if ((direction === "up" || direction === "left") && !this.navigation.canGoForward) return false;
+        if ((direction === "down" || direction === "right") && !this.navigation.canGoBack()) return false;
+        if ((direction === "up" || direction === "left") && !this.navigation.canGoForward()) return false;
         if (isOutOfBounds(direction, e, clientRect, this.state.gestureAreaWidth)) return false;
 
         return isSupportedDirection(direction, this.state.gestureDirection);
