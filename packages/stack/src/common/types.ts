@@ -76,5 +76,5 @@ export function isHorizontalDirection(direction: SwipeDirection): direction is '
 
 export interface ScreenInternalProps {
     resolvedPathname: string;
-    id: string;
+    id: React.Key;
 }

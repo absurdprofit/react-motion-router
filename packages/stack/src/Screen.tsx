@@ -75,7 +75,7 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState, RouteProp> {
         const entry = this.#historyEntry;
         if (entry?.url) {
             const state = entry.getState<HistoryEntryState>() ?? {};
-            const queryParams = searchParamsToObject(entry.url?.searchParams);
+            const queryParams = searchParamsToObject(entry.url.searchParams);
             state.params = {
                 ...state.params,
                 ...queryParams
@@ -87,7 +87,7 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState, RouteProp> {
     }
 
     get id() {
-        return this.internalProps.id;
+        return this.internalProps.id.toString();
     }
 
     get params() {

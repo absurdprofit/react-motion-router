@@ -1,12 +1,12 @@
-import { RouterBase, includesRoute, isValidScreenChild, matchRoute } from '@react-motion-router/core';
-import type { LoadEvent, NestedRouterContext, PlainObject, RouterBaseConfig, RouterBaseProps, RouterBaseState, ScreenChild } from '@react-motion-router/core';
+import { RouterBase, cloneAndInject, includesRoute, isValidScreenChild, matchRoute } from '@react-motion-router/core';
+import type { ClonedElementType, LoadEvent, NestedRouterContext, RouterBaseConfig, RouterBaseProps, RouterBaseState, ScreenChild } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { ScreenProps, Screen, ScreenConfig } from './Screen';
 import { HistoryEntryState, isHorizontalDirection, isOutOfBounds, isRefObject, isSupportedDirection, RouterEventMap, ScreenInternalProps, SwipeDirection } from './common/types';
-import { Children, createRef, cloneElement, startTransition } from 'react';
+import { Children, createRef, startTransition } from 'react';
 import { SwipeStartEvent, SwipeEndEvent } from 'web-gesture-events';
 import { GestureTimeline } from 'web-animations-extension';
-import { deepEquals, isGesture, searchParamsToObject } from './common/utils';
+import { deepEquals, isGesture } from './common/utils';
 import { GestureCancelEvent, GestureEndEvent, GestureStartEvent } from './common/events';
 import { DEFAULT_GESTURE_CONFIG } from './common/constants';
 import { PromiseWrapper } from './common/promise-wrapper';
@@ -26,7 +26,7 @@ export interface RouterProps extends RouterBaseProps<Screen> {
 type InjectedScreenProps = Pick<ScreenInternalProps & ScreenProps, "config" | "id" | "resolvedPathname">;
 export interface RouterState extends RouterBaseState {
     transition: NavigationTransition | LoadEvent["transition"] | null;
-    screenStack: ScreenChild<Screen>[];
+    screenStack: ClonedElementType<ScreenChild<Screen>, InjectedScreenProps>[];
     gestureDirection: SwipeDirection;
     gestureAreaWidth: number;
     gestureMinFlingVelocity: number;
@@ -237,7 +237,8 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
             });
 
         if (!screenChild) return null;
-        return cloneElement(screenChild, {
+        key ??= crypto.randomUUID();
+        return cloneAndInject(screenChild, {
             config: {
                 title: document.title,
                 ...this.props.config?.screenConfig,
@@ -312,7 +313,7 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
             const fromKey = e.transition?.from?.key ?? null;
             const destinationKey = e.destination.key;
             const transition = e.transition;
-            const screenStack = new Array<ScreenChild<Screen>>();
+            const screenStack: RouterState["screenStack"] = new Array();
             const entries = this.navigation.entries;
             entries.forEach((entry) => {
                 if (!entry.url) return null;

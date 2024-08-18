@@ -5,14 +5,7 @@ export function searchParamsToObject(searchParams: URLSearchParams) {
 	const result: PlainObject<string> = {};
 
 	for (const [key, value] of entries) { // each 'entry' is a [key, value] tuple
-		let parsedValue = '';
-		try {
-			parsedValue = JSON.parse(value);
-		} catch (e) {
-			console.warn("Non JSON serialisable value was passed as URL route param.");
-			parsedValue = value;
-		}
-		result[key] = parsedValue;
+		result[key] = value;
 	}
 	return Object.keys(result).length ? result : undefined;
 }

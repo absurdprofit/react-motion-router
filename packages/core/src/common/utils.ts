@@ -1,5 +1,5 @@
-import { lazy as ReactLazy } from "react";
-import { LazyExoticComponent, MatchedRoute, PathPattern } from "./types";
+import { cloneElement, lazy as ReactLazy } from "react";
+import { ClonedElementType, ElementPropType, LazyExoticComponent, MatchedRoute, PathPattern } from "./types";
 
 export function resolveBaseURLFromPattern(pattern: string, pathname: string) {
     if (!pattern.endsWith("**")) pattern += '**'; // allows us to match nested routes
@@ -96,4 +96,11 @@ export async function PromiseAllDynamic<T>(values: Iterable<T | PromiseLike<T>>)
 
 export function toCamelCase(value: string) {
     return value.replace(/-([a-z])/g, (g) => g[1].toUpperCase())
+}
+
+export function cloneAndInject<
+    C extends React.CElement<any, any>,
+    IP extends Partial<ElementPropType<C>>
+>(element: C, injectProps: IP) {
+    return cloneElement(element, injectProps) as ClonedElementType<C, IP>;
 }
