@@ -210,6 +210,7 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
             start.hide();
             end.hide();
             const onFinish = () => {
+                start.unhide();
                 end.unhide();
                 endClone.remove();
                 startClone.remove();
