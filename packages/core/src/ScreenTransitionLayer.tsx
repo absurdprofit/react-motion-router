@@ -11,6 +11,7 @@ import { MotionContext } from './MotionContext';
 interface ScreenTransitionLayerProps {
     children: ScreenChild | ScreenChild[];
     navigation: NavigationBase;
+    hasUAVisualTransition: boolean;
 }
 
 interface ScreenTransitionLayerState {
@@ -73,6 +74,10 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
 
     get direction() {
         return this.#direction;
+    }
+
+    get hasUAVisualTransition() {
+        return this.props.hasUAVisualTransition;
     }
 
     public transition() {

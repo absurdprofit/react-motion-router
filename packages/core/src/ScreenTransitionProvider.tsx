@@ -55,7 +55,7 @@ export class ScreenTransitionProvider extends Component<ScreenTransitionProvider
 
     get animationEffect() {
         const animationEffectFactory = this.props.animation;
-        const { animation, direction } = this.context;
+        const { animation, direction, hasUAVisualTransition } = this.context;
         const { timeline, playbackRate } = animation;
         const { index, exiting, ref } = this;
 
@@ -65,7 +65,8 @@ export class ScreenTransitionProvider extends Component<ScreenTransitionProvider
             exiting,
             timeline,
             direction,
-            playbackRate
+            playbackRate,
+            hasUAVisualTransition
         }) ?? null;
     }
 
