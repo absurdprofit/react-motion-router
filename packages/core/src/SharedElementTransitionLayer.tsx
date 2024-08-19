@@ -8,6 +8,7 @@ import { toCamelCase } from './common/utils';
 
 interface SharedElementTransitionLayerProps {
     navigation: NavigationBase;
+    direction: "forwards" | "backwards";
 }
 
 interface SharedElementTransitionLayerState { }
@@ -209,9 +210,11 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
             this.ref.current?.prepend(endClone);
             start.hide();
             end.hide();
-            const onFinish = () => {
-                start.unhide();
-                end.unhide();
+            const onFinish = async () => {
+                if (this.props.direction === "forwards")
+                    end.unhide();
+                else
+                    start.unhide();
                 endClone.remove();
                 startClone.remove();
             };

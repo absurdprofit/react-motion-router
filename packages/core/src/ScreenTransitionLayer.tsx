@@ -118,6 +118,7 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
                 <SharedElementTransitionLayer
                     ref={this.sharedElementTransitionLayer}
                     navigation={this.props.navigation}
+                    direction={this.animation.playbackRate > 0 ? "forwards" : "backwards"}
                 />
                 <div
                     className="screen-transition-layer"
