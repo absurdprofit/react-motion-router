@@ -191,13 +191,15 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
         const playbackRate = this.screenTransitionLayer.current.animation.playbackRate;
         this.screenTransitionLayer.current.animation.timeline = document.timeline;
         const hysteresisReached = playbackRate > 0 ? progress > this.state.gestureHysteresis : progress < this.state.gestureHysteresis;
+        let gestureCancelled = false;
         if (e.velocity < this.state.gestureMinFlingVelocity && !hysteresisReached) {
+            gestureCancelled = true;
             this.screenTransitionLayer.current.animation.reverse();
             this.dispatchEvent(new GestureCancelEvent());
         } else {
             this.dispatchEvent(new GestureEndEvent(e));
         }
-        if (!hysteresisReached) {
+        if (gestureCancelled) {
             this.screenTransitionLayer.current.animation.finished.then(() => {
                 this.state.controller?.abort("gesture-cancel");
             });
