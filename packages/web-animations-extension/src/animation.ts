@@ -5,7 +5,7 @@ import { cssNumberishToNumber, msFromPercent, msFromTime } from "./common/utils"
 import { GestureTimeline } from "./gesture-timeline";
 import { GroupEffect } from "./group-effect";
 import { KeyframeEffect } from "./keyframe-effect";
-import { PromiseWrapper } from "./promise-wrapper";
+import { PromiseWrapper } from "./common/promise-wrapper";
 import { SequenceEffect } from "./sequence-effect";
 
 export class Animation extends EventTarget implements NativeAnimation {

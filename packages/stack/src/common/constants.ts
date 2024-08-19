@@ -3,5 +3,5 @@ export const DEFAULT_GESTURE_CONFIG = {
     gestureMinFlingVelocity: 400,
     gestureAreaWidth: 100,
     gestureDirection: 'right',
-    disableGesture: false
+    gestureDisabled: false
 } as const;

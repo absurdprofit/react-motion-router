@@ -29,7 +29,6 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     protected readonly ref = createRef<RouterHTMLElement<E>>();
     protected screenTransitionLayer = createRef<ScreenTransitionLayer>();
     public abstract readonly navigation: NavigationBase;
-    public readonly screenState: ScreenState = new Map();
     public readonly parent: RouterBase | null = null;
     #child: WeakRef<RouterBase> | null = null;
     private loadDispatched = false;
@@ -118,10 +117,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
                 const matchInfo = matchRoute(path, pathname, baseURLPattern, caseSensitive);
                 if (!matchInfo) return;
                 found = true;
-                const config = {
-                    ...this.screenState.get(path)?.config,
-                    ...route.props.config
-                };
+                const config = route.props.config;
                 queueMicrotask(async () => {
                     const preloadTasks = [];
                     if ('load' in route.props.component) {

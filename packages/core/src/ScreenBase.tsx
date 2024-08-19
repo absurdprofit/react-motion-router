@@ -5,6 +5,7 @@ import {
     LazyExoticComponent,
     PlainObject,
     RoutePropBase,
+    ScreenBaseFocusOptions,
     isLazyExoticComponent,
     isNativeLazyExoticComponent,
 } from "./common/types";
@@ -44,24 +45,25 @@ export interface ScreenBaseConfig<R extends RoutePropBase = RoutePropBase, N ext
 }
 
 export interface ScreenBaseProps {
+    path: string;
     component: React.JSXElementConstructor<any> | LazyExoticComponent<any>;
     fallback?: React.ReactNode;
-    path: string;
-    resolvedPathname?: string;
+    name?: string;
     defaultParams?: PlainObject;
     caseSensitive?: boolean;
-    id?: string;
     config?: ScreenBaseConfig;
 }
 
-export interface ScreenBaseState {
+export interface ScreenBaseState<C extends ScreenBaseProps["config"] = ScreenBaseProps["config"], P extends PlainObject = PlainObject> {
     focused: boolean;
+    config: C;
+    params: P;
     elementType: ElementType;
 }
 
 export abstract class ScreenBase<
     P extends ScreenBaseProps = ScreenBaseProps,
-    S extends ScreenBaseState = ScreenBaseState,
+    S extends ScreenBaseState<P["config"]> = ScreenBaseState<P["config"]>,
     R extends RoutePropBase<P["config"]> = RoutePropBase<P["config"]>
 > extends Component<P, S> {
     public readonly sharedElementScene: SharedElementScene;
@@ -73,48 +75,41 @@ export abstract class ScreenBase<
 
     state: S = {
         focused: false,
+        config: {},
+        params: {},
         elementType: 'div'
     } as S;
 
     constructor(props: P, context: React.ContextType<typeof RouterContext>) {
         super(props);
 
-        this.sharedElementScene = new SharedElementScene(`${this.id}-shared-element-scene`);
+        this.sharedElementScene = new SharedElementScene(`${this.name}-shared-element-scene`);
         this.sharedElementScene.getScreenRect = () => this.ref.current?.getBoundingClientRect() || new DOMRect();
         this.nestedRouterData = { parentScreen: this as ScreenBase, parentRouter: context };
     }
 
-    protected setParams(params: PlainObject) {
-        params = {
-            ...this.routeProp.params,
-            ...params
-        };
-        const config = this.routeProp.config;
-        this.context.screenState.set(this.props.path, { config, params });
-        this.forceUpdate();
+    protected setParams(newParams: PlainObject) {
+        this.setState(({ params }) => ({ params: { ...params, ...newParams } }));
     }
 
-    protected setConfig(config: P['config']) {
-        config = {
-            ...this.routeProp.config,
-            ...config
-        };
-        const params = this.routeProp.params;
-        this.context.screenState.set(this.props.path, { config, params });
-        this.forceUpdate();
-    }
-
-    get id() {
-        if (this.props.id) return this.props.id;
-        return this.props.path
-            .toLowerCase()
-            .replace(/[^\w-]/g, '-') // Remove non-alphanumeric chars
-            .replace(/-+/g, '-') // Replace multiple hyphens with a single one
-            .replace(/^-|-$/g, ''); // Remove leading and trailing hyphens;
+    protected setConfig(newConfig: R['config']) {
+        this.setState(({ config }) => ({ config: { ...config, ...newConfig } }));
     }
 
     get focused() {
         return this.state.focused;
+    }
+
+    get name() {
+        if (this.props.name)
+            return this.props.name
+                .toLowerCase()
+                .replace(/[^\w-]/g, '-') // Remove non-alphanumeric chars
+                .replace(/-+/g, '-') // Replace multiple hyphens with a single one
+                .replace(/^-|-$/g, ''); // Remove leading and trailing hyphens;
+        else if (isLazyExoticComponent(this.props.component))
+            return this.props.component.module?.default.name.toLowerCase();
+        return this.props.component.name.toLowerCase();
     }
 
     blur() {
@@ -141,9 +136,11 @@ export abstract class ScreenBase<
         return result;
     }
 
-    abstract get routeProp(): R;
+    protected abstract get routeProp(): R;
     abstract get config(): R["config"];
     abstract get params(): R["params"];
+    abstract get resolvedPathname(): string;
+    abstract get id(): string;
 
     async onExited(signal: AbortSignal): Promise<void> {
         await this.routeProp.config.onExited?.({
@@ -177,10 +174,6 @@ export abstract class ScreenBase<
         });
     }
 
-    get resolvedPathname() {
-        return this.props.resolvedPathname;
-    }
-
     get path() {
         return this.props.path;
     }
@@ -200,13 +193,13 @@ export abstract class ScreenBase<
             <ScreenTransitionProvider
                 ref={this.#transitionProvider}
                 renderAs={this.state.elementType}
-                id={`${this.id}-transition-provider`}
+                id={`${this.context.id}-${this.name}-transition-provider`}
                 animation={routeProp.config.animation}
                 navigation={navigation}
                 focused={this.state.focused}
             >
                 <div
-                    id={this.id}
+                    id={`${this.context.id}-${this.id}`} // need router ID since nested screens can have same history entry ID
                     ref={this.ref}
                     className="screen"
                     style={{
@@ -246,18 +239,18 @@ function ComponentWithRouteProps({ component, route, navigation }: ComponentWith
         component = component.module.default;
     }
     const Component = component ?? null;
-    if (isValidElement(Component)) {
-        return cloneElement<any>(Component, {
-            navigation,
-            route
-        });
-    } else if (typeof Component === "function" || isNativeLazyExoticComponent(Component)) {
+    if (typeof Component === "function" || isNativeLazyExoticComponent(Component)) {
         return (
             <Component
                 navigation={navigation}
                 route={route}
             />
         );
+    } else if (isValidElement(Component)) {
+        return cloneElement<any>(Component, {
+            navigation,
+            route
+        });
     }
     return <>{Component}</>;
 }

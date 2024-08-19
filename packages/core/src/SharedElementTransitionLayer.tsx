@@ -8,6 +8,7 @@ import { toCamelCase } from './common/utils';
 
 interface SharedElementTransitionLayerProps {
     navigation: NavigationBase;
+    direction: "forwards" | "backwards";
 }
 
 interface SharedElementTransitionLayerState { }
@@ -53,7 +54,8 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
         return computedStyles;
     }
 
-    copyStyles(srcElement: StylableElement, cloneElement: StylableElement, styleList: StyleKeyList) {
+    copyStyles(srcElement: Element | null | undefined, cloneElement: StylableElement, styleList: StyleKeyList) {
+        if (!isStylableElement(srcElement)) return;
         const computedStyles = window.getComputedStyle(srcElement);
         for (const key of styleList) {
             const value = computedStyles.getPropertyValue(key);
@@ -67,109 +69,113 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
         const startRect = start.instance.getBoundingClientRect();
         const endRect = end.instance.getBoundingClientRect();
         const config: KeyframeEffectOptions = {
-            fill: "forwards" as const,
+            fill: "both" as const,
             duration: "auto",
             easing: "ease",
-            ...start.instance.props.config,
-            ...end.instance.props.config
         };
-        const transitionType = end.instance.transitionType === "fade";
+        const transitionType = end.instance.transitionType;
         const startTransform = `translate(${startRect.x}px, ${startRect.y}px)`;
         const endTransform = `translate(${endRect.x}px, ${endRect.y}px)`;
-        if (transitionType) {
-            keyframeEffects.push(
-                new KeyframeEffect(
-                    start.clone,
-                    [
-                        { transform: startTransform, opacity: 1 },
-                        { transform: endTransform, opacity: 0 }
-                    ],
-                    config
-                ),
-            );
-            keyframeEffects.push(
-                new KeyframeEffect(
-                    end.clone,
-                    [
-                        { transform: startTransform },
-                        { transform: endTransform }
-                    ],
-                    config
-                ),
+        switch (transitionType) {
+            case "fade":
+                keyframeEffects.push(
+                    new KeyframeEffect(
+                        start.clone,
+                        [
+                            { transform: startTransform, opacity: 1 },
+                            { transform: endTransform, opacity: 0 }
+                        ],
+                        config
+                    ),
+                );
+                keyframeEffects.push(
+                    new KeyframeEffect(
+                        end.clone,
+                        [
+                            { transform: startTransform },
+                            { transform: endTransform }
+                        ],
+                        config
+                    ),
 
-            );
-        } else if (end.instance.transitionType === "fade-through") {
-            keyframeEffects.push(
-                new KeyframeEffect(
-                    start.clone,
-                    [
-                        { transform: startTransform, opacity: 1 },
-                        { opacity: 0, offset: 0.5 },
-                        { transform: endTransform, opacity: 0 }
-                    ],
-                    config
-                ),
+                );
+                break;
+            case "fade-through":
+                keyframeEffects.push(
+                    new KeyframeEffect(
+                        start.clone,
+                        [
+                            { transform: startTransform, opacity: 1 },
+                            { opacity: 0, offset: 0.5 },
+                            { transform: endTransform, opacity: 0 }
+                        ],
+                        config
+                    ),
 
-            );
-            keyframeEffects.push(
-                new KeyframeEffect(
-                    end.clone,
-                    [
-                        { transform: startTransform, opacity: 0 },
-                        { opacity: 0, offset: 0.5 },
-                        { transform: endTransform, opacity: 1 }
-                    ],
-                    config
-                ),
+                );
+                keyframeEffects.push(
+                    new KeyframeEffect(
+                        end.clone,
+                        [
+                            { transform: startTransform, opacity: 0 },
+                            { opacity: 0, offset: 0.5 },
+                            { transform: endTransform, opacity: 1 }
+                        ],
+                        config
+                    ),
 
-            );
-        } else if (end.instance.transitionType === "cross-fade") {
-            end.clone.style.mixBlendMode = "plus-lighter";
-            keyframeEffects.push(
-                new KeyframeEffect(
-                    start.clone,
-                    [
-                        { transform: startTransform, opacity: 1 },
-                        { transform: endTransform, opacity: 0 }
-                    ],
-                    config
-                ),
+                );
+                break;
+            case "cross-fade":
+                end.clone.style.mixBlendMode = "plus-lighter";
+                keyframeEffects.push(
+                    new KeyframeEffect(
+                        start.clone,
+                        [
+                            { transform: startTransform, opacity: 1 },
+                            { transform: endTransform, opacity: 0 }
+                        ],
+                        config
+                    ),
 
-            );
-            keyframeEffects.push(
-                new KeyframeEffect(
-                    end.clone,
-                    [
-                        { transform: startTransform },
-                        { transform: endTransform }
-                    ],
-                    config
-                ),
+                );
+                keyframeEffects.push(
+                    new KeyframeEffect(
+                        end.clone,
+                        [
+                            { transform: startTransform },
+                            { transform: endTransform }
+                        ],
+                        config
+                    ),
 
-            );
-        } else { // morph
-            const styleList = Array.from(new Set([...start.instance.styles, ...end.instance.styles]));
-            keyframeEffects.push(
-                new KeyframeEffect(
-                    end.clone,
-                    [
-                        {
-                            ...Object.fromEntries((start.instance.ref.current?.firstElementChild as HTMLElement).attributeStyleMap),
-                            transform: startTransform,
-                            width: `${startRect.width}px`,
-                            height: `${startRect.height}px`,
-                        },
-                        {
-                            ...Object.fromEntries((end.instance.ref.current?.firstElementChild as HTMLElement).attributeStyleMap),
-                            ...this.getKeyframeProperties(end.instance.ref.current?.firstElementChild as HTMLElement, styleList),
-                            transform: endTransform,
-                            width: `${endRect.width}px`,
-                            height: `${endRect.height}px`,
-                        }
-                    ],
-                    config
-                )
-            );
+                );
+                break;
+            case "morph": {
+                const styleList = Array.from(new Set([...start.instance.styles, ...end.instance.styles]));
+                keyframeEffects.push(
+                    new KeyframeEffect(
+                        end.clone,
+                        [
+                            {
+                                ...Object.fromEntries((start.instance.ref.current?.firstElementChild as HTMLElement).attributeStyleMap),
+                                transform: startTransform,
+                                width: `${startRect.width}px`,
+                                height: `${startRect.height}px`,
+                            },
+                            {
+                                ...Object.fromEntries((end.instance.ref.current?.firstElementChild as HTMLElement).attributeStyleMap),
+                                ...this.getKeyframeProperties(end.instance.ref.current?.firstElementChild as HTMLElement, styleList),
+                                transform: endTransform,
+                                width: `${endRect.width}px`,
+                                height: `${endRect.height}px`,
+                            }
+                        ],
+                        config
+                    )
+                );
+                break;
+            }
         }
         return new ParallelEffect(keyframeEffects);
     }
@@ -184,42 +190,41 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
         const parallelEffects = new Array<ParallelEffect>();
         for (const [id, end] of Array.from(nextScene.nodes.entries())) {
             const start = currentScene.nodes.get(id);
-            if (start?.canTransition && end.canTransition) {
-                const endClone = end.clone();
-                const startClone = start.clone();
-                if (!startClone) continue;
-                if (!endClone) continue;
-                const styleList = Array.from(new Set([...start.styles, ...end.styles, 'width' as const, 'height' as const]));
-                if (end.transitionType !== "morph") {
-                    startClone.id = `${id}-start`;
-                    startClone.style.position = "absolute";
-                    if (isStylableElement(start.ref.current?.firstElementChild))
-                        this.copyStyles(start.ref.current.firstElementChild, startClone, styleList);
-                    if (isStylableElement(end.ref.current?.firstElementChild))
-                        this.copyStyles(end.ref.current.firstElementChild, endClone, styleList);
-                    this.ref.current?.prepend(startClone);
-                } else if (isStylableElement(start.ref.current?.firstElementChild)) {
-                    this.copyStyles(start.ref.current.firstElementChild, endClone, styleList);
-                }
-
-                endClone.id = `${id}${end.transitionType === "morph" ? '' : '-end'}`;
-                endClone.style.position = "absolute";
-                this.ref.current?.prepend(endClone);
-                start.hide();
-                end.hide();
-                const onFinish = () => {
-                    end.unhide();
-                    endClone.remove();
-                    startClone.remove();
-                };
-                this.props.navigation.addEventListener('transition-end', onFinish, { once: true });
-                this.props.navigation.addEventListener('transition-cancel', onFinish, { once: true });
-
-                parallelEffects.push(this.getAnimationEffect(
-                    { instance: start, clone: startClone },
-                    { instance: end, clone: endClone }
-                ));
+            if (!start?.canTransition || !end.canTransition) continue;
+            const endClone = end.clone();
+            const startClone = start.clone();
+            if (!startClone || !endClone) continue;
+            const styleList = Array.from(new Set([...start.styles, ...end.styles, 'width' as const, 'height' as const]));
+            if (end.transitionType !== "morph") {
+                startClone.id = `${id}-start`;
+                startClone.style.position = "absolute";
+                this.copyStyles(start.ref.current?.firstElementChild, startClone, styleList);
+                this.copyStyles(end.ref.current?.firstElementChild, endClone, styleList);
+                this.ref.current?.prepend(startClone);
+            } else if (isStylableElement(start.ref.current?.firstElementChild)) {
+                this.copyStyles(start.ref.current.firstElementChild, endClone, styleList);
             }
+
+            endClone.id = `${id}${end.transitionType === "morph" ? '' : '-end'}`;
+            endClone.style.position = "absolute";
+            this.ref.current?.prepend(endClone);
+            start.hide();
+            end.hide();
+            const onFinish = async () => {
+                if (this.props.direction === "forwards")
+                    end.unhide();
+                else
+                    start.unhide();
+                endClone.remove();
+                startClone.remove();
+            };
+            this.props.navigation.addEventListener('transition-end', onFinish, { once: true });
+            this.props.navigation.addEventListener('transition-cancel', onFinish, { once: true });
+
+            parallelEffects.push(this.getAnimationEffect(
+                { instance: start, clone: startClone },
+                { instance: end, clone: endClone }
+            ));
         }
 
         return new ParallelEffect(parallelEffects);

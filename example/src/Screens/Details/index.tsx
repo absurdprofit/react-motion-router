@@ -17,7 +17,7 @@ let isFirstLoad = false;
 let originalDesc: string | undefined;
 let lastHero = '';
 export default function Details(props: DetailsProps) {
-    const [gestureDisabled, setGestureDisabled] = React.useState(false);
+    const [gestureDisabled, setGestureDisabled] = React.useState(true);
     const { noBg, ...hero } = props.route.params;
 
     useEffect(() => {
@@ -71,6 +71,7 @@ export default function Details(props: DetailsProps) {
                     height: "100%",
                     backgroundColor: noBg ? 'white' : undefined
                 }}
+                onScroll={onScroll}
             >
                 <SharedElement id={`${hero.id}-card-bg`} config={{ styles: ['background-color', 'border-radius'], deepClone: false }} disabled={noBg}>
                     <div className="card-bg" aria-hidden="true">

@@ -87,7 +87,7 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
             <div
                 ref={this.ref}
                 id={this.id}
-                style={{display: "contents"}}
+                style={{ display: "contents" }}
             >
                 {this.props.children}
             </div>

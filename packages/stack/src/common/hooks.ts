@@ -1,4 +1,4 @@
-import { useNavigationBase, useRouteBase, useRouterBase } from "@react-motion-router/core";
+import { PlainObject, useNavigationBase, useRouteBase, useRouterBase } from "@react-motion-router/core";
 import { Navigation } from "../Navigation";
 import { Router } from "../Router";
 import { RouteProp } from "./types";
@@ -14,7 +14,7 @@ export function useRouter() {
 	return useRouterBase<Router>();
 }
 
-export function useRoute() {
+export function useRoute<T extends PlainObject = PlainObject>() {
 	useDebugValue("StackRoute");
-	return useRouteBase<RouteProp>();
+	return useRouteBase<RouteProp<T>>();
 }

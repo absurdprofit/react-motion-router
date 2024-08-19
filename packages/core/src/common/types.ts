@@ -114,3 +114,20 @@ export type StylableElement = Element & { style: CSSStyleDeclaration };
 export function isStylableElement(element: any): element is StylableElement {
     return 'style' in element && element.style instanceof CSSStyleDeclaration;
 }
+
+export interface ScreenBaseFocusOptions {
+    signal?: AbortSignal;
+}
+
+export interface LoadNavigationTransition extends Omit<NavigationTransition, "navigationType"> {
+    navigationType: "load";
+}
+
+declare global {
+    interface NavigateEvent extends Event {
+        commit?(): void; // not in spec yet, see https://github.com/WICG/navigation-api/issues/66
+    }
+}
+
+export type ElementPropType<C> = C extends React.CElement<infer P, infer T> ? P & React.ClassAttributes<T> : never;
+export type ClonedElementType<C, IP extends Partial<ElementPropType<C>>> = C extends React.CElement<infer P, infer T> ? React.CElement<P & Partial<IP>, T & React.Component<P & IP>> : never;

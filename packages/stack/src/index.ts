@@ -9,3 +9,4 @@ export * from './animation-configs/keyframe-options-presets';
 export * from './animation-configs/animation-presets';
 export * from './common/hooks';
 export * from './GestureRegion';
+export * from './HistoryEntry';
