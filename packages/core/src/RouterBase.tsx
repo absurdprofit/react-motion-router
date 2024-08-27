@@ -165,8 +165,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
 
     get baseURLPattern() {
         let baseURL = window.location.origin + "/";
-        const defaultBasePathname = this.isRoot ? new URL(".", document.baseURI).href.replace(baseURL, '') : ".";
-        let basePathname = this.props.config?.basePath ?? defaultBasePathname;
+        let basePathname = this.props.config?.basePath ?? ".";
 
         if (this.parent && this.parentScreen) {
             const { resolvedPathname = window.location.pathname, path } = this.parentScreen;
