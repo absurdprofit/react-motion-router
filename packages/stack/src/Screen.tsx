@@ -49,14 +49,14 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState, RouteProp> {
             return { elementType: "div" };
     }
 
-    protected setParams(params: PlainObject): void {
-        super.setParams(params);
-        this.setHistoryState({ params });
+    protected setParams(newParams: PlainObject): void {
+        super.setParams(newParams);
+        this.setHistoryState(({ params }) => ({ params: { ...params, ...newParams } }));
     }
 
-    protected setConfig(config: NonNullable<ScreenProps["config"]>): void {
-        super.setConfig(config);
-        this.setHistoryState({ config });
+    protected setConfig(newConfig: NonNullable<ScreenProps["config"]>): void {
+        super.setConfig(newConfig);
+        this.setHistoryState(({ config }) => ({ config: { ...config, ...newConfig } }));
     }
 
     protected get router() {
@@ -123,10 +123,14 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState, RouteProp> {
         };
     }
 
-    protected setHistoryState(newState: PlainObject) {
+    protected setHistoryState(newState: PlainObject | ((prevState: PlainObject) => PlainObject)) {
         if (!this.state.focused) return;
+        const prevState = this.#historyEntry.getState<HistoryEntryState>() ?? {};
+        if (newState instanceof Function) {
+            newState = newState(prevState);
+        }
         const state = {
-            ...window.navigation.currentEntry?.getState() ?? {},
+            ...prevState ?? {},
             ...newState
         };
         window.navigation.updateCurrentEntry({ state });

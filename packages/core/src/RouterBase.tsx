@@ -32,6 +32,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     public readonly parent: RouterBase | null = null;
     #child: WeakRef<RouterBase> | null = null;
     private loadDispatched = false;
+    private hasUAVisualTransition = false;
     public readonly parentScreen: ScreenBase | null = null;
     private static rootRouterRef: WeakRef<RouterBase> | null = null;
     static readonly contextType = NestedRouterContext;
@@ -75,6 +76,8 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
             router = router.child;
         }
         router.intercept(e);
+
+        this.hasUAVisualTransition = e.hasUAVisualTransition;
     }
 
     getRouterById(routerId: string, target?: RouterBase): RouterBase | null {
@@ -229,6 +232,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
                     <ScreenTransitionLayer
                         ref={this.screenTransitionLayer}
                         navigation={this.navigation}
+                        hasUAVisualTransition={this.hasUAVisualTransition}
                     >
                         {this.screens}
                     </ScreenTransitionLayer>
