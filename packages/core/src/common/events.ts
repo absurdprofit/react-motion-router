@@ -53,6 +53,7 @@ export class LoadEvent extends Event implements Omit<NavigateEvent, 'navigationT
 	#intercepted = false;
 	#thenables: Promise<void>[] = [];
 	#transition: LoadNavigationTransition | null = null;
+	readonly hasUAVisualTransition = false;
 
 	constructor() {
 		super('navigate', { cancelable: false, bubbles: false, composed: false });
