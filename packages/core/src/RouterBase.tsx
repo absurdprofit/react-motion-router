@@ -147,13 +147,9 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
 
     get id(): string {
         if (this.props.id) return this.props.id;
-        const prefix = this.parent ? `${this.parent.id}-` : '';
-        const id = (this.parentScreen?.path ?? 'root')
-            .toLowerCase()
-            .replace(/[^\w-]/g, '-') // Remove non-alphanumeric chars
-            .replace(/-+/g, '-') // Replace multiple hyphens with a single one
-            .replace(/^-|-$/g, ''); // Remove leading and trailing hyphens
-        return `${prefix}${id}`;
+        const prefix = this.parent?.id;
+        const id = this.parentScreen?.id ?? 'root';
+        return [prefix, id].filter(Boolean).join('-');
     }
 
     get isRoot() {

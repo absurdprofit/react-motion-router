@@ -199,7 +199,7 @@ export abstract class ScreenBase<
                 focused={this.state.focused}
             >
                 <div
-                    id={`${this.context.id}-${this.id}`} // need router ID since nested screens can have same history entry ID
+                    id={`${this.context.id}-${this.name}`}
                     ref={this.ref}
                     className="screen"
                     style={{
