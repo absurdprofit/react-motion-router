@@ -7,7 +7,11 @@ export function resolveBaseURLFromPattern(pattern: string, pathname: string) {
     const baseURLMatch = new URLPattern(pattern, origin).exec(pathname, origin);
     if (!baseURLMatch) return null;
 
-    const nestedPathnameGroup = baseURLMatch.pathname.groups[0] ?? '';
+    const groups = Object.keys(baseURLMatch.pathname.groups)
+        .filter((key) => !isNaN(Number(key)))
+        .map((key) => baseURLMatch.pathname.groups[key])
+        .filter((group) => group !== undefined);
+    const nestedPathnameGroup = groups.at(-1) ?? '';
     // derive concrete baseURL
     return new URL(pathname.replace(nestedPathnameGroup, ''), window.location.origin);
 }
