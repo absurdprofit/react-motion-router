@@ -32,3 +32,16 @@ export function useRouteBase<R extends RoutePropBase>() {
         throw new Error("Router is null. You may be trying to call useRoute outside a Router.");
     }
 }
+
+export function useParamsBase<K extends string, S>(key: K, initialParams: S | (() => S)): [S, React.Dispatch<React.SetStateAction<S>>] {
+	const route = useRouteBase();
+	initialParams = initialParams instanceof Function ? initialParams() : initialParams;
+
+	const setParams = (params: S | ((prevState: S) => S)) => {
+		if (params instanceof Function)
+			params = params(route.params[key] ?? initialParams);
+		route.setParams({ [key]: params });
+	}
+
+	return [route.params[key] ?? initialParams, setParams] as const;
+}

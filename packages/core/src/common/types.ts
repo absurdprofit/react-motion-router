@@ -39,7 +39,7 @@ export type ScreenState<P extends ScreenBaseProps = ScreenBaseProps> = Map<strin
 export interface RoutePropBase<C extends ScreenBaseProps["config"] = {}, P extends PlainObject = PlainObject> {
     path: string;
     resolvedPathname?: string;
-    config: Partial<NonNullable<C>>;
+    config: NonNullable<C>;
     focused: boolean;
     params: P;
     setParams(params: Partial<P>): void;
