@@ -116,10 +116,6 @@ export function isStylableElement(element: any): element is StylableElement {
     return 'style' in element && element.style instanceof CSSStyleDeclaration;
 }
 
-export interface ScreenBaseFocusOptions {
-    signal?: AbortSignal;
-}
-
 export interface LoadNavigationTransition extends Omit<NavigationTransition, "navigationType"> {
     navigationType: "load";
 }

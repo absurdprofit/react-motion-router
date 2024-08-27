@@ -5,16 +5,16 @@ import { RouteProp } from "./types";
 import { useDebugValue } from "react";
 
 export function useNavigation() {
-	useDebugValue("StackNavigation");
+	useDebugValue("Stack.Navigation");
 	return useNavigationBase<Navigation>();
 }
 
 export function useRouter() {
-	useDebugValue("StackRouter");
+	useDebugValue("Stack.Router");
 	return useRouterBase<Router>();
 }
 
 export function useRoute<T extends PlainObject = PlainObject>() {
-	useDebugValue("StackRoute");
+	useDebugValue("Stack.Route");
 	return useRouteBase<RouteProp<T>>();
 }

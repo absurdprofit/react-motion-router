@@ -5,7 +5,6 @@ import {
     LazyExoticComponent,
     PlainObject,
     RoutePropBase,
-    ScreenBaseFocusOptions,
     isLazyExoticComponent,
     isNativeLazyExoticComponent,
 } from "./common/types";
