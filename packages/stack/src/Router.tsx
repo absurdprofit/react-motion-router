@@ -287,12 +287,11 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
     }
 
     protected shouldIntercept(e: NavigateEvent): boolean {
-        if (this.props.config?.shouldIntercept)
-            return this.props.config.shouldIntercept(e);
-        return e.canIntercept
+        const shouldIntercept = e.canIntercept
             && !e.formData
             && !e.hashChange
             && !e.downloadRequest;
+        return shouldIntercept || Boolean(this.props.config?.shouldIntercept?.(e));
     }
 
     protected intercept(e: NavigateEvent | LoadEvent): void {
