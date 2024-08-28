@@ -23,7 +23,7 @@ export interface RouterProps extends RouterBaseProps<Screen> {
     config?: RouterConfig;
 }
 
-type InjectedScreenProps = Pick<ScreenInternalProps & ScreenProps, "config" | "id" | "resolvedPathname">;
+type InjectedScreenProps = Pick<ScreenProps, "config" | "defaultParams"> & ScreenInternalProps;
 export interface RouterState extends RouterBaseState {
     transition: NavigationTransition | LoadEvent["transition"] | null;
     screenStack: ClonedElementType<ScreenChild<Screen>, InjectedScreenProps>[];
@@ -233,30 +233,46 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
     }
 
     private screenChildFromPathname(pathname: string, key: React.Key | null) {
-        const screenChild = Children.toArray(this.props.children)
-            .find((child): child is ScreenChild<Screen> => {
-                if (!isValidScreenChild(child)) return false;
-                return matchRoute(
-                    child.props.path,
-                    pathname,
-                    this.baseURLPattern.pathname,
-                    child.props.caseSensitive
-                ) !== null;
-            });
+        const screenChildren = Children.toArray(this.props.children)
+            // .find((child): child is ScreenChild<Screen> => {
+            //     if (!isValidScreenChild(child)) return false;
+            //     return matchRoute(
+            //         child.props.path,
+            //         pathname,
+            //         this.baseURLPattern.pathname,
+            //         child.props.caseSensitive
+            //     ) !== null;
+            // });
+        
+        for (const child of screenChildren) {
+            if (!isValidScreenChild(child)) return false;
+            const match = matchRoute(
+                child.props.path,
+                pathname,
+                this.baseURLPattern.pathname,
+                child.props.caseSensitive
+            );
+            if (match) {
+                key ??= crypto.randomUUID();
+                return cloneAndInject(child, {
+                    config: {
+                        title: document.title,
+                        ...this.props.config?.screenConfig,
+                        ...child.props.config
+                    },
+                    defaultParams: {
+                        ...child.props.defaultParams,
+                        ...match.params
+                    },
+                    id: key,
+                    resolvedPathname: pathname,
+                    key,
+                    ref: createRef<Screen>()
+                } as InjectedScreenProps) as any;
+            }
+        }
 
-        if (!screenChild) return null;
-        key ??= crypto.randomUUID();
-        return cloneAndInject(screenChild, {
-            config: {
-                title: document.title,
-                ...this.props.config?.screenConfig,
-                ...screenChild.props.config
-            },
-            id: key,
-            resolvedPathname: pathname,
-            key,
-            ref: createRef<Screen>()
-        } as InjectedScreenProps);
+        return null;
     }
 
     private getScreenChildByPathname(pathname: string) {

@@ -49,7 +49,7 @@ export default function Details(props: DetailsProps) {
 
     const photoAspect = (hero.photoWidth / hero.photoHeight);
 
-    const onScroll = (e: Event) => {
+    const onScroll = (e: React.UIEvent<HTMLElement, UIEvent>) => {
         if (!(e.target instanceof HTMLElement)) return;
         const scrollPos = e.target.scrollTop;
         const maxScroll = e.target.scrollHeight - e.target.clientHeight;

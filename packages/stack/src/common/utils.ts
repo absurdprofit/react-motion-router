@@ -1,33 +1,9 @@
-import { PlainObject } from "@react-motion-router/core";
-
 export function searchParamsToObject(searchParams: URLSearchParams) {
-	const entries = searchParams.entries();
-	const result: PlainObject<string> = {};
-
-	for (const [key, value] of entries) { // each 'entry' is a [key, value] tuple
-		let parsedValue = '';
-		try {
-			parsedValue = JSON.parse(value);
-		} catch (e) {
-			console.warn("Non JSON serialisable value was passed as URL route param.");
-			parsedValue = value;
-		}
-		result[key] = parsedValue;
-	}
-	return Object.keys(result).length ? result : undefined;
+	return Object.fromEntries(searchParams.entries());
 }
 
 export function searchParamsFromObject(params: { [key: string]: any }) {
-	try {
-		for (const [key, value] of Object.entries(params)) {
-			params[key] = JSON.stringify(value);
-		}
-		return new URLSearchParams(params).toString();
-	} catch (e) {
-		console.error(e);
-		console.warn("Non JSON serialisable value was passed as query param.");
-	}
-	return '';
+	return new URLSearchParams(params).toString();
 }
 
 export function isGesture(info?: unknown) {

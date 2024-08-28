@@ -1,4 +1,4 @@
-import { ScreenBase } from '@react-motion-router/core';
+import { matchRoute, ScreenBase } from '@react-motion-router/core';
 import type { PlainObject, RouterContext, ScreenBaseProps, ScreenBaseState, ScreenBaseComponentProps, ScreenBaseConfig } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { HistoryEntryState, RouteProp, ScreenInternalProps, SwipeDirection } from './common/types';
