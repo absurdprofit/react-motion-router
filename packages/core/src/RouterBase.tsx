@@ -69,15 +69,16 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     }
 
     private handleNavigationDispatch = (e: NavigateEvent) => {
-        if (!this.canIntercept(e)) return;
         let router: RouterBase = this;
-        // travel down router tree to find the correct router
-        while (router.child?.canIntercept(e)) {
-            router = router.child;
+        // travel down router tree to find a router that can intercept
+        while (router?.child) {
+            if (router.child.canIntercept(e))
+                router = router.child;
         }
-        router.intercept(e);
-
-        this.hasUAVisualTransition = e.hasUAVisualTransition;
+        if (router.canIntercept(e)) {
+            router.intercept(e);
+            this.hasUAVisualTransition = e.hasUAVisualTransition;
+        }
     }
 
     getRouterById(routerId: string, target?: RouterBase): RouterBase | null {
@@ -165,8 +166,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
 
     get baseURLPattern() {
         let baseURL = window.location.origin + "/";
-        const defaultBasePathname = this.isRoot ? new URL(".", document.baseURI).href.replace(baseURL, '') : ".";
-        let basePathname = this.props.config?.basePath ?? defaultBasePathname;
+        let basePathname = this.props.config?.basePath ?? ".";
 
         if (this.parent && this.parentScreen) {
             const { resolvedPathname = window.location.pathname, path } = this.parentScreen;

@@ -1,4 +1,4 @@
-import { ScreenBase } from '@react-motion-router/core';
+import { matchRoute, ScreenBase } from '@react-motion-router/core';
 import type { PlainObject, RouterContext, ScreenBaseProps, ScreenBaseState, ScreenBaseComponentProps, ScreenBaseConfig } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { HistoryEntryState, RouteProp, ScreenInternalProps, SwipeDirection } from './common/types';
@@ -76,9 +76,16 @@ export class Screen extends ScreenBase<ScreenProps, ScreenState, RouteProp> {
         if (entry?.url) {
             const state = entry.getState<HistoryEntryState>() ?? {};
             const queryParams = searchParamsToObject(entry.url.searchParams);
+            const pathParams = matchRoute(
+                this.props.path,
+                entry.url.pathname,
+                this.context.baseURLPattern.pathname,
+                this.props.caseSensitive
+            )?.params;
             state.params = {
                 ...state.params,
-                ...queryParams
+                ...queryParams,
+                ...pathParams
             };
 
             return state;
