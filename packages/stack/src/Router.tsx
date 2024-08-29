@@ -295,9 +295,10 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
     }
 
     protected intercept(e: NavigateEvent | LoadEvent): void {
-        if (this.props.config?.onIntercept && e.navigationType !== "load")
-            if (this.props.config.onIntercept(e) || e.defaultPrevented)
-                return;
+        if (e.navigationType !== "load")
+            this.props.config?.onIntercept?.(e);
+        if (e.defaultPrevented)
+            return;
 
         switch (e.navigationType) {
             case "load":
