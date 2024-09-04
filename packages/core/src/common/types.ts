@@ -123,7 +123,6 @@ export interface LoadNavigationTransition extends Omit<NavigationTransition, "na
 declare global {
     interface NavigateEvent extends Event {
         commit?(): void; // not in spec yet, see https://github.com/WICG/navigation-api/issues/66
-        readonly hasUAVisualTransition: boolean; // not in definitely typed yet, see https://github.com/DefinitelyTyped/DefinitelyTyped/pull/70324
     }
 }
 
