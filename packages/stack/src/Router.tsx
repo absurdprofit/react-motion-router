@@ -16,7 +16,7 @@ export interface RouterConfig extends RouterBaseConfig {
     disableBrowserRouting?: boolean;
     initialPath?: string;
     shouldIntercept?(navigateEvent: NavigateEvent): boolean;
-    onIntercept?(navigateEvent: NavigateEvent): boolean;
+    onIntercept?(navigateEvent: NavigateEvent): void;
 }
 
 export interface RouterProps extends RouterBaseProps<Screen> {

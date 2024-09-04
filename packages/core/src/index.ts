@@ -1,5 +1,4 @@
 /// <reference types="urlpattern-polyfill" />
-/// <reference types="@types/dom-navigation" />
 export * from './SharedElement';
 export * from './RouterBase';
 export * from './ScreenBase';
