@@ -194,19 +194,21 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
             const endClone = end.clone();
             const startClone = start.clone();
             if (!startClone || !endClone) continue;
-            const styleList = Array.from(new Set([...start.styles, ...end.styles, 'width' as const, 'height' as const]));
+            const styleList = Array.from(new Set([...start.styles, ...end.styles, 'width', 'height']));
             if (end.transitionType !== "morph") {
                 startClone.id = `${id}-start`;
                 startClone.style.position = "absolute";
+                startClone.style.gridArea = "1 / 1";
                 this.copyStyles(start.ref.current?.firstElementChild, startClone, styleList);
                 this.copyStyles(end.ref.current?.firstElementChild, endClone, styleList);
                 this.ref.current?.prepend(startClone);
-            } else if (isStylableElement(start.ref.current?.firstElementChild)) {
-                this.copyStyles(start.ref.current.firstElementChild, endClone, styleList);
+            } else {
+                this.copyStyles(start.ref.current?.firstElementChild, endClone, styleList);
             }
 
             endClone.id = `${id}${end.transitionType === "morph" ? '' : '-end'}`;
             endClone.style.position = "absolute";
+            endClone.style.gridArea = "1 / 1";
             this.ref.current?.prepend(endClone);
             start.hide();
             end.hide();
@@ -242,7 +244,8 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
                 padding: 0,
                 border: 'none',
                 backgroundColor: 'transparent',
-                isolation: 'isolate'
+                isolation: 'isolate',
+                display: "grid"
             }}>
                 <style>{".shared-element-layer::backdrop {display: none}"}</style>
             </dialog>

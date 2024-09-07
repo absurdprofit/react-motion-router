@@ -7,7 +7,7 @@ import { searchParamsFromObject } from "./common/utils";
 
 interface BaseAnchorProps extends React.DetailedHTMLProps<React.AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
     onClick?: React.MouseEventHandler<HTMLAnchorElement>;
-    navigation?: Navigation;
+    navigation?: Navigation | null;
 }
 
 interface ForwardAnchorProps extends BaseAnchorProps {
@@ -23,7 +23,7 @@ interface BackAnchorProps extends BaseAnchorProps {
 
 type AnchorProps = XOR<ForwardAnchorProps, BackAnchorProps>;
 
-function useNavigationOrDefault(navigation?: Navigation) {
+function useNavigationOrDefault(navigation?: Navigation | null) {
     const defaultNavigation = useNavigation();
     return navigation ?? defaultNavigation;
 }
