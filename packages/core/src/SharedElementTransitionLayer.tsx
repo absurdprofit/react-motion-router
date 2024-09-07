@@ -199,6 +199,7 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
                 startClone.id = `${id}-start`;
                 startClone.style.position = "absolute";
                 startClone.style.gridArea = "1 / 1";
+                startClone.style.margin = "0";
                 this.copyStyles(start.ref.current?.firstElementChild, startClone, styleList);
                 this.copyStyles(end.ref.current?.firstElementChild, endClone, styleList);
                 this.ref.current?.prepend(startClone);
@@ -209,6 +210,7 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
             endClone.id = `${id}${end.transitionType === "morph" ? '' : '-end'}`;
             endClone.style.position = "absolute";
             endClone.style.gridArea = "1 / 1";
+            endClone.style.margin = "0";
             this.ref.current?.prepend(endClone);
             start.hide();
             end.hide();
