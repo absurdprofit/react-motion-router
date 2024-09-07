@@ -421,17 +421,16 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
             if (isRollback(e.info)) return Promise.resolve();
             const transition = window.navigation.transition;
             let fromIndex = screenStack.findIndex(screen => screen.key === transition?.from.key);
+            // if navigating from a nested screen the first lookup won't work since entries are scoped
             if (fromIndex === -1 && e.navigationType === "traverse") {
                 fromIndex = screenStack.findIndex(screen => {
-                    if (!transition?.from.url || !screen.props.resolvedPathname) return false;
-                    const pathnameMatched = transition.from.url.includes(screen.props.resolvedPathname);
-                    const patternMatched = matchRoute(
+                    if (!transition?.from.url) return false;
+                    return matchRoute(
                         screen.props.path,
                         new URL(transition.from.url).pathname,
                         this.baseURLPattern.pathname,
                         screen.props.caseSensitive
                     );
-                    return pathnameMatched && patternMatched;
                 });
             }
             const fromKey = (screenStack[fromIndex]?.key || transition?.from.key) ?? null;
