@@ -1,5 +1,6 @@
 import { cloneElement, lazy as ReactLazy } from "react";
 import { ClonedElementType, ElementPropType, LazyExoticComponent, MatchedRoute, PathPattern } from "./types";
+import { RouterBase } from "../RouterBase";
 
 export function resolveBaseURLFromPattern(pattern: string, pathname: string) {
     if (!pattern.endsWith("**")) pattern += '**'; // allows us to match nested routes

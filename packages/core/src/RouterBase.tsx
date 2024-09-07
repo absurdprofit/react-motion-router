@@ -4,7 +4,6 @@ import {
     ScreenChild,
     RouterBaseEventMap,
     RouterHTMLElement,
-    ScreenState
 } from './common/types';
 import { NestedRouterContext, RouterContext } from './RouterContext';
 import { dispatchEvent, matchRoute, resolveBaseURLFromPattern } from './common/utils';
@@ -69,15 +68,20 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     }
 
     private handleNavigationDispatch = (e: NavigateEvent) => {
-        let router: RouterBase = this;
+        const activeRouters = [...this.#activeRoutersIter()];
         // travel down router tree to find a router that can intercept
-        while (router?.child) {
-            if (router.child.canIntercept(e))
-                router = router.child;
-        }
-        if (router.canIntercept(e)) {
-            router.intercept(e);
+        const interceptor = activeRouters.findLast(router => router.canIntercept(e));
+        if (interceptor) {
+            interceptor.intercept(e);
             this.hasUAVisualTransition = e.hasUAVisualTransition;
+        }
+    }
+
+    *#activeRoutersIter() {
+        let router: RouterBase | null = this;
+        while (router) {
+            yield router;
+            router = router.child;
         }
     }
 
@@ -166,7 +170,14 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
 
     get baseURLPattern() {
         let baseURL = window.location.origin + "/";
-        let basePathname = this.props.config?.basePath ?? ".";
+        let basePath = this.props.config?.basePath;
+        if (!basePath) {
+            if (this.isRoot) {
+                basePath = "/";
+            } else {
+                basePath = ".";
+            }
+        }
 
         if (this.parent && this.parentScreen) {
             const { resolvedPathname = window.location.pathname, path } = this.parentScreen;
@@ -178,7 +189,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
             )!.href;
         }
 
-        return new URLPattern({ baseURL, pathname: basePathname });
+        return new URLPattern({ baseURL, pathname: basePath });
     }
 
     get pathPatterns() {
