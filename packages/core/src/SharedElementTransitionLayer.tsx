@@ -235,7 +235,6 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
     render() {
         return (
             <dialog className="shared-element-layer" ref={this.ref} style={{
-                position: 'absolute',
                 maxWidth: 'unset',
                 maxHeight: 'unset',
                 width: '100vw',
@@ -245,9 +244,13 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
                 border: 'none',
                 backgroundColor: 'transparent',
                 isolation: 'isolate',
-                display: "grid"
             }}>
-                <style>{".shared-element-layer::backdrop {display: none}"}</style>
+                <style>
+                {`
+                    .shared-element-layer::backdrop {display: none}
+                    .shared-element-layer[open] {display:grid}
+                `}
+                </style>
             </dialog>
         );
     }
