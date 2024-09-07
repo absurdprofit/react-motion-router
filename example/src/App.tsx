@@ -28,7 +28,7 @@ function Routes() {
         animation,
         gestureDirection: "horizontal"
       },
-      initialPath: '.',
+      initialPathname: '.',
       basePath: '/(react-motion-router/)?',
       disableBrowserRouting: isPWA() && isIOS(),
     }}>

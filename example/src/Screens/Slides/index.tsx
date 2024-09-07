@@ -9,13 +9,13 @@ import { SwipeStartEvent, SwipeEvent, SwipeEndEvent } from 'web-gesture-events';
 import { bindKeyboard } from 'react-swipeable-views-utils';
 import SwipeableViews from 'react-swipeable-views';
 
-interface SlidesProps extends ScreenComponentProps<{ hero: number; }> { }
+interface SlidesProps extends ScreenComponentProps<{ hero: string; }> { }
 
 const KeyboardSwipeableViews = bindKeyboard(SwipeableViews);
 
 let isFirstLoad = false;
 export default function Slides(props: SlidesProps) {
-    const [index, setIndex] = useState(props.route.params.hero);
+    const [index, setIndex] = useState(Number(props.route.params.hero));
     let y = 0;
 
     const onSwipeStart = (e: SwipeStartEvent) => {

@@ -34,7 +34,7 @@ export default function Overlays(props: OverlaysProps) {
             <div style={{ position: "absolute", width: "100vw", height: "100vh" }}>
                 <Stack.Router config={{
                     disableBrowserRouting: isPWA() && isIOS(),
-                    initialPath: '.'
+                    initialPathname: '.'
                 }}>
                     <Stack.Screen component={Home} path="." config={{
                         animation: HomeAnimation,
