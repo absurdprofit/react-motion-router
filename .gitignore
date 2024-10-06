@@ -18,6 +18,7 @@ build
 .env.development.local
 .env.test.local
 .env.production.local
+vite.config.ts.timestamp-*.mjs
 
 lerna-debug.log*
 npm-debug.log*
