@@ -1,7 +1,7 @@
 {
   "extends": "../../tsconfig",
   "compilerOptions": {
-    "outDir": "./build"
+    "types": ["vite/client"]
   },
   "include": [
     "src/**/*.tsx",
@@ -10,10 +10,5 @@
   "exclude": [
     "node_modules",
     "build"
-  ],
-  "ts-node": { // for webpack
-    "compilerOptions": {
-      "module": "CommonJS"
-    }
-  }
+  ]
 }

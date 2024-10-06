@@ -38,10 +38,6 @@ export default defineConfig({
       ]
     }
   },
-  optimizeDeps: {
-    include: ["@react-motion-router/core"],
-    esbuildOptions: { target: "ES2022" }
-  },
   server: {
     open: true,
     port: 3000,
@@ -70,7 +66,7 @@ export default defineConfig({
   esbuild: {
     banner: '/* LICENSES */',
     legalComments: 'none',
-    sourcemap: true
+    sourcemap: true,
   },
   test: {
     globals: true,

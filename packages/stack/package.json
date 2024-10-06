@@ -3,6 +3,8 @@
   "version": "2.0.0",
   "description": "",
   "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "type": "module",
   "publishConfig": {
     "access": "public"
   },
@@ -10,14 +12,14 @@
     "build"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack --env production",
-    "dev": "webpack watch --env development"
+    "build": "vite build",
+    "dev": "vite build --watch"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nxtexe/react-motion-router.git"
   },
+  "keywords": [],
   "author": "nxtexe",
   "license": "MIT",
   "bugs": {
