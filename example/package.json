@@ -9,8 +9,8 @@
     "@emotion/styled": "^11.6.0",
     "@mui/icons-material": "^5.2.5",
     "@mui/material": "^5.2.5",
-    "@react-motion-router/core": "^1.0.0",
-    "@react-motion-router/stack": "^1.0.0",
+    "@react-motion-router/core": "*",
+    "@react-motion-router/stack": "*",
     "@testing-library/jest-dom": "^5.15.0",
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^12.8.3",
@@ -31,6 +31,7 @@
     "vite": "^5.0.2",
     "vite-plugin-svgr": "^4.2.0",
     "vite-tsconfig-paths": "^4.2.1",
+    "web-animations-extension": "*",
     "web-gesture-events": "0.0.10",
     "web-vitals": "^1.1.2"
   },
