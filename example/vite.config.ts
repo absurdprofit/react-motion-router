@@ -63,6 +63,11 @@ export default defineConfig({
       ]
     }
   },
+  optimizeDeps: {
+    esbuildOptions: {
+      target: 'ES2022'
+    },
+  },
   esbuild: {
     banner: '/* LICENSES */',
     legalComments: 'none',
