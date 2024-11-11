@@ -4,6 +4,7 @@ import {
     ScreenChild,
     RouterBaseEventMap,
     RouterHTMLElement,
+    isLazyExoticComponent,
 } from './common/types';
 import { NestedRouterContext, RouterContext } from './RouterContext';
 import { dispatchEvent, matchRoute, resolveBaseURLFromPattern } from './common/utils';
@@ -128,15 +129,13 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
                 const config = route.props.config;
                 queueMicrotask(async () => {
                     const preloadTasks = [];
-                    if ('load' in route.props.component) {
+                    if (isLazyExoticComponent(route.props.component))
                         preloadTasks.push(route.props.component.load());
-                    }
-                    if (config?.header?.component && 'load' in config?.header?.component) {
+                    if (isLazyExoticComponent(config?.header?.component))
                         preloadTasks.push(config?.header?.component.load());
-                    }
-                    if (config?.footer?.component && 'load' in config?.footer?.component) {
+                    if (isLazyExoticComponent(config?.footer?.component))
                         preloadTasks.push(config?.footer?.component.load());
-                    }
+
                     try {
                         await Promise.all(preloadTasks);
                         resolve(found);

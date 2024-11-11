@@ -121,12 +121,20 @@ export abstract class ScreenBase<
 
     async load(signal: AbortSignal) {
         let Component = this.props.component;
+        let HeaderComponent = this.props.config?.header?.component;
+        let FooterComponent = this.props.config?.footer?.component;
         let result;
-        if ('load' in Component) {
+
+        if (isLazyExoticComponent(Component)) {
             result = await Component.load();
         } else {
             result = { default: Component };
         }
+
+        if (isLazyExoticComponent(HeaderComponent))
+            await HeaderComponent.load();
+        if (isLazyExoticComponent(FooterComponent))
+            await FooterComponent.load();
 
         const navigation = this.context.navigation;
         const route = this.routeProp;
