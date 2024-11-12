@@ -144,7 +144,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         if (isLazyExoticComponent(config?.footer?.component))
             preloadTasks.push(config?.footer?.component.load());
 
-        return Promise.all(preloadTasks).then(() => void 0);
+        return Promise.all(preloadTasks).then(() => { return; });
     }
 
     get id(): string {

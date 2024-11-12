@@ -23,7 +23,7 @@ export interface ScreenBaseComponentProps<
 }
 
 export interface LifecycleProps<R extends RoutePropBase, N extends NavigationBase = NavigationBase> extends ScreenBaseComponentProps<R, N> {
-    signal?: AbortSignal;
+    signal: AbortSignal;
 }
 
 export interface ScreenBaseConfig<R extends RoutePropBase = RoutePropBase, N extends NavigationBase = NavigationBase> {

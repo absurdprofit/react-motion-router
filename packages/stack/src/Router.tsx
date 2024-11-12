@@ -263,7 +263,7 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
     }
 
     private cloneScreenChildFromPathname(pathname: string, key: React.Key | null) {
-        const { child, matchInfo } = this.screenChildFromPathname(pathname) ?? {};
+        const { child } = this.screenChildFromPathname(pathname) ?? {};
 
         if (!child) return null;
         key ??= crypto.randomUUID();
@@ -272,10 +272,6 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
                 title: document.title,
                 ...this.props.config?.screenConfig,
                 ...child.props.config
-            },
-            defaultParams: {
-                ...child.props.defaultParams,
-                ...matchInfo?.params
             },
             id: key,
             resolvedPathname: pathname,
