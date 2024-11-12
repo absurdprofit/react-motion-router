@@ -5,6 +5,7 @@ import {
     RouterBaseEventMap,
     RouterHTMLElement,
     isLazyExoticComponent,
+    isValidScreenChild,
 } from './common/types';
 import { NestedRouterContext, RouterContext } from './RouterContext';
 import { dispatchEvent, matchRoute, resolveBaseURLFromPattern } from './common/utils';
@@ -114,39 +115,36 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         return this.ref.current?.removeEventListener(type, listener, options);
     }
 
-    public preloadRoute(pathname: string) {
-        return new Promise<boolean>((resolve, reject) => {
-            let found = false;
-            const routes = this.props.children;
-            Children.forEach<ScreenChild>(routes, (route) => {
-                if (found) return; // stop after first
-                if (!isValidElement(route)) return;
-                const { path, caseSensitive } = route.props;
-                const baseURLPattern = this.baseURLPattern.pathname;
-                const matchInfo = matchRoute(path, pathname, baseURLPattern, caseSensitive);
-                if (!matchInfo) return;
-                found = true;
-                const config = route.props.config;
-                queueMicrotask(async () => {
-                    const preloadTasks = [];
-                    if (isLazyExoticComponent(route.props.component))
-                        preloadTasks.push(route.props.component.load());
-                    if (isLazyExoticComponent(config?.header?.component))
-                        preloadTasks.push(config?.header?.component.load());
-                    if (isLazyExoticComponent(config?.footer?.component))
-                        preloadTasks.push(config?.footer?.component.load());
+    protected screenChildFromPathname(pathname: string) {
+        for (const child of Children.toArray(this.props.children)) {
+            if (!isValidScreenChild(child)) continue;
+            const matchInfo = matchRoute(
+                child.props.path,
+                pathname,
+                this.baseURLPattern.pathname,
+                child.props.caseSensitive
+            );
+            if (matchInfo)
+                return {
+                    child,
+                    matchInfo
+                };
+        }
 
-                    try {
-                        await Promise.all(preloadTasks);
-                        resolve(found);
-                    } catch (e) {
-                        reject(e);
-                    }
-                });
-            });
-            if (!found)
-                resolve(false);
-        });
+        return null;
+    }
+
+    protected preloadScreen(screen: ScreenChild) {
+        const config = screen.props.config;
+        const preloadTasks = [];
+        if (isLazyExoticComponent(screen.props.component))
+            preloadTasks.push(screen.props.component.load());
+        if (isLazyExoticComponent(config?.header?.component))
+            preloadTasks.push(config?.header?.component.load());
+        if (isLazyExoticComponent(config?.footer?.component))
+            preloadTasks.push(config?.footer?.component.load());
+
+        return Promise.all(preloadTasks).then(() => void 0);
     }
 
     get id(): string {

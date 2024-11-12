@@ -2,7 +2,7 @@ import { RouterBase, cloneAndInject, includesRoute, isValidScreenChild, matchRou
 import type { ClonedElementType, LoadEvent, NestedRouterContext, RouterBaseConfig, RouterBaseProps, RouterBaseState, ScreenChild } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { ScreenProps, Screen, ScreenConfig } from './Screen';
-import { HistoryEntryState, isHorizontalDirection, isOutOfBounds, isRefObject, isSupportedDirection, RouterEventMap, ScreenInternalProps, SwipeDirection } from './common/types';
+import { HistoryEntryState, isHorizontalDirection, isOutOfBounds, isRefObject, isSupportedDirection, NavigationBaseOptions, NavigationProps, RouteProp, RouterEventMap, ScreenInternalProps, SwipeDirection } from './common/types';
 import { Children, createRef, startTransition } from 'react';
 import { SwipeStartEvent, SwipeEndEvent } from 'web-gesture-events';
 import { GestureTimeline } from 'web-animations-extension';
@@ -232,25 +232,50 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
             });
     }
 
-    private screenChildFromPathname(pathname: string, key: React.Key | null) {
-        const screenChild = Children.toArray(this.props.children)
-            .find((child): child is ScreenChild<Screen> => {
-                if (!isValidScreenChild(child)) return false;
-                return matchRoute(
-                    child.props.path,
-                    pathname,
-                    this.baseURLPattern.pathname,
-                    child.props.caseSensitive
-                ) !== null;
-            });
+    public preload(pathname: string, props: NavigationProps = {}, options: NavigationBaseOptions = {}) {
+        const { child, matchInfo } = this.screenChildFromPathname(pathname) ?? {};
+        if (!child)
+            return Promise.resolve(false);
+        const { navigation } = this;
+        const { signal } = options;
+        const { path } = child.props;
+        const route: RouteProp = {
+            focused: false,
+            path,
+            resolvedPathname: pathname,
+            setConfig: () => {},
+            setParams: () => {},
+            config: {
+                ...this.props.config?.screenConfig,
+                ...child.props.config,
+                ...props.config
+            },
+            params: {
+                ...child.props.defaultParams,
+                ...matchInfo?.params,
+                ...props.params
+            }
+        };
+        return Promise.all([
+            this.preloadScreen(child),
+            child.props.config?.onLoad?.({ navigation, signal, route })
+        ]).then(() => true);
+    }
 
-        if (!screenChild) return null;
+    private cloneScreenChildFromPathname(pathname: string, key: React.Key | null) {
+        const { child, matchInfo } = this.screenChildFromPathname(pathname) ?? {};
+
+        if (!child) return null;
         key ??= crypto.randomUUID();
-        return cloneAndInject(screenChild, {
+        return cloneAndInject(child, {
             config: {
                 title: document.title,
                 ...this.props.config?.screenConfig,
-                ...screenChild.props.config
+                ...child.props.config
+            },
+            defaultParams: {
+                ...child.props.defaultParams,
+                ...matchInfo?.params
             },
             id: key,
             resolvedPathname: pathname,
@@ -325,7 +350,7 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
             const entries = this.navigation.entries;
             entries.forEach((entry) => {
                 if (!entry.url) return null;
-                const screen = this.screenChildFromPathname(entry.url.pathname, entry.key);
+                const screen = this.cloneScreenChildFromPathname(entry.url.pathname, entry.key);
                 if (!screen) return null;
                 screenStack.push(screen);
             });
@@ -372,7 +397,7 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
         const destination = e.destination;
         const destinationPathname = new URL(destination.url).pathname;
         const destinationKey = window.navigation.currentEntry?.key ?? destination.key;
-        const destinationScreen = this.screenChildFromPathname(destinationPathname, destinationKey);
+        const destinationScreen = this.cloneScreenChildFromPathname(destinationPathname, destinationKey);
         if (!destinationScreen) return e.preventDefault();
         const handler = () => {
             const isHotReplace = this.state.transition !== null;
@@ -438,7 +463,7 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
             const destinationKey = (screenStack[destinationIndex]?.key || window.navigation.currentEntry?.key) ?? null;
             if (e.navigationType === "push") {
                 const destinationPathname = new URL(destination.url).pathname;
-                const destinationScreen = this.screenChildFromPathname(destinationPathname, destinationKey);
+                const destinationScreen = this.cloneScreenChildFromPathname(destinationPathname, destinationKey);
                 if (!destinationScreen) return Promise.resolve();
                 screenStack.splice(
                     fromIndex + 1,

@@ -46,7 +46,7 @@ export function Anchor(props: AnchorProps) {
 
     useEffect(() => {
         if (!preload || !href) return;
-        navigation.preloadRoute(hrefProp);
+        navigation.preload(hrefProp, { params });
     }, [preload, hrefProp]);
 
     useEffect(() => {
