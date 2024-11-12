@@ -1,7 +1,7 @@
 import { PlainObject } from "@react-motion-router/core";
 import { Navigation } from "./Navigation";
 import { NavigateOptions, XOR } from "./common/types";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, RefObject } from "react";
 import { useNavigation } from "./common/hooks";
 import { searchParamsFromObject } from "./common/utils";
 
@@ -15,7 +15,8 @@ interface OnSightPreloadBehaviour extends UseIntersectionOptions {
 }
 
 interface OnHoverPreloadBehaviour {
-    type: 'onhover'
+    type: 'onhover';
+    forceThreshold?: number;
 }
 
 interface ForwardAnchorProps extends BaseAnchorProps {
@@ -74,34 +75,90 @@ function useIntersection<T extends HTMLElement>(callback: (entry: IntersectionOb
   return targetRef;
 }
 
-export function Anchor(props: AnchorProps) {
-    const {
-        preload,
-        goBack,
-        params = {},
-        type = "push",
-        href: hrefProp,
-        onClick: onClickProp,
-        preloadBehaviour,
-        ...aProps
-    } = props;
-    const navigation = useNavigationOrDefault(props.navigation);
+type EventListenerOptions = boolean | AddEventListenerOptions;
+
+function useEventListener<K extends keyof HTMLElementEventMap>(
+  ref: RefObject<HTMLElement>,
+  eventName: K,
+  handler: (event: HTMLElementEventMap[K]) => void,
+  options?: EventListenerOptions
+) {
+    useEffect(() => {
+        const element = ref.current;
+        if (!element) return;
+
+        element.addEventListener(eventName, handler, options);
+
+        return () => {
+            element.removeEventListener(eventName, handler, options);
+        };
+    }, [ref, eventName, handler, options]);
+}
+
+type UseHoverOptions = {
+    forceThreshold?: number; // Threshold for touch pressure to count as "hover" (0 to 1 range)
+};
+  
+type UseHoverCallback = (isHovered: boolean) => void;
+function useHover<T extends HTMLElement>(
+    callback: UseHoverCallback,
+    { forceThreshold = 0.5 }: UseHoverOptions = {}
+) {
+    const targetRef = useRef<T | null>(null);
+
+    const hoverCallback = useCallback(callback, [callback]);
+  
+    const handleMouseEnter = () => hoverCallback(true);
+  
+    const handleTouchStart = (event: TouchEvent) => {
+      const touch = event.touches[0];
+      if (touch && touch.force >= forceThreshold) {
+        hoverCallback(true);
+      }
+    };
+  
+    useEventListener(targetRef, 'mouseenter', handleMouseEnter);
+    useEventListener(targetRef, 'touchstart', handleTouchStart);
+  
+    return targetRef;
+};
+
+export function Anchor({
+    preload,
+    goBack,
+    params = {},
+    type = "push",
+    href: hrefProp,
+    navigation: navigationProp,
+    onClick: onClickProp,
+    preloadBehaviour = {
+        type: 'onsight'
+    },
+    children,
+    ...aProps
+}: AnchorProps) {
+    const navigation = useNavigationOrDefault(navigationProp);
     const isOnSightPreload = preloadBehaviour?.type === 'onsight';
     const isOnHoverPreload = preloadBehaviour?.type === 'onhover';
     const isForcePreload = preloadBehaviour?.type === 'force';
 
     /// Intersection preload behaviour
-    const ref = useIntersection<HTMLAnchorElement>((entry) => {
-        if (!entry.isIntersecting) return;
-        if (!preload) return;
+    const intersectionRef = useIntersection<HTMLAnchorElement>((entry) => {
+        if (!entry.isIntersecting || !preload) return;
         navigation.preload(hrefProp, { params });
     }, isOnSightPreload ? preloadBehaviour : {});
     /// Intersection preload behaviour
 
+    /// Hover preload behaviour
+    const hoverRef = useHover<HTMLAnchorElement>((hovered) => {
+        if (!hovered || !preload) return;
+        navigation.preload(hrefProp, { params });
+    }, isOnHoverPreload ? preloadBehaviour : {});
+    /// Hover preload behaviour
+
     /// Force preload behaviour
     useEffect(() => {
-        if (!preload) return;
-        if (!isForcePreload) return;
+        if (!preload || !isForcePreload) return;
         navigation.preload(hrefProp, { params });
     }, [preload, hrefProp]);
     /// Force preload behaviour
@@ -133,16 +190,28 @@ export function Anchor(props: AnchorProps) {
         onClickProp?.(e);
     };
 
+    let ref;
+    switch (preloadBehaviour?.type) {
+        case 'onhover':
+            ref = hoverRef;
+            break;
+        case 'onsight':
+            ref = intersectionRef;
+            break;
+        default:
+            ref = null;
+    }
+
     return (
         <a
             href={href}
             data-router-id={routerId}
             onClick={onClick}
             rel={rel}
-            ref={isOnSightPreload ? ref : null}
+            ref={ref}
             {...aProps}
         >
-            {props.children}
+            {children}
         </a>
     );
 }

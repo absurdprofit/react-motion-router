@@ -78,10 +78,7 @@ function Routes() {
           animation: STATIC_ANIMATION,
           gestureDirection: "down",
           gestureAreaWidth: window.innerHeight,
-          gestureHysteresis: .3,
-          onLoad() {
-            console.log('Hello World');
-          }
+          gestureHysteresis: .3
         }}
         defaultParams={{ data: "Default" }}
         fallback={<div className='screen-fallback details'></div>}
