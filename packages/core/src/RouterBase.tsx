@@ -13,6 +13,8 @@ import { Component, createRef, isValidElement, Children } from 'react';
 import { ScreenBase, ScreenBaseConfig } from './ScreenBase';
 import { LoadEvent } from './common/events';
 
+type ScreenType<T> = T extends ScreenChild<infer S> | ScreenChild<infer S>[] ? S : never;
+
 export interface RouterBaseConfig {
     screenConfig?: ScreenBaseConfig;
     basePath?: string;
@@ -117,7 +119,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
 
     protected screenChildFromPathname(pathname: string) {
         for (const child of Children.toArray(this.props.children)) {
-            if (!isValidScreenChild(child)) continue;
+            if (!isValidScreenChild<ScreenType<P['children']>>(child)) continue;
             const matchInfo = matchRoute(
                 child.props.path,
                 pathname,
@@ -126,7 +128,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
             );
             if (matchInfo)
                 return {
-                    child,
+                    child ,
                     matchInfo
                 };
         }

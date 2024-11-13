@@ -28,10 +28,9 @@ export interface ScreenState extends ScreenBaseState { }
 export class Screen extends ScreenBase<ScreenProps, ScreenState, RouteProp> {
     #historyEntry: HistoryEntry;
 
-    constructor(props: ScreenProps, context: React.ContextType<typeof RouterContext>) {
-        super(props, context);
+    constructor(props: ScreenProps, router: Router) {
+        super(props, router);
 
-        const router = context as Router;
         const id = this.internalProps.id;
         const historyEntry = router.navigation.entries.find(entry => entry.key === id);
         if (!historyEntry)

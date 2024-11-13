@@ -258,7 +258,7 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
         };
         return Promise.all([
             this.preloadScreen(child),
-            child.props.config?.onLoad?.({ navigation, signal, route })
+            child.props.config?.onLoad?.({ navigation, signal, route, preloading: true })
         ]).then(() => true);
     }
 
@@ -436,7 +436,7 @@ export class Router extends RouterBase<RouterProps, RouterState, RouterEventMap>
         const screenStack = this.state.screenStack;
         const destination = e.destination;
         const destinationPathname = new URL(destination.url).pathname;
-        if (!isValidScreenChild<Screen>(this.getScreenChildByPathname(destinationPathname)))
+        if (!isValidScreenChild<Screen>(this.screenChildFromPathname(destinationPathname)))
             return e.preventDefault();
         const handler = () => {
             if (isRollback(e.info)) return Promise.resolve();
