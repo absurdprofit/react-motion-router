@@ -59,4 +59,11 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    files: ['**/constants.ts', '**/eslint.config.js', '**/enums.ts'],
+    // Override or add rules here
+    rules: {
+      'no-magic-numbers': 'off',
+    },
+  },
 )
