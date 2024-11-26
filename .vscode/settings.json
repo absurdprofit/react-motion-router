@@ -1,0 +1,8 @@
+{
+    "cSpell.words": [
+        "Numberish"
+    ],
+    "typescript.tsdk": "node_modules\\typescript\\lib",
+    "editor.formatOnSave": false,
+    "editor.tabSize": 2
+}

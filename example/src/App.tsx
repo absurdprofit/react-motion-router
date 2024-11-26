@@ -78,7 +78,12 @@ function Routes() {
           animation: STATIC_ANIMATION,
           gestureDirection: "down",
           gestureAreaWidth: window.innerHeight,
-          gestureHysteresis: .3
+          gestureHysteresis: .3,
+          onLoad({ route, preloading, signal }) {
+            if (preloading === true) {
+              console.log('Hello preload!')
+            }
+          }
         }}
         defaultParams={{ data: "Default" }}
         fallback={<div className='screen-fallback details'></div>}

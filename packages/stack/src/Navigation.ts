@@ -16,6 +16,10 @@ export class Navigation extends NavigationBase<RouterEventMap> {
         this.router = router;
     }
 
+    preload(route: string, props: NavigationProps = {}, options: NavigationBaseOptions = {}) {
+        return this.router.preload(route, props, options);
+    }
+
     replace(route: string, props: NavigationProps = {}, options: NavigationBaseOptions = {}) {
         return this.navigate(route, props, { ...options, type: "replace" });
     }
