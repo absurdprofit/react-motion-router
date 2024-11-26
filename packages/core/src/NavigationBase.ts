@@ -50,11 +50,6 @@ export abstract class NavigationBase<E extends RouterBaseEventMap = RouterBaseEv
         return this.router.getRouterById(routerId)?.navigation ?? null;
     }
 
-    public preloadRoute(path: string) {
-        const { pathname } = new URL(path, this.baseURL);
-        return this.router.preloadRoute(pathname);
-    }
-
     private get isInDocument() {
         return Boolean(document.getElementById(`${this.routerId}`));
     }

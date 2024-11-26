@@ -22,9 +22,13 @@ export interface ScreenBaseComponentProps<
     navigation: N;
 }
 
-export interface LifecycleProps<R extends RoutePropBase, N extends NavigationBase = NavigationBase> extends ScreenBaseComponentProps<R, N> {
+export type LifecycleProps<R extends RoutePropBase, N extends NavigationBase = NavigationBase> = ({
     signal: AbortSignal;
-}
+    preloading: false;
+} & ScreenBaseComponentProps<R, N>) | ({
+    signal?: AbortSignal;
+    preloading: true;
+} & Omit<ScreenBaseComponentProps<R, N>, 'route'> & { route: Omit<ScreenBaseComponentProps<R, N>['route'], 'setParams' | 'setConfig'>});
 
 export interface ScreenBaseConfig<R extends RoutePropBase = RoutePropBase, N extends NavigationBase = NavigationBase> {
     header?: {
@@ -121,16 +125,25 @@ export abstract class ScreenBase<
 
     async load(signal: AbortSignal) {
         let Component = this.props.component;
+        let HeaderComponent = this.props.config?.header?.component;
+        let FooterComponent = this.props.config?.footer?.component;
         let result;
-        if ('load' in Component) {
+
+        if (isLazyExoticComponent(Component)) {
             result = await Component.load();
         } else {
             result = { default: Component };
         }
 
+        if (isLazyExoticComponent(HeaderComponent))
+            await HeaderComponent.load();
+        if (isLazyExoticComponent(FooterComponent))
+            await FooterComponent.load();
+
         const navigation = this.context.navigation;
         const route = this.routeProp;
-        await this.props.config?.onLoad?.({ navigation, route, signal });
+        const preloading = false;
+        await this.props.config?.onLoad?.({ navigation, route, signal, preloading });
 
         return result;
     }
@@ -145,6 +158,7 @@ export abstract class ScreenBase<
         await this.routeProp.config.onExited?.({
             route: this.routeProp,
             navigation: this.context.navigation,
+            preloading: false,
             signal
         });
     }
@@ -153,7 +167,8 @@ export abstract class ScreenBase<
         await this.routeProp.config.onExit?.({
             route: this.routeProp,
             navigation: this.context.navigation,
-            signal
+            preloading: false,
+            signal,
         });
     }
 
@@ -161,6 +176,7 @@ export abstract class ScreenBase<
         await this.routeProp.config.onEnter?.({
             route: this.routeProp,
             navigation: this.context.navigation,
+            preloading: false,
             signal
         });
     }
@@ -169,6 +185,7 @@ export abstract class ScreenBase<
         await this.routeProp.config.onEntered?.({
             route: this.routeProp,
             navigation: this.context.navigation,
+            preloading: false,
             signal
         });
     }

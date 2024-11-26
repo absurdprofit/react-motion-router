@@ -7,7 +7,7 @@ import dts from 'vite-plugin-dts';
 export default defineConfig({
   plugins: [
     react(),
-    dts({ outDir: 'build' })
+    dts({ outDir: 'build' }),
   ],
   build: {
     sourcemap: true,
@@ -21,7 +21,7 @@ export default defineConfig({
       output: {
         entryFileNames: '[name].js',
         dir: 'build',
-      }
-    }
-  }
+      },
+    },
+  },
 });
