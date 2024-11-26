@@ -28,7 +28,7 @@ export type LifecycleProps<R extends RoutePropBase, N extends NavigationBase = N
 } & ScreenBaseComponentProps<R, N>) | ({
     signal?: AbortSignal;
     preloading: true;
-} & Omit<ScreenBaseComponentProps<R, N>, 'route'> & { route: Omit<ScreenBaseComponentProps<R, N>['route'], 'setParams'>});
+} & Omit<ScreenBaseComponentProps<R, N>, 'route'> & { route: Omit<ScreenBaseComponentProps<R, N>['route'], 'setParams' | 'setConfig'>});
 
 export interface ScreenBaseConfig<R extends RoutePropBase = RoutePropBase, N extends NavigationBase = NavigationBase> {
     header?: {

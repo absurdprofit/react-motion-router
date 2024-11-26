@@ -327,7 +327,7 @@ export class Router extends RouterBase<
     });
   }
 
-  public preload(
+  public async preload(
     pathname: string,
     props: NavigationProps = {},
     options: NavigationBaseOptions = {}
@@ -337,32 +337,30 @@ export class Router extends RouterBase<
     const { navigation } = this;
     const { signal } = options;
     const { path } = child.props;
-    const route: RouteProp = {
-      focused: false,
-      path,
-      resolvedPathname: pathname,
-      setConfig: () => {},
-      setParams: () => {},
-      config: {
-        ...this.props.config?.screenConfig,
-        ...child.props.config,
-        ...props.config,
-      },
-      params: {
-        ...child.props.defaultParams,
-        ...matchInfo?.params,
-        ...props.params,
-      },
-    };
-    return Promise.all([
+    await Promise.all([
       this.preloadScreen(child),
       child.props.config?.onLoad?.({
         navigation,
         signal,
-        route,
         preloading: true,
+        route: {
+          focused: false,
+          path,
+          resolvedPathname: pathname,
+          config: {
+            ...this.props.config?.screenConfig,
+            ...child.props.config,
+            ...props.config,
+          },
+          params: {
+            ...child.props.defaultParams,
+            ...matchInfo?.params,
+            ...props.params,
+          },
+        },
       }),
-    ]).then(() => true);
+    ]);
+    return true;
   }
 
   private cloneScreenChildFromPathname(
@@ -384,18 +382,6 @@ export class Router extends RouterBase<
       key,
       ref: createRef<Screen>(),
     } as InjectedScreenProps);
-  }
-
-  private getScreenChildByPathname(pathname: string) {
-    return Children.toArray(this.props.children).find((child) => {
-      if (!isValidScreenChild(child)) return;
-      return matchRoute(
-        child.props.path,
-        pathname,
-        this.baseURLPattern.pathname,
-        child.props.caseSensitive
-      );
-    });
   }
 
   private getScreenRefByKey(key: string) {
