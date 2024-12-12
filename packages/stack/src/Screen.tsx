@@ -1,16 +1,16 @@
 import { matchRoute, ScreenBase } from '@react-motion-router/core';
-import type { PlainObject, RouterContext, ScreenBaseProps, ScreenBaseState, ScreenBaseComponentProps, ScreenBaseConfig } from '@react-motion-router/core';
+import type { PlainObject, ScreenBaseProps, ScreenBaseState, ScreenBaseComponentProps, ScreenBaseConfig } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { HistoryEntryState, RouteProp, ScreenInternalProps, SwipeDirection } from './common/types';
 import { Router } from './Router';
 import { searchParamsToObject } from './common/utils';
 import { HistoryEntry } from './HistoryEntry';
 
-export interface ScreenComponentProps<T extends PlainObject = {}> extends ScreenBaseComponentProps<RouteProp<T>, Navigation> { }
+export type ScreenComponentProps<T extends PlainObject> = ScreenBaseComponentProps<RouteProp<T>, Navigation>;
 
 export interface ScreenConfig extends ScreenBaseConfig<RouteProp> {
     title?: string;
-    presentation?: "default" | "dialog" | "modal";
+    presentation?: 'default' | 'dialog' | 'modal';
     keepAlive?: boolean;
     gestureDirection?: SwipeDirection;
     gestureAreaWidth?: number;
@@ -23,185 +23,188 @@ export interface ScreenProps extends ScreenBaseProps {
     config?: ScreenConfig;
 }
 
-export interface ScreenState extends ScreenBaseState { }
+export class Screen extends ScreenBase<ScreenProps, ScreenBaseState, RouteProp> {
+  readonly #historyEntry: HistoryEntry;
 
-export class Screen extends ScreenBase<ScreenProps, ScreenState, RouteProp> {
-    #historyEntry: HistoryEntry;
+  constructor(props: ScreenProps, router: Router) {
+    super(props, router);
 
-    constructor(props: ScreenProps, router: Router) {
-        super(props, router);
+    const id = this.internalProps.id;
+    const historyEntry = router.navigation.entries.find(entry => entry.key === id);
+    if (!historyEntry)
+      throw new Error(`No history entry found for: ${id}`);
+    this.#historyEntry = historyEntry;
+  }
 
-        const id = this.internalProps.id;
-        const historyEntry = router.navigation.entries.find(entry => entry.key === id);
-        if (!historyEntry)
-            throw new Error(`No history entry found for: ${id}`);
-        this.#historyEntry = historyEntry;
+  public static getDerivedStateFromProps(props: ScreenProps) {
+    if (
+      props.config?.presentation === 'dialog'
+            || props.config?.presentation === 'modal'
+    )
+      return { elementType: 'dialog' };
+    else
+      return { elementType: 'div' };
+  }
+
+  protected setParams(newParams: PlainObject): void {
+    super.setParams(newParams);
+    this.setHistoryState(({ params }) => ({ params: { ...params, ...newParams } }));
+  }
+
+  protected setConfig(newConfig: NonNullable<ScreenProps['config']>): void {
+    super.setConfig(newConfig);
+    // navigation history state can only accept structured cloneable objects.
+    // a lot of the config options are function which cannot be structured cloned.
+    delete newConfig.footer;
+    delete newConfig.header;
+    delete newConfig.onEnter;
+    delete newConfig.onEntered;
+    delete newConfig.onExit;
+    delete newConfig.onExited;
+    this.setHistoryState(({ config }) => ({ config: { ...config, ...newConfig } }));
+  }
+
+  protected get router() {
+    return this.context as Router;
+  }
+
+  private get internalProps() {
+    return this.props as unknown as ScreenInternalProps;
+  }
+
+  public get resolvedPathname() {
+    return this.internalProps.resolvedPathname;
+  }
+
+  private get historyEntryState() {
+    const entry = this.#historyEntry;
+    if (entry?.url) {
+      const state = entry.getState<HistoryEntryState>() ?? {};
+      const queryParams = searchParamsToObject(entry.url.searchParams);
+      const pathParams = matchRoute(
+        this.props.path,
+        entry.url.pathname,
+        this.context.baseURLPattern.pathname,
+        this.props.caseSensitive
+      )?.params;
+      state.params = {
+        ...state.params,
+        ...queryParams,
+        ...pathParams,
+      };
+
+      return state;
     }
+    return {};
+  }
 
-    static getDerivedStateFromProps(props: ScreenProps) {
-        if (
-            props.config?.presentation === "dialog"
-            || props.config?.presentation === "modal"
-        )
-            return { elementType: "dialog" };
-        else
-            return { elementType: "div" };
+  public get id() {
+    return this.internalProps.id.toString();
+  }
+
+  public get params() {
+    return {
+      ...this.props.defaultParams,
+      ...this.historyEntryState.params,
+      ...this.state.params,
+    };
+  }
+
+  public get config() {
+    return {
+      ...this.props.config,
+      ...this.historyEntryState.config,
+      ...this.state.config,
+    };
+  }
+
+  protected get routeProp() {
+    const setParams = this.setParams.bind(this);
+    const setConfig = this.setConfig.bind(this);
+    const{ path } = this.props;
+    const { focused } = this.state;
+    const { params, config, resolvedPathname } = this;
+    return {
+      setParams,
+      setConfig,
+      path,
+      resolvedPathname,
+      focused,
+      params,
+      config,
+    };
+  }
+
+  protected setHistoryState(newState: PlainObject | ((prevState: PlainObject) => PlainObject)) {
+    if (!this.state.focused) return;
+    const prevState = this.#historyEntry.getState<HistoryEntryState>() ?? {};
+    if (newState instanceof Function) {
+      newState = newState(prevState);
     }
+    const state = {
+      ...prevState ?? {},
+      ...newState,
+    };
+    window.navigation.updateCurrentEntry({ state });
+  }
 
-    protected setParams(newParams: PlainObject): void {
-        super.setParams(newParams);
-        this.setHistoryState(({ params }) => ({ params: { ...params, ...newParams } }));
-    }
-
-    protected setConfig(newConfig: NonNullable<ScreenProps["config"]>): void {
-        super.setConfig(newConfig);
-        // navigation history state can only accept structured cloneable objects.
-        // a lot of the config options are function which cannot be structured cloned.
-        // for this reason remove this for now unless a good argument is made for persisting config to history state.
-        // this.setHistoryState(({ config }) => ({ config: { ...config, ...newConfig } }));
-    }
-
-    protected get router() {
-        return this.context as Router;
-    }
-
-    get internalProps() {
-        return this.props as unknown as ScreenInternalProps;
-    }
-
-    get resolvedPathname() {
-        return this.internalProps.resolvedPathname;
-    }
-
-    get historyEntryState() {
-        const entry = this.#historyEntry;
-        if (entry?.url) {
-            const state = entry.getState<HistoryEntryState>() ?? {};
-            const queryParams = searchParamsToObject(entry.url.searchParams);
-            const pathParams = matchRoute(
-                this.props.path,
-                entry.url.pathname,
-                this.context.baseURLPattern.pathname,
-                this.props.caseSensitive
-            )?.params;
-            state.params = {
-                ...state.params,
-                ...queryParams,
-                ...pathParams
-            };
-
-            return state;
-        }
-        return {};
-    }
-
-    get id() {
-        return this.internalProps.id.toString();
-    }
-
-    get params() {
-        return {
-            ...this.props.defaultParams,
-            ...this.historyEntryState.params,
-            ...this.state.params
-        };
-    }
-
-    get config() {
-        return {
-            ...this.props.config,
-            ...this.historyEntryState.config,
-            ...this.state.config
-        };
-    }
-
-    protected get routeProp() {
-        const setParams = this.setParams.bind(this);
-        const setConfig = this.setConfig.bind(this);
-        const{ path } = this.props;
-        const { focused } = this.state;
-        const { params, config, resolvedPathname } = this;
-        return {
-            setParams,
-            setConfig,
-            path,
-            resolvedPathname,
-            focused,
-            params,
-            config
-        };
-    }
-
-    protected setHistoryState(newState: PlainObject | ((prevState: PlainObject) => PlainObject)) {
-        if (!this.state.focused) return;
-        const prevState = this.#historyEntry.getState<HistoryEntryState>() ?? {};
-        if (newState instanceof Function) {
-            newState = newState(prevState);
-        }
-        const state = {
-            ...prevState ?? {},
-            ...newState
-        };
-        window.navigation.updateCurrentEntry({ state });
-    }
-
-    private onClickOutside(e: MouseEvent) {
-        if (!this.transitionProvider.current?.ref.current) return;
-        const navigation = this.context?.navigation as Navigation | undefined;
-        const rect = this.transitionProvider.current.ref.current.getBoundingClientRect();
-        const isInDialog = (
-            rect.top <= e.clientY
+  private onClickOutside(e: MouseEvent) {
+    if (!this.transitionProvider.current?.ref.current) return;
+    const navigation = this.context?.navigation as Navigation | undefined;
+    const rect = this.transitionProvider.current.ref.current.getBoundingClientRect();
+    const isInDialog = (
+      rect.top <= e.clientY
             && e.clientY <= rect.top + rect.height
             && rect.left <= e.clientX
             && e.clientX <= rect.left + rect.width
-        );
-        if (!isInDialog)
-            navigation?.goBack();
-    }
+    );
+    if (!isInDialog)
+      navigation?.goBack();
+  }
 
-    onEnter(signal: AbortSignal) {
-        if (
-            this.transitionProvider.current?.ref.current instanceof HTMLDialogElement
+  public onEnter(signal: AbortSignal) {
+    if (
+      this.transitionProvider.current?.ref.current instanceof HTMLDialogElement
             && this.transitionProvider.current.ref.current.open === false
-        ) {
-            const navigation = this.context?.navigation as Navigation | undefined;
-            if (this.props.config?.presentation === "modal") {
-                this.transitionProvider.current.ref.current.showModal();
-            } else {
-                this.transitionProvider.current.ref.current.show();
-            }
-            this.transitionProvider.current.ref.current.style.maxHeight = 'unset';
-            this.transitionProvider.current.ref.current.style.maxWidth = 'unset';
-            this.transitionProvider.current.ref.current.style.width = 'max-content';
-            this.transitionProvider.current.ref.current.style.height = 'max-content';
-            if (this.ref.current) {
-                this.ref.current.style.width = 'max-content';
-                this.ref.current.style.height = 'max-content';
-            }
+    ) {
+      const navigation = this.context?.navigation as Navigation | undefined;
+      if (this.props.config?.presentation === 'modal') {
+        this.transitionProvider.current.ref.current.showModal();
+      } else {
+        this.transitionProvider.current.ref.current.show();
+      }
+      this.transitionProvider.current.ref.current.style.maxHeight = 'unset';
+      this.transitionProvider.current.ref.current.style.maxWidth = 'unset';
+      this.transitionProvider.current.ref.current.style.width = 'max-content';
+      this.transitionProvider.current.ref.current.style.height = 'max-content';
+      if (this.ref.current) {
+        this.ref.current.style.width = 'max-content';
+        this.ref.current.style.height = 'max-content';
+      }
 
-            const onClickOutside = this.onClickOutside.bind(this);
+      const onClickOutside = this.onClickOutside.bind(this);
 
-            // closed by form submit or ESC key
-            this.transitionProvider.current?.ref.current.addEventListener('close', function () {
-                if (this.returnValue !== "screen-exit") {
-                    this.style.display = "block";
-                    navigation?.goBack();
-                }
-
-                navigation?.removeEventListener('click', onClickOutside);
-            }, { once: true });
-
-            navigation?.addEventListener('click', onClickOutside);
+      // closed by form submit or ESC key
+      this.transitionProvider.current?.ref.current.addEventListener('close', function () {
+        if (this.returnValue !== 'screen-exit') {
+          this.style.display = 'block';
+          navigation?.goBack();
         }
 
-        return super.onEnter(signal);
-    };
+        navigation?.removeEventListener('click', onClickOutside);
+      }, { once: true });
 
-    onExited(signal: AbortSignal) {
-        if (this.transitionProvider.current?.ref.current instanceof HTMLDialogElement) {
-            this.transitionProvider.current.ref.current.close("screen-exit");
-        }
-
-        return super.onExited(signal);
+      navigation?.addEventListener('click', onClickOutside);
     }
+
+    return super.onEnter(signal);
+  };
+
+  public onExited(signal: AbortSignal) {
+    if (this.transitionProvider.current?.ref.current instanceof HTMLDialogElement) {
+      this.transitionProvider.current.ref.current.close('screen-exit');
+    }
+
+    return super.onExited(signal);
+  }
 }
