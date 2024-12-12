@@ -1,0 +1,36 @@
+name: Merge Enforcer
+
+on:
+  pull_request:
+    branches:
+      - main
+      - next
+      - beta
+
+jobs:
+  branch-merge-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check merge into main
+        if: github.base_ref == 'main'
+        run: |
+          if [[ "${{ github.head_ref }}" != "next" && ! "${{ github.head_ref }}" =~ ^hotfix/ ]]; then
+            echo "Error: Merges into main are only allowed from 'next' or branches starting with 'hotfix/'"
+            exit 1
+          fi
+
+      - name: Check merge into next
+        if: github.base_ref == 'next'
+        run: |
+          if [[ "${{ github.head_ref }}" != "beta" ]]; then
+            echo "Error: Merges into 'next' are only allowed from 'beta'"
+            exit 1
+          fi
+
+      - name: Check merge into beta
+        if: github.base_ref == 'beta'
+        run: |
+          if [[ "${{ github.head_ref }}" != "development" ]]; then
+            echo "Error: Merges into 'beta' are only allowed from 'development'"
+            exit 1
+          fi
