@@ -1,3 +1,0 @@
-/* LICENSES */
-import{d as u,_ as i,a2 as c,a3 as f}from"./index-afgzwGfa.js";const x=["sx"],P=t=>{var s,n;const o={systemProps:{},otherProps:{}},r=(s=t==null||(n=t.theme)==null?void 0:n.unstable_sxConfig)!=null?s:c;return Object.keys(t).forEach(e=>{r[e]?o.systemProps[e]=t[e]:o.otherProps[e]=t[e]}),o};function d(t){const{sx:s}=t,n=u(t,x),{systemProps:o,otherProps:r}=P(n);let e;return Array.isArray(s)?e=[o,...s]:typeof s=="function"?e=(...a)=>{const l=s(...a);return f(l)?i({},o,l):o}:e=i({},o,s),i({},r,{sx:e})}export{d as e};
-//# sourceMappingURL=extendSxProp-SS6OjytC.js.map
