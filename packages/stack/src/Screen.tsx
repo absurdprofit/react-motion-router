@@ -177,10 +177,6 @@ export class Screen extends ScreenBase<ScreenProps, ScreenBaseState, RouteProp> 
       this.transitionProvider.current.ref.current.style.maxWidth = 'unset';
       this.transitionProvider.current.ref.current.style.width = 'max-content';
       this.transitionProvider.current.ref.current.style.height = 'max-content';
-      if (this.ref.current) {
-        this.ref.current.style.width = 'max-content';
-        this.ref.current.style.height = 'max-content';
-      }
 
       const onClickOutside = this.onClickOutside.bind(this);
 
