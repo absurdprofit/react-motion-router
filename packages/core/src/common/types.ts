@@ -72,7 +72,8 @@ export type RouterHTMLElement<E extends RouterBaseEventMap, T extends HTMLElemen
 export type CustomElementType = `${string}-${string}`;
 
 export interface MatchedRoute {
-    params?: PlainObject<string | undefined>;
+    params: PlainObject<string | undefined>;
+    caseSensitive: boolean;
 }
 
 export interface PathPattern {
