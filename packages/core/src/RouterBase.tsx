@@ -210,8 +210,8 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
       if (
         currentChildRouter
         && child?.id !== currentChildRouter.id
+        && child?.parentScreen?.id !== currentChildRouter.parentScreen?.id
         && currentChildRouter.mounted
-        && (currentChildRouter.parentScreen?.focused !== false) // if nested router screen isn't focused then it's fine
       ) {
         throw new Error('It looks like you have two navigators at the same level. Try simplifying your navigation structure by using a nested router instead.');
       }
