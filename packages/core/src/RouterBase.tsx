@@ -1,11 +1,11 @@
 import { NavigationBase } from './NavigationBase';
 import { ScreenTransitionLayer } from './ScreenTransitionLayer';
 import {
-    ScreenChild,
-    RouterBaseEventMap,
-    RouterHTMLElement,
-    isLazyExoticComponent,
-    isValidScreenChild,
+  ScreenChild,
+  RouterBaseEventMap,
+  RouterHTMLElement,
+  isLazyExoticComponent,
+  isValidScreenChild
 } from './common/types';
 import { NestedRouterContext, RouterContext } from './RouterContext';
 import { dispatchEvent, matchRoute, resolveBaseURLFromPattern } from './common/utils';
@@ -29,8 +29,8 @@ export interface RouterBaseProps<S extends ScreenBase = ScreenBase> {
 export interface RouterBaseState {}
 
 export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState, E extends RouterBaseEventMap = RouterBaseEventMap> extends Component<P, S> {
-    protected readonly ref = createRef<RouterHTMLElement<E>>();
-    protected screenTransitionLayer = createRef<ScreenTransitionLayer>();
+  protected readonly ref = createRef<RouterHTMLElement<E>>();
+  protected screenTransitionLayer = createRef<ScreenTransitionLayer>();
     public abstract readonly navigation: NavigationBase;
     public readonly parent: RouterBase | null = null;
     #child: WeakRef<RouterBase> | null = null;
@@ -42,208 +42,209 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     declare context: React.ContextType<typeof NestedRouterContext>;
 
     constructor(props: P, context: React.ContextType<typeof NestedRouterContext>) {
-        super(props);
+      super(props);
 
-        this.parentScreen = context?.parentScreen ?? null;
-        this.parent = context?.parentRouter ?? null;
-        if (this.parent) {
-            this.parent.child = this;
-        }
-        if (this.isRoot) {
-            RouterBase.rootRouterRef = new WeakRef(this);
-        }
+      this.parentScreen = context?.parentScreen ?? null;
+      this.parent = context?.parentRouter ?? null;
+      if (this.parent) {
+        this.parent.child = this;
+      }
+      if (this.isRoot) {
+        RouterBase.rootRouterRef = new WeakRef(this);
+      }
     }
 
     componentDidMount() {
-        if (this.isRoot) {
-            window.navigation.addEventListener('navigate', this.handleNavigationDispatch);
-        }
+      if (this.isRoot) {
+        window.navigation.addEventListener('navigate', this.handleNavigationDispatch);
+      }
 
-        if (!this.loadDispatched) {
-            window.navigation.dispatchEvent(new LoadEvent());
-            this.loadDispatched = true;
-        }
+      if (!this.loadDispatched) {
+        window.navigation.dispatchEvent(new LoadEvent());
+        this.loadDispatched = true;
+      }
     }
 
     componentWillUnmount() {
-        if (this.isRoot) {
-            window.navigation.removeEventListener('navigate', this.handleNavigationDispatch);
-        }
+      if (this.isRoot) {
+        window.navigation.removeEventListener('navigate', this.handleNavigationDispatch);
+      }
     }
 
     private handleNavigationDispatch = (e: NavigateEvent) => {
-        const activeRouters = [...this.#activeRoutersIter()];
-        // travel down router tree to find a router that can intercept
-        const interceptor = activeRouters.findLast(router => router.canIntercept(e));
-        if (interceptor) {
-            interceptor.intercept(e);
-            this.hasUAVisualTransition = e.hasUAVisualTransition;
-        }
-    }
+      const activeRouters = [...this.#activeRoutersIter()];
+      // travel down router tree to find a router that can intercept
+      const interceptor = activeRouters.findLast(router => router.canIntercept(e));
+      if (interceptor) {
+        interceptor.intercept(e);
+        this.hasUAVisualTransition = e.hasUAVisualTransition;
+      }
+    };
 
     *#activeRoutersIter() {
-        let router: RouterBase | null = this;
-        while (router) {
-            yield router;
-            router = router.child;
-        }
+      let router: RouterBase | null = this;
+      while (router) {
+        yield router;
+        router = router.child;
+      }
     }
 
     getRouterById(routerId: string, target?: RouterBase): RouterBase | null {
-        const router = target ?? RouterBase.rootRouterRef?.deref();
-        if (router!.id === routerId) {
-            return router ?? null;
-        } else if (router?.child) {
-            return this.getRouterById(routerId, router!.child);
-        } else {
-            return null;
-        }
+      const router = target ?? RouterBase.rootRouterRef?.deref();
+      if (router!.id === routerId) {
+        return router ?? null;
+      } else if (router?.child) {
+        return this.getRouterById(routerId, router!.child);
+      } else {
+        return null;
+      }
     }
 
     dispatchEvent(event: Event) {
-        const ref = this.ref.current ?? undefined;
-        return dispatchEvent(event, ref);
+      const ref = this.ref.current ?? undefined;
+      return dispatchEvent(event, ref);
     }
 
     addEventListener<K extends keyof E>(type: K, listener: (this: RouterHTMLElement<E>, ev: E[K]) => any, options?: boolean | AddEventListenerOptions): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-	addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void {
-        return this.ref.current?.addEventListener(type, listener, options);
+    addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void {
+      return this.ref.current?.addEventListener(type, listener, options);
     }
 
     removeEventListener<K extends keyof E>(type: K, listener: (this: RouterHTMLElement<E>, ev: E[K]) => any, options?: boolean | EventListenerOptions | undefined): void;
     removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions) {
-        return this.ref.current?.removeEventListener(type, listener, options);
+      return this.ref.current?.removeEventListener(type, listener, options);
     }
 
     protected screenChildFromPathname(pathname: string) {
-        for (const child of Children.toArray(this.props.children)) {
-            if (!isValidScreenChild<ScreenType<P['children']>>(child)) continue;
-            const matchInfo = matchRoute(
-                child.props.path,
-                pathname,
-                this.baseURLPattern.pathname,
-                child.props.caseSensitive
-            );
-            if (matchInfo)
-                return {
-                    child ,
-                    matchInfo
-                };
-        }
+      for (const child of Children.toArray(this.props.children)) {
+        if (!isValidScreenChild<ScreenType<P['children']>>(child)) continue;
+        const matchInfo = matchRoute(
+          child.props.path,
+          pathname,
+          this.baseURLPattern.pathname,
+          child.props.caseSensitive
+        );
+        if (matchInfo)
+          return {
+            child ,
+            matchInfo,
+          };
+      }
 
-        return null;
+      return null;
     }
 
     protected preloadScreen(screen: ScreenChild) {
-        const config = screen.props.config;
-        const preloadTasks = [];
-        if (isLazyExoticComponent(screen.props.component))
-            preloadTasks.push(screen.props.component.load());
-        if (isLazyExoticComponent(config?.header?.component))
-            preloadTasks.push(config?.header?.component.load());
-        if (isLazyExoticComponent(config?.footer?.component))
-            preloadTasks.push(config?.footer?.component.load());
+      const config = screen.props.config;
+      const preloadTasks = [];
+      if (isLazyExoticComponent(screen.props.component))
+        preloadTasks.push(screen.props.component.load());
+      if (isLazyExoticComponent(config?.header?.component))
+        preloadTasks.push(config?.header?.component.load());
+      if (isLazyExoticComponent(config?.footer?.component))
+        preloadTasks.push(config?.footer?.component.load());
 
-        return Promise.all(preloadTasks).then(() => { return; });
+      return Promise.all(preloadTasks).then(() => { return; });
     }
 
     get id(): string {
-        if (this.props.id) return this.props.id;
-        const prefix = this.parent?.id;
-        const id = this.parentScreen?.id ?? 'root';
-        return [prefix, id].filter(Boolean).join('-');
+      if (this.props.id) return this.props.id;
+      const prefix = this.parent?.id;
+      const id = this.parentScreen?.id ?? 'root';
+      return [prefix, id].filter(Boolean).join('-');
     }
 
     get isRoot() {
-        return !this.parent;
+      return !this.parent;
     }
 
     get baseURL() {
-        const pathname = this.isRoot ? window.location.pathname : this.parentScreen?.resolvedPathname!;
-        const pattern = this.baseURLPattern.pathname;
+      const pathname = this.isRoot ? window.location.pathname : this.parentScreen?.resolvedPathname!;
+      const pattern = this.baseURLPattern.pathname;
 
-        return resolveBaseURLFromPattern(pattern, pathname)!;
+      return resolveBaseURLFromPattern(pattern, pathname)!;
     }
 
     get baseURLPattern() {
-        let baseURL = window.location.origin + "/";
-        let basePath = this.props.config?.basePath;
-        if (!basePath) {
-            if (this.isRoot) {
-                basePath = "/";
-            } else {
-                basePath = ".";
-            }
+      let baseURL = window.location.origin + '/';
+      let basePath = this.props.config?.basePath;
+      if (!basePath) {
+        if (this.isRoot) {
+          basePath = '/';
+        } else {
+          basePath = '.';
         }
+      }
 
-        if (this.parent && this.parentScreen) {
-            const { resolvedPathname = window.location.pathname, path } = this.parentScreen;
-            const parentBaseURL = this.parent.baseURL?.href;
-            const pattern = new URLPattern({ baseURL: parentBaseURL, pathname: path });
-            baseURL = resolveBaseURLFromPattern(
-                pattern.pathname,
-                resolvedPathname
-            )!.href;
-        }
+      if (this.parent && this.parentScreen) {
+        const { resolvedPathname = window.location.pathname, path } = this.parentScreen;
+        const parentBaseURL = this.parent.baseURL?.href;
+        const pattern = new URLPattern({ baseURL: parentBaseURL, pathname: path });
+        baseURL = resolveBaseURLFromPattern(
+          pattern.pathname,
+          resolvedPathname
+        )!.href;
+      }
 
-        return new URLPattern({ baseURL, pathname: basePath });
+      return new URLPattern({ baseURL, pathname: basePath });
     }
 
     get pathPatterns() {
-        return Children.map(this.props.children, (child) => {
-            return { pattern: child.props.path, caseSensitive: Boolean(child.props.caseSensitive) };
-        });
+      return Children.map(this.props.children, (child) => {
+        return { pattern: child.props.path, caseSensitive: Boolean(child.props.caseSensitive) };
+      });
     }
 
     get mounted() {
-        return Boolean(this.ref.current);
+      return Boolean(this.ref.current);
     }
 
     get child() {
-        return this.#child?.deref() ?? null;
+      return this.#child?.deref() ?? null;
     }
 
     set child(child: RouterBase | null) {
-        const currentChildRouter = this.#child?.deref();
-        if (
-            currentChildRouter
-            && child?.id !== currentChildRouter?.id
-            && currentChildRouter?.mounted
-        ) {
-            throw new Error("It looks like you have two navigators at the same level. Try simplifying your navigation structure by using a nested router instead.");
-        }
-        if (child)
-            this.#child = new WeakRef(child);
-        else
-            this.#child = null;
+      const currentChildRouter = this.#child?.deref();
+      if (
+        currentChildRouter
+        && child?.id !== currentChildRouter.id
+        && currentChildRouter.mounted
+        && (currentChildRouter.parentScreen?.focused !== false) // if nested router screen isn't focused then it's fine
+      ) {
+        throw new Error('It looks like you have two navigators at the same level. Try simplifying your navigation structure by using a nested router instead.');
+      }
+      if (child)
+        this.#child = new WeakRef(child);
+      else
+        this.#child = null;
     }
 
     protected abstract canIntercept(navigateEvent: NavigateEvent): boolean;
     protected abstract shouldIntercept(navigateEvent: NavigateEvent): boolean;
     protected abstract intercept(navigateEvent: NavigateEvent): void;
-    protected abstract get screens(): P["children"];
+    protected abstract get screens(): P['children'];
 
     render() {
-        if (!this.navigation) return;
-        return (
-            <div
-                id={this.id}
-                className="react-motion-router"
-                style={{ width: '100%', height: '100%' }}
-                ref={this.ref}
+      if (!this.navigation) return;
+      return (
+        <div
+          id={this.id}
+          className="react-motion-router"
+          style={{ width: '100%', height: '100%' }}
+          ref={this.ref}
+        >
+          <RouterContext.Provider value={this}>
+            <ScreenTransitionLayer
+              ref={this.screenTransitionLayer}
+              navigation={this.navigation}
+              hasUAVisualTransition={this.hasUAVisualTransition}
             >
-                <RouterContext.Provider value={this}>
-                    <ScreenTransitionLayer
-                        ref={this.screenTransitionLayer}
-                        navigation={this.navigation}
-                        hasUAVisualTransition={this.hasUAVisualTransition}
-                    >
-                        {this.screens}
-                    </ScreenTransitionLayer>
-                </RouterContext.Provider>
-            </div>
-        );
+              {this.screens}
+            </ScreenTransitionLayer>
+          </RouterContext.Provider>
+        </div>
+      );
     }
 }
