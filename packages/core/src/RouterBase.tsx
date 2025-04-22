@@ -210,7 +210,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
       if (
         currentChildRouter
         && child?.id !== currentChildRouter.id
-        && child?.parentScreen?.id !== currentChildRouter.parentScreen?.id
+        && child?.parentScreen?.id === currentChildRouter.parentScreen?.id
         && currentChildRouter.mounted
       ) {
         throw new Error('It looks like you have two navigators at the same level. Try simplifying your navigation structure by using a nested router instead.');
