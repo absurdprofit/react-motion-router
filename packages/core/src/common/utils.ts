@@ -74,22 +74,22 @@ export function isURLPatternSupported() {
   return Boolean(globalThis.URLPattern);
 }
 
-export async function polyfillURLPattern() {
-  const { URLPattern } = await import(/*webpackIgnore: true*/ 'urlpattern-polyfill');
-  // @ts-ignore: Property 'UrlPattern' does not exist 
-  globalThis.URLPattern = URLPattern;
-}
+// export async function polyfillURLPattern() {
+//   const { URLPattern } = await import(/*webpackIgnore: true*/ 'urlpattern-polyfill');
+//   // @ts-ignore: Property 'UrlPattern' does not exist 
+//   globalThis.URLPattern = URLPattern;
+// }
 
-export async function polyfillNavigation() {
-    const { applyPolyfill } = await import(/*webpackIgnore: true*/ "@virtualstate/navigation");
-    applyPolyfill({
-        history: true,
-        interceptEvents: true,
-        patch: true,
-        persist: true,
-        persistState: true
-    });
-}
+// export async function polyfillNavigation() {
+//   const { applyPolyfill } = await import(/*webpackIgnore: true*/ '@virtualstate/navigation');
+//   applyPolyfill({
+//     history: true,
+//     interceptEvents: true,
+//     patch: true,
+//     persist: true,
+//     persistState: true,
+//   });
+// }
 
 export async function PromiseAllDynamic<T>(values: Iterable<T | PromiseLike<T>>): Promise<Awaited<T>[]> {
   const awaited = [];
