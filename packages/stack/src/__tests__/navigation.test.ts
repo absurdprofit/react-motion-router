@@ -83,3 +83,5 @@ test('entries getter filters out global entries owned by nested routes', () => {
       .toStrictEqual(expectTopLevelEntries.map(entry => entry.index));
   }
 });
+
+// TODO: add test case for above test in nested router scenario
