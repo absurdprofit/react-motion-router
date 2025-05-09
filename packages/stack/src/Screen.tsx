@@ -61,6 +61,8 @@ export class Screen extends ScreenBase<ScreenProps, ScreenBaseState, RouteProp> 
     delete newConfig.onEntered;
     delete newConfig.onExit;
     delete newConfig.onExited;
+    delete newConfig.animation;
+    console.log(newConfig)
     this.setHistoryState(({ config }) => ({ config: { ...config, ...newConfig } }));
   }
 

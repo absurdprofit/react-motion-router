@@ -9,6 +9,13 @@ export default defineConfig({
     react(),
     dts({ outDir: 'build' }),
   ],
+  test: {
+    browser: {
+      provider: 'playwright', // or 'webdriverio'
+      enabled: true,
+      name: 'chromium', // browser name is required
+    },
+  },
   build: {
     sourcemap: true,
     lib: {

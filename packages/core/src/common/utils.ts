@@ -1,9 +1,8 @@
 import { cloneElement, lazy as ReactLazy } from 'react';
 import { ClonedElementType, ElementPropType, LazyExoticComponent, MatchedRoute, PathPattern } from './types';
-import { RouterBase } from '../RouterBase';
 
 export function resolveBaseURLFromPattern(pattern: string, pathname: string) {
-  if (!pattern.endsWith('**')) pattern += '**'; // allows us to match nested routes
+  if (!pattern.endsWith('*')) pattern += '**'; // allows us to match nested routes
   const origin = window.location.origin;
   const baseURLMatch = new URLPattern(pattern, origin).exec(pathname, origin);
   if (!baseURLMatch) return null;
@@ -81,14 +80,14 @@ export async function polyfillURLPattern() {
 }
 
 export async function polyfillNavigation() {
-    const { applyPolyfill } = await import(/*webpackIgnore: true*/ "@virtualstate/navigation");
-    applyPolyfill({
-        history: true,
-        interceptEvents: true,
-        patch: true,
-        persist: true,
-        persistState: true
-    });
+  const { applyPolyfill } = await import(/*webpackIgnore: true*/ '@virtualstate/navigation');
+  applyPolyfill({
+    history: true,
+    interceptEvents: true,
+    patch: true,
+    persist: true,
+    persistState: true,
+  });
 }
 
 export async function PromiseAllDynamic<T>(values: Iterable<T | PromiseLike<T>>): Promise<Awaited<T>[]> {
