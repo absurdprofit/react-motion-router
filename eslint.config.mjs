@@ -21,6 +21,7 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      'no-console': 'error',
       'react-compiler/react-compiler': 'error',
       'react-refresh/only-export-components': [
         'warn',

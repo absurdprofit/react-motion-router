@@ -6,17 +6,17 @@ import { Router } from './Router';
 import { searchParamsToObject } from './common/utils';
 import { HistoryEntry } from './HistoryEntry';
 
-export type ScreenComponentProps<T extends PlainObject> = ScreenBaseComponentProps<RouteProp<T>, Navigation>;
+export type ScreenComponentProps<T extends PlainObject = object> = ScreenBaseComponentProps<RouteProp<T>, Navigation>;
 
 export interface ScreenConfig extends ScreenBaseConfig<RouteProp> {
-    title?: string;
-    presentation?: 'default' | 'dialog' | 'modal';
-    keepAlive?: boolean;
-    gestureDirection?: SwipeDirection;
-    gestureAreaWidth?: number;
-    gestureMinFlingVelocity?: number;
-    gestureHysteresis?: number;
-    gestureDisabled?: boolean;
+  readonly title?: string;
+  readonly presentation?: 'default' | 'dialog' | 'modal';
+  readonly keepAlive?: boolean;
+  readonly gestureDirection?: SwipeDirection;
+  readonly gestureAreaWidth?: number;
+  readonly gestureMinFlingVelocity?: number;
+  readonly gestureHysteresis?: number;
+  readonly gestureDisabled?: boolean;
 }
 
 export interface ScreenProps extends ScreenBaseProps {
@@ -39,7 +39,7 @@ export class Screen extends ScreenBase<ScreenProps, ScreenBaseState, RouteProp> 
   public static getDerivedStateFromProps(props: ScreenProps) {
     if (
       props.config?.presentation === 'dialog'
-            || props.config?.presentation === 'modal'
+      || props.config?.presentation === 'modal'
     )
       return { elementType: 'dialog' };
     else
@@ -60,6 +60,7 @@ export class Screen extends ScreenBase<ScreenProps, ScreenBaseState, RouteProp> 
         'footer', 'header',
         'onEnter', 'onEntered',
         'onExit', 'onExited',
+        'onLoad',
         'animation',
       ]);
       return {
