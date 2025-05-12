@@ -31,20 +31,20 @@ export type LifecycleProps<R extends RoutePropBase, N extends NavigationBase = N
 } & Omit<ScreenBaseComponentProps<R, N>, 'route'> & { route: Omit<ScreenBaseComponentProps<R, N>['route'], 'setParams' | 'setConfig'>});
 
 export interface ScreenBaseConfig<R extends RoutePropBase = RoutePropBase, N extends NavigationBase = NavigationBase> {
-    header?: {
-        fallback?: React.ReactNode;
-        component: React.JSXElementConstructor<any> | LazyExoticComponent<any>
-    };
-    footer?: {
-        fallback?: React.ReactNode;
-        component: React.JSXElementConstructor<any> | LazyExoticComponent<any>
-    };
-    animation?: AnimationEffectFactory;
-    onEnter?: (props: LifecycleProps<R, N>) => void | Promise<void>;
-    onExit?: (props: LifecycleProps<R, N>) => void | Promise<void>;
-    onEntered?: (props: LifecycleProps<R, N>) => void | Promise<void>;
-    onExited?: (props: LifecycleProps<R, N>) => void | Promise<void>;
-    onLoad?: (props: LifecycleProps<R, N>) => void | Promise<void>;
+  readonly header?: {
+      fallback?: React.ReactNode;
+      component: React.JSXElementConstructor<any> | LazyExoticComponent<any>
+  };
+  readonly footer?: {
+      fallback?: React.ReactNode;
+      component: React.JSXElementConstructor<any> | LazyExoticComponent<any>
+  };
+  readonly animation?: AnimationEffectFactory;
+  readonly onEnter?: (props: LifecycleProps<R, N>) => void | Promise<void>;
+  readonly onExit?: (props: LifecycleProps<R, N>) => void | Promise<void>;
+  readonly onEntered?: (props: LifecycleProps<R, N>) => void | Promise<void>;
+  readonly onExited?: (props: LifecycleProps<R, N>) => void | Promise<void>;
+  readonly onLoad?: (props: LifecycleProps<R, N>) => void | Promise<void>;
 }
 
 export interface ScreenBaseProps {
@@ -108,7 +108,7 @@ export abstract class ScreenBase<
       return this.props.name
         .toLowerCase()
         .replace(/[^\w-]/g, '-') // Remove non-alphanumeric chars
-        .replace(/-+/g, '-') // Replace multiple hyphens with a single one
+        .replace(/-+/g, '-') // Replace multiple hyphens with a single onef
         .replace(/^-|-$/g, ''); // Remove leading and trailing hyphens;
     else if (isLazyExoticComponent(this.props.component))
       return this.props.component.module?.default.name.toLowerCase();

@@ -10,10 +10,21 @@ export default defineConfig({
     dts({ outDir: 'build' }),
   ],
   test: {
+    environment: 'jsdom',
+    globals: true,
+    threads: true,
+    include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     browser: {
       provider: 'playwright', // or 'webdriverio'
       enabled: true,
       name: 'chromium', // browser name is required
+    },
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      supported: {
+        'top-level-await': true,
+      },
     },
   },
   build: {

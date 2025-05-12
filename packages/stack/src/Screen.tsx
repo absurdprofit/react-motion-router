@@ -6,17 +6,17 @@ import { Router } from './Router';
 import { searchParamsToObject } from './common/utils';
 import { HistoryEntry } from './HistoryEntry';
 
-export type ScreenComponentProps<T extends PlainObject> = ScreenBaseComponentProps<RouteProp<T>, Navigation>;
+export type ScreenComponentProps<T extends PlainObject = object> = ScreenBaseComponentProps<RouteProp<T>, Navigation>;
 
 export interface ScreenConfig extends ScreenBaseConfig<RouteProp> {
-    title?: string;
-    presentation?: 'default' | 'dialog' | 'modal';
-    keepAlive?: boolean;
-    gestureDirection?: SwipeDirection;
-    gestureAreaWidth?: number;
-    gestureMinFlingVelocity?: number;
-    gestureHysteresis?: number;
-    gestureDisabled?: boolean;
+  readonly title?: string;
+  readonly presentation?: 'default' | 'dialog' | 'modal';
+  readonly keepAlive?: boolean;
+  readonly gestureDirection?: SwipeDirection;
+  readonly gestureAreaWidth?: number;
+  readonly gestureMinFlingVelocity?: number;
+  readonly gestureHysteresis?: number;
+  readonly gestureDisabled?: boolean;
 }
 
 export interface ScreenProps extends ScreenBaseProps {
@@ -39,7 +39,7 @@ export class Screen extends ScreenBase<ScreenProps, ScreenBaseState, RouteProp> 
   public static getDerivedStateFromProps(props: ScreenProps) {
     if (
       props.config?.presentation === 'dialog'
-            || props.config?.presentation === 'modal'
+      || props.config?.presentation === 'modal'
     )
       return { elementType: 'dialog' };
     else
@@ -53,17 +53,25 @@ export class Screen extends ScreenBase<ScreenProps, ScreenBaseState, RouteProp> 
 
   protected setConfig(newConfig: NonNullable<ScreenProps['config']>): void {
     super.setConfig(newConfig);
-    // navigation history state can only accept structured cloneable objects.
-    // a lot of the config options are function which cannot be structured cloned.
-    delete newConfig.footer;
-    delete newConfig.header;
-    delete newConfig.onEnter;
-    delete newConfig.onEntered;
-    delete newConfig.onExit;
-    delete newConfig.onExited;
-    delete newConfig.animation;
-    console.log(newConfig)
-    this.setHistoryState(({ config }) => ({ config: { ...config, ...newConfig } }));
+    this.setHistoryState(({ config }) => {
+      // navigation history state can only accept structured cloneable objects.
+      // a lot of the config options are function which cannot be structured cloned.
+      const unsafe = new Set([
+        'footer', 'header',
+        'onEnter', 'onEntered',
+        'onExit', 'onExited',
+        'onLoad',
+        'animation',
+      ]);
+      return {
+        config: {
+          ...config,
+          ...Object.fromEntries(
+            Object.entries(newConfig).filter(([key]) => !unsafe.has(key))
+          ),
+        },
+      };
+    });
   }
 
   protected get router() {
