@@ -10,6 +10,9 @@ export default defineConfig({
     dts({ outDir: 'build' }),
   ],
   test: {
+    environment: 'jsdom',
+    globals: true,
+    threads: true,
     browser: {
       provider: 'playwright', // or 'webdriverio'
       enabled: true,

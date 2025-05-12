@@ -53,17 +53,24 @@ export class Screen extends ScreenBase<ScreenProps, ScreenBaseState, RouteProp> 
 
   protected setConfig(newConfig: NonNullable<ScreenProps['config']>): void {
     super.setConfig(newConfig);
-    // navigation history state can only accept structured cloneable objects.
-    // a lot of the config options are function which cannot be structured cloned.
-    delete newConfig.footer;
-    delete newConfig.header;
-    delete newConfig.onEnter;
-    delete newConfig.onEntered;
-    delete newConfig.onExit;
-    delete newConfig.onExited;
-    delete newConfig.animation;
-    console.log(newConfig)
-    this.setHistoryState(({ config }) => ({ config: { ...config, ...newConfig } }));
+    this.setHistoryState(({ config }) => {
+      // navigation history state can only accept structured cloneable objects.
+      // a lot of the config options are function which cannot be structured cloned.
+      const unsafe = new Set([
+        'footer', 'header',
+        'onEnter', 'onEntered',
+        'onExit', 'onExited',
+        'animation',
+      ]);
+      return {
+        config: {
+          ...config,
+          ...Object.fromEntries(
+            Object.entries(newConfig).filter(([key]) => !unsafe.has(key))
+          ),
+        },
+      };
+    });
   }
 
   protected get router() {
