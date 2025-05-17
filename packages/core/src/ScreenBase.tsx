@@ -103,7 +103,7 @@ export abstract class ScreenBase<
     return this.state.focused;
   }
 
-  get name() {
+  public get name() {
     if (this.props.name)
       return this.props.name
         .toLowerCase()
