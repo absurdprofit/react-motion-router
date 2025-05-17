@@ -1,12 +1,12 @@
 import { isValidElement } from 'react';
 import { ScreenBase, ScreenBaseProps } from '../ScreenBase';
 import {
-    MotionProgressEndEvent,
-    MotionProgressEvent,
-    MotionProgressStartEvent,
-    TransitionCancelEvent,
-    TransitionEndEvent,
-    TransitionStartEvent
+  MotionProgressEndEvent,
+  MotionProgressEvent,
+  MotionProgressStartEvent,
+  TransitionCancelEvent,
+  TransitionEndEvent,
+  TransitionStartEvent
 } from './events';
 import { SharedElement } from '../SharedElement';
 import { StandardPropertiesHyphen } from 'csstype';
@@ -16,6 +16,7 @@ export type ScreenChild<E extends ScreenBase = ScreenBase> = E extends ScreenBas
 export interface AnimationEffectFactoryProps<R extends HTMLElement = HTMLElement> {
     ref: R | null;
     index: number;
+    screens: string[];
     exiting: boolean;
     timeline: AnimationTimeline | null;
     playbackRate: number;
@@ -34,9 +35,9 @@ export interface LazyExoticComponent<T extends React.ComponentType<any>> extends
     module?: { default: T };
 }
 
-export type ScreenState<P extends ScreenBaseProps = ScreenBaseProps> = Map<string, Pick<RoutePropBase<P["config"], PlainObject>, "config" | "params">>;
+export type ScreenState<P extends ScreenBaseProps = ScreenBaseProps> = Map<string, Pick<RoutePropBase<P['config'], PlainObject>, 'config' | 'params'>>;
 
-export interface RoutePropBase<C extends ScreenBaseProps["config"] = {}, P extends PlainObject = PlainObject> {
+export interface RoutePropBase<C extends ScreenBaseProps['config'] = {}, P extends PlainObject = PlainObject> {
     path: string;
     resolvedPathname?: string;
     config: NonNullable<C>;
@@ -47,19 +48,19 @@ export interface RoutePropBase<C extends ScreenBaseProps["config"] = {}, P exten
 }
 
 export function isValidScreenChild<S extends ScreenBase>(value: any): value is ScreenChild<S> {
-    if (!isValidElement(value)) return false;
-    return Object.getPrototypeOf(value.type) === ScreenBase;
+  if (!isValidElement(value)) return false;
+  return Object.getPrototypeOf(value.type) === ScreenBase;
 }
 
 export type PlainObject<T = any> = { [key: string]: T };
 
 export interface RouterBaseEventMap extends HTMLElementEventMap {
-    "transition-start": TransitionStartEvent;
-    "transition-cancel": TransitionCancelEvent;
-    "transition-end": TransitionEndEvent;
-    "motion-progress-start": MotionProgressStartEvent;
-    "motion-progress": MotionProgressEvent;
-    "motion-progress-end": MotionProgressEndEvent;
+    'transition-start': TransitionStartEvent;
+    'transition-cancel': TransitionCancelEvent;
+    'transition-end': TransitionEndEvent;
+    'motion-progress-start': MotionProgressStartEvent;
+    'motion-progress': MotionProgressEvent;
+    'motion-progress-end': MotionProgressEndEvent;
 }
 
 export type RouterHTMLElement<E extends RouterBaseEventMap, T extends HTMLElement = HTMLDivElement> = T & {
@@ -81,13 +82,13 @@ export interface PathPattern {
     caseSensitive: boolean;
 }
 
-export type AnimationDirection = "normal" | "reverse";
+export type AnimationDirection = 'normal' | 'reverse';
 
 enum SharedElementTransitionTypeEnum {
-    "morph",
-    "fade-through",
-    "fade",
-    "cross-fade"
+    'morph',
+    'fade-through',
+    'fade',
+    'cross-fade'
 }
 
 export type SharedElementTransitionType = keyof typeof SharedElementTransitionTypeEnum;
@@ -102,23 +103,23 @@ export type SharedElementNodeMap = Map<string, SharedElementNode>;
 export type StyleKeyList = (keyof StandardPropertiesHyphen | string)[];
 
 export function isNativeLazyExoticComponent(value: any): value is React.LazyExoticComponent<any> {
-    return typeof value === "object"
+  return typeof value === 'object'
         && value !== null
         && value.$$typeof === Symbol.for('react.lazy');
 }
 
 export function isLazyExoticComponent(value: any): value is LazyExoticComponent<any> {
-    return isNativeLazyExoticComponent(value) && 'load' in value;
+  return isNativeLazyExoticComponent(value) && 'load' in value;
 }
 
 export type StylableElement = Element & { style: CSSStyleDeclaration };
 
 export function isStylableElement(element: any): element is StylableElement {
-    return 'style' in element && element.style instanceof CSSStyleDeclaration;
+  return 'style' in element && element.style instanceof CSSStyleDeclaration;
 }
 
-export interface LoadNavigationTransition extends Omit<NavigationTransition, "navigationType"> {
-    navigationType: "load";
+export interface LoadNavigationTransition extends Omit<NavigationTransition, 'navigationType'> {
+    navigationType: 'load';
 }
 
 declare global {

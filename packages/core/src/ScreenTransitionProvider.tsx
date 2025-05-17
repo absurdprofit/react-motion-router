@@ -13,86 +13,88 @@ interface ScreenTransitionProviderProps {
 }
 
 interface ScreenTransitionProviderState {
-    zIndex: React.CSSProperties["zIndex"];
+    zIndex: React.CSSProperties['zIndex'];
 }
 
 export class ScreenTransitionProvider extends Component<ScreenTransitionProviderProps, ScreenTransitionProviderState> {
-    public readonly ref = createRef<HTMLElement>();
-    static readonly contextType = ScreenTransitionLayerContext;
-    declare context: React.ContextType<typeof ScreenTransitionLayerContext>;
-    public index = 0;
-    public exiting = false;
+  public readonly ref = createRef<HTMLElement>();
+  static readonly contextType = ScreenTransitionLayerContext;
+  declare context: React.ContextType<typeof ScreenTransitionLayerContext>;
+  public index = 0;
+  public exiting = false;
 
-    state: ScreenTransitionProviderState = {
-        zIndex: 'unset',
+  state: ScreenTransitionProviderState = {
+    zIndex: 'unset',
+  };
+
+  private onAnimationEnd = () => {
+    if (this.ref.current) {
+      this.ref.current.style.willChange = 'auto';
+      this.ref.current.style.pointerEvents = 'auto';
     }
+  };
 
-    private onAnimationEnd = () => {
-        if (this.ref.current) {
-            this.ref.current.style.willChange = 'auto';
-            this.ref.current.style.pointerEvents = 'auto';
-        }
+  private onAnimationStart = () => {
+    if (this.ref.current) {
+      this.ref.current.style.willChange = 'transform, opacity';
+      this.ref.current.style.pointerEvents = 'none';
     }
+  };
 
-    private onAnimationStart = () => {
-        if (this.ref.current) {
-            this.ref.current.style.willChange = 'transform, opacity';
-            this.ref.current.style.pointerEvents = 'none';
-        }
-    }
+  componentDidMount() {
+    this.props.navigation.addEventListener('transition-start', this.onAnimationStart);
+    this.props.navigation.addEventListener('transition-end', this.onAnimationEnd);
+    this.props.navigation.addEventListener('transition-cancel', this.onAnimationEnd);
+  }
 
-    componentDidMount() {
-        this.props.navigation.addEventListener('transition-start', this.onAnimationStart);
-        this.props.navigation.addEventListener('transition-end', this.onAnimationEnd);
-        this.props.navigation.addEventListener('transition-cancel', this.onAnimationEnd);
-    }
+  componentWillUnmount() {
+    this.props.navigation.removeEventListener('transition-start', this.onAnimationStart);
+    this.props.navigation.removeEventListener('transition-end', this.onAnimationEnd);
+    this.props.navigation.removeEventListener('transition-cancel', this.onAnimationEnd);
+  }
 
-    componentWillUnmount() {
-        this.props.navigation.removeEventListener('transition-start', this.onAnimationStart);
-        this.props.navigation.removeEventListener('transition-end', this.onAnimationEnd);
-        this.props.navigation.removeEventListener('transition-cancel', this.onAnimationEnd);
-    }
+  public get animationEffect() {
+    const animationEffectFactory = this.props.animation;
+    const { animation, direction, hasUAVisualTransition } = this.context;
+    const { timeline, playbackRate } = animation;
+    const { index, exiting, ref } = this;
+    const screens = this.context.screens.map(screen => screen.current?.name);
 
-    get animationEffect() {
-        const animationEffectFactory = this.props.animation;
-        const { animation, direction, hasUAVisualTransition } = this.context;
-        const { timeline, playbackRate } = animation;
-        const { index, exiting, ref } = this;
+    return animationEffectFactory?.({
+      ref: ref.current,
+      index,
+      screens,
+      exiting,
+      timeline,
+      direction,
+      playbackRate,
+      hasUAVisualTransition,
+    }) ?? null;
+  }
 
-        return animationEffectFactory?.({
-            ref: ref.current,
-            index,
-            exiting,
-            timeline,
-            direction,
-            playbackRate,
-            hasUAVisualTransition
-        }) ?? null;
-    }
+  setZIndex(zIndex: React.CSSProperties['zIndex']) {
+    return new Promise<void>(resolve => this.setState({ zIndex }, resolve));
+  }
 
-    setZIndex(zIndex: React.CSSProperties["zIndex"]) {
-        return new Promise<void>(resolve => this.setState({ zIndex }, resolve));
-    }
-
-    render() {
-        const Element = this.props.renderAs;
-        const inert = !this.props.focused ? '' : undefined;
-        return (
-            <Element
-                id={this.props.id}
-                className="screen-transition-provider"
-                ref={this.ref}
-                {...{ inert }}
-                style={{
-                    gridArea: '1 / 1',
-                    width: '100%',
-                    height: '100%',
-                    transformOrigin: 'center center',
-                    zIndex: this.state.zIndex
-                }}
-            >
-                {this.props.children}
-            </Element>
-        );
-    }
+  render() {
+    const Element = this.props.renderAs;
+    const inert = !this.props.focused ? '' : undefined;
+    return (
+      <Element
+        id={this.props.id}
+        className="screen-transition-provider"
+        ref={this.ref}
+        {...{ inert }}
+        style={{
+          gridArea: '1 / 1',
+          width: '100%',
+          height: '100%',
+          transformOrigin: 'center center',
+          zIndex: this.state.zIndex,
+        }}
+      >
+        {this.props.children}
+      </Element>
+    );
+  }
 }
