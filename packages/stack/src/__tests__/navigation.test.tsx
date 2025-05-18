@@ -1,6 +1,9 @@
-import { expect, test } from 'vitest';
+import { describe, expect, it, test, vi } from 'vitest';
 import { Navigation } from '../Navigation';
 import { Router } from '../Router';
+import { act, render, renderHook } from '@testing-library/react';
+import { Screen } from '../Screen';
+import { useNavigation } from '../common/hooks';
 
 function createHistoryEntry(url: string, index: number):  NavigationHistoryEntry {
   return {
@@ -52,6 +55,7 @@ test('entries getter filters out global entries owned by nested routes', () => {
       createHistoryEntry(new URL('world/', origin).toString(), SECOND_INDEX),
       createHistoryEntry(new URL('hello-world/', origin).toString(), THIRD_INDEX),
     ];
+    const entries = window.navigation.entries;
     window.navigation.entries = () => {
       return [
         ...expectTopLevelEntries,
@@ -60,6 +64,7 @@ test('entries getter filters out global entries owned by nested routes', () => {
     };
     expect(navigation.entries.map(entry => entry.index))
       .toStrictEqual(expectTopLevelEntries.map(entry => entry.index));
+    window.navigation.entries = entries;
   }
   {
     // mock history with entries from nested routers
@@ -72,6 +77,7 @@ test('entries getter filters out global entries owned by nested routes', () => {
       createHistoryEntry(new URL('.', origin).toString(), FIRST_INDEX),
       createHistoryEntry(new URL('world/', origin).toString(), SECOND_INDEX),
     ];
+    const entries = window.navigation.entries;
     window.navigation.entries = () => {
       return [
         ...expectTopLevelEntries,
@@ -81,7 +87,61 @@ test('entries getter filters out global entries owned by nested routes', () => {
     };
     expect(navigation.entries.map(entry => entry.globalIndex))
       .toStrictEqual(expectTopLevelEntries.map(entry => entry.index));
+    window.navigation.entries = entries;
   }
 });
-
 // TODO: add test case for above test in nested router scenario
+
+describe('navigation.preload', () => {
+  it('returns true', async () => {
+    function PreloadComponent() {
+      return null;
+    }
+    const onLoad = vi.fn();
+    const navigation = await act(async () => {
+      return renderHook(() => useNavigation(), {
+        wrapper(props) {
+          return (
+            <Router config={{ basePath: window.location.pathname }}>
+              <Screen path='preload' component={PreloadComponent} config={{ onLoad }} />
+              <Screen path='.' component={() => <>{props.children}</>} />
+            </Router>
+          );
+        },
+      });
+    });
+    
+    expect(await navigation.result.current.preload('preload')).toBe(true);
+    expect(onLoad).toBeCalled();
+  });
+
+  it('returns true for nested screens', async () => {
+    function PreloadComponent() {
+      return null;
+    }
+    const onLoad = vi.fn();
+    function wrapper(props: { children: unknown }) {
+      function NestedRouterComponent() {
+        return (
+          <Router>
+            <Screen path='preload' component={PreloadComponent} config={{ onLoad }} />
+            <Screen path='.' component={() => <>{props.children}</>} />
+          </Router>
+        );
+      }
+      return (
+        <Router config={{ basePath: window.location.pathname }}>
+          <Screen path='*' component={NestedRouterComponent} />
+        </Router>
+      );
+    };
+    const navigation = await act(async () => {
+      return renderHook(() => useNavigation(), {
+        wrapper,
+      });
+    });
+    
+    expect(await navigation.result.current.preload('preload')).toBe(true);
+    expect(onLoad).toBeCalled();
+  });
+});
