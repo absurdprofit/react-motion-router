@@ -9,9 +9,10 @@ import { ScreenBase } from './ScreenBase';
 import { MotionContext } from './MotionContext';
 
 interface ScreenTransitionLayerProps {
-    children: ScreenChild | ScreenChild[];
-    navigation: NavigationBase;
-    hasUAVisualTransition: boolean;
+  id: string;
+  children: ScreenChild | ScreenChild[];
+  navigation: NavigationBase;
+  hasUAVisualTransition: boolean;
 }
 
 interface ScreenTransitionLayerState {
@@ -25,7 +26,7 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
   #direction: PlaybackDirection = 'normal';
   #screens: RefObject<ScreenBase>[] = [];
 
-  state: ScreenTransitionLayerState = {
+  public state: ScreenTransitionLayerState = {
     gestureNavigating: false,
     progress: 1,
   };
@@ -117,7 +118,7 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
     return this.animation;
   }
 
-  render() {
+  public render() {
     return (
       <ScreenTransitionLayerContext.Provider value={this}>
         <SharedElementTransitionLayer
@@ -126,7 +127,7 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
           direction={this.animation.playbackRate > 0 ? 'forwards' : 'backwards'}
         />
         <div
-          className="screen-transition-layer"
+          className={this.props.id}
           style={{
             width: '100%',
             height: '100%',

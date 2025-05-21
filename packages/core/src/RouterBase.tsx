@@ -237,6 +237,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
         >
           <RouterContext.Provider value={this}>
             <ScreenTransitionLayer
+              id={`${this.id}-transition-provider`}
               ref={this.screenTransitionLayer}
               navigation={this.navigation}
               hasUAVisualTransition={this.hasUAVisualTransition}
