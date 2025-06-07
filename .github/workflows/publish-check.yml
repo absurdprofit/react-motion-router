@@ -1,13 +1,11 @@
 name: Dry run publish to npm
 
 on:
-  push:
+  pull_request:
     branches:
       - main
       - next
       - beta
-    tags:
-      - "v*"
 
 jobs:
   publish:
