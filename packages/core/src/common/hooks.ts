@@ -1,10 +1,11 @@
-import { useCallback, useContext, useDebugValue, useEffect, useRef } from 'react';
-import { MotionContext } from '../MotionContext';
+import { useCallback, useContext, useDebugValue, useEffect, useRef, useSyncExternalStore } from 'react';
 import { NavigationBase } from '../NavigationBase';
 import { RouterContext } from '../RouterContext';
 import { RoutePropContext } from '../RoutePropContext';
 import { RouterBase } from '../RouterBase';
 import { RoutePropBase } from './types';
+import { animationFrames } from './utils';
+import { ScreenTransitionLayerContext } from '../ScreenTransitionLayerContext';
 
 export function useNavigationBase<T extends NavigationBase = NavigationBase>() {
   const router = useContext(RouterContext);
@@ -21,8 +22,39 @@ export function useRouterBase<T extends RouterBase = RouterBase>() {
 
 export function useMotion() {
   useDebugValue('Motion');
-  return useContext(MotionContext);
+  const router = useContext(RouterContext);
+  const screenTransitionLayer = useContext(ScreenTransitionLayerContext);
+  
+  const defaultProgress = 1;
+  // use sync external store to get animation progress
+  // on animation frame
+  return useSyncExternalStore(
+    (callback) => {
+      return router.addEventListener('transition-start', async () => {
+        let transitionEnd = false;
+        const controller = new AbortController();
+        const signal = controller.signal;
+        router.addEventListener('transition-end', () => transitionEnd = true, { signal });
+        router.addEventListener('transition-cancel', () => transitionEnd = true, { signal });
+        for await (const _ of animationFrames()) {
+          callback();
+          if (transitionEnd)
+            break;
+        }
+        return controller.abort();
+      });
+    },
+    () => {
+      const { progress = defaultProgress } = screenTransitionLayer
+        .animation
+        ?.effect
+        ?.getComputedTiming() ?? {};
+      
+      return progress;
+    }
+  );
 }
+
 
 export function useRouteBase<R extends RoutePropBase>() {
   const routeProp = useContext(RoutePropContext);
