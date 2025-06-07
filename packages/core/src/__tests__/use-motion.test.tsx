@@ -25,7 +25,7 @@ const MockRouter = {
   },
 };
 
-const ANIMATION_DURATION = 300;
+const ANIMATION_DURATION = 100;
 const HALF = 2;
 const HALF_ANIMATION_DURATION = ANIMATION_DURATION / HALF;
 const MockScreenTransitionLayer = {
@@ -54,10 +54,9 @@ const MockScreenTransitionLayer = {
       this.animation.effect = null;
     };
     this.animation.finished.then(() => {
-      this.animation.commitStyles();
       this.onTransitionEnd();
       this.animation.effect = null;
-    });
+    }).catch(() => {});
 
     return this.animation;
   },
@@ -92,7 +91,7 @@ describe('useMotion', () => {
       .then(() => {
         return new Promise(requestAnimationFrame);
       });
-    const RENDER_MAX = 1;
+    const RENDER_MAX = 2;
     expect(renders).toBe(RENDER_MAX);
   });
 

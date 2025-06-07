@@ -15,7 +15,8 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite build --watch",
-    "test": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "test": "vitest --run"
   },
   "repository": {
     "type": "git",

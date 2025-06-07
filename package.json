@@ -4,7 +4,7 @@
   "browser": "index.js",
   "description": "Declarative routing library for ReactJS ⚛ with animations baked in ⏮",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "lerna run test",
     "build": "lerna run build",
     "dev": "lerna run dev --parallel"
   },

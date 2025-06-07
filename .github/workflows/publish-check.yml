@@ -1,0 +1,120 @@
+name: Dry run publish to npm
+
+on:
+  push:
+    branches:
+      - main
+      - next
+      - beta
+    tags:
+      - "v*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        id: node-cache
+        with:
+          path: |
+            **/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        if: steps.node-cache.outputs.cache-hit != 'true'
+        run: npm ci
+
+      - name: Build
+        run: npx lerna run build --ignore @react-motion-router/example
+
+      - name: Get tag name and commit hash
+        id: git-info
+        run: |
+          if [[ "${{github.event.pull_request.base.ref}}" == "main" ]]; then
+            echo "TAG_NAME=latest" >> $GITHUB_ENV
+          else
+            echo "TAG_NAME=${{github.event.pull_request.base.ref}}" >> $GITHUB_ENV
+          fi
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          LAST_COMMIT_HASH=$(git rev-parse --short HEAD~1)
+          echo "COMMIT_HASH=${COMMIT_HASH}" >> $GITHUB_ENV
+          echo "LAST_COMMIT_HASH=${LAST_COMMIT_HASH}" >> $GITHUB_ENV
+
+      - name: Conditional Version Update
+        id: version
+        if: startsWith(env.TAG_NAME, 'next') || startsWith(env.TAG_NAME, 'beta')
+        run: |
+          TAG_NAME=${{ env.TAG_NAME }}
+          COMMIT_HASH=${{ env.COMMIT_HASH }}
+          LAST_COMMIT_HASH=${{ env.LAST_COMMIT_HASH }}
+          ALL_PACKAGES_JSON=$(npx lerna list --json)
+          CHANGED_PACKAGES_JSON=$(npx lerna list --json --since ${LAST_COMMIT_HASH})
+          CHANGED_PACKAGES_COUNT=$(echo $CHANGED_PACKAGES_JSON | jq '. | length')
+
+          if [[ $CHANGED_PACKAGES_COUNT -eq 0 ]]; then
+            echo "No packages changed. Exiting..."
+            echo "versioned=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo $CHANGED_PACKAGES_JSON | jq -r '.[].location' | while read -r package; do
+            CURRENT_VERSION=$(jq -r '.version' $package/package.json)
+            NEW_VERSION="${CURRENT_VERSION}-${TAG_NAME}.sha-${COMMIT_HASH}"
+            jq ".version = \"${NEW_VERSION}\"" $package/package.json > $package/package.json.tmp && mv $package/package.json.tmp $package/package.json
+          done
+
+          echo $ALL_PACKAGES_JSON | jq -r '.[].location' | while read -r package; do
+            if ! echo $CHANGED_PACKAGES_JSON | jq -r '.[].location' | grep -q "$package"; then
+              jq ".private = true" $package/package.json > $package/package.json.tmp && mv $package/package.json.tmp $package/package.json
+            fi
+          done
+
+          echo "versioned=true" >> "$GITHUB_OUTPUT"
+
+      - name: Assume unchanged for all package.json files
+        run: |
+          git ls-files -m | grep 'package.json' | xargs -I {} git update-index --assume-unchanged {}
+
+      - name: Cache playwright dependencies
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: |
+            /root/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Test packages
+        if: ${{ steps.version.outputs.versioned == 'true' }}
+        run: |
+          npx playwright install
+          npx playwright install-deps
+          npx lerna run test --no-private
+
+
+      # Lerna doesn't support dry run
+      # - name: Publish packages dry run
+      #   if: ${{ steps.version.outputs.versioned == 'true' }}
+      #   env:
+      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      #   run: |
+      #     TAG_NAME=${{ env.TAG_NAME }}
+      #     npx lerna publish from-package --dry-run --yes --dist-tag $TAG_NAME

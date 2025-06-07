@@ -88,12 +88,16 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
       this.onTransitionCancel();
       this.animation.effect = null;
     };
-    this.animation.finished.then(() => {
-      this.animation.commitStyles();
-      this.onTransitionEnd();
-      this.sharedElementTransitionLayer.current?.ref.current?.close();
-      this.animation.effect = null;
-    });
+    this
+      .animation
+      .finished
+      .then(() => {
+        this.animation.commitStyles();
+        this.onTransitionEnd();
+        this.sharedElementTransitionLayer.current?.ref.current?.close();
+        this.animation.effect = null;
+      })
+      .catch(() => {}); // catch AbortError
 
     return this.animation;
   }
