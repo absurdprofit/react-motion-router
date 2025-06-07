@@ -11,6 +11,7 @@ const isFirstLoad = true;
 export default function Sheet({ navigation, route }: SheetProps) {
   const progress = useMotion();
   const [stiffness] = useState(50);
+  console.log(progress);
 
   return (
     <div

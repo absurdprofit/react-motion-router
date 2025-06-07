@@ -4,7 +4,6 @@ import { RouterContext } from '../RouterContext';
 import { RoutePropContext } from '../RoutePropContext';
 import { RouterBase } from '../RouterBase';
 import { RoutePropBase } from './types';
-import { animationFrames } from './utils';
 import { ScreenTransitionLayerContext } from '../ScreenTransitionLayerContext';
 
 export function useNavigationBase<T extends NavigationBase = NavigationBase>() {
@@ -24,6 +23,8 @@ export function useMotion() {
   useDebugValue('Motion');
   const router = useContext(RouterContext);
   const screenTransitionLayer = useContext(ScreenTransitionLayerContext);
+  const animation = screenTransitionLayer
+    .animation;
   
   const defaultProgress = 1;
   // use sync external store to get animation progress
@@ -31,26 +32,19 @@ export function useMotion() {
   return useSyncExternalStore(
     (callback) => {
       return router.addEventListener('transition-start', async () => {
-        let transitionEnd = false;
-        const controller = new AbortController();
-        const signal = controller.signal;
-        router.addEventListener('transition-end', () => transitionEnd = true, { signal });
-        router.addEventListener('transition-cancel', () => transitionEnd = true, { signal });
-        for await (const _ of animationFrames()) {
+        do {
+          await new Promise<number>(resolve => {
+            requestAnimationFrame(resolve);
+          });
           callback();
-          if (transitionEnd)
-            break;
-        }
-        return controller.abort();
+        } while (animation.playState === 'running');
       });
     },
     () => {
-      const { progress = defaultProgress } = screenTransitionLayer
-        .animation
+      const { progress } = animation
         ?.effect
         ?.getComputedTiming() ?? {};
-      
-      return progress;
+      return progress ?? defaultProgress;
     }
   );
 }

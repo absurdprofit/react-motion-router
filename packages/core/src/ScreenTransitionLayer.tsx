@@ -78,7 +78,6 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
       this.sharedElementTransitionLayer.current?.ref.current?.showModal();
     }
 
-    this.animation.id = this.props.id;
     this.animation.effect = effect;
 
     this.animation.play();

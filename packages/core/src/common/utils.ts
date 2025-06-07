@@ -109,12 +109,3 @@ export function cloneAndInject<
 >(element: C, injectProps: IP) {
   return cloneElement(element, injectProps) as ClonedElementType<C, IP>;
 }
-
-export async function* animationFrames(): AsyncGenerator<number, never, void> {
-  while (true) {
-    const timestamp = await new Promise<number>(resolve => {
-      requestAnimationFrame(resolve);
-    });
-    yield timestamp;
-  }
-}
