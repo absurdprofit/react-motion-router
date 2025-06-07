@@ -4,7 +4,6 @@ export * from './SharedElement';
 export * from './RouterBase';
 export * from './ScreenBase';
 export * from './NavigationBase';
-export * from './MotionContext';
 export * from './RouterContext';
 export * from './common/hooks';
 export * from './common/types';

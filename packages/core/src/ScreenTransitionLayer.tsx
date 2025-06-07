@@ -1,12 +1,11 @@
 import { Component, RefObject, createRef } from 'react';
-import { MotionProgressEvent, TransitionCancelEvent, TransitionEndEvent, TransitionStartEvent } from './common/events';
+import { TransitionCancelEvent, TransitionEndEvent, TransitionStartEvent } from './common/events';
 import { SharedElementTransitionLayer } from './SharedElementTransitionLayer';
 import { ParallelEffect, Animation } from 'web-animations-extension';
 import { ScreenTransitionLayerContext } from './ScreenTransitionLayerContext';
 import { ScreenChild } from './common/types';
 import { NavigationBase } from './NavigationBase';
 import { ScreenBase } from './ScreenBase';
-import { MotionContext } from './MotionContext';
 
 interface ScreenTransitionLayerProps {
   id: string;
@@ -17,7 +16,6 @@ interface ScreenTransitionLayerProps {
 
 interface ScreenTransitionLayerState {
     gestureNavigating: boolean;
-    progress: number;
 }
 
 export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps, ScreenTransitionLayerState> {
@@ -28,18 +26,7 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
 
   public state: ScreenTransitionLayerState = {
     gestureNavigating: false,
-    progress: 1,
   };
-
-  private onAnimationFrame() {
-    const progress = this.animation.effect?.getComputedTiming().progress;
-
-    if (progress)
-      this.onProgress(progress);
-
-    if (this.animation.playState === 'running')
-      requestAnimationFrame(this.onAnimationFrame.bind(this));
-  }
 
   private onTransitionCancel() {
     this.props.navigation.dispatchEvent(new TransitionCancelEvent());
@@ -47,37 +34,30 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
 
   private onTransitionStart() {
     this.props.navigation.dispatchEvent(new TransitionStartEvent());
-
-    this.onAnimationFrame();
   }
 
   private onTransitionEnd() {
     this.props.navigation.dispatchEvent(new TransitionEndEvent());
   }
 
-  private onProgress(progress: number) {
-    this.setState({ progress });
-    this.props.navigation.dispatchEvent(new MotionProgressEvent(progress));
-  }
-
-  get screens() {
+  public get screens() {
     return this.#screens;
   }
 
-  set screens(screens: RefObject<ScreenBase>[]) {
+  public set screens(screens: RefObject<ScreenBase>[]) {
     this.#screens = screens;
   }
 
-  set direction(direction: PlaybackDirection) {
+  public set direction(direction: PlaybackDirection) {
     this.#direction = direction;
     this.animation.effect?.updateTiming({ direction });
   }
 
-  get direction() {
+  public get direction() {
     return this.#direction;
   }
 
-  get hasUAVisualTransition() {
+  public get hasUAVisualTransition() {
     return this.props.hasUAVisualTransition;
   }
 
@@ -108,12 +88,16 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
       this.onTransitionCancel();
       this.animation.effect = null;
     };
-    this.animation.finished.then(() => {
-      this.animation.commitStyles();
-      this.onTransitionEnd();
-      this.sharedElementTransitionLayer.current?.ref.current?.close();
-      this.animation.effect = null;
-    });
+    this
+      .animation
+      .finished
+      .then(() => {
+        this.animation.commitStyles();
+        this.onTransitionEnd();
+        this.sharedElementTransitionLayer.current?.ref.current?.close();
+        this.animation.effect = null;
+      })
+      .catch(() => {}); // catch AbortError
 
     return this.animation;
   }
@@ -134,12 +118,9 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
             display: 'grid',
             contain: 'layout',
             isolation: 'isolate',
-            '--motion-progress': this.state.progress,
           } as React.CSSProperties}
         >
-          <MotionContext.Provider value={this.state.progress}>
-            {this.props.children}
-          </MotionContext.Provider>
+          {this.props.children}
         </div>
       </ScreenTransitionLayerContext.Provider>
     );
