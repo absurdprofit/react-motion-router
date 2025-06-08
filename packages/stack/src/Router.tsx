@@ -510,7 +510,6 @@ export class Router extends RouterBase<
     );
     if (!destinationScreen) return e.preventDefault();
     const handler = () => {
-      const isHotReplace = this.state.transition !== null;
       const transition = this.state.transition ?? window.navigation.transition;
       const fromKey = transition?.from?.key ?? null;
       const currentIndex = screenStack.findIndex(
@@ -524,7 +523,6 @@ export class Router extends RouterBase<
             { destinationKey, fromKey, transition, screenStack },
             async () => {
               const signal = e.signal;
-              const outgoingScreen = this.getScreenRefByKey(String(fromKey));
               const incomingScreen = this.getScreenRefByKey(
                 String(destinationKey)
               );
@@ -533,22 +531,6 @@ export class Router extends RouterBase<
                 null,
                 signal
               ).catch(reject);
-              if (isHotReplace) {
-                const currentTime =
-                  this.screenTransitionLayer.current?.animation.currentTime
-                  ?? 0;
-                this.screenTransitionLayer.current?.animation.cancel();
-                await new Promise(requestAnimationFrame);
-                const animation = this.screenTransition(
-                  incomingScreen,
-                  outgoingScreen
-                );
-                if (animation) {
-                  animation.currentTime = currentTime;
-                }
-                animation?.updatePlaybackRate(1);
-                await animation?.finished.catch(reject);
-              }
               await pendingLifecycleHandlers;
               this.setState(
                 { destinationKey: null, fromKey: null, transition: null },
