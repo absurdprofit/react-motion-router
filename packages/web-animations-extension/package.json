@@ -16,8 +16,8 @@
     "build": "vite build",
     "dev": "vite build --watch",
     "test-setup": "node test/setup/checkout-wpt.mjs",
-    "test:wpt": "npm run test-setup && cd test && cd wpt && (python3.12 wpt run --headless -y --log-wptreport ../report/data.json --log-wptscreenshot=../report/screenshots.txt --log-html=../report/index.html --inject-script ../../build/index.js firefox scroll-animations || true)",
-    "test:simple": "npm run test-setup && cd test && cd wpt && python wpt serve --inject-script ../../build/index.js",
+    "test:wpt": "npm run test-setup && cd test && cd wpt && (python3.12 wpt run --headless -y --log-wptreport ../report/data.json --log-wptscreenshot=../report/screenshots.txt --log-html=../report/index.html --inject-script ../../build/index.js firefox web-animations || true)",
+    "test:simple": "npm run test-setup && cd test && cd wpt && python3.12 wpt serve --inject-script ../../build/index.js",
     "test:compare": "node test/summarize-json.mjs test/report/data.json > test/report/summary.txt && echo 'Comparing test results. If different and expected, patch the following diff to test/expected.txt:' && diff test/expected.txt test/report/summary.txt"
   },
   "repository": {
