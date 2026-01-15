@@ -1,6 +1,6 @@
-import { Animation } from "../animation";
-import { GestureTimelineOptions, GestureTimelineUpdateEvent } from "../gesture-timeline";
-import { GroupEffect } from "../group-effect";
+import { Animation } from '../animation';
+import { GestureTimelineOptions, GestureTimelineUpdateEvent } from '../gesture-timeline';
+import { GroupEffect } from '../group-effect';
 
 export type NativeAnimation = globalThis.Animation;
 export const NativeAnimation = window.Animation;
@@ -15,7 +15,7 @@ export type Weights = Record<string, number>;
 export type LerpRange = { min: Input, max: Input };
 
 export function is1DRange(range: number[] | LerpRange): range is number[] {
-	return Array.isArray(range);
+  return Array.isArray(range);
 }
 
 export interface SpringToLinearProps {
@@ -31,7 +31,7 @@ export interface AnimationDetails {
 	effect: AnimationEffect | null;
 	replaceState: AnimationReplaceState;
 	pending: {
-		task: "play" | "pause" | null;
+		task: 'play' | 'pause' | null;
 		playbackRate: number | null;
 	};
 	startTime: CSSNumberish | null;
@@ -54,10 +54,10 @@ export interface GestureTimelineDetails {
 	currentTime: CSSNumericValue;
 }
 
-export type TimelinePhase = "inactive" | "active";
+export type TimelinePhase = 'inactive' | 'active';
 
 export function isNull(value: unknown): value is null {
-	return typeof value === 'object' && value === null;
+  return typeof value === 'object' && value === null;
 }
 
 export type AnimationEffectPhase = 'before' | 'active' | 'after' | 'idle';

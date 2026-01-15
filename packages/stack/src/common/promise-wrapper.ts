@@ -1,8 +1,8 @@
 export class PromiseWrapper<T> {
-	promise: Promise<T>;
-	state: 'pending' | 'resolved' | 'rejected';
-	nativeResolve: ((value: T | PromiseLike<T>) => void) | null;
-	nativeReject: ((reason: any) => void) | null;
+  promise: Promise<T>;
+  state: 'pending' | 'resolved' | 'rejected';
+  nativeResolve: ((value: T | PromiseLike<T>) => void) | null;
+  nativeReject: ((reason: any) => void) | null;
   constructor() {
     this.state = 'pending';
     this.nativeResolve = this.nativeReject = null;
