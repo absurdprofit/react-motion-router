@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 import reactCompiler from 'eslint-plugin-react-compiler'
 
 export default tseslint.config(
-  { ignores: ['dist', '**/wpt/*'] },
+  { ignores: ['**/build/*', '**/wpt/*'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],
