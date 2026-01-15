@@ -31,7 +31,9 @@
   "homepage": "https://github.com/nxtexe/react-motion-router#readme",
   "peerDependencies": {
     "@react-motion-router/core": "*",
-    "web-animations-extension": "*",
-    "react": "^18.0.0 || ^19.0.0-0"
+    "web-animations-extension": "*"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0"
   }
 }
