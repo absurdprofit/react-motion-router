@@ -6,10 +6,9 @@ import tseslint from 'typescript-eslint'
 import reactCompiler from 'eslint-plugin-react-compiler'
 
 export default tseslint.config(
-  { ignores: ['dist'] },
+  { ignores: ['dist', '**/wpt/*'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
-    ignores: ['wpt/**/*'],
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
       ecmaVersion: 2022,
