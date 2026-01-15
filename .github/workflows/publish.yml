@@ -93,7 +93,7 @@ jobs:
           git ls-files -m | grep 'package.json' | xargs -I {} git update-index --assume-unchanged {}
 
       - name: Publish packages
-        if: ${{ steps.version.outputs.versioned == 'true' }}
+        if: ${{ steps.version.outputs.versioned == 'true' || env.TAG_NAME == 'latest' }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
