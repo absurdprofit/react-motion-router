@@ -10,3 +10,4 @@ export * from './common/types';
 export * from './common/events';
 export * from './common/utils';
 export * from './common/constants';
+export * from './AnchorBase';
