@@ -109,3 +109,12 @@ export function cloneAndInject<
 >(element: C, injectProps: IP) {
   return cloneElement(element, injectProps) as ClonedElementType<C, IP>;
 }
+
+export function omit<T extends object, K extends readonly (keyof T)[]>(
+  obj: T,
+  keys: K
+): Omit<T, K[number]> {
+  const copy = { ...obj };
+  for (const k of keys) delete copy[k];
+  return copy;
+}

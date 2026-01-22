@@ -4,8 +4,9 @@ import {
   LAST_INDEX,
   SINGLE_ELEMENT_LENGTH
 } from './common/constants';
+import { omit } from './common/utils';
 
-interface AnchorBaseProps extends React.DetailedHTMLProps<React.AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
+interface AnchorProps extends React.DetailedHTMLProps<React.AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
   href?: string;
   rel?: string;
   historyEntryKey?: string;
@@ -17,15 +18,15 @@ interface AnchorBaseProps extends React.DetailedHTMLProps<React.AnchorHTMLAttrib
   children?: React.ReactNode;
 }
 
-type AnchorBaseState = {
+type AnchorState = {
   href?: string | null;
 };
 
-export class AnchorBase extends React.Component<
-  AnchorBaseProps,
-  AnchorBaseState
+export class Anchor extends React.Component<
+  AnchorProps,
+  AnchorState
 > {
-  constructor(props: AnchorBaseProps) {
+  constructor(props: AnchorProps) {
     super(props);
 
     this.state = {
@@ -123,7 +124,7 @@ export class AnchorBase extends React.Component<
           ?.entries()
           .find(e => e.key === historyEntryKey);
       } else if (rel) {
-        entry = AnchorBase.findClosestEntry(
+        entry = Anchor.findClosestEntry(
           rel,
           window.navigation.entries(),
           window.navigation.currentEntry?.index ?? FIRST_INDEX
@@ -138,6 +139,8 @@ export class AnchorBase extends React.Component<
   }
 
   private readonly handleClick = (event: React.PointerEvent<HTMLAnchorElement>) => {
+    this.props.onClick?.(event);
+    if (event.defaultPrevented) return;
     event.preventDefault();
 
     const navigation = window.navigation;
@@ -157,13 +160,13 @@ export class AnchorBase extends React.Component<
     if (traverse && href) {
       const entries = navigation.entries();
       const entry =
-        AnchorBase.findClosestEntryHref(
+        Anchor.findClosestEntryHref(
           href,
           rel,
           entries,
           navigation.currentEntry?.index ?? FIRST_INDEX
         )
-        ?? AnchorBase.findClosestEntry(
+        ?? Anchor.findClosestEntry(
           rel,
           entries,
           navigation.currentEntry?.index ?? FIRST_INDEX
@@ -192,17 +195,24 @@ export class AnchorBase extends React.Component<
     const {
       rel,
       children,
-      ...props
     } = this.props;
     const { href } = this.state;
+    const props = omit(this.props, [
+      'historyEntryKey',
+      'navigateInfo',
+      'navigateState',
+      'reload',
+      'replace',
+      'traverse',
+    ]);
 
     return (
       <a
+        {...props}
         ref={this.anchorRef}
         href={href ?? undefined}
         rel={rel}
         onClick={this.handleClick}
-        {...props}
       >
         {children}
       </a>
