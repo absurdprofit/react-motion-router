@@ -5,7 +5,7 @@ import {
   SINGLE_ELEMENT_LENGTH
 } from './common/constants';
 
-type AnchorBaseProps = {
+interface AnchorBaseProps extends React.DetailedHTMLProps<React.AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
   href?: string;
   rel?: string;
   historyEntryKey?: string;
@@ -15,19 +15,23 @@ type AnchorBaseProps = {
   replace?: boolean;
   traverse?: boolean;
   children?: React.ReactNode;
-};
+}
 
 type AnchorBaseState = {
-  computedHref?: string | null;
+  href?: string | null;
 };
 
 export class AnchorBase extends React.Component<
   AnchorBaseProps,
   AnchorBaseState
 > {
-  public readonly state: AnchorBaseState = {
-    computedHref: undefined,
-  };
+  constructor(props: AnchorBaseProps) {
+    super(props);
+
+    this.state = {
+      href: this.href,
+    };
+  }
 
   private readonly anchorRef = React.createRef<HTMLAnchorElement>();
 
@@ -97,7 +101,6 @@ export class AnchorBase extends React.Component<
   }
 
   public componentDidMount() {
-    this.onNavigate();
     window.navigation?.addEventListener('navigatesuccess', this.onNavigate);
   }
 
@@ -106,8 +109,13 @@ export class AnchorBase extends React.Component<
   }
 
   private readonly onNavigate = () => {
-    const { href, traverse, historyEntryKey, rel } = this.props;
-    if (!href && traverse) {
+    const { href } = this;
+    this.setState({ href });
+  };
+
+  private get href() {
+    const { href, traverse, reload, historyEntryKey, rel } = this.props;
+    if (href === undefined && traverse) {
       let entry: NavigationHistoryEntry | undefined;
 
       if (historyEntryKey) {
@@ -122,9 +130,12 @@ export class AnchorBase extends React.Component<
         );
       }
 
-      this.setState({ computedHref: entry?.url });
+      return entry?.url;
+    } else if (reload) {
+      return '.';
     }
-  };
+    return href;
+  }
 
   private readonly handleClick = (event: React.PointerEvent<HTMLAnchorElement>) => {
     event.preventDefault();
@@ -179,32 +190,19 @@ export class AnchorBase extends React.Component<
 
   public render() {
     const {
-      href,
       rel,
-      reload,
-      traverse,
-      historyEntryKey,
       children,
+      ...props
     } = this.props;
-    let { computedHref } = this.state;
-
-    if (reload) {
-      computedHref = '.';
-    }
-
-    if (traverse && historyEntryKey) {
-      computedHref =
-        window.navigation
-          ?.entries()
-          .find(e => e.key === historyEntryKey)?.url ?? undefined;
-    }
+    const { href } = this.state;
 
     return (
       <a
         ref={this.anchorRef}
-        href={href ?? computedHref ?? undefined}
+        href={href ?? undefined}
         rel={rel}
         onClick={this.handleClick}
+        {...props}
       >
         {children}
       </a>
