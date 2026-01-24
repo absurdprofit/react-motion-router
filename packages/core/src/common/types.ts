@@ -26,9 +26,8 @@ export interface AnimationEffectFactoryProps<R extends HTMLElement = HTMLElement
 
 export type AnimationEffectFactory<R extends HTMLElement = HTMLElement> = (props: AnimationEffectFactoryProps<R>) => AnimationEffect;
 
-export type MetaTypeKey = 'http-equiv' | 'name' | 'itemprop' | 'property' | 'charset';
-export type MetaType = [MetaTypeKey, string];
-export type MetaKey = `${MetaTypeKey}=${string}`;
+export type MetaType = [string, string];
+export type MetaKey = `${string}=${string}`;
 
 export interface LazyExoticComponent<T extends React.ComponentType<any>> extends React.LazyExoticComponent<T> {
     load: () => Promise<{ default: T }>;
