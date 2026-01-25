@@ -36,7 +36,7 @@ export class Anchor extends React.Component<
 
   private readonly anchorRef = React.createRef<HTMLAnchorElement>();
 
-  private static findClosestEntryHref(
+  private static findClosestEntryByHref(
     href: string,
     rel: string | undefined,
     entries: NavigationHistoryEntry[],
@@ -53,8 +53,14 @@ export class Anchor extends React.Component<
 
     let left = index - SINGLE_ELEMENT_LENGTH;
     let right = index + SINGLE_ELEMENT_LENGTH;
-    if (rel?.includes('next')) left = FIRST_INDEX;
-    if (rel?.includes('prev')) right = entries.length;
+    const direction = rel
+      ?.split(' ')
+      .findLast(dir => dir === 'next' || dir === 'prev')
+      ?? 'prev';
+    // if direction is next, prevent searching left
+    if (direction === 'next') left = FIRST_INDEX;
+    // if direction is prev, prevent searching right
+    if (direction === 'prev') right = entries.length;
 
     while (left >= FIRST_INDEX || right < entries.length) {
       if (
@@ -77,28 +83,17 @@ export class Anchor extends React.Component<
     entries: NavigationHistoryEntry[],
     index: number
   ) {
-    if (
-      !Array.isArray(entries)
-      || index < FIRST_INDEX
-      || index >= entries.length
-      || entries.length === SINGLE_ELEMENT_LENGTH
-    ) {
-      return undefined;
+    const direction = rel
+      ?.split(' ')
+      .findLast(dir => dir === 'next' || dir === 'prev')
+      ?? 'prev';
+    
+    switch (direction) {
+      case 'prev':
+        return entries[index - SINGLE_ELEMENT_LENGTH];
+      case 'next':
+        return entries[index + SINGLE_ELEMENT_LENGTH];
     }
-
-    let left = LAST_INDEX;
-    let right = entries.length;
-    if (rel?.includes('prev')) left = index - SINGLE_ELEMENT_LENGTH;
-    if (rel?.includes('next')) right = index + SINGLE_ELEMENT_LENGTH;
-
-    while (left >= FIRST_INDEX || right < entries.length) {
-      if (left >= FIRST_INDEX) return entries[left];
-      if (right < entries.length) return entries[right];
-      left--;
-      right++;
-    }
-
-    return undefined;
   }
 
   public componentDidMount() {
@@ -160,13 +155,8 @@ export class Anchor extends React.Component<
     if (traverse && href) {
       const entries = navigation.entries();
       const entry =
-        Anchor.findClosestEntryHref(
+        Anchor.findClosestEntryByHref(
           href,
-          rel,
-          entries,
-          navigation.currentEntry?.index ?? FIRST_INDEX
-        )
-        ?? Anchor.findClosestEntry(
           rel,
           entries,
           navigation.currentEntry?.index ?? FIRST_INDEX
