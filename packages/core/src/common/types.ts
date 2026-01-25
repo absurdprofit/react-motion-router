@@ -2,7 +2,6 @@ import { isValidElement } from 'react';
 import { ScreenBase, ScreenBaseProps } from '../ScreenBase';
 import {
   MotionProgressEndEvent,
-  MotionProgressEvent,
   MotionProgressStartEvent,
   TransitionCancelEvent,
   TransitionEndEvent,
@@ -58,7 +57,6 @@ export interface RouterBaseEventMap extends HTMLElementEventMap {
     'transition-cancel': TransitionCancelEvent;
     'transition-end': TransitionEndEvent;
     'motion-progress-start': MotionProgressStartEvent;
-    'motion-progress': MotionProgressEvent;
     'motion-progress-end': MotionProgressEndEvent;
 }
 

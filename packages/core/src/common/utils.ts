@@ -1,5 +1,6 @@
 import { cloneElement, lazy as ReactLazy } from 'react';
 import { ClonedElementType, ElementPropType, LazyExoticComponent, MatchedRoute, PathPattern } from './types';
+import { LAST_INDEX } from './constants';
 
 export function resolveBaseURLFromPattern(pattern: string, pathname: string) {
   if (!pattern.endsWith('*')) pattern += '**'; // allows us to match nested routes
@@ -11,7 +12,7 @@ export function resolveBaseURLFromPattern(pattern: string, pathname: string) {
     .filter((key) => !isNaN(Number(key)))
     .map((key) => baseURLMatch.pathname.groups[key])
     .filter((group) => group !== undefined);
-  const nestedPathnameGroup = groups.at(-1) ?? '';
+  const nestedPathnameGroup = groups.at(LAST_INDEX) ?? '';
   // derive concrete baseURL
   return new URL(pathname.replace(nestedPathnameGroup, ''), window.location.origin);
 }

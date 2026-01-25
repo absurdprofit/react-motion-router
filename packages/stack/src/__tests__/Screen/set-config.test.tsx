@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
-import { Screen, ScreenComponentProps, ScreenConfig } from '../Screen';
+import { Screen, ScreenComponentProps, ScreenConfig } from '../../Screen';
 import { useEffect, useRef } from 'react';
-import { androidScaleFromCentre } from '../animation-configs/animation-presets';
-import { Router } from '../Router';
+import { androidScaleFromCentre } from '../../animation-configs/animation-presets';
+import { Router } from '../../Router';
 
 describe('Screen.setConfig', () => {
   async function update() {

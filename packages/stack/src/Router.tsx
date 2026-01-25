@@ -24,12 +24,11 @@ import {
   isSupportedDirection,
   NavigationBaseOptions,
   NavigationProps,
-  RouteProp,
   RouterEventMap,
   ScreenInternalProps,
   SwipeDirection
 } from './common/types';
-import { Children, createRef, startTransition } from 'react';
+import { createRef, startTransition } from 'react';
 import { SwipeStartEvent, SwipeEndEvent } from 'web-gesture-events';
 import { GestureTimeline } from 'web-animations-extension';
 import { deepEquals, isGesture, isRollback } from './common/utils';
