@@ -1,8 +1,10 @@
 import {
+  FIRST_INDEX,
+  LAST_INDEX,
   RouterBase,
+  SINGLE_ELEMENT_LENGTH,
   cloneAndInject,
   includesRoute,
-  isValidScreenChild,
   matchRoute
 } from '@react-motion-router/core';
 import type {
@@ -37,7 +39,7 @@ import {
   GestureEndEvent,
   GestureStartEvent
 } from './common/events';
-import { DEFAULT_GESTURE_CONFIG } from './common/constants';
+import { DEFAULT_GESTURE_CONFIG, DEFAULT_PLAYBACK_RATE } from './common/constants';
 import { PromiseWrapper } from './common/promise-wrapper';
 
 export interface RouterConfig extends RouterBaseConfig {
@@ -227,20 +229,20 @@ export class Router extends RouterBase<
     let rangeEnd;
     switch (direction) {
       case 'right':
-        rangeStart = 0;
+        rangeStart = Number();
         rangeEnd = this.ref.current.clientWidth;
         break;
       case 'left':
         rangeStart = this.ref.current.clientWidth;
-        rangeEnd = 0;
+        rangeEnd = Number();
         break;
       case 'down':
-        rangeStart = 0;
+        rangeStart = Number();
         rangeEnd = this.ref.current.clientHeight;
         break;
       case 'up':
         rangeStart = this.ref.current.clientHeight;
-        rangeEnd = 0;
+        rangeEnd = Number();
         break;
     }
     this.screenTransitionLayer.current.animation.timeline = new GestureTimeline(
@@ -269,12 +271,12 @@ export class Router extends RouterBase<
     if (!this.screenTransitionLayer.current) return;
     const progress =
       this.screenTransitionLayer.current.animation.effect?.getComputedTiming()
-        .progress ?? 0;
+        .progress ?? Number();
     const playbackRate =
       this.screenTransitionLayer.current.animation.playbackRate;
     this.screenTransitionLayer.current.animation.timeline = document.timeline;
     const hysteresisReached =
-      playbackRate > 0
+      playbackRate > Number()
         ? progress > this.state.gestureHysteresis
         : progress < this.state.gestureHysteresis;
     let gestureCancelled = false;
@@ -304,14 +306,14 @@ export class Router extends RouterBase<
       (screen) => screen.key === this.state.destinationKey
     );
 
-    return destinationIndex >= 0 && destinationIndex < fromIndex;
+    return destinationIndex >= FIRST_INDEX && destinationIndex < fromIndex;
   }
 
   protected get screens() {
     const screenStack = this.state.screenStack;
     return screenStack.filter((screen, index) => {
       const currentScreenRef = screen.ref ?? null;
-      const nextScreenRef = screenStack.at(index + 1)?.ref;
+      const nextScreenRef = screenStack.at(index + SINGLE_ELEMENT_LENGTH)?.ref;
       return (
         (isRefObject(currentScreenRef)
           && currentScreenRef.current?.config.keepAlive)
@@ -453,7 +455,7 @@ export class Router extends RouterBase<
               const [firstEntry] = entries;
               if (
                 initialPathname
-                && entries.length === 1
+                && entries.length === SINGLE_ELEMENT_LENGTH
                 && firstEntry.url
                 && !matchRoute(
                   initialPathname,
@@ -514,7 +516,11 @@ export class Router extends RouterBase<
       const currentIndex = screenStack.findIndex(
         (screen) => screen.key === this.navigation.current?.key
       );
-      screenStack.splice(currentIndex, 1, destinationScreen);
+      screenStack.splice(
+        currentIndex,
+        SINGLE_ELEMENT_LENGTH,
+        destinationScreen
+      );
 
       return new Promise<void>((resolve, reject) =>
         startTransition(() => {
@@ -557,7 +563,7 @@ export class Router extends RouterBase<
         (screen) => screen.key === transition?.from.key
       );
       // if navigating from a nested screen the first lookup won't work since entries are scoped
-      if (fromIndex === -1 && e.navigationType === 'traverse') {
+      if (fromIndex === LAST_INDEX && e.navigationType === 'traverse') {
         fromIndex = screenStack.findIndex((screen) => {
           if (!transition?.from.url) return false;
           return matchRoute(
@@ -585,7 +591,7 @@ export class Router extends RouterBase<
         );
         if (!destinationScreen) return Promise.resolve();
         screenStack.splice(
-          fromIndex + 1,
+          fromIndex + SINGLE_ELEMENT_LENGTH,
           Infinity, // Remove all screens after current
           destinationScreen
         );
@@ -612,7 +618,7 @@ export class Router extends RouterBase<
                 incomingScreen,
                 outgoingScreen
               );
-              animation?.updatePlaybackRate(1);
+              animation?.updatePlaybackRate(DEFAULT_PLAYBACK_RATE);
               animation?.finished.catch(reject);
               await pendingLifecycleHandlers;
               this.setState(
@@ -712,7 +718,7 @@ export class Router extends RouterBase<
       this.screenTransitionLayer.current.screens = this.screens
         .map((screen, index) => {
           // normalise indices making incoming screen index 1 and preceding screens index 0...-n
-          index = index - topScreenIndex + 1;
+          index = index - topScreenIndex + SINGLE_ELEMENT_LENGTH;
           if (
             isRefObject(screen.ref)
             && screen.ref.current?.transitionProvider.current
