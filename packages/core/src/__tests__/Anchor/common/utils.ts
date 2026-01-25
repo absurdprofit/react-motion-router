@@ -5,7 +5,9 @@ export function assertNavigationAvailable() {
 }
 
 export async function waitForNavigateSuccess() {
-  await window.navigation.transition?.finished;
+  await new Promise(resolve => {
+    window.navigation.addEventListener('navigatesuccess', resolve, { once: true });
+  });
 }
 
 export async function navTo(url: string) {
@@ -22,4 +24,19 @@ export async function seedHistory() {
   await navTo('/one');
   await navTo('/two');
   await navTo('/three');
+}
+
+const interceptor = (event: NavigateEvent) => {
+  event.intercept({
+    handler() {
+      return Promise.resolve();
+    },
+  });
+};
+export async function installInterceptor() {
+  window.navigation.addEventListener('navigate',interceptor);
+}
+
+export async function uninstallInterceptor() {
+  window.navigation.removeEventListener('navigate',interceptor);
 }

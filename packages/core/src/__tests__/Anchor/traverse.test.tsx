@@ -1,9 +1,10 @@
-import { beforeEach, describe, expect, it } from 'vitest';
-import { assertNavigationAvailable, navTo, seedHistory, traverseTo, waitForNavigateSuccess } from './common/utils';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { assertNavigationAvailable, installInterceptor, navTo, seedHistory, traverseTo, uninstallInterceptor, waitForNavigateSuccess } from './common/utils';
 import { act, cleanup, fireEvent, render } from '@testing-library/react';
 import { Anchor } from '../../Anchor';
 
-describe('Anchor - push', () => {
+describe('Anchor - traverse', () => {
+  beforeAll(installInterceptor);
   beforeEach(async () => {
     assertNavigationAvailable();
     cleanup();
@@ -13,6 +14,7 @@ describe('Anchor - push', () => {
     globalThis.history.replaceState(null, '', `${location.pathname}/start`);
     await navTo('/start');
   });
+  afterAll(uninstallInterceptor);
 
   it('traverse rel="prev": moves to the previous existing entry without growing history', async () => {
     await seedHistory();
@@ -43,7 +45,7 @@ describe('Anchor - push', () => {
     // Go back to /two first, then test next -> /three
     const entryTwo = window.navigation.entries().find(e => e.url?.endsWith('/two'));
     expect(entryTwo).toBeTruthy();
-    await act(traverseTo(entryTwo!.key));
+    await act(() => traverseTo(entryTwo!.key));
 
     const startLen = window.navigation.entries().length;
 

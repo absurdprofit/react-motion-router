@@ -1,9 +1,10 @@
-import { beforeEach, describe, expect, it } from 'vitest';
-import { assertNavigationAvailable, navTo, seedHistory, waitForNavigateSuccess } from './common/utils';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { assertNavigationAvailable, installInterceptor, navTo, seedHistory, uninstallInterceptor, waitForNavigateSuccess } from './common/utils';
 import { act, cleanup, fireEvent, render } from '@testing-library/react';
 import { Anchor } from '../../Anchor';
 
 describe('Anchor - push', () => {
+  beforeAll(installInterceptor);
   beforeEach(async () => {
     assertNavigationAvailable();
     cleanup();
@@ -13,6 +14,7 @@ describe('Anchor - push', () => {
     globalThis.history.replaceState(null, '', `${location.pathname}/start`);
     await navTo('/start');
   });
+  afterAll(uninstallInterceptor);
 
   it('default (push): clicking adds a new entry and updates current URL', async () => {
     const startLen = window.navigation.entries().length;
