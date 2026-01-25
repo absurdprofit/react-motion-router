@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { assertNavigationAvailable, navTo, seedHistory, waitForNavigateSuccess } from './common/utils';
-import { cleanup, fireEvent, render } from '@testing-library/react';
+import { act, cleanup, fireEvent, render } from '@testing-library/react';
 import { Anchor } from '../../Anchor';
 
 describe('Anchor - push', () => {
@@ -21,8 +21,10 @@ describe('Anchor - push', () => {
 
     const { getByText } = render(<Anchor reload>Refresh</Anchor>);
 
-    fireEvent.click(getByText('Refresh'));
-    await waitForNavigateSuccess();
+    await act(async () => {
+      fireEvent.click(getByText('Refresh'));
+      await waitForNavigateSuccess();
+    });
 
     const endLen = window.navigation.entries().length;
     const endUrl = window.navigation.currentEntry!.url;

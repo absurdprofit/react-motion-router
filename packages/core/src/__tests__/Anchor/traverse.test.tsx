@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { assertNavigationAvailable, navTo, seedHistory, waitForNavigateSuccess } from './common/utils';
-import { cleanup, fireEvent, render } from '@testing-library/react';
+import { assertNavigationAvailable, navTo, seedHistory, traverseTo, waitForNavigateSuccess } from './common/utils';
+import { act, cleanup, fireEvent, render } from '@testing-library/react';
 import { Anchor } from '../../Anchor';
 
 describe('Anchor - push', () => {
@@ -25,8 +25,10 @@ describe('Anchor - push', () => {
       </Anchor>
     );
 
-    fireEvent.click(getByText('Back'));
-    await waitForNavigateSuccess();
+    await act(async () => {
+      fireEvent.click(getByText('Back'));
+      await waitForNavigateSuccess();
+    });
 
     const endLen = window.navigation.entries().length;
     const current = window.navigation.currentEntry;
@@ -41,7 +43,7 @@ describe('Anchor - push', () => {
     // Go back to /two first, then test next -> /three
     const entryTwo = window.navigation.entries().find(e => e.url?.endsWith('/two'));
     expect(entryTwo).toBeTruthy();
-    await traverseTo(entryTwo!.key);
+    await act(traverseTo(entryTwo!.key));
 
     const startLen = window.navigation.entries().length;
 
@@ -51,8 +53,10 @@ describe('Anchor - push', () => {
       </Anchor>
     );
 
-    fireEvent.click(getByText('Forward'));
-    await waitForNavigateSuccess();
+    await act(async () => {
+      fireEvent.click(getByText('Forward'));
+      await waitForNavigateSuccess();
+    });
 
     const endLen = window.navigation.entries().length;
     const current = window.navigation.currentEntry;
@@ -72,8 +76,10 @@ describe('Anchor - push', () => {
       </Anchor>
     );
 
-    fireEvent.click(getByText('Tab 1'));
-    await waitForNavigateSuccess();
+    await act(async () => {
+      fireEvent.click(getByText('Tab 1'));
+      await waitForNavigateSuccess();
+    });
 
     const endLen = window.navigation.entries().length;
     const current = window.navigation.currentEntry;
@@ -95,8 +101,10 @@ describe('Anchor - push', () => {
       </Anchor>
     );
 
-    fireEvent.click(getByText('Jump'));
-    await waitForNavigateSuccess();
+    await act(async () => {
+      fireEvent.click(getByText('Jump'));
+      await waitForNavigateSuccess();
+    });
 
     const endLen = window.navigation.entries().length;
     const current = window.navigation.currentEntry;
@@ -118,8 +126,10 @@ describe('Anchor - push', () => {
       </Anchor>
     );
 
-    fireEvent.click(getByText('Missing'));
-    await waitForNavigateSuccess();
+    await act(async () => {
+      fireEvent.click(getByText('Missing'));
+      await waitForNavigateSuccess();
+    });
 
     const endLen = window.navigation.entries().length;
     const current = window.navigation.currentEntry;

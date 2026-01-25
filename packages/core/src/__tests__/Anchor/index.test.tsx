@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, fireEvent, cleanup } from '@testing-library/react';
+import { render, fireEvent, cleanup, act } from '@testing-library/react';
 import { Anchor } from '../../Anchor';
 import { assertNavigationAvailable, navTo, seedHistory, waitForNavigateSuccess } from './common/utils';
 
@@ -30,8 +30,10 @@ describe('Anchor', () => {
     // Initial href should point at prev entry (/two) because href is computed when traverse+rel
     expect(a.getAttribute('href')).toBe('/two');
 
-    fireEvent.click(a);
-    await waitForNavigateSuccess();
+    await act(async () => {
+      fireEvent.click(a);
+      await waitForNavigateSuccess();
+    });
 
     // After navigating to /two, the component's computed href should now point at /one
     expect((getByText('Back') as HTMLAnchorElement).getAttribute('href')).toBe('/one');

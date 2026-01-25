@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { assertNavigationAvailable, navTo, seedHistory, waitForNavigateSuccess } from './common/utils';
-import { cleanup, fireEvent, render } from '@testing-library/react';
+import { act, cleanup, fireEvent, render } from '@testing-library/react';
 import { Anchor } from '../../Anchor';
 
 describe('Anchor - push', () => {
@@ -18,9 +18,11 @@ describe('Anchor - push', () => {
     const startLen = window.navigation.entries().length;
 
     const { getByText } = render(<Anchor href="/posts">Posts</Anchor>);
-    fireEvent.click(getByText('Posts'));
+    await act(async () => {
+      fireEvent.click(getByText('Posts'));
+      await waitForNavigateSuccess();
+    });
 
-    await waitForNavigateSuccess();
 
     const endLen = window.navigation.entries().length;
     const current = window.navigation.currentEntry;
@@ -40,8 +42,10 @@ describe('Anchor - push', () => {
       </Anchor>
     );
 
-    fireEvent.click(getByText('New Tab'));
-    await waitForNavigateSuccess();
+    await act(async () => {
+      fireEvent.click(getByText('New Tab'));
+      await waitForNavigateSuccess();
+    });
 
     const endLen = window.navigation.entries().length;
     const current = window.navigation.currentEntry;
