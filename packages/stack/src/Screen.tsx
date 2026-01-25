@@ -161,15 +161,10 @@ export class Screen extends ScreenBase<ScreenProps, ScreenBaseState, RouteProp> 
   private onClickOutside(e: MouseEvent) {
     if (!this.transitionProvider.current?.ref.current) return;
     const navigation = this.context?.navigation as Navigation | undefined;
-    const rect = this.transitionProvider.current.ref.current.getBoundingClientRect();
-    const isInDialog = (
-      rect.top <= e.clientY
-            && e.clientY <= rect.top + rect.height
-            && rect.left <= e.clientX
-            && e.clientX <= rect.left + rect.width
-    );
-    if (!isInDialog)
-      navigation?.goBack();
+    if (
+      e.composedPath().includes(this.transitionProvider.current.ref.current)
+    ) return;
+    navigation?.goBack();
   }
 
   public onEnter(signal: AbortSignal) {

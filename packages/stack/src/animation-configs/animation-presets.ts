@@ -1,4 +1,4 @@
-import { AnimationEffectFactoryProps } from '@react-motion-router/core';
+import { AnimationEffectFactoryProps, FIRST_INDEX } from '@react-motion-router/core';
 import {
   androidBottomSheetSlideInOptions,
   androidBottomSheetSlideOutOptions,
@@ -93,7 +93,7 @@ export function androidFadeInFromBottom({ ref, direction, playbackRate }: Animat
 export function androidFadeInFromBottomSheet({ ref, direction, index, playbackRate }: AnimationEffectFactoryProps) {
   let keyframes = androidFadeInFromBottomSheetKeyframes;
   let timing;
-  if (index === 0)
+  if (index === FIRST_INDEX)
     timing = androidBottomSheetSlideOutOptions;
   else
     timing = androidBottomSheetSlideInOptions;
@@ -132,7 +132,7 @@ export function androidFadeInFromRight({ ref, direction, index, playbackRate }: 
     androidFadeInFromRightKeyframes,
   ];
   let timing;
-  if (index === 0)
+  if (index === FIRST_INDEX)
     timing = androidFadeOutToBottomOptions;
   else
     timing = androidFadeInFromBottomOptions;
