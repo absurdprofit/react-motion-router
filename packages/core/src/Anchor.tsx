@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   FIRST_INDEX,
-  LAST_INDEX,
   SINGLE_ELEMENT_LENGTH
 } from './common/constants';
 import { omit } from './common/utils';
@@ -36,6 +35,13 @@ export class Anchor extends React.Component<
 
   private readonly anchorRef = React.createRef<HTMLAnchorElement>();
 
+  private static directionFromRel(rel: string | undefined) {
+    return rel
+      ?.split(' ')
+      .findLast(dir => dir === 'next' || dir === 'prev')
+      ?? 'prev';
+  }
+
   private static findClosestEntryByHref(
     href: string,
     rel: string | undefined,
@@ -53,10 +59,7 @@ export class Anchor extends React.Component<
 
     let left = index - SINGLE_ELEMENT_LENGTH;
     let right = index + SINGLE_ELEMENT_LENGTH;
-    const direction = rel
-      ?.split(' ')
-      .findLast(dir => dir === 'next' || dir === 'prev')
-      ?? 'prev';
+    const direction = Anchor.directionFromRel(rel);
     // if direction is next, prevent searching left
     if (direction === 'next') left = FIRST_INDEX;
     // if direction is prev, prevent searching right
@@ -83,10 +86,7 @@ export class Anchor extends React.Component<
     entries: NavigationHistoryEntry[],
     index: number
   ) {
-    const direction = rel
-      ?.split(' ')
-      .findLast(dir => dir === 'next' || dir === 'prev')
-      ?? 'prev';
+    const direction = Anchor.directionFromRel(rel);
     
     switch (direction) {
       case 'prev':
@@ -119,11 +119,19 @@ export class Anchor extends React.Component<
           ?.entries()
           .find(e => e.key === historyEntryKey);
       } else if (rel) {
-        entry = Anchor.findClosestEntry(
-          rel,
-          window.navigation.entries(),
-          window.navigation.currentEntry?.index ?? FIRST_INDEX
-        );
+        if (href)
+          entry = Anchor.findClosestEntryByHref(
+            href,
+            rel,
+            window.navigation.entries(),
+            window.navigation.currentEntry?.index ?? FIRST_INDEX
+          );
+        else
+          entry = Anchor.findClosestEntry(
+            rel,
+            window.navigation.entries(),
+            window.navigation.currentEntry?.index ?? FIRST_INDEX
+          );
       }
 
       return entry?.url;
@@ -152,31 +160,52 @@ export class Anchor extends React.Component<
 
     const href = this.anchorRef.current?.href;
 
-    if (traverse && href) {
+    // history entry key takes trumps all
+    if (historyEntryKey) {
+      navigation.traverseTo(historyEntryKey, { info });
+      return;
+    }
+
+    if (traverse) {
       const entries = navigation.entries();
-      const entry =
-        Anchor.findClosestEntryByHref(
+      let entry;
+      // if traverse has href hint, use that to find closest entry
+      if (href)
+        entry = Anchor.findClosestEntryByHref(
           href,
           rel,
           entries,
           navigation.currentEntry?.index ?? FIRST_INDEX
         );
+      else // if not, use sibling entry
+        entry = Anchor.findClosestEntry(
+          rel,
+          entries,
+          navigation.currentEntry?.index ?? FIRST_INDEX
+        );
 
-      if (historyEntryKey || entry) {
-        navigation.traverseTo(historyEntryKey || entry!.key, { info });
+      // if we have an entry, then navigate
+      if (entry) {
+        navigation.traverseTo(entry.key, { info });
+        // if not, fall through to replace/reload/push
         return;
       }
     }
 
-    if (replace) {
-      if (href === undefined)
-        return;
+    // only replace if we have a valid href
+    if (replace && href) {
       navigation.navigate(href, { info, state, history: 'replace' });
-    } else if (reload) {
+      // if replace but no href, fall through to reload/push
+      return;
+    }
+    
+    if (reload) {
       navigation.reload({ info, state });
-    } else {
-      if (href === undefined)
-        return;
+      return;
+    }
+    
+    // default: push navigation if we have a valid href
+    if (href) {
       navigation.navigate(href, { info, state });
     }
   };

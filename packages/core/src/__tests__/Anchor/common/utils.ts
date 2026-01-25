@@ -20,6 +20,12 @@ export async function traverseTo(key: string) {
   await res.finished;
 }
 
+export async function traverseToStart() {
+  const firstEntry = window.navigation.entries()[0];
+  const res = window.navigation.traverseTo(firstEntry.key);
+  await res.finished;
+}
+
 export async function seedHistory() {
   await navTo('/one');
   await navTo('/two');

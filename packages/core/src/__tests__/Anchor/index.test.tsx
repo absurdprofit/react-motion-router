@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterAll, beforeAll } from 'vitest';
 import { render, fireEvent, cleanup, act } from '@testing-library/react';
 import { Anchor } from '../../Anchor';
-import { assertNavigationAvailable, installInterceptor, navTo, seedHistory, uninstallInterceptor, waitForNavigateSuccess } from './common/utils';
+import { assertNavigationAvailable, installInterceptor, seedHistory, traverseToStart, uninstallInterceptor, waitForNavigateSuccess } from './common/utils';
 
 
 describe('Anchor', () => {
@@ -10,10 +10,7 @@ describe('Anchor', () => {
     assertNavigationAvailable();
     cleanup();
 
-    // Normalize to a known starting point without growing history too much.
-    // Using replaceState keeps test deterministic; the Navigation API will still exist.
-    globalThis.history.replaceState(null, '', `${location.pathname}/start`);
-    await navTo('/start');
+    await traverseToStart();
   });
   afterAll(uninstallInterceptor);
 
