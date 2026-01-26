@@ -8,12 +8,18 @@ import {
   isValidScreenChild
 } from './common/types';
 import { NestedRouterContext, RouterContext } from './RouterContext';
-import { dispatchEvent, matchRoute, resolveBaseURLFromPattern } from './common/utils';
+import {
+  dispatchEvent,
+  matchRoute,
+  resolveBaseURLFromPattern
+} from './common/utils';
 import { Component, createRef, Children } from 'react';
 import { ScreenBase, ScreenBaseConfig } from './ScreenBase';
 import { LoadEvent } from './common/events';
 
-type ScreenType<T> = T extends ScreenChild<infer S> | ScreenChild<infer S>[] ? S : never;
+type ScreenType<T> = T extends ScreenChild<infer S> | ScreenChild<infer S>[]
+  ? S
+  : never;
 
 export interface RouterBaseConfig {
     screenConfig?: ScreenBaseConfig;
@@ -26,9 +32,11 @@ export interface RouterBaseProps<S extends ScreenBase = ScreenBase> {
     children: ScreenChild<S> | ScreenChild<S>[];
 }
 
-export interface RouterBaseState {}
-
-export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S extends RouterBaseState = RouterBaseState, E extends RouterBaseEventMap = RouterBaseEventMap> extends Component<P, S> {
+export abstract class RouterBase<
+  P extends RouterBaseProps = RouterBaseProps,
+  S extends object = object,
+  E extends RouterBaseEventMap = RouterBaseEventMap
+> extends Component<P, S> {
   protected readonly ref = createRef<RouterHTMLElement<E>>();
   protected screenTransitionLayer = createRef<ScreenTransitionLayer>();
   public abstract readonly navigation: NavigationBase;
@@ -41,7 +49,10 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
   public static readonly contextType = NestedRouterContext;
   public declare context: React.ContextType<typeof NestedRouterContext>;
 
-  constructor(props: P, context: React.ContextType<typeof NestedRouterContext>) {
+  constructor(
+    props: P,
+    context: React.ContextType<typeof NestedRouterContext>
+  ) {
     super(props);
 
     this.parentScreen = context?.parentScreen ?? null;
@@ -54,9 +65,12 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     }
   }
 
-  componentDidMount() {
+  public componentDidMount() {
     if (this.isRoot) {
-      window.navigation.addEventListener('navigate', this.handleNavigationDispatch);
+      window.navigation.addEventListener(
+        'navigate',
+        this.handleNavigationDispatch
+      );
     }
 
     if (!this.loadDispatched) {
@@ -65,16 +79,21 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     }
   }
 
-  componentWillUnmount() {
+  public componentWillUnmount() {
     if (this.isRoot) {
-      window.navigation.removeEventListener('navigate', this.handleNavigationDispatch);
+      window.navigation.removeEventListener(
+        'navigate',
+        this.handleNavigationDispatch
+      );
     }
   }
 
   private handleNavigationDispatch = (e: NavigateEvent) => {
     const activeRouters = [...this.#activeRoutersIter()];
     // travel down router tree to find a router that can intercept
-    const interceptor = activeRouters.findLast(router => router.canIntercept(e));
+    const interceptor = activeRouters.findLast(
+      router => router.canIntercept(e)
+    );
     if (interceptor) {
       interceptor.intercept(e);
       this.hasUAVisualTransition = e.hasUAVisualTransition;
@@ -89,34 +108,67 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     }
   }
 
-  getRouterById(routerId: string, target?: RouterBase): RouterBase | null {
+  public getRouterById(
+    routerId: string,
+    target?: RouterBase
+  ): RouterBase | null {
     const router = target ?? RouterBase.rootRouterRef?.deref();
     if (router!.id === routerId) {
       return router ?? null;
     } else if (router?.child) {
-      return this.getRouterById(routerId, router!.child);
+      return this.getRouterById(routerId, router.child);
     } else {
       return null;
     }
   }
 
-  dispatchEvent(event: Event) {
+  public dispatchEvent(event: Event) {
     const ref = this.ref.current ?? undefined;
     return dispatchEvent(event, ref);
   }
 
-  public addEventListener<K extends keyof E>(type: K, listener: (this: RouterHTMLElement<E>, ev: E[K]) => any, options?: boolean | AddEventListenerOptions): () => void;
-  public addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): () => void;
-  public addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): () => void {
+  public addEventListener<K extends keyof E>(
+    type: K,
+    listener: (
+      this: RouterHTMLElement<E>,
+      ev: E[K]
+    ) => void,
+    options?: boolean | AddEventListenerOptions
+  ): () => void;
+  public addEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | AddEventListenerOptions
+  ): () => void;
+  public addEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | AddEventListenerOptions
+  ): () => void {
     const ref = this.ref.current;
     if (!ref) return () => {};
     ref.addEventListener(type, listener, options);
     return () => ref.removeEventListener(type, listener, options);
   }
 
-  public removeEventListener<K extends keyof E>(type: K, listener: (this: RouterHTMLElement<E>, ev: E[K]) => any, options?: boolean | EventListenerOptions | undefined): void;
-  public removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
-  public removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions) {
+  public removeEventListener<K extends keyof E>(
+    type: K,
+    listener: (
+      this: RouterHTMLElement<E>,
+      ev: E[K]
+    ) => void,
+    options?: boolean | EventListenerOptions | undefined
+  ): void;
+  public removeEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | EventListenerOptions
+  ): void;
+  public removeEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | EventListenerOptions
+  ) {
     return this.ref.current?.removeEventListener(type, listener, options);
   }
 
@@ -152,25 +204,27 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     return Promise.all(preloadTasks).then(() => { return; });
   }
 
-  get id(): string {
+  public get id(): string {
     if (this.props.id) return this.props.id;
     const prefix = this.parent?.id;
     const id = this.parentScreen?.id ?? 'root';
     return [prefix, id].filter(Boolean).join('-');
   }
 
-  get isRoot() {
+  public get isRoot() {
     return !this.parent;
   }
 
-  get baseURL() {
-    const pathname = this.isRoot ? window.location.pathname : this.parentScreen?.resolvedPathname!;
+  public get baseURL() {
+    const pathname = this.isRoot
+      ? window.location.pathname
+      : this.parentScreen!.resolvedPathname;
     const pattern = this.baseURLPattern.pathname;
 
     return resolveBaseURLFromPattern(pattern, pathname)!;
   }
 
-  get baseURLPattern() {
+  public get baseURLPattern() {
     let baseURL = window.location.origin + '/';
     let basePath = this.props.config?.basePath;
     if (!basePath) {
@@ -182,9 +236,15 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     }
 
     if (this.parent && this.parentScreen) {
-      const { resolvedPathname = window.location.pathname, path } = this.parentScreen;
+      const {
+        resolvedPathname = window.location.pathname,
+        path,
+      } = this.parentScreen;
       const parentBaseURL = this.parent.baseURL?.href;
-      const pattern = new URLPattern({ baseURL: parentBaseURL, pathname: path });
+      const pattern = new URLPattern({
+        baseURL: parentBaseURL,
+        pathname: path, 
+      });
       baseURL = resolveBaseURLFromPattern(
         pattern.pathname,
         resolvedPathname
@@ -194,21 +254,24 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     return new URLPattern({ baseURL, pathname: basePath });
   }
 
-  get pathPatterns() {
+  public get pathPatterns() {
     return Children.map(this.props.children, (child) => {
-      return { pattern: child.props.path, caseSensitive: Boolean(child.props.caseSensitive) };
+      return {
+        pattern: child.props.path,
+        caseSensitive: Boolean(child.props.caseSensitive),
+      };
     });
   }
 
-  get mounted() {
+  public get mounted() {
     return Boolean(this.ref.current);
   }
 
-  get child() {
+  public get child() {
     return this.#child?.deref() ?? null;
   }
 
-  set child(child: RouterBase | null) {
+  public set child(child: RouterBase | null) {
     const currentChildRouter = this.#child?.deref();
     if (
       currentChildRouter
@@ -229,7 +292,7 @@ export abstract class RouterBase<P extends RouterBaseProps = RouterBaseProps, S 
     protected abstract intercept(navigateEvent: NavigateEvent): void;
     protected abstract get screens(): P['children'];
 
-    render() {
+    public render() {
       if (!this.navigation) return;
       return (
         <div

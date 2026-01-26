@@ -2,7 +2,9 @@ import { RouterHTMLElement, RouterBaseEventMap } from './common/types';
 import { MetaData } from './MetaData';
 import { RouterBase } from './RouterBase';
 
-export abstract class NavigationBase<E extends RouterBaseEventMap = RouterBaseEventMap> {
+export abstract class NavigationBase<
+  E extends RouterBaseEventMap = RouterBaseEventMap
+  > {
     protected abstract readonly router: RouterBase;
     private static rootNavigatorRef: WeakRef<NavigationBase> | null = null;
     public readonly metaData = new MetaData();
@@ -13,35 +15,65 @@ export abstract class NavigationBase<E extends RouterBaseEventMap = RouterBaseEv
         NavigationBase.rootNavigatorRef = new WeakRef(this);
     }
 
-    public addEventListener<K extends keyof E>(type: K, listener: (this: RouterHTMLElement<E>, ev: E[K]) => any, options?: boolean | AddEventListenerOptions): () => void;
-    public addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): () => void;
-    public addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): () => void {
+    public addEventListener<K extends keyof E>(
+      type: K,
+      listener: (
+        this: RouterHTMLElement<E>,
+        ev: E[K]
+      ) => void,
+      options?: boolean | AddEventListenerOptions
+    ): () => void;
+    public addEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      options?: boolean | AddEventListenerOptions
+    ): () => void;
+    public addEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      options?: boolean | AddEventListenerOptions
+    ): () => void {
       return this.router.addEventListener(type, listener, options);
     }
 
-    public removeEventListener<K extends keyof E>(type: K, listener: (this: RouterHTMLElement<E>, ev: E[K]) => any, options?: boolean | EventListenerOptions | undefined): void
-    public removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-    public removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void {
+    public removeEventListener<K extends keyof E>(
+      type: K,
+      listener: (
+        this: RouterHTMLElement<E>,
+        ev: E[K]
+      ) => void,
+      options?: boolean | EventListenerOptions | undefined
+    ): void
+    public removeEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      options?: boolean | AddEventListenerOptions
+    ): void;
+    public removeEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      options?: boolean | AddEventListenerOptions
+    ): void {
       return this.router.removeEventListener(type, listener, options);
     }
 
-    dispatchEvent(event: Event) {
+    public dispatchEvent(event: Event) {
       return this.router.dispatchEvent?.(event);
     }
 
-    get parent(): NavigationBase | null {
+    public get parent(): NavigationBase | null {
       return this.router.parent?.navigation ?? null;
     }
 
-    get routerId() {
+    public get routerId() {
       return this.router.id;
     }
 
-    get baseURL() {
+    public get baseURL() {
       return this.router.baseURL;
     }
 
-    get baseURLPattern() {
+    public get baseURLPattern() {
       return this.router.baseURLPattern;
     }
 
