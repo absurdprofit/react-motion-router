@@ -32,9 +32,11 @@ export interface RouterBaseProps<S extends ScreenBase = ScreenBase> {
     children: ScreenChild<S> | ScreenChild<S>[];
 }
 
+export type RouterBaseState = object;
+
 export abstract class RouterBase<
   P extends RouterBaseProps = RouterBaseProps,
-  S extends object = object,
+  S extends RouterBaseState = RouterBaseState,
   E extends RouterBaseEventMap = RouterBaseEventMap
 > extends Component<P, S> {
   protected readonly ref = createRef<RouterHTMLElement<E>>();

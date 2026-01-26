@@ -39,7 +39,10 @@ import {
   GestureEndEvent,
   GestureStartEvent
 } from './common/events';
-import { DEFAULT_GESTURE_CONFIG, DEFAULT_PLAYBACK_RATE } from './common/constants';
+import {
+  DEFAULT_GESTURE_CONFIG,
+  DEFAULT_PLAYBACK_RATE
+} from './common/constants';
 import { PromiseWrapper } from './common/promise-wrapper';
 
 export interface RouterConfig extends RouterBaseConfig {
@@ -689,12 +692,13 @@ export class Router extends RouterBase<
     outgoingScreen: React.RefObject<Screen> | null
   ) {
     const { backNavigating } = this;
+    const screenTransitionLayer = this.screenTransitionLayer.current;
     if (
-      this.screenTransitionLayer.current
+      screenTransitionLayer
       && incomingScreen
       && outgoingScreen
     ) {
-      this.screenTransitionLayer.current.direction = backNavigating
+      screenTransitionLayer.direction = backNavigating
         ? 'reverse'
         : 'normal';
       if (incomingScreen.current?.transitionProvider.current) {
@@ -703,19 +707,20 @@ export class Router extends RouterBase<
       if (outgoingScreen.current?.transitionProvider.current) {
         outgoingScreen.current.transitionProvider.current.exiting = true;
       }
+      const sharedElementTransitionLayer = screenTransitionLayer
+        .sharedElementTransitionLayer
+        .current;
       if (
-        this.screenTransitionLayer.current.sharedElementTransitionLayer.current
+        sharedElementTransitionLayer
       ) {
-        this.screenTransitionLayer.current.sharedElementTransitionLayer.current.outgoingScreen =
-          outgoingScreen;
-        this.screenTransitionLayer.current.sharedElementTransitionLayer.current.incomingScreen =
-          incomingScreen;
+        sharedElementTransitionLayer.outgoingScreen = outgoingScreen;
+        sharedElementTransitionLayer.incomingScreen = incomingScreen;
       }
       const topScreenIndex = this.screens.findIndex(
         (screen) =>
           screen.ref === (backNavigating ? outgoingScreen : incomingScreen)
       );
-      this.screenTransitionLayer.current.screens = this.screens
+      screenTransitionLayer.screens = this.screens
         .map((screen, index) => {
           // normalise indices making incoming screen index 1 and preceding screens index 0...-n
           index = index - topScreenIndex + SINGLE_ELEMENT_LENGTH;
@@ -730,7 +735,7 @@ export class Router extends RouterBase<
         })
         .filter(isRefObject);
 
-      return this.screenTransitionLayer.current.transition();
+      return screenTransitionLayer.transition();
     }
   }
 }
