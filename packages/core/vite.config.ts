@@ -35,7 +35,12 @@ export default defineConfig({
     },
     target: 'ES2022',
     rollupOptions: {
-      external: ['react', 'react/jsx-runtime', '@virtualstate/navigation', 'urlpattern-polyfill'],
+      external: [
+        'react',
+        'react/jsx-runtime',
+        '@virtualstate/navigation',
+        'urlpattern-polyfill'
+      ],
       output: {
         entryFileNames: '[name].js',
         dir: 'build',
