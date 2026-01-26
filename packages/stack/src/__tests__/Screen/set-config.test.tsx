@@ -19,6 +19,14 @@ describe('Screen.setConfig', () => {
     onExit: (props) => new Promise(() => props),
     onExited: (props) => new Promise(() => props),
     onLoad: (props) => new Promise(() => props),
+    title: 'Test',
+    gestureAreaWidth: Number(),
+    gestureDirection: 'horizontal',
+    gestureDisabled: true,
+    gestureHysteresis: Number(),
+    gestureMinFlingVelocity: Number(),
+    keepAlive: false,
+    presentation: 'default',
   };
   function TestComponent(props: ScreenComponentProps) {
     const renders = useRef(Number());
@@ -96,7 +104,16 @@ describe('Screen.setConfig', () => {
     expect(window.navigation.updateCurrentEntry)
       .toBeCalledWith({
         state: {
-          config: {},
+          config: {
+            title: 'Test',
+            gestureAreaWidth: Number(),
+            gestureDirection: 'horizontal',
+            gestureDisabled: true,
+            gestureHysteresis: Number(),
+            gestureMinFlingVelocity: Number(),
+            keepAlive: false,
+            presentation: 'default',
+          },
         },
       });
   });

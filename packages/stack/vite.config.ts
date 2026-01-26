@@ -15,8 +15,10 @@ export default defineConfig({
     browser: {
       provider: 'playwright', // or 'webdriverio'
       enabled: true,
-      name: 'chromium', // browser name is required
       headless: process.argv.includes('--run'),
+      instances: [
+        { browser: 'chromium' },
+      ],
     },
     typecheck: {
       tsconfig: resolve(__dirname, 'tsconfig.json'),

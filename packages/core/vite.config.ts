@@ -15,8 +15,10 @@ export default defineConfig({
     browser: {
       provider: 'playwright', // or 'webdriverio'
       enabled: true,
-      name: 'chromium', // browser name is required
       headless: process.argv.includes('--run'),
+      instances: [
+        { browser: 'chromium' },
+      ],
     },
   },
   optimizeDeps: {
@@ -39,7 +41,7 @@ export default defineConfig({
         'react',
         'react/jsx-runtime',
         '@virtualstate/navigation',
-        'urlpattern-polyfill'
+        'urlpattern-polyfill',
       ],
       output: {
         entryFileNames: '[name].js',
