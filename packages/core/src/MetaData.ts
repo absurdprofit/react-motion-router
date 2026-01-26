@@ -148,7 +148,9 @@ export class MetaData {
     if (typeof content === 'string') {
       metaContent = content;
     } else {
-      metaContent = content.map(contentTuple => contentTuple.join('=')).join(', ');
+      metaContent = content
+        .map(contentTuple => contentTuple.join('='))
+        .join(', ');
     }
 
     return metaContent;

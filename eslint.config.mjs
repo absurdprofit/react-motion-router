@@ -4,6 +4,7 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 import reactCompiler from 'eslint-plugin-react-compiler'
+import stylisticJs from '@stylistic/eslint-plugin-js';
 
 export default tseslint.config(
   { ignores: ['**/build/*', '**/wpt/*'] },
@@ -18,6 +19,7 @@ export default tseslint.config(
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
       'react-compiler': reactCompiler,
+      '@stylistic/js': stylisticJs
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
@@ -57,6 +59,13 @@ export default tseslint.config(
           arrays: 'always-multiline',
           objects: 'always-multiline',
         },
+      ],
+      '@stylistic/js/max-len': [
+        'error',
+        {
+          code: 80,
+          ignoreComments: true,
+        }
       ],
     },
   },
