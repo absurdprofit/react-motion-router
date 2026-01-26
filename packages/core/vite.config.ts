@@ -11,7 +11,7 @@ export default defineConfig({
   ],
   test: {
     globals: true,
-    include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    include: ['src/__tests__/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     browser: {
       provider: 'playwright', // or 'webdriverio'
       enabled: true,
