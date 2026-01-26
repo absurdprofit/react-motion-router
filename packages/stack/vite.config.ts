@@ -11,12 +11,19 @@ export default defineConfig({
   ],
   test: {
     globals: true,
-    include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    include: ['{src,__tests__}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     browser: {
       provider: 'playwright', // or 'webdriverio'
       enabled: true,
       name: 'chromium', // browser name is required
       headless: process.argv.includes('--run'),
+    },
+    typecheck: {
+      tsconfig: resolve(__dirname, 'tsconfig.json'),
+      enabled: true,
+      ignoreSourceErrors: false,
+      checker: 'tsc',
+      include: ['{src,__tests__}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     },
   },
   optimizeDeps: {

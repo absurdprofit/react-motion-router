@@ -10,7 +10,7 @@ describe('Screen.setConfig', () => {
     window.dispatchEvent(new Event('--test-update'));
     await new Promise(resolve => requestAnimationFrame(resolve));
   }
-  const config: Partial<ScreenConfig> = {
+  const config: Required<ScreenConfig> = {
     animation: androidScaleFromCentre,
     header: { component: () => null },
     footer: { component: () => null },

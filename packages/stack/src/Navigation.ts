@@ -23,19 +23,19 @@ export class Navigation extends NavigationBase<RouterEventMap> {
     return this.router.preload(pathname, props, options);
   }
 
-  replace(route: string, props: NavigationProps = {}, options: NavigationBaseOptions = {}) {
+  public replace(route: string, props: NavigationProps = {}, options: NavigationBaseOptions = {}) {
     return this.navigate(route, props, { ...options, type: 'replace' });
   }
 
-  push(route: string, props: NavigationProps = {}, options: NavigationBaseOptions = {}) {
+  public push(route: string, props: NavigationProps = {}, options: NavigationBaseOptions = {}) {
     return this.navigate(route, props, { ...options, type: 'push' });
   }
 
-  reload(props: NavigationProps = {}) {
+  public reload(props: NavigationProps = {}) {
     return window.navigation.reload({ state: props });
   }
 
-  traverseTo(key: string, options: NavigationBaseOptions = {}) {
+  public traverseTo(key: string, options: NavigationBaseOptions = {}) {
     const result = window.navigation.traverseTo(key);
     const transition = window.navigation.transition!;
 
@@ -57,7 +57,7 @@ export class Navigation extends NavigationBase<RouterEventMap> {
     return result;
   }
 
-  navigate(
+  public navigate(
     route: string,
     props: NavigationProps = {},
     options: NavigateOptions = {}
@@ -78,7 +78,7 @@ export class Navigation extends NavigationBase<RouterEventMap> {
     return result;
   }
 
-  goBack(options: GoBackOptions = {}) {
+  public goBack(options: GoBackOptions = {}) {
     if (!this.canGoBack()) return;
 
     const result = window.navigation.traverseTo(this.previous.key);
@@ -94,7 +94,7 @@ export class Navigation extends NavigationBase<RouterEventMap> {
     return result;
   }
 
-  goForward(options: GoForwardOptions = {}) {
+  public goForward(options: GoForwardOptions = {}) {
     if (!this.canGoForward()) return;
 
     const result = window.navigation.traverseTo(this.next.key);
@@ -148,15 +148,15 @@ export class Navigation extends NavigationBase<RouterEventMap> {
     );
   }
 
-  get committed() {
+  public get committed() {
     return this.router.committed;
   }
 
-  get transition() {
+  public get transition() {
     return this.router.state.transition;
   }
 
-  get globalEntries() {
+  public get globalEntries() {
     return window.navigation.entries();
   }
 
