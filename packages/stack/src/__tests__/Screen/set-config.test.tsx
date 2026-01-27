@@ -115,4 +115,42 @@ describe('Screen.setConfig', () => {
         },
       });
   });
+
+  // TODO: add merge config test
+  // it('merges with existing config', async () => {
+  //   await act(async () => {
+  //     render(
+  //       <Router>
+  //         <Screen
+  //           path='*'
+  //           component={TestComponent}
+  //           config={{ title: 'hello world' }}
+  //         />
+  //       </Router>
+  //     );
+  //   });
+  //   await act(async () => {
+  //     await update();
+  //   });
+
+  //   expect(
+  //     TestComponentChild
+  //       .mock
+  //       .calls
+  //       .at(LAST_INDEX)
+  //       ?.at(FIRST_INDEX)
+  //   )
+  //     .toMatchObject({
+  //       config: {
+  //         title: 'hello world',
+  //         gestureAreaWidth: Number(),
+  //         gestureDirection: 'horizontal',
+  //         gestureDisabled: true,
+  //         gestureHysteresis: Number(),
+  //         gestureMinFlingVelocity: Number(),
+  //         keepAlive: false,
+  //         presentation: 'default',
+  //       },
+  //     });
+  // });
 });
