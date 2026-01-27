@@ -1,9 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
-import { act, render, screen } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 import { Screen, ScreenComponentProps, ScreenConfig } from '../../Screen';
 import { useEffect, useRef } from 'react';
-import { androidScaleFromCentre } from '../../animation-configs/animation-presets';
+import {
+  androidScaleFromCentre
+} from '../../animation-configs/animation-presets';
 import { Router } from '../../Router';
+import { FIRST_INDEX, LAST_INDEX } from '@react-motion-router/core';
 
 describe('Screen.setConfig', () => {
   async function update() {
@@ -28,6 +31,7 @@ describe('Screen.setConfig', () => {
     keepAlive: false,
     presentation: 'default',
   };
+  const TestComponentChild = vi.fn(() => null);
   function TestComponent(props: ScreenComponentProps) {
     const renders = useRef(Number());
     useEffect(() => {
@@ -40,21 +44,10 @@ describe('Screen.setConfig', () => {
 
     const { route } = props;
 
+    const Child: React.FC<{ config: object }> = TestComponentChild;
+  
     return (
-      <div data-testid='output'>
-        {
-          String(
-            route.config.animation === config.animation
-            && route.config.header?.component === config.header?.component
-            && route.config.footer?.component === config.footer?.component
-            && route.config.onEnter === config.onEnter
-            && route.config.onEntered === config.onEntered
-            && route.config.onExit === config.onExit
-            && route.config.onExited === config.onExited
-            && route.config.onLoad === config.onLoad
-          )
-        }
-      </div>
+      <Child config={route.config} />
     );
   }
   it('does not throw', async () => {
@@ -85,9 +78,14 @@ describe('Screen.setConfig', () => {
       await update();  
     });
     
-    const output = screen.getByTestId('output');
-
-    expect(output.textContent).toBe('true');
+    expect(
+      TestComponentChild
+        .mock
+        .calls
+        .at(LAST_INDEX)
+        ?.at(FIRST_INDEX)
+    )
+      .toMatchObject({ config });
   });
   it('filters out non-cloneable keys', async () => {
     window.navigation.updateCurrentEntry = vi.fn();

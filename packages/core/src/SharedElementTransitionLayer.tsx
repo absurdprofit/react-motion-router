@@ -255,9 +255,9 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
       }}>
         <style>
           {`
-                    .shared-element-layer::backdrop {display: none}
-                    .shared-element-layer[open] {display:grid}
-                `}
+            .shared-element-layer::backdrop {display: none}
+            .shared-element-layer[open] {display:grid}
+          `}
         </style>
       </dialog>
     );

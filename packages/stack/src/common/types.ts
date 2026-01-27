@@ -42,7 +42,7 @@ export interface HistoryEntryState {
 }
 
 export function isRefObject<T>(
-  value?: unknown
+  value?: React.LegacyRef<T>
 ): value is RefObject<T> {
   if (
     value !== null

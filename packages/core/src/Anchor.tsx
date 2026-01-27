@@ -5,7 +5,10 @@ import {
 } from './common/constants';
 import { omit } from './common/utils';
 
-interface AnchorProps extends React.DetailedHTMLProps<React.AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
+interface AnchorProps extends React.DetailedHTMLProps<
+  React.AnchorHTMLAttributes<HTMLAnchorElement>,
+  HTMLAnchorElement
+> {
   href?: string;
   rel?: string;
   historyEntryKey?: string;
@@ -141,7 +144,9 @@ export class Anchor extends React.Component<
     return href;
   }
 
-  private readonly handleClick = (event: React.PointerEvent<HTMLAnchorElement>) => {
+  private readonly handleClick = (
+    event: React.PointerEvent<HTMLAnchorElement>
+  ) => {
     this.props.onClick?.(event);
     if (event.defaultPrevented) return;
     event.preventDefault();

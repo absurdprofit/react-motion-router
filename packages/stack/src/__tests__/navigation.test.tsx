@@ -1,5 +1,5 @@
 import { describe, expect, it, test, vi } from 'vitest';
-import { Navigation } from '../Navigation';
+import { Navigation, NavigationConfig } from '../Navigation';
 import { Router } from '../Router';
 import { act, render, renderHook } from '@testing-library/react';
 import { Screen } from '../Screen';
@@ -22,7 +22,7 @@ function createHistoryEntry(url: string, index: number):  NavigationHistoryEntry
 
 test('entries getter filters out global entries owned by nested routes', () => {
   const navigation = new Navigation({
-    pathPatterns: [
+    getPathPatterns: () => [
       {
         pattern: '.',
         caseSensitive: false,
@@ -41,7 +41,7 @@ test('entries getter filters out global entries owned by nested routes', () => {
       },
     ],
     baseURLPattern: new URLPattern('/', window.location.origin),
-  } as Router);
+  } as NavigationConfig);
 
   {
     // mock history with entries from nested routers
