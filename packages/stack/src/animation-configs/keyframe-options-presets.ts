@@ -1,3 +1,4 @@
+/* eslint-disable no-magic-numbers */
 import { easingToLinear, springToLinear } from 'web-animations-extension';
 
 function easingOut(easing: (t: number) => number): (t: number) => number {

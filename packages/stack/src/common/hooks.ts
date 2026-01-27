@@ -1,8 +1,14 @@
-import { PlainObject, useNavigationBase, useParamsBase, useRouteBase, useRouterBase } from '@react-motion-router/core';
+import {
+  PlainObject,
+  useNavigationBase,
+  useParamsBase,
+  useRouteBase,
+  useRouterBase
+} from '@react-motion-router/core';
 import { Navigation } from '../Navigation';
 import { Router } from '../Router';
 import { RouteProp } from './types';
-import { useDebugValue } from 'react';
+import { RefObject, useDebugValue, useEffect } from 'react';
 
 export function useNavigation() {
   useDebugValue('Stack.Navigation');
@@ -19,7 +25,29 @@ export function useRoute<T extends PlainObject = PlainObject>() {
   return useRouteBase<RouteProp<T>>();
 }
 
-export function useParams<K extends string, S>(key: K, initialParams: S | (() => S)) {
+export function useParams<K extends string, S>(
+  key: K, initialParams: S | (() => S)
+) {
   useDebugValue('Stack.Params');
   return useParamsBase(key, initialParams);
+}
+
+type EventListenerOptions = boolean | AddEventListenerOptions;
+
+export function useEventListener<K extends keyof HTMLElementEventMap>(
+  ref: RefObject<HTMLElement | null>,
+  eventName: K,
+  handler: (event: HTMLElementEventMap[K]) => void,
+  options?: EventListenerOptions
+) {
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
+    element.addEventListener(eventName, handler, options);
+
+    return () => {
+      element.removeEventListener(eventName, handler, options);
+    };
+  }, [ref, eventName, handler, options]);
 }

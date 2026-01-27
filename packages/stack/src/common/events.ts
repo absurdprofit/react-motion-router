@@ -2,13 +2,13 @@ import { GestureEvent } from 'web-gesture-events';
 import { NavigateOptions, NavigationProps } from './types';
 
 export class NavigateEvent extends Event {
-  readonly routerId: string;
-  readonly route: string;
-  readonly props: NavigationProps;
-  readonly navigationType: NonNullable<NavigateOptions['type']>;
-  readonly signal: AbortSignal;
-  readonly committed: Promise<NavigationHistoryEntry>;
-  readonly transition: NavigationTransition;
+  public readonly routerId: string;
+  public readonly route: string;
+  public readonly props: NavigationProps;
+  public readonly navigationType: NonNullable<NavigateOptions['type']>;
+  public readonly signal: AbortSignal;
+  public readonly committed: Promise<NavigationHistoryEntry>;
+  public readonly transition: NavigationTransition;
 
   constructor(
     routerId: string,
@@ -31,12 +31,17 @@ export class NavigateEvent extends Event {
 }
 
 export class BackEvent extends Event {
-  readonly routerId: string;
-  readonly signal: AbortSignal;
-  readonly committed: Promise<NavigationHistoryEntry>;
-  readonly transition: NavigationTransition;
+  public readonly routerId: string;
+  public readonly signal: AbortSignal;
+  public readonly committed: Promise<NavigationHistoryEntry>;
+  public readonly transition: NavigationTransition;
 
-  constructor(routerId: string, signal: AbortSignal, committed: Promise<NavigationHistoryEntry>, transition: NavigationTransition) {
+  constructor(
+    routerId: string,
+    signal: AbortSignal,
+    committed: Promise<NavigationHistoryEntry>,
+    transition: NavigationTransition
+  ) {
     super('back');
     this.routerId = routerId;
     this.signal = signal;
@@ -46,12 +51,17 @@ export class BackEvent extends Event {
 }
 
 export class ForwardEvent extends Event {
-  readonly routerId: string;
-  readonly signal: AbortSignal;
-  readonly committed: Promise<NavigationHistoryEntry>;
-  readonly transition: NavigationTransition;
+  public readonly routerId: string;
+  public readonly signal: AbortSignal;
+  public readonly committed: Promise<NavigationHistoryEntry>;
+  public readonly transition: NavigationTransition;
 
-  constructor(routerId: string, signal: AbortSignal, committed: Promise<NavigationHistoryEntry>, transition: NavigationTransition) {
+  constructor(
+    routerId: string,
+    signal: AbortSignal,
+    committed: Promise<NavigationHistoryEntry>,
+    transition: NavigationTransition
+  ) {
     super('forward');
     this.routerId = routerId;
     this.signal = signal;
@@ -61,7 +71,7 @@ export class ForwardEvent extends Event {
 }
 
 export class GestureStartEvent extends Event {
-  readonly source: GestureEvent;
+  public readonly source: GestureEvent;
 
   constructor(source: GestureEvent) {
     super('gesture-start');
@@ -70,7 +80,7 @@ export class GestureStartEvent extends Event {
 }
 
 export class GestureEndEvent extends Event {
-  readonly source: GestureEvent;
+  public readonly source: GestureEvent;
 
   constructor(source: GestureEvent) {
     super('gesture-end');

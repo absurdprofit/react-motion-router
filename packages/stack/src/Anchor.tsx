@@ -1,8 +1,8 @@
 import { PlainObject } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { NavigateOptions, XOR } from './common/types';
-import { useState, useEffect, useRef, useCallback, RefObject } from 'react';
-import { useNavigation } from './common/hooks';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useEventListener, useNavigation } from './common/hooks';
 import { searchParamsFromObject } from './common/utils';
 import { DEFAULT_PRELOAD_FORCE_THRESHOLD } from './common/constants';
 
@@ -84,26 +84,6 @@ function useIntersection<T extends HTMLElement>(
   }, [observerCallback, options]);
 
   return targetRef;
-}
-
-type EventListenerOptions = boolean | AddEventListenerOptions;
-
-function useEventListener<K extends keyof HTMLElementEventMap>(
-  ref: RefObject<HTMLElement>,
-  eventName: K,
-  handler: (event: HTMLElementEventMap[K]) => void,
-  options?: EventListenerOptions
-) {
-  useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-
-    element.addEventListener(eventName, handler, options);
-
-    return () => {
-      element.removeEventListener(eventName, handler, options);
-    };
-  }, [ref, eventName, handler, options]);
 }
 
 type UseHoverOptions = {

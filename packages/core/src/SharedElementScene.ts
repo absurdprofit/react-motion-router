@@ -12,37 +12,37 @@ export class SharedElementScene {
     this.id = id;
   }
 
-  addNode(node: SharedElement | null) {
+  public addNode(node: SharedElement | null) {
     if (!node) return;
     console.assert(!this.nodes.has(node.id), `Duplicate Shared Element ID: ${node.id} in ${this.id}`);
     this.nodes.set(node.id, node);
   }
 
-  removeNode(_id: string) {
+  public removeNode(_id: string) {
     this.nodes.delete(_id);
   }
 
-  get xRatio() {
+  public get xRatio() {
     const screenRect = this.getScreenRect();
     const xRatio = (screenRect.width / window.innerWidth).toFixed(2);
     return parseFloat(xRatio);
   }
 
-  get yRatio() {
+  public get yRatio() {
     const screenRect = this.getScreenRect();
     const yRatio = (screenRect.height / window.innerHeight).toFixed(2);
     return parseFloat(yRatio);
   }
 
-  get x() {
+  public get x() {
     return this.getScreenRect().x;
   }
 
-  get y() {
+  public get y() {
     return this.getScreenRect().y;
   }
 
-  isEmpty() {
+  public isEmpty() {
     return !this.nodes.size;
   }
 }

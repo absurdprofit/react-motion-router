@@ -1,3 +1,5 @@
+/* eslint-disable no-magic-numbers */
+
 export const SlideInFromRightKeyframes: Keyframe[] = [
   {
     transform: 'translateX(100vw)',

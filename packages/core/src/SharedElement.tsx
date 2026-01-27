@@ -3,73 +3,83 @@ import { SharedElementTransitionType, StyleKeyList } from './common/types';
 import { SharedElementSceneContext } from './SharedElementSceneContext';
 
 interface SharedElementConfig extends OptionalEffectTiming {
-    type?: SharedElementTransitionType;
-    transformOrigin?: React.CSSProperties['transformOrigin'];
-    styles?: StyleKeyList;
-    deepClone?: boolean;
+  type?: SharedElementTransitionType;
+  transformOrigin?: React.CSSProperties['transformOrigin'];
+  styles?: StyleKeyList;
+  deepClone?: boolean;
 }
 
 interface SharedElementProps {
-    id: string;
-    children: React.ReactElement;
-    disabled?: boolean;
-    config?: SharedElementConfig;
+  id: string;
+  children: React.ReactElement;
+  disabled?: boolean;
+  config?: SharedElementConfig;
 }
 
-interface SharedElementState {}
-
-export class SharedElement extends Component<SharedElementProps, SharedElementState> {
+export class SharedElement extends Component<
+  SharedElementProps
+> {
   public readonly ref = createRef<HTMLDivElement>();
-  static readonly contextType = SharedElementSceneContext;
-  declare context: React.ContextType<typeof SharedElementSceneContext>;
+  public static readonly contextType = SharedElementSceneContext;
+  public declare context: React.ContextType<typeof SharedElementSceneContext>;
 
-  componentDidMount(): void {
+  public componentDidMount(): void {
     this.scene.addNode(this);
   }
 
-  componentDidUpdate(prevProps: SharedElementProps) {
+  public componentDidUpdate(prevProps: SharedElementProps) {
     if (this.props.id !== prevProps.id) {
       this.scene.removeNode(prevProps.id.toString());
       this.scene.addNode(this);
     }
   }
 
-  componentWillUnmount(): void {
+  public componentWillUnmount(): void {
     this.scene.removeNode(this.id);
   }
 
-  get styles(): StyleKeyList {
+  public get styles(): StyleKeyList {
     if (this.props.config?.styles) {
       return this.props.config.styles;
     }
     return [];
   }
 
-  get canTransition() {
+  public get canTransition() {
     return !this.props.disabled
-            && this.scene.canTransition;
+      && this.scene.canTransition;
   }
 
-  get scene() {
+  public get scene() {
     return this.context;
   }
 
-  get id() {
+  public get id() {
     return `shared-element-${this.props.id.toString()}`;
   }
 
-  get transitionType(): SharedElementTransitionType {
-    return this.props.config?.type ?? this.scene.previousScene?.nodes.get(this.id)?.transitionType ?? 'morph';
+  public get transitionType(): SharedElementTransitionType {
+    return this.props.config?.type ?? this.scene
+      .previousScene
+      ?.nodes
+      .get(this.id)
+      ?.transitionType ?? 'morph';
   }
 
-  getBoundingClientRect() {
-    return this.ref.current?.firstElementChild?.getBoundingClientRect() ?? new DOMRect();
+  public getBoundingClientRect() {
+    return this.ref
+      .current
+      ?.firstElementChild
+      ?.getBoundingClientRect() ?? new DOMRect();
   }
 
   public clone() {
     if (!this.ref.current) return null;
     const deepClone = this.props.config?.deepClone ?? true;
-    return this.ref.current.firstElementChild?.cloneNode(deepClone) as HTMLElement;
+    return this.ref
+      .current
+      .firstElementChild
+      ?.cloneNode(deepClone) as HTMLElement;
   }
 
   public hide() {
@@ -82,7 +92,7 @@ export class SharedElement extends Component<SharedElementProps, SharedElementSt
     this.ref.current.style.visibility = 'visible';
   }
 
-  render() {
+  public render() {
     return (
       <div
         ref={this.ref}

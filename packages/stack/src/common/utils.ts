@@ -23,7 +23,12 @@ export function deepEquals<T>(obj1: T, obj2: T): boolean {
     return true;
   }
 
-  if (obj1 === null || obj2 === null || typeof obj1 !== 'object' || typeof obj2 !== 'object') {
+  if (
+    obj1 === null
+    || obj2 === null
+    || typeof obj1 !== 'object'
+    || typeof obj2 !== 'object'
+  ) {
     return false;
   }
 

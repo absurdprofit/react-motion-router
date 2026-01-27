@@ -25,7 +25,9 @@ export default defineConfig({
       enabled: true,
       ignoreSourceErrors: false,
       checker: 'tsc',
-      include: ['src/__tests__/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+      include: [
+        'src/__tests__/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+      ],
     },
   },
   optimizeDeps: {
@@ -43,7 +45,12 @@ export default defineConfig({
     },
     target: 'ES2022',
     rollupOptions: {
-      external: ['react', 'react/jsx-runtime', '@react-motion-router/core', 'web-animations-extension'],
+      external: [
+        'react',
+        'react/jsx-runtime',
+        '@react-motion-router/core',
+        'web-animations-extension',
+      ],
       output: {
         entryFileNames: '[name].js',
         dir: 'build',

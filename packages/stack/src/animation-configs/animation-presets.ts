@@ -1,4 +1,7 @@
-import { AnimationEffectFactoryProps, FIRST_INDEX } from '@react-motion-router/core';
+import {
+  AnimationEffectFactoryProps,
+  FIRST_INDEX
+} from '@react-motion-router/core';
 import {
   androidBottomSheetSlideInOptions,
   androidBottomSheetSlideOutOptions,
@@ -24,7 +27,9 @@ import {
   iOSSlideOutToRightKeyframes
 } from './keyframe-presets';
 
-export function iOSSlideInFromRight({ ref, direction, playbackRate, index }: AnimationEffectFactoryProps) {
+export function iOSSlideInFromRight(
+  { ref, direction, playbackRate, index }: AnimationEffectFactoryProps
+) {
   const keyframesPresets = [
     iOSSlideOutToLeftKeyframes,
     iOSSlideInFromRightKeyframes,
@@ -43,7 +48,9 @@ export function iOSSlideInFromRight({ ref, direction, playbackRate, index }: Ani
   return new KeyframeEffect(ref, keyframes, options);
 }
 
-export function iOSSlideInFromLeft({ ref, direction, playbackRate, index }: AnimationEffectFactoryProps) {
+export function iOSSlideInFromLeft(
+  { ref, direction, playbackRate, index }: AnimationEffectFactoryProps
+) {
   const keyframesPresets = [
     iOSSlideOutToRightKeyframes,
     iOSSlideInFromLeftKeyframes,
@@ -62,7 +69,9 @@ export function iOSSlideInFromLeft({ ref, direction, playbackRate, index }: Anim
   return new KeyframeEffect(ref, keyframes, options);
 }
 
-export function iOSSlideInFromBottom({ ref, direction, playbackRate }: AnimationEffectFactoryProps) {
+export function iOSSlideInFromBottom(
+  { ref, direction, playbackRate }: AnimationEffectFactoryProps
+) {
   let keyframes = iOSSlideInFromBottomKeyframes;
   const options: KeyframeEffectOptions = {
     playbackRate,
@@ -76,7 +85,9 @@ export function iOSSlideInFromBottom({ ref, direction, playbackRate }: Animation
   return new KeyframeEffect(ref, keyframes, options);
 }
 
-export function androidFadeInFromBottom({ ref, direction, playbackRate }: AnimationEffectFactoryProps) {
+export function androidFadeInFromBottom(
+  { ref, direction, playbackRate }: AnimationEffectFactoryProps
+) {
   let keyframes = androidFadeInFromBottomKeyframes;
   const options: KeyframeEffectOptions = {
     playbackRate,
@@ -90,7 +101,9 @@ export function androidFadeInFromBottom({ ref, direction, playbackRate }: Animat
   return new KeyframeEffect(ref, keyframes, options);
 }
 
-export function androidFadeInFromBottomSheet({ ref, direction, index, playbackRate }: AnimationEffectFactoryProps) {
+export function androidFadeInFromBottomSheet(
+  { ref, direction, index, playbackRate }: AnimationEffectFactoryProps
+) {
   let keyframes = androidFadeInFromBottomSheetKeyframes;
   let timing;
   if (index === FIRST_INDEX)
@@ -109,7 +122,9 @@ export function androidFadeInFromBottomSheet({ ref, direction, index, playbackRa
   return new KeyframeEffect(ref, keyframes, options);
 }
 
-export function androidRevealFromBottom({ ref, direction, index, playbackRate }: AnimationEffectFactoryProps) {
+export function androidRevealFromBottom(
+  { ref, direction, index, playbackRate }: AnimationEffectFactoryProps
+) {
   const keyframesPresets = [
     androidConcealToBottomKeyframes,
     androidRevealFromBottomKeyframes,
@@ -126,7 +141,9 @@ export function androidRevealFromBottom({ ref, direction, index, playbackRate }:
   return new KeyframeEffect(ref, keyframes, options);
 }
 
-export function androidFadeInFromRight({ ref, direction, index, playbackRate }: AnimationEffectFactoryProps) {
+export function androidFadeInFromRight(
+  { ref, direction, index, playbackRate }: AnimationEffectFactoryProps
+) {
   const keyframesPresets = [
     androidFadeOutToLeftKeyframes,
     androidFadeInFromRightKeyframes,
@@ -150,7 +167,9 @@ export function androidFadeInFromRight({ ref, direction, index, playbackRate }: 
   return new KeyframeEffect(ref, keyframes, options);
 }
 
-export function androidScaleFromCentre({ ref, direction, index, playbackRate }: AnimationEffectFactoryProps) {
+export function androidScaleFromCentre(
+  { ref, direction, index, playbackRate }: AnimationEffectFactoryProps
+) {
   const keyframesPresets = [
     androidScaleToCentreKeyframes,
     androidScaleFromCentreKeyframes,
