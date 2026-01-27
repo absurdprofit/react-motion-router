@@ -134,4 +134,53 @@ describe('Screen.setParams', () => {
         },
       });
   });
+
+  it('survives separate mounts', async () => {
+    const TestComponent = TestComponentFactory({ world: 'hello' });
+    const { unmount } = await act(async () => {
+      return render(
+        <Router>
+          <Screen
+            path='*'
+            component={TestComponent}
+            defaultParams={{ hello: 'world' }}
+          />
+        </Router>
+      );
+    });
+
+    await act(async () => {
+      await update();
+    });
+
+    unmount();
+
+    TestComponentChild.mockReset();
+
+    await act(async () => {
+      render(
+        <Router>
+          <Screen
+            path='*'
+            component={TestComponent}
+            defaultParams={{ hello: 'world' }}
+          />
+        </Router>
+      );
+    });
+
+    expect(
+      TestComponentChild
+        .mock
+        .calls
+        .at(LAST_INDEX)
+        ?.at(FIRST_INDEX)
+    )
+      .toMatchObject({
+        params: {
+          world: 'hello',
+          hello: 'world',
+        },
+      });
+  });
 });

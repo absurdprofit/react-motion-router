@@ -121,7 +121,7 @@ describe('Screen.setConfig', () => {
       presentation: 'default',
     };
     const TestComponent = TestComponentFactory(config);
-    window.navigation.updateCurrentEntry = vi.fn();
+
     await act(async () => {
       render(
         <Router>
@@ -129,22 +129,23 @@ describe('Screen.setConfig', () => {
         </Router>
       );
     });
+
     await act(async () => {
       await update();
     });
-    expect(window.navigation.updateCurrentEntry)
-      .toBeCalledWith({
-        state: {
-          config: {
-            title: 'Test',
-            gestureAreaWidth: Number(),
-            gestureDirection: 'horizontal',
-            gestureDisabled: true,
-            gestureHysteresis: Number(),
-            gestureMinFlingVelocity: Number(),
-            keepAlive: false,
-            presentation: 'default',
-          },
+
+    const state = window.navigation.currentEntry?.getState();
+    expect(state)
+      .toMatchObject({
+        config: {
+          title: 'Test',
+          gestureAreaWidth: Number(),
+          gestureDirection: 'horizontal',
+          gestureDisabled: true,
+          gestureHysteresis: Number(),
+          gestureMinFlingVelocity: Number(),
+          keepAlive: false,
+          presentation: 'default',
         },
       });
   });
@@ -191,6 +192,55 @@ describe('Screen.setConfig', () => {
           gestureHysteresis: Number(),
           gestureMinFlingVelocity: Number(),
           keepAlive: false,
+          presentation: 'default',
+        },
+      });
+  });
+
+  it('survives separate mounts', async () => {
+    const TestComponent = TestComponentFactory({ gestureAreaWidth: Number() });
+    const { unmount } = await act(async () => {
+      return render(
+        <Router>
+          <Screen
+            path='*'
+            component={TestComponent}
+            config={{ presentation: 'default' }}
+          />
+        </Router>
+      );
+    });
+
+    await act(async () => {
+      await update();
+    });
+
+    unmount();
+
+    TestComponentChild.mockReset();
+
+    await act(async () => {
+      render(
+        <Router>
+          <Screen
+            path='*'
+            component={TestComponent}
+            config={{ presentation: 'default' }}
+          />
+        </Router>
+      );
+    });
+
+    expect(
+      TestComponentChild
+        .mock
+        .calls
+        .at(LAST_INDEX)
+        ?.at(FIRST_INDEX)
+    )
+      .toMatchObject({
+        config: {
+          gestureAreaWidth: Number(),
           presentation: 'default',
         },
       });
