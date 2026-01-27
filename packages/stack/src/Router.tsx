@@ -78,7 +78,7 @@ export class Router extends RouterBase<
   RouterState,
   RouterEventMap
 > {
-  public readonly navigation = new Navigation(this);
+  public readonly navigation;
   #committed: PromiseWrapper<NavigationHistoryEntry> | null = null;
 
   constructor(
@@ -86,6 +86,27 @@ export class Router extends RouterBase<
     context: React.ContextType<typeof NestedRouterContext>
   ) {
     super(props, context);
+    this.navigation = new Navigation({
+      addEventListener: this.addEventListener.bind(this),
+      removeEventListener: this.removeEventListener.bind(this),
+      dispatchEvent: this.dispatchEvent.bind(this),
+      parent: this.parent?.navigation ?? null,
+      routerId: this.id,
+      baseURL: this.baseURL,
+      baseURLPattern: this.baseURLPattern,
+      getCommitted: () =>{
+        return this.committed;
+      },
+      getTransition: () => {
+        return this.state.transition;
+      },
+      getPathPatterns: () => {
+        return this.pathPatterns;
+      },
+      preload: this.preload.bind(this),
+      getNavigatorById: (id: string) =>
+        this.getRouterById(id)?.navigation ?? null,
+    });
     const {
       gestureAreaWidth = DEFAULT_GESTURE_CONFIG.gestureAreaWidth,
       gestureDirection = DEFAULT_GESTURE_CONFIG.gestureDirection,
@@ -180,7 +201,7 @@ export class Router extends RouterBase<
   };
 
   private readonly onCurrentEntryChange = () => {
-    this.#committed?.nativeResolve?.(window.navigation.currentEntry!);
+    this.#committed?.resolve?.(window.navigation.currentEntry!);
   };
 
   private readonly onNavigateSuccess = () => {
@@ -189,7 +210,7 @@ export class Router extends RouterBase<
 
   private readonly onNavigateError = ({ error }: ErrorEvent) => {
     if (this.#committed?.state === 'pending')
-      this.#committed.nativeReject?.(error); // TODO: find out what the spec does for cancelled navigations
+      this.#committed.reject?.(error); // TODO: find out what the spec does for cancelled navigations
     this.#committed = null;
   };
 

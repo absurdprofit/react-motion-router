@@ -1,7 +1,9 @@
 import {
   FIRST_INDEX,
   LAST_INDEX,
+  LoadNavigationTransition,
   NavigationBase,
+  NavigationBaseConfig,
   PathPattern,
   SINGLE_ELEMENT_LENGTH,
   matchRoute,
@@ -17,14 +19,26 @@ import {
 } from './common/types';
 import { BackEvent, ForwardEvent, NavigateEvent } from './common/events';
 import { HistoryEntry } from './HistoryEntry';
-import { Router } from './Router';
+
+export interface NavigationConfig extends NavigationBaseConfig<
+  RouterEventMap
+> {
+  preload(
+    pathname: string,
+    props?: NavigationProps,
+    options?: NavigationBaseOptions
+  ): Promise<boolean>;
+  getCommitted(): Promise<NavigationHistoryEntry> | null;
+  getTransition(): NavigationTransition | LoadNavigationTransition | null;
+  getPathPatterns(): PathPattern[];
+}
 
 export class Navigation extends NavigationBase<RouterEventMap> {
-  protected readonly router: Router;
+  private readonly config;
 
-  constructor(router: Router) {
-    super();
-    this.router = router;
+  constructor(config: NavigationConfig) {
+    super(config);
+    this.config = config;
   }
 
   public preload(
@@ -33,7 +47,7 @@ export class Navigation extends NavigationBase<RouterEventMap> {
     options: NavigationBaseOptions = {}
   ) {
     const { pathname } = new URL(route, this.baseURL);
-    return this.router.preload(pathname, props, options);
+    return this.config.preload(pathname, props, options);
   }
 
   public replace(
@@ -203,11 +217,11 @@ export class Navigation extends NavigationBase<RouterEventMap> {
   }
 
   public get committed() {
-    return this.router.committed;
+    return this.config.getCommitted();
   }
 
   public get transition() {
-    return this.router.state.transition;
+    return this.config.getTransition();
   }
 
   public get globalEntries() {
@@ -215,8 +229,8 @@ export class Navigation extends NavigationBase<RouterEventMap> {
   }
 
   public get entries() {
-    const nestedPathPatterns = this.router
-      .pathPatterns
+    const nestedPathPatterns = this.config
+      .getPathPatterns()
       .filter(({ pattern }) => pattern.endsWith('**'));
     let nestedScopePathPattern: PathPattern | null = null;
     let nestedBoundaryReached = false;
