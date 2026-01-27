@@ -36,6 +36,7 @@ describe('Screen.setParams', () => {
 
   beforeEach(() => {
     TestComponentChild.mockReset();
+    window.navigation.updateCurrentEntry({ state: null });
   });
 
   it('throws for non-structured-cloneable objects', async () => {
