@@ -2,6 +2,7 @@ import { ScreenTransitionLayerContext } from './ScreenTransitionLayerContext';
 import { AnimationEffectFactory } from './common/types';
 import { NavigationBase } from './NavigationBase';
 import { Component, ElementType, createRef } from 'react';
+import { FIRST_INDEX } from './common/constants';
 
 interface ScreenTransitionProviderProps {
     id: string;
@@ -16,14 +17,19 @@ interface ScreenTransitionProviderState {
     zIndex: React.CSSProperties['zIndex'];
 }
 
-export class ScreenTransitionProvider extends Component<ScreenTransitionProviderProps, ScreenTransitionProviderState> {
+export class ScreenTransitionProvider extends Component<
+  ScreenTransitionProviderProps,
+  ScreenTransitionProviderState
+> {
   public readonly ref = createRef<HTMLElement>();
-  static readonly contextType = ScreenTransitionLayerContext;
-  declare context: React.ContextType<typeof ScreenTransitionLayerContext>;
-  public index = 0;
+  public static readonly contextType = ScreenTransitionLayerContext;
+  public declare context: React.ContextType<
+    typeof ScreenTransitionLayerContext
+  >;
+  public index = FIRST_INDEX;
   public exiting = false;
 
-  state: ScreenTransitionProviderState = {
+  public state: ScreenTransitionProviderState = {
     zIndex: 'unset',
   };
 
@@ -41,16 +47,28 @@ export class ScreenTransitionProvider extends Component<ScreenTransitionProvider
     }
   };
 
-  componentDidMount() {
-    this.props.navigation.addEventListener('transition-start', this.onAnimationStart);
-    this.props.navigation.addEventListener('transition-end', this.onAnimationEnd);
-    this.props.navigation.addEventListener('transition-cancel', this.onAnimationEnd);
+  public componentDidMount() {
+    this.props
+      .navigation
+      .addEventListener('transition-start', this.onAnimationStart);
+    this.props
+      .navigation
+      .addEventListener('transition-end', this.onAnimationEnd);
+    this.props
+      .navigation
+      .addEventListener('transition-cancel', this.onAnimationEnd);
   }
 
-  componentWillUnmount() {
-    this.props.navigation.removeEventListener('transition-start', this.onAnimationStart);
-    this.props.navigation.removeEventListener('transition-end', this.onAnimationEnd);
-    this.props.navigation.removeEventListener('transition-cancel', this.onAnimationEnd);
+  public componentWillUnmount() {
+    this.props
+      .navigation
+      .removeEventListener('transition-start', this.onAnimationStart);
+    this.props
+      .navigation
+      .removeEventListener('transition-end', this.onAnimationEnd);
+    this.props
+      .navigation
+      .removeEventListener('transition-cancel', this.onAnimationEnd);
   }
 
   public get animationEffect() {
@@ -72,11 +90,11 @@ export class ScreenTransitionProvider extends Component<ScreenTransitionProvider
     }) ?? null;
   }
 
-  setZIndex(zIndex: React.CSSProperties['zIndex']) {
+  public setZIndex(zIndex: React.CSSProperties['zIndex']) {
     return new Promise<void>(resolve => this.setState({ zIndex }, resolve));
   }
 
-  render() {
+  public render() {
     const Element = this.props.renderAs;
     const inert = !this.props.focused ? '' : undefined;
     return (

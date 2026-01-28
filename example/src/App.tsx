@@ -5,7 +5,7 @@ import { isIOS, isPWA } from './common/utils';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './Theme';
 import Navbar from './Components/Navbar';
-import "./App.css";
+import './App.css';
 import { STATIC_ANIMATION } from './common/constants';
 import { animation, slideToStatic } from './animations';
 import { SlidesAnimation } from './Screens/Slides/animations';
@@ -26,7 +26,7 @@ function Routes() {
         gestureDisabled: false,
         gestureMinFlingVelocity: 1000,
         animation,
-        gestureDirection: "horizontal"
+        gestureDirection: 'horizontal',
       },
       initialPathname: '.',
       basePath: '/(react-motion-router/)?',
@@ -52,10 +52,10 @@ function Routes() {
         name="Cards Demo"
         component={Cards}
         config={{
-          title: "Cards Demo",
-          gestureDirection: "right",
+          title: 'Cards Demo',
+          gestureDirection: 'right',
           header: { component: () => <Navbar title="Cards Demo" /> },
-          animation: slideToStatic
+          animation: slideToStatic,
         }}
         fallback={<div className='screen-fallback cards'></div>}
       />
@@ -64,35 +64,35 @@ function Routes() {
         name="Cards Demo 2"
         component={Cards2}
         config={{
-          title: "Cards Demo 2",
-          gestureDirection: "right",
+          title: 'Cards Demo 2',
+          gestureDirection: 'right',
           header: { component: () => <Navbar title="Cards Demo 2" /> },
-          animation: slideToStatic
+          animation: slideToStatic,
         }}
         fallback={<div className='screen-fallback cards-2'></div>}
       />
       <Stack.Screen
-        path={"details"}
+        path={'details'}
         component={Details}
         config={{
           animation: STATIC_ANIMATION,
-          gestureDirection: "down",
+          gestureDirection: 'down',
           gestureAreaWidth: window.innerHeight,
           gestureHysteresis: .3,
           onLoad({ route, preloading, signal }) {
             if (preloading === true) {
-              console.log('Hello preload!')
+              console.log('Hello preload!');
             }
-          }
+          },
         }}
-        defaultParams={{ data: "Default" }}
+        defaultParams={{ data: 'Default' }}
         fallback={<div className='screen-fallback details'></div>}
       />
       <Stack.Screen
-        path={"."}
+        path={'.'}
         component={Home}
         config={{
-          header: { component: () => <Navbar title="React Motion Router" /> }
+          header: { component: () => <Navbar title="React Motion Router" /> },
         }}
         fallback={<div className='screen-fallback home'></div>}
       />
@@ -102,7 +102,7 @@ function Routes() {
         fallback={<div className='screen-fallback tiles'></div>}
         config={{
           header: { component: () => <Navbar title="Tiles" /> },
-          animation: slideToStatic
+          animation: slideToStatic,
         }}
       />
       <Stack.Screen
@@ -111,7 +111,7 @@ function Routes() {
         component={NotFound}
         fallback={<div className='screen-fallback not-found'></div>}
         config={{
-          header: { component: () => <Navbar title="Not Found" /> }
+          header: { component: () => <Navbar title="Not Found" /> },
         }}
       />
     </Stack.Router>

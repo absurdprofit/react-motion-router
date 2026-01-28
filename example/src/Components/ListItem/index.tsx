@@ -9,20 +9,20 @@ interface ListItemProps {
     description: string;
 }
 export default function ListItem(props: ListItemProps) {
-    return (
-        <li role="menuitem">
-            <Anchor href={props.href}>
-                <Button tabIndex={-1}>
-                    <div className="list-item">
-                        <div className="title">
-                            <h2>{props.title}</h2>
-                        </div>
-                        <div className="description">
-                            <p>{props.description}</p>
-                        </div>
-                    </div>
-                </Button>
-            </Anchor>
-        </li>
-    );
+  return (
+    <li role="menuitem">
+      <Anchor href={props.href}>
+        <Button tabIndex={-1}>
+          <div className="list-item">
+            <div className="title">
+              <h2>{props.title}</h2>
+            </div>
+            <div className="description">
+              <p>{props.description}</p>
+            </div>
+          </div>
+        </Button>
+      </Anchor>
+    </li>
+  );
 }

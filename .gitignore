@@ -8,6 +8,10 @@ node_modules
 
 # testing
 /coverage
+coverage/
+**/test/wpt
+**/test/report
+**/__screenshots__
 
 # production
 build
@@ -26,4 +30,3 @@ yarn-debug.log*
 yarn-error.log*
 .tsbuildinfo
 
-coverage/

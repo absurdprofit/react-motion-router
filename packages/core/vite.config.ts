@@ -11,12 +11,14 @@ export default defineConfig({
   ],
   test: {
     globals: true,
-    include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    include: ['src/__tests__/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     browser: {
       provider: 'playwright', // or 'webdriverio'
       enabled: true,
-      name: 'chromium', // browser name is required
       headless: process.argv.includes('--run'),
+      instances: [
+        { browser: 'chromium' },
+      ],
     },
   },
   optimizeDeps: {
@@ -35,7 +37,12 @@ export default defineConfig({
     },
     target: 'ES2022',
     rollupOptions: {
-      external: ['react', 'react/jsx-runtime', '@virtualstate/navigation', 'urlpattern-polyfill'],
+      external: [
+        'react',
+        'react/jsx-runtime',
+        '@virtualstate/navigation',
+        'urlpattern-polyfill',
+      ],
       output: {
         entryFileNames: '[name].js',
         dir: 'build',

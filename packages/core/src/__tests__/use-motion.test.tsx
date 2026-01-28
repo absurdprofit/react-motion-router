@@ -85,13 +85,15 @@ describe('useMotion', () => {
       );
     });
 
-    await MockScreenTransitionLayer
-      .animation
-      .finished
-      .then(() => {
-        return new Promise(requestAnimationFrame);
-      });
-    const RENDER_MAX = 2;
+    await act(async () => {
+      await MockScreenTransitionLayer
+        .animation
+        .finished
+        .then(() => {
+          return new Promise(requestAnimationFrame);
+        });
+    });
+    const RENDER_MAX = 1;
     expect(renders).toBe(RENDER_MAX);
   });
 
@@ -110,12 +112,14 @@ describe('useMotion', () => {
       );
     });
 
-    await MockScreenTransitionLayer
-      .animation
-      .finished
-      .then(() => {
-        return new Promise(requestAnimationFrame);
-      });
+    await act(async () => {
+      await MockScreenTransitionLayer
+        .animation
+        .finished
+        .then(() => {
+          return new Promise(requestAnimationFrame);
+        });
+    });
     const progress = screen.getByText('1');
     expect(progress).toBeDefined();
   });
@@ -136,11 +140,13 @@ describe('useMotion', () => {
     });
 
     // cancel animation
-    await new Promise(resolve => {
-      setTimeout(() => {
-        MockScreenTransitionLayer.animation.cancel();
-        requestAnimationFrame(resolve);
-      }, HALF_ANIMATION_DURATION);
+    await act(async () => {
+      await new Promise(resolve => {
+        setTimeout(() => {
+          MockScreenTransitionLayer.animation.cancel();
+          requestAnimationFrame(resolve);
+        }, HALF_ANIMATION_DURATION);
+      });
     });
     const progress = screen.getByText('1');
     expect(progress).toBeDefined();

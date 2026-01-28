@@ -41,7 +41,6 @@
     "prebuild": "npm run lint",
     "build": "vite build --base=/react-motion-router",
     "preview": "vite preview",
-    "test": "vite test",
     "predeploy": "lerna run build",
     "deploy": "gh-pages -d build"
   },

@@ -18,8 +18,8 @@ export interface ScreenBaseComponentProps<
     R extends RoutePropBase = RoutePropBase,
     N extends NavigationBase = NavigationBase
 > {
-    route: R;
-    navigation: N;
+  readonly route: R;
+  readonly navigation: N;
 }
 
 export type LifecycleProps<R extends RoutePropBase, N extends NavigationBase = NavigationBase> = ({

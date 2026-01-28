@@ -1,150 +1,173 @@
-import { MetaKey, MetaType, MetaTypeKey } from "./common/types";
+import { MetaKey, MetaType } from './common/types';
 
 export class MetaData {
-    #map = new Map<MetaKey, string | undefined>();
-    private mutationObserver: MutationObserver;
+  readonly #map = new Map<MetaKey, string | undefined>();
+  private readonly mutationObserver: MutationObserver;
 
-    constructor() {
-        this.mutationObserver = new MutationObserver(this.observeMutations.bind(this));
-        const {head} = document;
-        this.mutationObserver.observe(head, {
-            childList: true
-        });
+  constructor() {
+    this.mutationObserver = new MutationObserver(
+      this.observeMutations.bind(this)
+    );
+    const { head } = document;
+    this.mutationObserver.observe(head, {
+      childList: true,
+    });
 
-        Array.from(head.querySelectorAll('meta')).forEach(node => {
-            this.mutationObserver.observe(node, {
-                attributes: true
-            });
-        });
+    Array.from(head.querySelectorAll('meta')).forEach(node => {
+      this.mutationObserver.observe(node, {
+        attributes: true,
+      });
+    });
 
-        Array.from(head.querySelectorAll('meta')).forEach(this.metaDataFromNode.bind(this));
+    Array.from(
+      head.querySelectorAll('meta')).forEach(this.metaDataFromNode.bind(this)
+    );
+  }
+
+  public get(key: string | MetaType) {
+    const metaKey = this.formatMetaKey(key);
+
+    const metaContent = this.#map.get(metaKey);
+    if (!metaContent) return undefined;
+
+    let content: string | [string, string][];
+    if (metaContent.includes(',') && metaContent.includes('=')) {
+      content = metaContent
+        .split(/,\s*/)
+        .map(keyVal => keyVal.split('=') as [string, string]);
+    } else {
+      content = metaContent;
     }
 
-    get(key: string | MetaType) {
-        const metaKey = this.getMetaKey(key);
+    return content;
+  }
 
-        const metaContent = this.#map.get(metaKey);
-        if (!metaContent) return undefined;
+  public set(key: string | MetaType, content?: string | [string, string][]) {
+    const metaKey = this.formatMetaKey(key);
+    const metaContent = this.formatMetaContent(content);
 
-        let content: string | [string, string][];
-        if (metaContent.includes(',') && metaContent.includes('=')) {
-            content = metaContent.split(/,\s*/).map(keyVal => keyVal.split('=') as [string, string]);
-        } else {
-            content = metaContent;
-        }
+    this.#map.set(metaKey, metaContent);
+    if (typeof key === 'string')
+      key = ['name', key];
+    this.updateMetaElement(key, metaContent);
+  }
 
-        return content;
-    }
+  public has(key: string | MetaType) {
+    const metaKey = this.formatMetaKey(key);
 
-    set(key: string | MetaType, content?: string | [string, string][]) {
-        const metaKey = this.getMetaKey(key);
-        const metaContent = this.getMetaContent(content);
+    return this.#map.has(metaKey);
+  }
 
-        this.#map.set(metaKey, metaContent);
-        this.updateMetaElement(metaKey, metaContent);
-    }
+  public delete(key: string | MetaType) {
+    const metaKey = this.formatMetaKey(key);
 
-    has(key: string | MetaType) {
-        const metaKey = this.getMetaKey(key);
+    this.#map.delete(metaKey);
+    document.head.querySelector(`meta[${metaKey}]`)?.remove();
+  }
 
-        return this.#map.has(metaKey);
-    }
+  public clear() {
+    document.head.querySelectorAll('meta').forEach(node => node.remove());
+  }
 
-    delete(key: string | MetaType) {
-        const metaKey = this.getMetaKey(key);
+  public entries() {
+    return this.#map.entries();
+  }
 
-        this.#map.delete(metaKey);
-        document.head.querySelector(`meta[${metaKey}]`)?.remove();
-    }
+  public [Symbol.iterator]() {
+    return this.entries();
+  }
 
-    clear() {
-        document.head.querySelectorAll('meta').forEach(node => node.remove());
-    }
-
-    entries() {
-        return this.#map.entries();
-    }
-
-    [Symbol.iterator]() {
-        return this.entries();
-    }
-
-    get size() {
-        return this.#map.size;
-    }
+  public get size() {
+    return this.#map.size;
+  }
     
-    private observeMutations(mutations: MutationRecord[]) {
-        for (const mutation of mutations) {
-            if (mutation.type === 'attributes') {
-                const node = mutation.target;
+  private observeMutations(mutations: MutationRecord[]) {
+    for (const mutation of mutations) {
+      if (mutation.type === 'attributes') {
+        const node = mutation.target;
 
-                this.metaDataFromNode(node as HTMLMetaElement);
-            }
+        this.metaDataFromNode(node as HTMLMetaElement);
+      }
 
-            if (mutation.type !== 'childList') return;
+      if (mutation.type !== 'childList') return;
 
-            mutation.removedNodes.forEach((node) => {
-                if (node.nodeName === 'META') {
-                    const [type] = Array.from((node as HTMLMetaElement).attributes).filter(attribute => attribute.nodeName !== "content");
-                    const metaType: MetaType = [type.nodeName as MetaTypeKey, type.value];
+      mutation.removedNodes.forEach((node) => {
+        if (node.nodeName === 'META') {
+          const type = Array
+            .from((node as HTMLMetaElement).attributes)
+            .find(attribute => attribute.nodeName !== 'content');
+          if (!type) return;
+          if (!type.value) return;
+          const metaType: MetaType = [type.nodeName, type.value];
 
-                    const key = metaType.join('=') as MetaKey;
-                    if (this.#map.has(key)) {
-                        this.#map.delete(key);
-                    }
-                }
-            });
-            mutation.addedNodes.forEach(node => {
-                if (node.nodeName === 'META') {
-                    this.metaDataFromNode(node as HTMLMetaElement);
-                }
-            });
+          const key = this.formatMetaKey(metaType);
+          if (this.#map.has(key)) {
+            this.#map.delete(key);
+          }
         }
-    }
-
-    private metaDataFromNode(node: HTMLMetaElement) {
-        const [type] = Array.from((node as HTMLMetaElement).attributes).filter(attribute => attribute.nodeName !== "content");
-        const [content] = Array.from((node as HTMLMetaElement).attributes).filter(attribute => attribute.nodeName === "content");
-        const metaType: MetaType = [type.nodeName as MetaTypeKey, type.value];
-
-        const key = metaType.join('=') as MetaKey;
-        this.#map.set(key, content?.value);
-    }
-
-    private getMetaKey(key: string | MetaType) {
-        let metaKey: MetaKey;
-        if (typeof key === "string") {
-            metaKey = `name=${key}` as MetaKey;
-        } else {
-            metaKey = key.join('=') as MetaKey;
+      });
+      mutation.addedNodes.forEach(node => {
+        if (node.nodeName === 'META') {
+          this.metaDataFromNode(node as HTMLMetaElement);
         }
+      });
+    }
+  }
 
-        return metaKey;
+  private metaDataFromNode(node: HTMLMetaElement) {
+    const type = Array
+      .from(node.attributes)
+      .find(attribute => attribute.nodeName !== 'content');
+    const content = Array
+      .from(node.attributes)
+      .find(attribute => attribute.nodeName === 'content');
+    if (!type) return;
+    if (!type.value) return;
+    const metaType: MetaType = [type.nodeName, type.value];
+
+    const key = this.formatMetaKey(metaType);
+    this.#map.set(key, content?.value);
+  }
+
+  private formatMetaKey(key: string | MetaType) {
+    let metaKey: MetaKey;
+    if (typeof key === 'string') {
+      metaKey = `name="${key}"` as MetaKey;
+    } else {
+      const [attribute, value] = key;
+      metaKey = `${attribute}="${value}"`;
     }
 
-    private getMetaContent(content: string | [string, string][] | undefined) {
-        if (!content) return undefined;
+    return metaKey;
+  }
 
-        let metaContent: string;
-        if (typeof content === "string") {
-            metaContent = content;
-        } else {
-            metaContent = content.map(contentTuple => contentTuple.join('=')).join(', ');
-        }
+  private formatMetaContent(content: string | [string, string][] | undefined) {
+    if (!content) return undefined;
 
-        return metaContent;
+    let metaContent: string;
+    if (typeof content === 'string') {
+      metaContent = content;
+    } else {
+      metaContent = content
+        .map(contentTuple => contentTuple.join('='))
+        .join(', ');
     }
 
-    private updateMetaElement(key: MetaKey, content?: string) {
-        const meta = document.querySelector(`meta[${key}]`) || document.createElement('meta');
-        const metaType = key.split('=') as MetaType;
+    return metaContent;
+  }
 
-        meta.setAttribute(...metaType);
-        if (content) meta.setAttribute('content', content);
-        else meta.removeAttribute('content');
+  private updateMetaElement(key: MetaType, content?: string) {
+    const meta =
+      document.querySelector(`meta[${this.formatMetaKey(key)}]`)
+      || document.createElement('meta');
 
-        if (!meta.parentElement) {
-            document.head.appendChild(meta);
-        }
+    const [qualifiedName, value] = key;
+    meta.setAttribute(qualifiedName, value);
+    if (content) meta.setAttribute('content', content);
+    else meta.removeAttribute('content');
+
+    if (!meta.parentElement) {
+      document.head.appendChild(meta);
     }
+  }
 }

@@ -28,6 +28,7 @@
         "javascript",
         "typescript",
         "yaml",
+        "typescriptreact"
     ],
     "cSpell.words": [
         "Numberish"

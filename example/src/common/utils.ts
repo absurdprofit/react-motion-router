@@ -14,10 +14,10 @@ export function isIOS() : boolean {
     'iPod Simulator',
     'iPad',
     'iPhone',
-    'iPod'
+    'iPod',
   ].includes(navigator.platform)
   // iPad on iOS 13 detection
-  || (navigator.userAgent.includes("Mac") && "ontouchend" in document)
+  || (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
 }
 
 export const isPWA = () => getPWADisplayMode() === 'standalone';
@@ -28,4 +28,4 @@ export function lerp (v0: number, v1: number, p: number) {
 
 export const getInset = (top: number, right: number, bottom: number, left: number) => {
   return `inset(${top}px ${right}px ${bottom}px ${left}px)`;
-}
+};

@@ -1,35 +1,36 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useCallback } from 'react';
 import { SwipeStartEvent } from 'web-gesture-events';
+import { useEventListener } from './common/hooks';
 
 interface GestureRegionProps extends React.HTMLAttributes<HTMLDivElement> {
     disabled?: boolean;
 }
-export function GestureRegion({disabled, children, ...props}: GestureRegionProps) {
-    const ref = useRef<HTMLDivElement>(null);
+export function GestureRegion(
+  { disabled, children, ...props }: GestureRegionProps
+) {
+  const ref = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        if (disabled) return;
-        const onSwipeStart = (e: SwipeStartEvent) => {
-            e.stopPropagation();
-            e.preventDefault();
-        }
+  const onSwipeStart = useCallback((e: SwipeStartEvent) => {
+    if (disabled) return;
+    e.stopPropagation();
+    e.preventDefault();
+  }, [disabled]);
 
-        ref.current?.addEventListener('swipestart', onSwipeStart);
+  useEventListener(
+    ref,
+    'swipestart',
+    onSwipeStart
+  );
 
-        return () => {
-            ref.current?.removeEventListener('swipestart', onSwipeStart);
-        }
-    }, [ref, disabled]);
-
-    return (
-        <div
-            ref={ref}
-            className="gesture-region"
-            data-disabled={disabled}
-            style={{display: 'contents'}}
-            {...props}
-        >
-            {children}
-        </div>
-    );
+  return (
+    <div
+      ref={ref}
+      className="gesture-region"
+      data-disabled={disabled}
+      style={{ display: 'contents' }}
+      {...props}
+    >
+      {children}
+    </div>
+  );
 }

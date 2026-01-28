@@ -12,36 +12,36 @@ interface TilesState {
 
 
 export default class Tiles extends React.Component<TilesProps, TilesState> {
-    static isFirstLoad = false;
-    state: TilesState = {
-        heroes: Heroes
-    }
+  static isFirstLoad = false;
+  state: TilesState = {
+    heroes: Heroes,
+  };
 
-    componentDidMount() {
-        this.props.navigation.preload('slides');
-        this.props.navigation.transition?.finished.then(() => {
-            if (!Tiles.isFirstLoad) {
-                Tiles.isFirstLoad = true;
-                this.forceUpdate();
-            }
-        });
-    }
+  componentDidMount() {
+    this.props.navigation.preload('slides');
+    this.props.navigation.transition?.finished.then(() => {
+      if (!Tiles.isFirstLoad) {
+        Tiles.isFirstLoad = true;
+        this.forceUpdate();
+      }
+    });
+  }
 
-    render(): React.ReactNode {
-        return (
-            <div className={`tiles ${Tiles.isFirstLoad ? 'loaded' : 'suspense'}`}>
-                <div className="content">
-                    {this.state.heroes.map((hero: Hero, index: number) => {
-                        return (
-                            <Anchor key={index} href="slides" params={{
-                                hero: index
-                            }}>
-                                <Tile navigation={this.props.navigation} hero={hero} />
-                            </Anchor>
-                        );
-                    })}
-                </div>
-            </div>
-        );
-    }
+  render(): React.ReactNode {
+    return (
+      <div className={`tiles ${Tiles.isFirstLoad ? 'loaded' : 'suspense'}`}>
+        <div className="content">
+          {this.state.heroes.map((hero: Hero, index: number) => {
+            return (
+              <Anchor key={index} href="slides" params={{
+                hero: index,
+              }}>
+                <Tile navigation={this.props.navigation} hero={hero} />
+              </Anchor>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
 }

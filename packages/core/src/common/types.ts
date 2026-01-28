@@ -2,7 +2,6 @@ import { isValidElement } from 'react';
 import { ScreenBase, ScreenBaseProps } from '../ScreenBase';
 import {
   MotionProgressEndEvent,
-  MotionProgressEvent,
   MotionProgressStartEvent,
   TransitionCancelEvent,
   TransitionEndEvent,
@@ -26,9 +25,8 @@ export interface AnimationEffectFactoryProps<R extends HTMLElement = HTMLElement
 
 export type AnimationEffectFactory<R extends HTMLElement = HTMLElement> = (props: AnimationEffectFactoryProps<R>) => AnimationEffect;
 
-export type MetaTypeKey = 'http-equiv' | 'name' | 'itemprop' | 'property' | 'charset';
-export type MetaType = [MetaTypeKey, string];
-export type MetaKey = `${MetaTypeKey}=${string}`;
+export type MetaType = [string, string];
+export type MetaKey = `${string}=${string}`;
 
 export interface LazyExoticComponent<T extends React.ComponentType<any>> extends React.LazyExoticComponent<T> {
     load: () => Promise<{ default: T }>;
@@ -59,7 +57,6 @@ export interface RouterBaseEventMap extends HTMLElementEventMap {
     'transition-cancel': TransitionCancelEvent;
     'transition-end': TransitionEndEvent;
     'motion-progress-start': MotionProgressStartEvent;
-    'motion-progress': MotionProgressEvent;
     'motion-progress-end': MotionProgressEndEvent;
 }
 

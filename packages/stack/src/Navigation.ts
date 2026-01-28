@@ -1,63 +1,112 @@
 import {
+  FIRST_INDEX,
+  LAST_INDEX,
+  LoadNavigationTransition,
   NavigationBase,
+  NavigationBaseConfig,
   PathPattern,
-  includesRoute,
+  SINGLE_ELEMENT_LENGTH,
   matchRoute,
   resolveBaseURLFromPattern
 } from '@react-motion-router/core';
-import { GoBackOptions, GoForwardOptions, NavigateOptions, NavigationBaseOptions, NavigationProps, RouterEventMap } from './common/types';
+import {
+  GoBackOptions,
+  GoForwardOptions,
+  NavigateOptions,
+  NavigationBaseOptions,
+  NavigationProps,
+  RouterEventMap
+} from './common/types';
 import { BackEvent, ForwardEvent, NavigateEvent } from './common/events';
 import { HistoryEntry } from './HistoryEntry';
-import { Router } from './Router';
+
+export interface NavigationConfig extends NavigationBaseConfig<
+  RouterEventMap
+> {
+  preload(
+    pathname: string,
+    props?: NavigationProps,
+    options?: NavigationBaseOptions
+  ): Promise<boolean>;
+  getCommitted(): Promise<NavigationHistoryEntry> | null;
+  getTransition(): NavigationTransition | LoadNavigationTransition | null;
+  getPathPatterns(): PathPattern[];
+}
 
 export class Navigation extends NavigationBase<RouterEventMap> {
-  protected readonly router: Router;
+  private readonly config;
 
-  constructor(router: Router) {
-    super();
-    this.router = router;
+  constructor(config: NavigationConfig) {
+    super(config);
+    this.config = config;
   }
 
-  public preload(route: string, props: NavigationProps = {}, options: NavigationBaseOptions = {}) {
+  public preload(
+    route: string,
+    props: NavigationProps = {},
+    options: NavigationBaseOptions = {}
+  ) {
     const { pathname } = new URL(route, this.baseURL);
-    return this.router.preload(pathname, props, options);
+    return this.config.preload(pathname, props, options);
   }
 
-  replace(route: string, props: NavigationProps = {}, options: NavigationBaseOptions = {}) {
+  public replace(
+    route: string,
+    props: NavigationProps = {},
+    options: NavigationBaseOptions = {}
+  ) {
     return this.navigate(route, props, { ...options, type: 'replace' });
   }
 
-  push(route: string, props: NavigationProps = {}, options: NavigationBaseOptions = {}) {
+  public push(
+    route: string,
+    props: NavigationProps = {},
+    options: NavigationBaseOptions = {}
+  ) {
     return this.navigate(route, props, { ...options, type: 'push' });
   }
 
-  reload(props: NavigationProps = {}) {
+  public reload(props: NavigationProps = {}) {
     return window.navigation.reload({ state: props });
   }
 
-  traverseTo(key: string, options: NavigationBaseOptions = {}) {
+  public traverseTo(key: string, options: NavigationBaseOptions = {}) {
     const result = window.navigation.traverseTo(key);
     const transition = window.navigation.transition!;
 
     const fromIndex = transition.from.index;
-    const destinationIndex = window.navigation.entries().findIndex(entry => entry.key === key);
+    const destinationIndex = window.navigation
+      .entries()
+      .findIndex(entry => entry.key === key);
 
     const controller = new AbortController();
-    controller.signal.addEventListener('abort', () => this.traverseTo(transition.from.key), { once: true });
+    controller.signal
+      .addEventListener(
+        'abort',
+        () => this.traverseTo(transition.from.key), { once: true }
+      );
     options.signal?.addEventListener('abort', controller.abort, { once: true });
 
     let event;
     if (fromIndex > destinationIndex) {
-      event = this.createBackEvent(controller.signal, result.committed, transition);
+      event = this.createBackEvent(
+        controller.signal,
+        result.committed,
+        transition
+      );
     } else {
-      event = this.createForwardEvent(controller.signal, result.committed, transition);
+      event = this.createForwardEvent(
+        controller.signal,
+        result.committed,
+        transition
+      );
     }
     this.dispatchEvent?.(event);
 
     return result;
   }
 
-  navigate(
+  public navigate(
     route: string,
     props: NavigationProps = {},
     options: NavigateOptions = {}
@@ -65,46 +114,65 @@ export class Navigation extends NavigationBase<RouterEventMap> {
     const { type: history = 'push' } = options;
 
     const url = new URL(route, this.baseURL);
-    const result = window.navigation.navigate(url.href, { history, state: props });
+    const result = window.navigation
+      .navigate(url.href, { history, state: props });
     const transition = window.navigation.transition!;
 
     const controller = new AbortController();
-    controller.signal.addEventListener('abort', () => this.goBack(), { once: true });
+    controller.signal
+      .addEventListener('abort', () => this.goBack(), { once: true });
     options.signal?.addEventListener('abort', controller.abort, { once: true });
 
-    const event = this.createNavigateEvent(route, props, history, controller.signal, result.committed, transition);
+    const event = this.createNavigateEvent(
+      route,
+      props,
+      history,
+      controller.signal,
+      result.committed,
+      transition
+    );
     this.dispatchEvent?.(event);
 
     return result;
   }
 
-  goBack(options: GoBackOptions = {}) {
+  public goBack(options: GoBackOptions = {}) {
     if (!this.canGoBack()) return;
 
     const result = window.navigation.traverseTo(this.previous.key);
     const transition = window.navigation.transition!;
 
     const controller = new AbortController();
-    controller.signal.addEventListener('abort', () => this.goForward(), { once: true });
+    controller.signal
+      .addEventListener('abort', () => this.goForward(), { once: true });
     options.signal?.addEventListener('abort', controller.abort, { once: true });
 
-    const event = this.createBackEvent(controller.signal, result.committed, transition);
+    const event = this.createBackEvent(
+      controller.signal,
+      result.committed,
+      transition
+    );
     this.dispatchEvent?.(event);
 
     return result;
   }
 
-  goForward(options: GoForwardOptions = {}) {
+  public goForward(options: GoForwardOptions = {}) {
     if (!this.canGoForward()) return;
 
     const result = window.navigation.traverseTo(this.next.key);
     const transition = window.navigation.transition!;
 
     const controller = new AbortController();
-    controller.signal.addEventListener('abort', () => this.goBack(), { once: true });
+    controller.signal
+      .addEventListener('abort', () => this.goBack(), { once: true });
     options.signal?.addEventListener('abort', controller.abort, { once: true });
 
-    const event = this.createForwardEvent(controller.signal, result.committed, transition);
+    const event = this.createForwardEvent(
+      controller.signal,
+      result.committed,
+      transition
+    );
     this.dispatchEvent?.(event);
 
     return result;
@@ -148,33 +216,40 @@ export class Navigation extends NavigationBase<RouterEventMap> {
     );
   }
 
-  get committed() {
-    return this.router.committed;
+  public get committed() {
+    return this.config.getCommitted();
   }
 
-  get transition() {
-    return this.router.state.transition;
+  public get transition() {
+    return this.config.getTransition();
   }
 
-  get globalEntries() {
+  public get globalEntries() {
     return window.navigation.entries();
   }
 
   public get entries() {
-    const nestedPathPatterns = this.router.pathPatterns.filter(({ pattern }) => pattern.endsWith('**'));
+    const nestedPathPatterns = this.config
+      .getPathPatterns()
+      .filter(({ pattern }) => pattern.endsWith('**'));
     let nestedScopePathPattern: PathPattern | null = null;
     let nestedBoundaryReached = false;
     return this.globalEntries
       .filter(entry => {
         if (!entry.url) return false;
         const url = new URL(entry.url);
-        const resolvedBaseURL = resolveBaseURLFromPattern(this.baseURLPattern.pathname, url.pathname);
+        const resolvedBaseURL = resolveBaseURLFromPattern(
+          this.baseURLPattern.pathname, url.pathname
+        );
         if (!resolvedBaseURL)
           return false;
 
         if (nestedScopePathPattern) {
           // we're in a nested scope, check if the current URL is also apart of the same scope and exit.
-          const nestedBaseURLPattern = new URLPattern(nestedScopePathPattern.pattern, resolvedBaseURL.href);
+          const nestedBaseURLPattern = new URLPattern(
+            nestedScopePathPattern.pattern,
+            resolvedBaseURL.href
+          );
           if (
             matchRoute(
               url.pathname,
@@ -207,39 +282,56 @@ export class Navigation extends NavigationBase<RouterEventMap> {
       });
   }
 
-  get index() {
-    const globalCurrentIndex = window.navigation.currentEntry?.index ?? -1;
-    const firstEntryGlobalIndex = this.entries.at(0)?.globalIndex ?? -1;
-    const lastEntryGlobalIndex = this.entries.at(-1)?.globalIndex ?? -1;
+  public get index() {
+    const globalCurrentIndex = window.navigation
+      .currentEntry
+      ?.index ?? LAST_INDEX;
+    const firstEntryGlobalIndex = this.entries
+      .at(FIRST_INDEX)
+      ?.globalIndex ?? LAST_INDEX;
+    const lastEntryGlobalIndex = this.entries
+      .at(LAST_INDEX)
+      ?.globalIndex ?? LAST_INDEX;
     if (globalCurrentIndex <= firstEntryGlobalIndex)
-      return 0;
+      return FIRST_INDEX;
     else if (globalCurrentIndex >= lastEntryGlobalIndex)
-      return this.entries.length - 1;
+      return this.entries.length - SINGLE_ELEMENT_LENGTH;
     else {
-      const scopedEntries = this.globalEntries.slice(firstEntryGlobalIndex, globalCurrentIndex + 1);
+      const scopedEntries = this.globalEntries
+        .slice(
+          firstEntryGlobalIndex,
+          globalCurrentIndex + SINGLE_ELEMENT_LENGTH
+        );
       return this.entries.findLastIndex(entry => {
-        return scopedEntries.findLastIndex(globalEntry => entry.key === globalEntry.key) > -1;
+        return scopedEntries
+          .findLastIndex(
+            globalEntry => entry.key === globalEntry.key
+          ) > LAST_INDEX;
       });
     }
   }
 
-  get previous(): HistoryEntry | null {
-    return this.entries[this.index - 1] ?? null;
+  public get previous(): HistoryEntry | null {
+    return this.entries[this.index - SINGLE_ELEMENT_LENGTH] ?? null;
   }
 
-  get next(): HistoryEntry | null {
-    return this.entries[this.index + 1] ?? null;
+  public get next(): HistoryEntry | null {
+    return this.entries[this.index + SINGLE_ELEMENT_LENGTH] ?? null;
   }
 
-  get current() {
+  public get current() {
     return this.entries[this.index];
   }
 
-  canGoBack(this: Navigation): this is Navigation & { previous: HistoryEntry } {
+  public canGoBack(
+    this: Navigation
+  ): this is Navigation & { previous: HistoryEntry } {
     return Boolean(this.previous?.sameDocument);
   }
 
-  canGoForward(this: Navigation): this is Navigation & { next: HistoryEntry } {
+  public canGoForward(
+    this: Navigation
+  ): this is Navigation & { next: HistoryEntry } {
     return Boolean(this.next?.sameDocument);
   }
 }

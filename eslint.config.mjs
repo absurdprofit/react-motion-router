@@ -1,23 +1,25 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import tseslint from 'typescript-eslint'
-import reactCompiler from 'eslint-plugin-react-compiler'
+import js from '@eslint/js';
+import globals from 'globals';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+import tseslint from 'typescript-eslint';
+import reactCompiler from 'eslint-plugin-react-compiler';
+import stylisticJs from '@stylistic/eslint-plugin-js';
 
 export default tseslint.config(
-  { ignores: ['dist'] },
+  { ignores: ['**/build/*', '**/wpt/*'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
-      ecmaVersion: 2020,
+      ecmaVersion: 2022,
       globals: globals.browser,
     },
     plugins: {
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
       'react-compiler': reactCompiler,
+      '@stylistic/js': stylisticJs
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
@@ -57,6 +59,13 @@ export default tseslint.config(
           arrays: 'always-multiline',
           objects: 'always-multiline',
         },
+      ],
+      '@stylistic/js/max-len': [
+        'error',
+        {
+          code: 80,
+          ignoreComments: true,
+        }
       ],
     },
   },

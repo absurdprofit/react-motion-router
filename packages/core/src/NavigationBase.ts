@@ -1,55 +1,82 @@
 import { RouterHTMLElement, RouterBaseEventMap } from './common/types';
 import { MetaData } from './MetaData';
-import { RouterBase } from './RouterBase';
 
-export abstract class NavigationBase<E extends RouterBaseEventMap = RouterBaseEventMap> {
-    protected abstract readonly router: RouterBase;
-    private static rootNavigatorRef: WeakRef<NavigationBase> | null = null;
-    public readonly metaData = new MetaData();
+export interface NavigationBaseConfig<
+  E extends RouterBaseEventMap = RouterBaseEventMap
+> {
+  addEventListener<K extends keyof E>(
+      type: K,
+      listener: (
+        this: RouterHTMLElement<E>,
+        ev: E[K]
+      ) => void,
+      options?: boolean | AddEventListenerOptions
+    ): () => void;
+  addEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      options?: boolean | AddEventListenerOptions
+    ): () => void;
+  addEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | AddEventListenerOptions
+  ): () => void;
+  removeEventListener<K extends keyof E>(
+      type: K,
+      listener: (
+        this: RouterHTMLElement<E>,
+        ev: E[K]
+      ) => void,
+      options?: boolean | EventListenerOptions | undefined
+    ): void
+  removeEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      options?: boolean | AddEventListenerOptions
+    ): void;
+  removeEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | AddEventListenerOptions
+  ): void;
+  dispatchEvent(event: Event): Promise<boolean>;
+  parent: NavigationBase | null;
+  routerId: string;
+  baseURL: URL;
+  baseURLPattern: URLPattern;
+  getNavigatorById(routerId: string): NavigationBase | null;
+}
 
-    constructor() {
-      const rootNavigator = NavigationBase.rootNavigatorRef?.deref();
-      if (!rootNavigator || !rootNavigator.isInDocument)
-        NavigationBase.rootNavigatorRef = new WeakRef(this);
-    }
+export abstract class NavigationBase<
+  E extends RouterBaseEventMap = RouterBaseEventMap
+> {
+  private static rootNavigatorRef: WeakRef<NavigationBase> | null = null;
+  public readonly metaData = new MetaData();
+  public readonly addEventListener;
+  public readonly removeEventListener;
+  public readonly dispatchEvent;
+  public readonly parent;
+  public readonly routerId;
+  public readonly baseURL;
+  public readonly baseURLPattern;
+  public readonly getNavigatorById;
 
-    public addEventListener<K extends keyof E>(type: K, listener: (this: RouterHTMLElement<E>, ev: E[K]) => any, options?: boolean | AddEventListenerOptions): () => void;
-    public addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): () => void;
-    public addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): () => void {
-      return this.router.addEventListener(type, listener, options);
-    }
+  constructor(config: NavigationBaseConfig<E>) {
+    const rootNavigator = NavigationBase.rootNavigatorRef?.deref();
+    if (!rootNavigator || !rootNavigator.isInDocument)
+      NavigationBase.rootNavigatorRef = new WeakRef(this);
+    this.addEventListener = config.addEventListener;
+    this.removeEventListener = config.removeEventListener;
+    this.dispatchEvent = config.dispatchEvent;
+    this.parent = config.parent;
+    this.routerId = config.routerId;
+    this.baseURL = config.baseURL;
+    this.baseURLPattern = config.baseURLPattern;
+    this.getNavigatorById = config.getNavigatorById;
+  }
 
-    public removeEventListener<K extends keyof E>(type: K, listener: (this: RouterHTMLElement<E>, ev: E[K]) => any, options?: boolean | EventListenerOptions | undefined): void
-    public removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-    public removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void {
-      return this.router.removeEventListener(type, listener, options);
-    }
-
-    dispatchEvent(event: Event) {
-      return this.router.dispatchEvent?.(event);
-    }
-
-    get parent(): NavigationBase | null {
-      return this.router.parent?.navigation ?? null;
-    }
-
-    get routerId() {
-      return this.router.id;
-    }
-
-    get baseURL() {
-      return this.router.baseURL;
-    }
-
-    get baseURLPattern() {
-      return this.router.baseURLPattern;
-    }
-
-    public getNavigatorById(routerId: string) {
-      return this.router.getRouterById(routerId)?.navigation ?? null;
-    }
-
-    private get isInDocument() {
-      return Boolean(document.getElementById(`${this.routerId}`));
-    }
+  private get isInDocument() {
+    return Boolean(document.getElementById(`${this.routerId}`));
+  }
 }

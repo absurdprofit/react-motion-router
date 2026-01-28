@@ -1,12 +1,25 @@
 import { matchRoute, ScreenBase } from '@react-motion-router/core';
-import type { PlainObject, ScreenBaseProps, ScreenBaseState, ScreenBaseComponentProps, ScreenBaseConfig } from '@react-motion-router/core';
+import type {
+  PlainObject,
+  ScreenBaseProps,
+  ScreenBaseState,
+  ScreenBaseComponentProps,
+  ScreenBaseConfig
+} from '@react-motion-router/core';
 import { Navigation } from './Navigation';
-import { HistoryEntryState, RouteProp, ScreenInternalProps, SwipeDirection } from './common/types';
+import {
+  HistoryEntryState,
+  RouteProp,
+  ScreenInternalProps,
+  SwipeDirection
+} from './common/types';
 import { Router } from './Router';
 import { searchParamsToObject } from './common/utils';
 import { HistoryEntry } from './HistoryEntry';
 
-export type ScreenComponentProps<T extends PlainObject = object> = ScreenBaseComponentProps<RouteProp<T>, Navigation>;
+export type ScreenComponentProps<
+  T extends PlainObject = object
+> = ScreenBaseComponentProps<RouteProp<T>, Navigation>;
 
 export interface ScreenConfig extends ScreenBaseConfig<RouteProp> {
   readonly title?: string;
@@ -23,14 +36,20 @@ export interface ScreenProps extends ScreenBaseProps {
     config?: ScreenConfig;
 }
 
-export class Screen extends ScreenBase<ScreenProps, ScreenBaseState, RouteProp> {
+export class Screen extends ScreenBase<
+  ScreenProps,
+  ScreenBaseState,
+  RouteProp
+> {
   readonly #historyEntry: HistoryEntry;
 
   constructor(props: ScreenProps, router: Router) {
     super(props, router);
 
     const id = this.internalProps.id;
-    const historyEntry = router.navigation.entries.find(entry => entry.key === id);
+    const historyEntry = router.navigation
+      .entries
+      .find(entry => entry.key === id);
     if (!historyEntry)
       throw new Error(`No history entry found for: ${id}`);
     this.#historyEntry = historyEntry;
@@ -48,7 +67,9 @@ export class Screen extends ScreenBase<ScreenProps, ScreenBaseState, RouteProp> 
 
   protected setParams(newParams: PlainObject): void {
     super.setParams(newParams);
-    this.setHistoryState(({ params }) => ({ params: { ...params, ...newParams } }));
+    this.setHistoryState(
+      ({ params }) => ({ params: { ...params, ...newParams } })
+    );
   }
 
   protected setConfig(newConfig: NonNullable<ScreenProps['config']>): void {
@@ -145,7 +166,9 @@ export class Screen extends ScreenBase<ScreenProps, ScreenBaseState, RouteProp> 
     };
   }
 
-  protected setHistoryState(newState: PlainObject | ((prevState: PlainObject) => PlainObject)) {
+  protected setHistoryState(
+    newState: PlainObject | ((prevState: PlainObject) => PlainObject)
+  ) {
     if (!this.state.focused) return;
     const prevState = this.#historyEntry.getState<HistoryEntryState>() ?? {};
     if (newState instanceof Function) {
@@ -161,37 +184,33 @@ export class Screen extends ScreenBase<ScreenProps, ScreenBaseState, RouteProp> 
   private onClickOutside(e: MouseEvent) {
     if (!this.transitionProvider.current?.ref.current) return;
     const navigation = this.context?.navigation as Navigation | undefined;
-    const rect = this.transitionProvider.current.ref.current.getBoundingClientRect();
-    const isInDialog = (
-      rect.top <= e.clientY
-            && e.clientY <= rect.top + rect.height
-            && rect.left <= e.clientX
-            && e.clientX <= rect.left + rect.width
-    );
-    if (!isInDialog)
-      navigation?.goBack();
+    if (
+      e.composedPath().includes(this.transitionProvider.current.ref.current)
+    ) return;
+    navigation?.goBack();
   }
 
   public onEnter(signal: AbortSignal) {
+    const transitionProviderRef = this.transitionProvider.current?.ref;
     if (
-      this.transitionProvider.current?.ref.current instanceof HTMLDialogElement
-            && this.transitionProvider.current.ref.current.open === false
+      transitionProviderRef?.current instanceof HTMLDialogElement
+      && transitionProviderRef.current.open === false
     ) {
       const navigation = this.context?.navigation as Navigation | undefined;
       if (this.props.config?.presentation === 'modal') {
-        this.transitionProvider.current.ref.current.showModal();
+        transitionProviderRef.current.showModal();
       } else {
-        this.transitionProvider.current.ref.current.show();
+        transitionProviderRef.current.show();
       }
-      this.transitionProvider.current.ref.current.style.maxHeight = 'unset';
-      this.transitionProvider.current.ref.current.style.maxWidth = 'unset';
-      this.transitionProvider.current.ref.current.style.width = 'max-content';
-      this.transitionProvider.current.ref.current.style.height = 'max-content';
+      transitionProviderRef.current.style.maxHeight = 'unset';
+      transitionProviderRef.current.style.maxWidth = 'unset';
+      transitionProviderRef.current.style.width = 'max-content';
+      transitionProviderRef.current.style.height = 'max-content';
 
       const onClickOutside = this.onClickOutside.bind(this);
 
       // closed by form submit or ESC key
-      this.transitionProvider.current?.ref.current.addEventListener('close', function () {
+      transitionProviderRef.current.addEventListener('close', function () {
         if (this.returnValue !== 'screen-exit') {
           this.style.display = 'block';
           navigation?.goBack();
@@ -207,8 +226,9 @@ export class Screen extends ScreenBase<ScreenProps, ScreenBaseState, RouteProp> 
   };
 
   public onExited(signal: AbortSignal) {
-    if (this.transitionProvider.current?.ref.current instanceof HTMLDialogElement) {
-      this.transitionProvider.current.ref.current.close('screen-exit');
+    const transitionProviderRef = this.transitionProvider.current?.ref;
+    if (transitionProviderRef?.current instanceof HTMLDialogElement) {
+      transitionProviderRef.current.close('screen-exit');
     }
 
     return super.onExited(signal);
