@@ -48,7 +48,6 @@ export class TestRouter extends RouterBase {
 
   protected get screens() {
     return this.state.screens;
-    // return this.props.children;
   }
 
   protected intercept(e: NavigateEvent): void {
