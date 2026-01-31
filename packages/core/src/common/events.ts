@@ -1,5 +1,6 @@
+import { SINGLE_ELEMENT_LENGTH } from './constants';
 import { LoadNavigationTransition } from './types';
-import { PromiseAllDynamic } from './utils';
+import { PromiseAllSequential } from './utils';
 
 export class TransitionStartEvent extends Event {
   constructor() {
@@ -31,7 +32,10 @@ export class MotionProgressEndEvent extends Event {
   }
 }
 
-export class LoadEvent extends Event implements Omit<NavigateEvent, 'navigationType' | 'commit'> {
+export class LoadEvent extends Event implements Omit<
+  NavigateEvent,
+  'navigationType' | 'commit'
+> {
   #navigationType = 'load' as const;
   #userInitiated: boolean = false;
   #canIntercept: boolean = true;
@@ -62,7 +66,11 @@ export class LoadEvent extends Event implements Omit<NavigateEvent, 'navigationT
     };
 
     this.#signal = this.#abortable.signal;
-    window.navigation.addEventListener('navigate', this.#onNavigate, { signal: this.#signal });
+    window.navigation.addEventListener(
+      'navigate',
+      this.#onNavigate,
+      { signal: this.#signal }
+    );
   }
 
   #onNavigate = (e: Event) => {
@@ -85,8 +93,8 @@ export class LoadEvent extends Event implements Omit<NavigateEvent, 'navigationT
     }
     const thenable = options?.handler?.();
     if (thenable) this.#thenables.push(thenable);
-    if (this.#thenables.length === 1) {
-      PromiseAllDynamic(this.#thenables).then(() => {
+    if (this.#thenables.length === SINGLE_ELEMENT_LENGTH) {
+      PromiseAllSequential(this.#thenables).then(() => {
         this.#intercepted = true;
         window.removeEventListener('navigate', this.#onNavigate);
         finish?.();

@@ -1,7 +1,14 @@
 import { describe, it, expect, beforeEach, afterAll, beforeAll } from 'vitest';
 import { render, fireEvent, cleanup, act } from '@testing-library/react';
 import { Anchor } from '../../Anchor';
-import { assertNavigationAvailable, installInterceptor, seedHistory, traverseToStart, uninstallInterceptor, waitForNavigateSuccess } from './common/utils';
+import {
+  assertNavigationAvailable,
+  installInterceptor,
+  seedHistory,
+  traverseToStart,
+  uninstallInterceptor,
+  waitForNavigateSuccess
+} from '../../common/test-utils';
 
 
 describe('Anchor', () => {

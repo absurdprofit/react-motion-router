@@ -1,4 +1,11 @@
-import { Component, ElementType, Suspense, cloneElement, createRef, isValidElement } from 'react';
+import {
+  Component,
+  ElementType,
+  Suspense,
+  cloneElement,
+  createRef,
+  isValidElement
+} from 'react';
 import { ScreenTransitionProvider } from './ScreenTransitionProvider';
 import {
   AnimationEffectFactory,
@@ -22,15 +29,28 @@ export interface ScreenBaseComponentProps<
   readonly navigation: N;
 }
 
-export type LifecycleProps<R extends RoutePropBase, N extends NavigationBase = NavigationBase> = ({
+export type LifecycleProps<
+  R extends RoutePropBase,
+  N extends NavigationBase = NavigationBase
+> = ({
     signal: AbortSignal;
     preloading: false;
-} & ScreenBaseComponentProps<R, N>) | ({
+  } & ScreenBaseComponentProps<R, N>)
+  | ({
     signal?: AbortSignal;
     preloading: true;
-} & Omit<ScreenBaseComponentProps<R, N>, 'route'> & { route: Omit<ScreenBaseComponentProps<R, N>['route'], 'setParams' | 'setConfig'>});
+  } & Omit<ScreenBaseComponentProps<R, N>, 'route'>
+    & {
+        route: Omit<
+          ScreenBaseComponentProps<R, N>['route'],
+          'setParams' | 'setConfig'
+        >
+      });
 
-export interface ScreenBaseConfig<R extends RoutePropBase = RoutePropBase, N extends NavigationBase = NavigationBase> {
+export interface ScreenBaseConfig<
+  R extends RoutePropBase = RoutePropBase,
+  N extends NavigationBase = NavigationBase
+> {
   readonly header?: {
       fallback?: React.ReactNode;
       component: React.JSXElementConstructor<any> | LazyExoticComponent<any>
@@ -48,20 +68,23 @@ export interface ScreenBaseConfig<R extends RoutePropBase = RoutePropBase, N ext
 }
 
 export interface ScreenBaseProps {
-    path: string;
-    component: React.JSXElementConstructor<any> | LazyExoticComponent<any>;
-    fallback?: React.ReactNode;
-    name?: string;
-    defaultParams?: PlainObject;
-    caseSensitive?: boolean;
-    config?: ScreenBaseConfig;
+  path: string;
+  component: React.JSXElementConstructor<any> | LazyExoticComponent<any>;
+  fallback?: React.ReactNode;
+  name?: string;
+  defaultParams?: PlainObject;
+  caseSensitive?: boolean;
+  config?: ScreenBaseConfig;
 }
 
-export interface ScreenBaseState<C extends ScreenBaseProps['config'] = ScreenBaseProps['config'], P extends PlainObject = PlainObject> {
-    focused: boolean;
-    config: C;
-    params: P;
-    elementType: ElementType;
+export interface ScreenBaseState<
+  C extends ScreenBaseProps['config'] = ScreenBaseProps['config'],
+  P extends PlainObject = PlainObject
+> {
+  focused: boolean;
+  config: C;
+  params: P;
+  elementType: ElementType;
 }
 
 export abstract class ScreenBase<
@@ -73,10 +96,10 @@ export abstract class ScreenBase<
   #transitionProvider = createRef<ScreenTransitionProvider>();
   protected readonly ref = createRef<HTMLDivElement>();
   protected readonly nestedRouterData;
-  static readonly contextType = RouterContext;
-  declare context: React.ContextType<typeof RouterContext>;
+  public static readonly contextType = RouterContext;
+  public declare context: React.ContextType<typeof RouterContext>;
 
-  state: S = {
+  public state: S = {
     focused: false,
     config: {},
     params: {},
@@ -86,9 +109,16 @@ export abstract class ScreenBase<
   constructor(props: P, context: React.ContextType<typeof RouterContext>) {
     super(props);
 
-    this.sharedElementScene = new SharedElementScene(`${this.name}-shared-element-scene`);
-    this.sharedElementScene.getScreenRect = () => this.ref.current?.getBoundingClientRect() || new DOMRect();
-    this.nestedRouterData = { parentScreen: this as ScreenBase, parentRouter: context };
+    this.sharedElementScene = new SharedElementScene(
+      `${this.name}-shared-element-scene`
+    );
+    this.sharedElementScene.getScreenRect = () => {
+      return this.ref.current?.getBoundingClientRect() || new DOMRect();
+    };
+    this.nestedRouterData = {
+      parentScreen: this as ScreenBase,
+      parentRouter: context,
+    };
   }
 
   protected setParams(newParams: PlainObject) {
@@ -99,7 +129,7 @@ export abstract class ScreenBase<
     this.setState(({ config }) => ({ config: { ...config, ...newConfig } }));
   }
 
-  get focused() {
+  public get focused() {
     return this.state.focused;
   }
 
@@ -108,22 +138,26 @@ export abstract class ScreenBase<
       return this.props.name
         .toLowerCase()
         .replace(/[^\w-]/g, '-') // Remove non-alphanumeric chars
-        .replace(/-+/g, '-') // Replace multiple hyphens with a single onef
+        .replace(/-+/g, '-') // Replace multiple hyphens with a single one
         .replace(/^-|-$/g, ''); // Remove leading and trailing hyphens;
     else if (isLazyExoticComponent(this.props.component))
       return this.props.component.module?.default.name.toLowerCase();
     return this.props.component.name.toLowerCase();
   }
 
-  blur() {
-    return new Promise<void>(resolve => this.setState({ focused: false }, resolve));
+  public blur() {
+    return new Promise<void>(resolve => {
+      this.setState({ focused: false }, resolve);
+    });
   }
 
-  focus() {
-    return new Promise<void>(resolve => this.setState({ focused: true }, resolve));
+  public focus() {
+    return new Promise<void>(resolve => {
+      this.setState({ focused: true }, resolve);
+    });
   }
 
-  async load(signal: AbortSignal) {
+  public async load(signal: AbortSignal) {
     const Component = this.props.component;
     const HeaderComponent = this.props.config?.header?.component;
     const FooterComponent = this.props.config?.footer?.component;
@@ -143,18 +177,21 @@ export abstract class ScreenBase<
     const navigation = this.context.navigation;
     const route = this.routeProp;
     const preloading = false;
-    await this.props.config?.onLoad?.({ navigation, route, signal, preloading });
+    await this.props
+      .config
+      ?.onLoad
+      ?.({ navigation, route, signal, preloading });
 
     return result;
   }
 
     protected abstract get routeProp(): R;
-    abstract get config(): R['config'];
-    abstract get params(): R['params'];
-    abstract get resolvedPathname(): string;
-    abstract get id(): string;
+    public abstract get config(): R['config'];
+    public abstract get params(): R['params'];
+    public abstract get resolvedPathname(): string;
+    public abstract get id(): string;
 
-    async onExited(signal: AbortSignal): Promise<void> {
+    public async onExited(signal: AbortSignal): Promise<void> {
       await this.routeProp.config.onExited?.({
         route: this.routeProp,
         navigation: this.context.navigation,
@@ -163,7 +200,7 @@ export abstract class ScreenBase<
       });
     }
 
-    async onExit(signal: AbortSignal): Promise<void> {
+    public async onExit(signal: AbortSignal): Promise<void> {
       await this.routeProp.config.onExit?.({
         route: this.routeProp,
         navigation: this.context.navigation,
@@ -172,7 +209,7 @@ export abstract class ScreenBase<
       });
     }
 
-    async onEnter(signal: AbortSignal): Promise<void> {
+    public async onEnter(signal: AbortSignal): Promise<void> {
       await this.routeProp.config.onEnter?.({
         route: this.routeProp,
         navigation: this.context.navigation,
@@ -181,7 +218,7 @@ export abstract class ScreenBase<
       });
     }
 
-    async onEntered(signal: AbortSignal): Promise<void> {
+    public async onEntered(signal: AbortSignal): Promise<void> {
       await this.routeProp.config.onEntered?.({
         route: this.routeProp,
         navigation: this.context.navigation,
@@ -190,15 +227,15 @@ export abstract class ScreenBase<
       });
     }
 
-    get path() {
+    public get path() {
       return this.props.path;
     }
 
-    get transitionProvider() {
+    public get transitionProvider() {
       return this.#transitionProvider;
     }
 
-    render() {
+    public render() {
       const navigation = this.context.navigation;
       const routeProp = this.routeProp;
       const Component = this.props.component;
@@ -229,14 +266,45 @@ export abstract class ScreenBase<
             <SharedElementSceneContext.Provider value={this.sharedElementScene}>
               <RoutePropContext.Provider value={routeProp}>
                 <NestedRouterContext.Provider value={this.nestedRouterData}>
-                  <Suspense fallback={<ComponentWithRouteProps component={routeProp.config.header?.fallback} route={routeProp} navigation={navigation} />}>
-                    <ComponentWithRouteProps component={HeaderComponent} route={routeProp} navigation={navigation} />
+                  <Suspense fallback={(
+                    <ComponentWithRouteProps
+                      component={routeProp.config.header?.fallback}
+                      route={routeProp}
+                      navigation={navigation}
+                    />
+                  )}>
+                    <ComponentWithRouteProps
+                      component={HeaderComponent}
+                      route={routeProp}
+                      navigation={navigation}
+                    />
                   </Suspense>
-                  <Suspense fallback={<ComponentWithRouteProps component={this.props.fallback} route={routeProp} navigation={navigation} />}>
-                    <ComponentWithRouteProps component={Component} route={routeProp} navigation={navigation} />
+                  <Suspense fallback={(
+                    <ComponentWithRouteProps
+                      component={this.props.fallback}
+                      route={routeProp}
+                      navigation={navigation}
+                    />
+                  )}>
+                    <ComponentWithRouteProps
+                      component={Component}
+                      route={routeProp}
+                      navigation={navigation}
+                    />
                   </Suspense>
-                  <Suspense fallback={<ComponentWithRouteProps component={routeProp.config.footer?.fallback} route={routeProp} navigation={navigation} />}>
-                    <ComponentWithRouteProps component={FooterComponent} route={routeProp} navigation={navigation} />
+                  <Suspense
+                    fallback={(
+                      <ComponentWithRouteProps
+                        component={routeProp.config.footer?.fallback}
+                        route={routeProp}
+                        navigation={navigation}
+                      />
+                    )}>
+                    <ComponentWithRouteProps
+                      component={FooterComponent}
+                      route={routeProp}
+                      navigation={navigation}
+                    />
                   </Suspense>
                 </NestedRouterContext.Provider>
               </RoutePropContext.Provider>
@@ -247,15 +315,24 @@ export abstract class ScreenBase<
     }
 }
 
-interface ComponentWithRoutePropsProps extends ScreenBaseComponentProps<RoutePropBase, NavigationBase> {
-    component: React.JSXElementConstructor<any> | LazyExoticComponent<any> | React.ReactNode;
+interface ComponentWithRoutePropsProps extends ScreenBaseComponentProps<
+  RoutePropBase,
+  NavigationBase
+> {
+  component: React.JSXElementConstructor<any>
+    | LazyExoticComponent<any> | React.ReactNode;
 }
-function ComponentWithRouteProps({ component, route, navigation }: ComponentWithRoutePropsProps) {
+function ComponentWithRouteProps(
+  { component, route, navigation }: ComponentWithRoutePropsProps
+) {
   if (isLazyExoticComponent(component) && component.module?.default) {
     component = component.module.default;
   }
   const Component = component ?? null;
-  if (typeof Component === 'function' || isNativeLazyExoticComponent(Component)) {
+  if (
+    typeof Component === 'function'
+    || isNativeLazyExoticComponent(Component)
+  ) {
     return (
       <Component
         navigation={navigation}

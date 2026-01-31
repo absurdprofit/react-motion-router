@@ -233,16 +233,21 @@ export class Navigation extends NavigationBase<RouterEventMap> {
       .getPathPatterns()
       .filter(({ pattern }) => pattern.endsWith('**'));
     let nestedScopePathPattern: PathPattern | null = null;
-    let nestedBoundaryReached = false;
+    let lastMatchedIndex = LAST_INDEX;
+    let terminated = false;
     return this.globalEntries
-      .filter(entry => {
+      .filter((entry, index) => {
         if (!entry.url) return false;
+        if (terminated) return false;
         const url = new URL(entry.url);
         const resolvedBaseURL = resolveBaseURLFromPattern(
           this.baseURLPattern.pathname, url.pathname
         );
-        if (!resolvedBaseURL)
+        if (!resolvedBaseURL) {
+          if (lastMatchedIndex !== LAST_INDEX)
+            terminated = true;
           return false;
+        }
 
         if (nestedScopePathPattern) {
           // we're in a nested scope, check if the current URL is also apart of the same scope and exit.
@@ -257,10 +262,7 @@ export class Navigation extends NavigationBase<RouterEventMap> {
               nestedBaseURLPattern.pathname,
               nestedScopePathPattern.caseSensitive
             )
-            || nestedBoundaryReached
           ) {
-            // contiguous nested router entries found, short circuit
-            nestedBoundaryReached = true;
             return false;
           }
         }
@@ -275,6 +277,8 @@ export class Navigation extends NavigationBase<RouterEventMap> {
             )
           )
         ) ?? null;
+
+        lastMatchedIndex = index;
         return true;
       })
       .map((entry, index) => {
@@ -282,6 +286,103 @@ export class Navigation extends NavigationBase<RouterEventMap> {
       });
   }
 
+  /**
+   * Returns the **local history index** for this router, derived from the
+   * browser’s global navigation state.
+   *
+   * ---
+   *
+   * ### Problem this solves
+   *
+   * The Web Navigation API exposes a **single, flat history list**.
+   * This router exposes a **scoped history view** that:
+   *
+   * - filters out entries owned by nested routers
+   * - preserves global ordering
+   * - reindexes entries locally
+   *
+   * As a result, there is **no arithmetic relationship** between:
+   *
+   * - `window.navigation.currentEntry.index` (global)
+   * - this router’s local `index`
+   *
+   * This getter computes the local index **by identity**, not position.
+   *
+   * ---
+   *
+   * ### High-level behavior
+   *
+   * The returned index is:
+   *
+   * > the index of the **most recent local entry** that appears in the
+   * > browser’s global history **at or before** the current global entry.
+   *
+   * ---
+   *
+   * ### Resolution strategy
+   *
+   * 1. If the current global index is **before** this router’s first entry,
+   *    the index resolves to `0`.
+   *
+   * 2. If the current global index is **after** this router’s last entry,
+   *    the index resolves to `entries.length - 1`.
+   *
+   * 3. Otherwise:
+   *    - A window of global history is sliced from the first local entry
+   *      up to and including the current global entry.
+   *    - Local entries are scanned **from newest to oldest**.
+   *    - The first local entry whose `key` appears in that global slice
+   *      determines the local index.
+   *
+   * Entry identity is determined by **history entry keys**, not URLs or
+   * global indices.
+   *
+   * ---
+   *
+   * ### Why key-based matching is required
+   *
+   * - Global indices are sparse once nested routers are involved
+   * - URLs may repeat or be replaced
+   * - History entries can be inserted between parent entries
+   *
+   * Keys provide the only stable identity that survives these cases.
+   *
+   * ---
+   *
+   * ### Invariant
+   *
+   * The returned index always satisfies:
+   *
+   * ```
+   * 0 ≤ index < entries.length
+   * ```
+   *
+   * and monotonically tracks navigation through global history.
+   *
+   * ---
+   *
+   * ### Example
+   *
+   * Global history:
+   * ```
+   * 0: /
+   * 1: /world
+   * 2: /world/1   (nested)
+   * 3: /about     ← current
+   * ```
+   *
+   * Local router entries:
+   * ```
+   * /        (index 0)
+   * /world   (index 1)
+   * /about   (index 2)
+   * ```
+   *
+   * Result:
+   * ```
+   * index === 2
+   * ```
+   */
   public get index() {
     const globalCurrentIndex = window.navigation
       .currentEntry
@@ -326,12 +427,12 @@ export class Navigation extends NavigationBase<RouterEventMap> {
   public canGoBack(
     this: Navigation
   ): this is Navigation & { previous: HistoryEntry } {
-    return Boolean(this.previous?.sameDocument);
+    return Boolean(this.previous?.url?.origin === globalThis.location.origin);
   }
 
   public canGoForward(
     this: Navigation
   ): this is Navigation & { next: HistoryEntry } {
-    return Boolean(this.next?.sameDocument);
+    return Boolean(this.next?.url?.origin === globalThis.location.origin);
   }
 }

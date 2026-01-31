@@ -1,15 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, render } from '@testing-library/react';
 import { Screen, ScreenComponentProps } from '../../Screen';
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { Router } from '../../Router';
-import { FIRST_INDEX, LAST_INDEX } from '@react-motion-router/core';
+import {
+  FIRST_INDEX,
+  LAST_INDEX,
+  triggerRerender,
+  useRerender,
+  useRerenderCallback
+} from '@react-motion-router/core';
 
 describe('Screen.setParams', () => {
-  async function update() {
-    globalThis.dispatchEvent(new Event('--test-update'));
-    await new Promise(resolve => requestAnimationFrame(resolve));
-  }
   const TestComponentChild = vi.fn(() => null);
   type TestComponentProps = ScreenComponentProps<
     Record<string, unknown>
@@ -17,13 +19,12 @@ describe('Screen.setParams', () => {
   function TestComponentFactory(params: Record<string, unknown>) {
     return function TestComponent(props: TestComponentProps) {
       const renders = useRef(Number());
-      useEffect(() => {
+      useRerender();
+      useRerenderCallback(() => {
         if (renders.current || !props.route.focused) return;
-        globalThis.addEventListener('--test-update', () => {
-          props.route.setParams(params);
-        }, { once: true });
+        props.route.setParams(params);
         renders.current++;
-      }, [props.route]);
+      });
   
       const { route } = props;
       const Child: React.FC<{ params: object }> = TestComponentChild;
@@ -50,8 +51,8 @@ describe('Screen.setParams', () => {
         </Router>
       );
     });
-    await act(async () => {
-      await update();
+    await act(() => {
+      triggerRerender();
     });
     const calledTimes = 1;
     expect(onError).toBeCalledTimes(calledTimes);
@@ -67,8 +68,8 @@ describe('Screen.setParams', () => {
         </Router>
       );
     });
-    await act(async () => {
-      await update();  
+    await act(() => {
+      triggerRerender();  
     });
       
     expect(
@@ -90,8 +91,8 @@ describe('Screen.setParams', () => {
         </Router>
       );
     });
-    await act(async () => {
-      await update();  
+    await act(() => {
+      triggerRerender();  
     });
       
     const state = window.navigation.currentEntry?.getState();
@@ -116,8 +117,8 @@ describe('Screen.setParams', () => {
         </Router>
       );
     });
-    await act(async () => {
-      await update();
+    await act(() => {
+      triggerRerender();
     });
 
     expect(
@@ -149,8 +150,8 @@ describe('Screen.setParams', () => {
       );
     });
 
-    await act(async () => {
-      await update();
+    await act(() => {
+      triggerRerender();
     });
 
     unmount();

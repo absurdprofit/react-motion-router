@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { MetaData } from '../MetaData';
 import type { MetaType } from '../common/types';
+import {
+  EMPTY_COLLECTION_LENGTH,
+  SINGLE_ELEMENT_LENGTH
+} from '../common/constants';
 
 describe('MetaData', () => {
   beforeEach(() => {
@@ -20,7 +24,7 @@ describe('MetaData', () => {
     const metadata = new MetaData();
 
     expect(metadata.get('description')).toBe('test description');
-    expect(metadata.size).toBe(1);
+    expect(metadata.size).toBe(SINGLE_ELEMENT_LENGTH);
   });
 
   it('sets a meta tag and reflects it in the DOM', () => {
@@ -41,7 +45,9 @@ describe('MetaData', () => {
     metadata.set(key, 'My Title');
 
     expect(metadata.get(key)).toBe('My Title');
-    expect(document.head.querySelector('meta[property="og:title"]')).not.toBeNull();
+    expect(
+      document.head.querySelector('meta[property="og:title"]')
+    ).not.toBeNull();
   });
 
   it('parses structured content into tuples on get()', () => {
@@ -91,7 +97,9 @@ describe('MetaData', () => {
 
     metadata.clear();
 
-    expect(document.head.querySelectorAll('meta').length).toBe(0);
+    expect(
+      document.head.querySelectorAll('meta').length
+    ).toBe(EMPTY_COLLECTION_LENGTH);
   });
 
   it('tracks externally added meta tags via MutationObserver', async () => {
@@ -123,12 +131,14 @@ describe('MetaData', () => {
 
   it('is iterable and exposes correct size', () => {
     const metadata = new MetaData();
+    const EXPECTED_METADATA_SIZE = 2;
+    const EXPECTED_ENTRIES_SIZE = 2;
 
     metadata.set('a', '1');
     metadata.set('b', '2');
 
     const entries = Array.from(metadata);
-    expect(entries.length).toBe(2);
-    expect(metadata.size).toBe(2);
+    expect(entries.length).toBe(EXPECTED_ENTRIES_SIZE);
+    expect(metadata.size).toBe(EXPECTED_METADATA_SIZE);
   });
 });

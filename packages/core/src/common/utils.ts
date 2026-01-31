@@ -1,5 +1,11 @@
 import { cloneElement, lazy as ReactLazy } from 'react';
-import { ClonedElementType, ElementPropType, LazyExoticComponent, MatchedRoute, PathPattern } from './types';
+import {
+  ClonedElementType,
+  ElementPropType,
+  LazyExoticComponent,
+  MatchedRoute,
+  PathPattern
+} from './types';
 import { LAST_INDEX } from './constants';
 
 export function resolveBaseURLFromPattern(pattern: string, pathname: string) {
@@ -14,7 +20,10 @@ export function resolveBaseURLFromPattern(pattern: string, pathname: string) {
     .filter((group) => group !== undefined);
   const nestedPathnameGroup = groups.at(LAST_INDEX) ?? '';
   // derive concrete baseURL
-  return new URL(pathname.replace(nestedPathnameGroup, ''), window.location.origin);
+  return new URL(
+    pathname.replace(nestedPathnameGroup, ''),
+    window.location.origin
+  );
 }
 
 export function matchRoute(
@@ -31,7 +40,10 @@ export function matchRoute(
   const baseURL = resolveBaseURLFromPattern(baseURLPattern, pathname)?.href;
   if (!baseURL) return null;
 
-  const match = new URLPattern({ baseURL, pathname: pathnamePattern }).exec({ pathname, baseURL });
+  const match = new URLPattern({
+    baseURL,
+    pathname: pathnamePattern,
+  }).exec({ pathname, baseURL });
   const params = match?.pathname.groups ?? {};
   if (match) {
     return {
@@ -42,11 +54,10 @@ export function matchRoute(
   return null;
 }
 
-export function includesRoute(pathnamePatterns: PathPattern[], pathname: string, baseURL: string = window.location.origin) {
-  return pathnamePatterns.some(({ pattern, caseSensitive }) => matchRoute(pattern, pathname, baseURL, caseSensitive));
-}
-
-export function dispatchEvent<T>(event: CustomEvent<T> | Event, target: HTMLElement | EventTarget = window) {
+export function dispatchEvent<T>(
+  event: CustomEvent<T> | Event,
+  target: HTMLElement | EventTarget = window
+) {
   return new Promise<boolean>((resolve) => {
     queueMicrotask(() => resolve(
       target.dispatchEvent(event)
@@ -70,18 +81,18 @@ export function isNavigationSupported() {
 }
 
 export function isURLPatternSupported() {
-  // @ts-ignore: Property 'UrlPattern' does not exist 
+  // @ts-expect-error: Property 'UrlPattern' does not exist 
   return Boolean(globalThis.URLPattern);
 }
 
 export async function polyfillURLPattern() {
-  const { URLPattern } = await import(/*webpackIgnore: true*/ 'urlpattern-polyfill');
-  // @ts-ignore: Property 'UrlPattern' does not exist 
+  const { URLPattern } = await import('urlpattern-polyfill');
+  // @ts-expect-error: Property 'UrlPattern' does not exist 
   globalThis.URLPattern = URLPattern;
 }
 
 export async function polyfillNavigation() {
-  const { applyPolyfill } = await import(/*webpackIgnore: true*/ '@virtualstate/navigation');
+  const { applyPolyfill } = await import('@virtualstate/navigation');
   applyPolyfill({
     history: true,
     interceptEvents: true,
@@ -91,7 +102,9 @@ export async function polyfillNavigation() {
   });
 }
 
-export async function PromiseAllDynamic<T>(values: Iterable<T | PromiseLike<T>>): Promise<Awaited<T>[]> {
+export async function PromiseAllSequential<T>(
+  values: Iterable<T | PromiseLike<T>>
+): Promise<Awaited<T>[]> {
   const awaited = [];
   for (const value of values) {
     awaited.push(await value);

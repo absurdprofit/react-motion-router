@@ -4,7 +4,6 @@ import {
   RouterBase,
   SINGLE_ELEMENT_LENGTH,
   cloneAndInject,
-  includesRoute,
   matchRoute
 } from '@react-motion-router/core';
 import type {
@@ -167,6 +166,7 @@ export class Router extends RouterBase<
     window.navigation.addEventListener('navigateerror', this.onNavigateError);
   }
 
+  // TODO: figure out how to remove this
   public shouldComponentUpdate(
     nextProps: Readonly<RouterProps>,
     nextState: Readonly<RouterState>
@@ -423,7 +423,7 @@ export class Router extends RouterBase<
     return (
       this.mounted
       && this.shouldIntercept(e)
-      && includesRoute(this.pathPatterns, pathname, baseURLPattern)
+      && this.includesRoute(pathname, baseURLPattern)
     );
   }
 

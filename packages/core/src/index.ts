@@ -9,5 +9,6 @@ export * from './common/hooks';
 export * from './common/types';
 export * from './common/events';
 export * from './common/utils';
+export * from './common/test-utils';
 export * from './common/constants';
 export * from './Anchor';

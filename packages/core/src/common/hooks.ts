@@ -31,14 +31,19 @@ export function useMotion() {
   // on animation frame
   return useSyncExternalStore(
     (callback) => {
-      return router.addEventListener('transition-start', async () => {
+      const onTransitionStart = async () => {
         do {
           await new Promise<number>(resolve => {
             requestAnimationFrame(resolve);
           });
           callback();
         } while (animation.playState === 'running');
-      });
+      };
+      router.addEventListener('transition-start', onTransitionStart);
+
+      return () => {
+        router.removeEventListener('transition-start', onTransitionStart);
+      };
     },
     () => {
       const { progress } = animation

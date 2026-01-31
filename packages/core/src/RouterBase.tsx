@@ -5,7 +5,8 @@ import {
   RouterBaseEventMap,
   RouterHTMLElement,
   isLazyExoticComponent,
-  isValidScreenChild
+  isValidScreenChild,
+  PathPattern
 } from './common/types';
 import { NestedRouterContext, RouterContext } from './RouterContext';
 import {
@@ -22,14 +23,14 @@ type ScreenType<T> = T extends ScreenChild<infer S> | ScreenChild<infer S>[]
   : never;
 
 export interface RouterBaseConfig {
-    screenConfig?: ScreenBaseConfig;
-    basePath?: string;
+  screenConfig?: ScreenBaseConfig;
+  basePath?: string;
 }
 
 export interface RouterBaseProps<S extends ScreenBase = ScreenBase> {
-    id?: string;
-    config?: RouterBaseConfig;
-    children: ScreenChild<S> | ScreenChild<S>[];
+  id?: string;
+  config?: RouterBaseConfig;
+  children: ScreenChild<S> | ScreenChild<S>[];
 }
 
 export type RouterBaseState = object;
@@ -59,16 +60,22 @@ export abstract class RouterBase<
 
     this.parentScreen = context?.parentScreen ?? null;
     this.parent = context?.parentRouter ?? null;
-    if (this.parent) {
-      this.parent.child = this;
-    }
-    if (this.isRoot) {
-      RouterBase.rootRouterRef = new WeakRef(this);
-    }
   }
 
   public componentDidMount() {
-    if (this.isRoot) {
+    if (this.parent)
+      this.parent.child = this;
+    else {
+      const currentRootRouter = RouterBase.rootRouterRef?.deref();
+      if (
+        this !== currentRootRouter
+        && currentRootRouter?.mounted
+      )
+        throw new Error('It looks like you have two navigators at the same level. Try simplifying your navigation structure by using a nested router instead.');
+        
+      else
+        RouterBase.rootRouterRef = new WeakRef(this);
+
       window.navigation.addEventListener(
         'navigate',
         this.handleNavigationDispatch
@@ -102,8 +109,10 @@ export abstract class RouterBase<
     }
   };
 
-  *#activeRoutersIter() {
-    let router: RouterBase | null = this;
+  *#activeRoutersIter(
+    target: RouterBase | null = RouterBase.rootRouterRef?.deref() ?? null
+  ) {
+    let router: RouterBase | null = target;
     while (router) {
       yield router;
       router = router.child;
@@ -114,14 +123,8 @@ export abstract class RouterBase<
     routerId: string,
     target?: RouterBase
   ): RouterBase | null {
-    const router = target ?? RouterBase.rootRouterRef?.deref();
-    if (router!.id === routerId) {
-      return router ?? null;
-    } else if (router?.child) {
-      return this.getRouterById(routerId, router.child);
-    } else {
-      return null;
-    }
+    const activeRouters = [...this.#activeRoutersIter(target)];
+    return activeRouters.find((router) => router.id === routerId) ?? null;
   }
 
   public dispatchEvent(event: Event) {
@@ -206,6 +209,15 @@ export abstract class RouterBase<
     return Promise.all(preloadTasks).then(() => { return; });
   }
 
+  public includesRoute(
+    pathname: string,
+    baseURLPattern: string = window.location.origin
+  ) {
+    return this.pathPatterns.some(({ pattern, caseSensitive }) => {
+      return matchRoute(pattern, pathname, baseURLPattern, caseSensitive);
+    });
+  }
+
   public get id(): string {
     if (this.props.id) return this.props.id;
     const prefix = this.parent?.id;
@@ -277,7 +289,7 @@ export abstract class RouterBase<
     const currentChildRouter = this.#child?.deref();
     if (
       currentChildRouter
-        && child?.id !== currentChildRouter.id
+        && child !== currentChildRouter
         && child?.parentScreen?.id === currentChildRouter.parentScreen?.id
         && currentChildRouter.mounted
     ) {
