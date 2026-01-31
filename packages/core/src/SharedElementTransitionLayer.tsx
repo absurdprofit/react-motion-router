@@ -30,7 +30,7 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
     this.#incomingScreen = incomingScreen;
   }
 
-  get outgoingScreen() {
+  public get outgoingScreen() {
     return this.#outgoingScreen;
   }
 
