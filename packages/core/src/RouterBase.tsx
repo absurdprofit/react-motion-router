@@ -64,7 +64,10 @@ export abstract class RouterBase<
       this.parent.child = this;
     }
     if (this.isRoot) {
-      RouterBase.rootRouterRef = new WeakRef(this);
+      if (RouterBase.rootRouterRef?.deref())
+        throw new Error('It looks like you have two navigators at the same level. Try simplifying your navigation structure by using a nested router instead.');
+      else
+        RouterBase.rootRouterRef = new WeakRef(this);
     }
   }
 
@@ -285,12 +288,10 @@ export abstract class RouterBase<
   }
 
   public set child(child: RouterBase | null) {
-    const currentChildRouter = this.#child?.deref();
     if (
-      currentChildRouter
-        && child?.id !== currentChildRouter.id
-        && child?.parentScreen?.id === currentChildRouter.parentScreen?.id
-        && currentChildRouter.mounted
+      this.#child?.deref()
+        && child?.parentScreen?.id === this.#child.deref()?.parentScreen?.id
+        && this.#child?.deref()
     ) {
       throw new Error('It looks like you have two navigators at the same level. Try simplifying your navigation structure by using a nested router instead.');
     }
