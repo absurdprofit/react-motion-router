@@ -66,8 +66,13 @@ export abstract class RouterBase<
     if (this.parent)
       this.parent.child = this;
     else {
-      if (RouterBase.rootRouterRef?.deref()?.mounted)
+      const currentRootRouter = RouterBase.rootRouterRef?.deref();
+      if (
+        this !== currentRootRouter
+        && currentRootRouter?.mounted
+      )
         throw new Error('It looks like you have two navigators at the same level. Try simplifying your navigation structure by using a nested router instead.');
+        
       else
         RouterBase.rootRouterRef = new WeakRef(this);
 
@@ -289,6 +294,7 @@ export abstract class RouterBase<
     const currentChildRouter = this.#child?.deref();
     if (
       currentChildRouter
+        && child !== currentChildRouter
         && child?.parentScreen?.id === currentChildRouter.parentScreen?.id
         && currentChildRouter.mounted
     ) {
