@@ -5,7 +5,8 @@ import {
   RouterBaseEventMap,
   RouterHTMLElement,
   isLazyExoticComponent,
-  isValidScreenChild
+  isValidScreenChild,
+  PathPattern
 } from './common/types';
 import { NestedRouterContext, RouterContext } from './RouterContext';
 import {
@@ -22,14 +23,14 @@ type ScreenType<T> = T extends ScreenChild<infer S> | ScreenChild<infer S>[]
   : never;
 
 export interface RouterBaseConfig {
-    screenConfig?: ScreenBaseConfig;
-    basePath?: string;
+  screenConfig?: ScreenBaseConfig;
+  basePath?: string;
 }
 
 export interface RouterBaseProps<S extends ScreenBase = ScreenBase> {
-    id?: string;
-    config?: RouterBaseConfig;
-    children: ScreenChild<S> | ScreenChild<S>[];
+  id?: string;
+  config?: RouterBaseConfig;
+  children: ScreenChild<S> | ScreenChild<S>[];
 }
 
 export type RouterBaseState = object;
@@ -204,6 +205,16 @@ export abstract class RouterBase<
       preloadTasks.push(config?.footer?.component.load());
 
     return Promise.all(preloadTasks).then(() => { return; });
+  }
+
+  public includesRoute(
+    pathnamePatterns: PathPattern[],
+    pathname: string,
+    baseURL: string = window.location.origin
+  ) {
+    return pathnamePatterns.some(({ pattern, caseSensitive }) => {
+      return matchRoute(pattern, pathname, baseURL, caseSensitive);
+    });
   }
 
   public get id(): string {

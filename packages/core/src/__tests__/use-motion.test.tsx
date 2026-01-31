@@ -4,19 +4,32 @@ import { RouterContext } from '../RouterContext';
 import { ScreenTransitionLayerContext } from '../ScreenTransitionLayerContext';
 import { useMotion } from '../common/hooks';
 import { dispatchEvent } from '../common/utils';
-import { TransitionCancelEvent, TransitionEndEvent, TransitionStartEvent } from '../common/events';
+import {
+  TransitionCancelEvent,
+  TransitionEndEvent,
+  TransitionStartEvent
+} from '../common/events';
 import { ScreenTransitionLayer } from '../ScreenTransitionLayer';
 import { RouterBase } from '../RouterBase';
+import { triggerRerender, useRerender } from '../common/test-utils';
 
 const MockRouter = {
   target: new EventTarget(),
-  addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): () => void {
+  addEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | AddEventListenerOptions
+  ): () => void {
     const ref = this.target;
     if (!ref) return () => {};
     ref.addEventListener(type, listener, options);
     return () => ref.removeEventListener(type, listener, options);
   },
-  removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions) {
+  removeEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | EventListenerOptions
+  ) {
     return this.target.removeEventListener(type, listener, options);
   },
   dispatchEvent(event: Event) {
@@ -42,7 +55,11 @@ const MockScreenTransitionLayer = {
   transition(target: HTMLElement = document.body) {
     const start = 0;
     const end = 1;
-    const effect = new KeyframeEffect(target, [{ opacity: start }, { opacity: end }], { duration: ANIMATION_DURATION });
+    const effect = new KeyframeEffect(
+      target,
+      [{ opacity: start }, { opacity: end }],
+      { duration: ANIMATION_DURATION }
+    );
 
     this.animation.effect = effect;
 
@@ -78,7 +95,11 @@ describe('useMotion', () => {
     await act(async () => {
       render(
         <RouterContext.Provider value={MockRouter as unknown as RouterBase}>
-          <ScreenTransitionLayerContext.Provider value={MockScreenTransitionLayer as unknown as ScreenTransitionLayer}>
+          <ScreenTransitionLayerContext.Provider
+            value={(
+              MockScreenTransitionLayer as unknown as ScreenTransitionLayer
+            )}
+          >
             <TestComponent />
           </ScreenTransitionLayerContext.Provider>
         </RouterContext.Provider>
@@ -97,6 +118,69 @@ describe('useMotion', () => {
     expect(renders).toBe(RENDER_MAX);
   });
 
+  it('starts with 0', async () => {
+    function TestComponent() {
+      MockScreenTransitionLayer.transition();
+      return <TestMotionComponent />; 
+    }
+    await act(async () => {
+      render(
+        <RouterContext.Provider value={MockRouter as unknown as RouterBase}>
+          <ScreenTransitionLayerContext.Provider
+            value={(
+              MockScreenTransitionLayer as unknown as ScreenTransitionLayer
+            )}
+          >
+            <TestComponent />
+          </ScreenTransitionLayerContext.Provider>
+        </RouterContext.Provider>
+      );
+    });
+
+    const progress = screen.getByText('0');
+    expect(progress).toBeDefined();
+  });
+
+  it('restarts with 0', async () => {
+    function TestComponent() {
+      useRerender();
+      MockScreenTransitionLayer.transition();
+      return <TestMotionComponent />; 
+    }
+    const tree = (
+      <RouterContext.Provider value={MockRouter as unknown as RouterBase}>
+        <ScreenTransitionLayerContext.Provider
+          value={(
+            MockScreenTransitionLayer as unknown as ScreenTransitionLayer
+          )}
+        >
+          <TestComponent />
+        </ScreenTransitionLayerContext.Provider>
+      </RouterContext.Provider>
+    );
+    const { rerender } = await act(async () => {
+      return render(tree);
+    });
+
+    await act(async () => {
+      await MockScreenTransitionLayer
+        .animation
+        .finished
+        .then(() => {
+          return new Promise(requestAnimationFrame);
+        });
+    });
+
+    await act(async () => {
+      MockScreenTransitionLayer.animation = new Animation();
+      triggerRerender();
+      rerender(tree);
+    });
+
+    const progress = screen.getByText('0');
+    expect(progress).toBeDefined();
+  });
+
   it('ends with the last value being 1', async () => {
     function TestComponent() {
       MockScreenTransitionLayer.transition();
@@ -105,7 +189,11 @@ describe('useMotion', () => {
     await act(async () => {
       render(
         <RouterContext.Provider value={MockRouter as unknown as RouterBase}>
-          <ScreenTransitionLayerContext.Provider value={MockScreenTransitionLayer as unknown as ScreenTransitionLayer}>
+          <ScreenTransitionLayerContext.Provider
+            value={(
+              MockScreenTransitionLayer as unknown as ScreenTransitionLayer
+            )}
+          >
             <TestComponent />
           </ScreenTransitionLayerContext.Provider>
         </RouterContext.Provider>
@@ -132,7 +220,11 @@ describe('useMotion', () => {
     await act(async () => {
       render(
         <RouterContext.Provider value={MockRouter as unknown as RouterBase}>
-          <ScreenTransitionLayerContext.Provider value={MockScreenTransitionLayer as unknown as ScreenTransitionLayer}>
+          <ScreenTransitionLayerContext.Provider
+            value={(
+              MockScreenTransitionLayer as unknown as ScreenTransitionLayer
+            )}
+          >
             <TestComponent />
           </ScreenTransitionLayerContext.Provider>
         </RouterContext.Provider>

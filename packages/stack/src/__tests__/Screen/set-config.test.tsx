@@ -6,25 +6,25 @@ import {
   androidScaleFromCentre
 } from '../../animation-configs/animation-presets';
 import { Router } from '../../Router';
-import { FIRST_INDEX, LAST_INDEX } from '@react-motion-router/core';
+import {
+  FIRST_INDEX,
+  LAST_INDEX,
+  useRerender,
+  triggerRerender,
+  useRerenderCallback
+} from '@react-motion-router/core';
 
 describe('Screen.setConfig', () => {
-  async function update() {
-    window.dispatchEvent(new Event('--test-update'));
-    await new Promise(resolve => requestAnimationFrame(resolve));
-  }
-  
   const TestComponentChild = vi.fn(() => null);
   function TestComponentFactory(config: Partial<ScreenConfig>) {
     return function TestComponent(props: ScreenComponentProps) {
       const renders = useRef(Number());
-      useEffect(() => {
+      useRerender();
+      useRerenderCallback(() => {
         if (renders.current || !props.route.focused) return;
-        window.addEventListener('--test-update', () => {
-          props.route.setConfig(config);
-        }, { once: true });
+        props.route.setConfig(config);
         renders.current++;
-      }, [props.route]);
+      });
 
       const { route } = props;
 
@@ -62,7 +62,7 @@ describe('Screen.setConfig', () => {
     };
     const TestComponent = TestComponentFactory(config);
     const onError = vi.fn();
-    window.addEventListener('error', onError, { once: true });
+    globalThis.addEventListener('error', onError, { once: true });
     await act(async () => {
       render(
         <Router>
@@ -71,7 +71,7 @@ describe('Screen.setConfig', () => {
       );
     });
     await act(async () => {
-      await update();
+      triggerRerender();
     });
     const calledTimes = 0;
     expect(onError).toBeCalledTimes(calledTimes);
@@ -89,7 +89,7 @@ describe('Screen.setConfig', () => {
       );
     });
     await act(async () => {
-      await update();  
+      triggerRerender();
     });
     
     expect(
@@ -131,7 +131,7 @@ describe('Screen.setConfig', () => {
     });
 
     await act(async () => {
-      await update();
+      triggerRerender();
     });
 
     const state = window.navigation.currentEntry?.getState();
@@ -173,7 +173,7 @@ describe('Screen.setConfig', () => {
       );
     });
     await act(async () => {
-      await update();
+      triggerRerender();
     });
 
     expect(
@@ -212,7 +212,7 @@ describe('Screen.setConfig', () => {
     });
 
     await act(async () => {
-      await update();
+      triggerRerender();
     });
 
     unmount();

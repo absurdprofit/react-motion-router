@@ -6,3 +6,4 @@ export const MAX_NORM_PROGRESS = 1;
 export const LAST_INDEX = -1;
 export const FIRST_INDEX = 0;
 export const SINGLE_ELEMENT_LENGTH = 1;
+export const EMPTY_COLLECTION_LENGTH = 0;
