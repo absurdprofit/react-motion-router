@@ -138,7 +138,7 @@ export abstract class ScreenBase<
       return this.props.name
         .toLowerCase()
         .replace(/[^\w-]/g, '-') // Remove non-alphanumeric chars
-        .replace(/-+/g, '-') // Replace multiple hyphens with a single onef
+        .replace(/-+/g, '-') // Replace multiple hyphens with a single one
         .replace(/^-|-$/g, ''); // Remove leading and trailing hyphens;
     else if (isLazyExoticComponent(this.props.component))
       return this.props.component.module?.default.name.toLowerCase();

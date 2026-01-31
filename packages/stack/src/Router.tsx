@@ -423,7 +423,7 @@ export class Router extends RouterBase<
     return (
       this.mounted
       && this.shouldIntercept(e)
-      && this.includesRoute(this.pathPatterns, pathname, baseURLPattern)
+      && this.includesRoute(pathname, baseURLPattern)
     );
   }
 

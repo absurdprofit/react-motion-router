@@ -109,8 +109,10 @@ export abstract class RouterBase<
     }
   };
 
-  *#activeRoutersIter() {
-    let router: RouterBase | null = this;
+  *#activeRoutersIter(
+    target: RouterBase | null = RouterBase.rootRouterRef?.deref() ?? null
+  ) {
+    let router: RouterBase | null = target;
     while (router) {
       yield router;
       router = router.child;
@@ -121,14 +123,8 @@ export abstract class RouterBase<
     routerId: string,
     target?: RouterBase
   ): RouterBase | null {
-    const router = target ?? RouterBase.rootRouterRef?.deref();
-    if (router!.id === routerId) {
-      return router ?? null;
-    } else if (router?.child) {
-      return this.getRouterById(routerId, router.child);
-    } else {
-      return null;
-    }
+    const activeRouters = [...this.#activeRoutersIter(target)];
+    return activeRouters.find((router) => router.id === routerId) ?? null;
   }
 
   public dispatchEvent(event: Event) {
@@ -214,12 +210,11 @@ export abstract class RouterBase<
   }
 
   public includesRoute(
-    pathnamePatterns: PathPattern[],
     pathname: string,
-    baseURL: string = window.location.origin
+    baseURLPattern: string = window.location.origin
   ) {
-    return pathnamePatterns.some(({ pattern, caseSensitive }) => {
-      return matchRoute(pattern, pathname, baseURL, caseSensitive);
+    return this.pathPatterns.some(({ pattern, caseSensitive }) => {
+      return matchRoute(pattern, pathname, baseURLPattern, caseSensitive);
     });
   }
 

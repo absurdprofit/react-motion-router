@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { TestRouter, TestScreen } from './common/utils';
+import { TestRouter, TestScreen } from '../common/utils';
 import { render } from '@testing-library/react';
 
 describe('RouterBase', () => {
