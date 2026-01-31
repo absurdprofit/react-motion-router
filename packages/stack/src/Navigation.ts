@@ -228,9 +228,6 @@ export class Navigation extends NavigationBase<RouterEventMap> {
     return window.navigation.entries();
   }
 
-  // TODO: enforce contiguity for entries owned by other non-nested routers.
-  // In the case that we have routers on separate screens we don't want nested screens to see entries that come after
-  // other nested entries from different routers.
   public get entries() {
     const nestedPathPatterns = this.config
       .getPathPatterns()

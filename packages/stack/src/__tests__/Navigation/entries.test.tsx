@@ -32,7 +32,29 @@ describe('Navigation.entries', () => {
 
   afterAll(uninstallInterceptor);
 
-  it('filters out entries owned by nested routes', async () => {
+  it('keeps the first entry owned by nested routers', async () => {
+    const navigation = new Navigation({
+      getPathPatterns: () => [
+        { pattern: '.', caseSensitive: false },
+        { pattern: 'world/**', caseSensitive: false },
+      ],
+      baseURLPattern: new URLPattern('/', globalThis.location.origin),
+    } as NavigationConfig);
+
+    // top-level
+    window.navigation.navigate('/', { history: 'replace' });
+    window.navigation.navigate('/world/1');
+    window.navigation.navigate('/world/2');
+
+    const entries = navigation.entries;
+
+    expect(entries.map(e => e.index)).toStrictEqual([
+      FIRST_INDEX,
+      SECOND_INDEX,
+    ]);
+  });
+
+  it('filters out entries owned by nested routers', async () => {
     const navigation = new Navigation({
       getPathPatterns: () => [
         { pattern: '.', caseSensitive: false },
