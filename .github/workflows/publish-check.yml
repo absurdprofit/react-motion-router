@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
+      contents: read
 
     steps:
       - name: Checkout repository
@@ -106,6 +107,24 @@ jobs:
           npx playwright install
           npx playwright install-deps
           npx lerna run test --no-private
+
+      - name: Verify npm OIDC authentication
+        run: |
+          set -e
+
+          echo "npm version:"
+          npm --version
+
+          echo "registry:"
+          echo "${npm_config_registry:-https://registry.npmjs.org}"
+
+          echo "checking npm auth via whoami..."
+          if ! npm whoami >/dev/null 2>&1; then
+            echo "::error::npm is not authenticated via OIDC (npm whoami failed)"
+            exit 1
+          fi
+
+          echo "npm OIDC authentication OK"
 
 
       # Lerna doesn't support dry run
