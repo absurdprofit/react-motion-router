@@ -1,6 +1,9 @@
+import React from 'react';
 import { NavigationBase } from '../../NavigationBase';
-import { RouterBase } from '../../RouterBase';
+import { RouterBase, RouterBaseProps } from '../../RouterBase';
+import { NestedRouterContext } from '../../RouterContext';
 import { ScreenBase } from '../../ScreenBase';
+import { cloneAndInject } from '../../common/utils';
 
 export class TestNavigation extends NavigationBase {}
 
@@ -17,6 +20,24 @@ export class TestRouter extends RouterBase {
       this.getRouterById(id)?.navigation ?? null,
   });
 
+  public state = {
+    screens: [] as RouterBase['screens'],
+  };
+
+  constructor(
+    props: RouterBaseProps,
+    context: React.ContextType<typeof NestedRouterContext>
+  ) {
+    super(props, context);
+    this.state = {
+      screens: React.Children.map(props.children, (child, index) => {
+        return cloneAndInject(child, {
+          path: index.toString(),
+        });
+      }),
+    };
+  }
+
   protected canIntercept(): boolean {
     return true;
   }
@@ -26,7 +47,8 @@ export class TestRouter extends RouterBase {
   }
 
   protected get screens() {
-    return this.props.children;
+    return this.state.screens;
+    // return this.props.children;
   }
 
   protected intercept(e: NavigateEvent): void {
@@ -63,7 +85,6 @@ export class TestScreen extends ScreenBase {
       path: this.path,
       resolvedPathname: this.resolvedPathname,
       setConfig() {
-          
       },
       setParams() {
       },

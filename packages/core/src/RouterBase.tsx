@@ -60,19 +60,17 @@ export abstract class RouterBase<
 
     this.parentScreen = context?.parentScreen ?? null;
     this.parent = context?.parentRouter ?? null;
-    if (this.parent) {
-      this.parent.child = this;
-    }
-    if (this.isRoot) {
-      if (RouterBase.rootRouterRef?.deref())
-        throw new Error('It looks like you have two navigators at the same level. Try simplifying your navigation structure by using a nested router instead.');
-      else
-        RouterBase.rootRouterRef = new WeakRef(this);
-    }
   }
 
   public componentDidMount() {
-    if (this.isRoot) {
+    if (this.parent)
+      this.parent.child = this;
+    else {
+      if (RouterBase.rootRouterRef?.deref()?.mounted)
+        throw new Error('It looks like you have two navigators at the same level. Try simplifying your navigation structure by using a nested router instead.');
+      else
+        RouterBase.rootRouterRef = new WeakRef(this);
+
       window.navigation.addEventListener(
         'navigate',
         this.handleNavigationDispatch
@@ -288,10 +286,11 @@ export abstract class RouterBase<
   }
 
   public set child(child: RouterBase | null) {
+    const currentChildRouter = this.#child?.deref();
     if (
-      this.#child?.deref()
-        && child?.parentScreen?.id === this.#child.deref()?.parentScreen?.id
-        && this.#child?.deref()
+      currentChildRouter
+        && child?.parentScreen?.id === currentChildRouter.parentScreen?.id
+        && currentChildRouter.mounted
     ) {
       throw new Error('It looks like you have two navigators at the same level. Try simplifying your navigation structure by using a nested router instead.');
     }

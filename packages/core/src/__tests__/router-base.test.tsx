@@ -59,43 +59,43 @@ describe('RouterBase', () => {
     }
   );
 
-  // it(
-  //   'does not throw if multiple routers are at the same level on different nested screens',
-  //   async () => {
-  //     const Child = ({ route }: { route: { path: string } }) => {
-  //       return <div>Path: {route.path}</div>;
-  //     };
-  //     function TestComponent1() {
-  //       return (
-  //         <div>
-  //           <TestRouter>
-  //             <TestScreen path='1' component={Child} />
-  //             <TestScreen path='2' component={Child} />
-  //           </TestRouter>
-  //         </div>
-  //       );
-  //     }
-  //     function TestComponent2() {
-  //       return (
-  //         <div>
-  //           <TestRouter>
-  //             <TestScreen path='3' component={Child} />
-  //             <TestScreen path='4' component={Child} />
-  //           </TestRouter>
-  //         </div>
-  //       );
-  //     }
+  it(
+    'does not throw if multiple routers are at the same level on different nested screens',
+    async () => {
+      const Child = ({ route }: { route: { path: string } }) => {
+        return <div>Path: {route.path}</div>;
+      };
+      function TestComponent1() {
+        return (
+          <div>
+            <TestRouter>
+              <TestScreen path='1' component={Child} />
+              <TestScreen path='2' component={Child} />
+            </TestRouter>
+          </div>
+        );
+      }
+      function TestComponent2() {
+        return (
+          <div>
+            <TestRouter>
+              <TestScreen path='3' component={Child} />
+              <TestScreen path='4' component={Child} />
+            </TestRouter>
+          </div>
+        );
+      }
 
-  //     function TestParentComponent() {
-  //       return (
-  //         <TestRouter>
-  //           <TestScreen path='1/**' component={TestComponent1} />
-  //           <TestScreen path='2/**' component={TestComponent2} />
-  //         </TestRouter>
-  //       );
-  //     }
+      function TestParentComponent() {
+        return (
+          <TestRouter>
+            <TestScreen path='1/**' component={TestComponent1} />
+            <TestScreen path='2/**' component={TestComponent2} />
+          </TestRouter>
+        );
+      }
 
-  //     expect(() => render(<TestParentComponent />)).not.throw();
-  //   }
-  // );
+      expect(() => render(<TestParentComponent />)).not.throw();
+    }
+  );
 });
