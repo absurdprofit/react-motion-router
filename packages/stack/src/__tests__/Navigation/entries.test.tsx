@@ -57,7 +57,7 @@ describe('Navigation.entries', () => {
     ]);
   });
 
-  it('filters out entries owned by multiple nested scopes', async () => {
+  it('filters out entries owned by multiple nested routers', async () => {
     const navigation = new Navigation({
       getPathPatterns: () => [
         { pattern: '.', caseSensitive: false },
@@ -81,4 +81,33 @@ describe('Navigation.entries', () => {
       FOURTH_INDEX,
     ]);
   });
+
+  it(
+    'enforces contiguity at the boundary created by entries owned by other non-nested routers',
+    async () => {
+      const navigation = new Navigation({
+        getPathPatterns: () => [
+          { pattern: '.', caseSensitive: false },
+          { pattern: 'world/**', caseSensitive: false },
+          { pattern: 'hello-world/**', caseSensitive: false },
+        ],
+        baseURLPattern: new URLPattern(
+          '/nested/**',
+          globalThis.location.origin
+        ),
+      } as NavigationConfig);
+
+      window.navigation.navigate('/nested', { history: 'replace' });
+      window.navigation.navigate('/nested/world/1');
+      window.navigation.navigate('/other-nested/1');
+      window.navigation.navigate('/nested/hello-world/1');
+
+      const entries = navigation.entries;
+
+      expect(entries.map(e => e.globalIndex)).toStrictEqual([
+        FIRST_INDEX,
+        SECOND_INDEX,
+      ]);
+    }
+  );
 });

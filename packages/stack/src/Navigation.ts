@@ -236,15 +236,21 @@ export class Navigation extends NavigationBase<RouterEventMap> {
       .getPathPatterns()
       .filter(({ pattern }) => pattern.endsWith('**'));
     let nestedScopePathPattern: PathPattern | null = null;
+    let lastMatchedIndex = LAST_INDEX;
+    let terminated = false;
     return this.globalEntries
-      .filter(entry => {
+      .filter((entry, index) => {
         if (!entry.url) return false;
+        if (terminated) return false;
         const url = new URL(entry.url);
         const resolvedBaseURL = resolveBaseURLFromPattern(
           this.baseURLPattern.pathname, url.pathname
         );
-        if (!resolvedBaseURL)
+        if (!resolvedBaseURL) {
+          if (lastMatchedIndex !== LAST_INDEX)
+            terminated = true;
           return false;
+        }
 
         if (nestedScopePathPattern) {
           // we're in a nested scope, check if the current URL is also apart of the same scope and exit.
@@ -274,6 +280,8 @@ export class Navigation extends NavigationBase<RouterEventMap> {
             )
           )
         ) ?? null;
+
+        lastMatchedIndex = index;
         return true;
       })
       .map((entry, index) => {
