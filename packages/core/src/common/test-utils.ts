@@ -35,3 +35,55 @@ export function useRerenderCallback<T extends () => unknown>(
 export function triggerRerender() {
   globalThis.dispatchEvent(new Event(RERENDER_EVENT_TYPE));
 }
+
+export function createHistoryEntry(
+  url: string,
+  index: number
+): NavigationHistoryEntry {
+  return Object.create(EventTarget.prototype, {
+    id: {
+      value: crypto.randomUUID(),
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    key: {
+      value: crypto.randomUUID(),
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    index: {
+      value: index,
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    url: {
+      value: url,
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    sameDocument: {
+      value: true,
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    ondispose: {
+      value: null,
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    },
+    getState: {
+      value() {
+        return undefined;
+      },
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+  });
+}
