@@ -228,6 +228,91 @@ export class Navigation extends NavigationBase<RouterEventMap> {
     return window.navigation.entries();
   }
 
+  /**
+   * Returns the list of history entries **owned by this router**, derived from the
+   * browser’s global navigation history.
+   *
+   * ---
+   *
+   * ### Mental model
+   *
+   * The Web Navigation API exposes a **single, flat history list**.
+   * This router projects a **scoped, ordered view** of that list based on
+   * route ownership.
+   *
+   * Each global entry is classified as one of:
+   *
+   * - **Owned by this router**
+   * - **Owned by a nested router**
+   * - **Owned by a different (foreign) router**
+   *
+   * The resulting entry list is built by iterating global history **from the
+   * beginning**, applying ownership rules, and stopping when ownership is lost.
+   *
+   * ---
+   *
+   * ### Ownership & contiguity rules
+   *
+   * 1. **Entries owned by this router**
+   *    - Are included
+   *    - Preserve global ordering
+   *
+   * 2. **Entries owned by nested routers**
+   *    - Exactly **one entry is included** (the nested router’s mount point),
+   *      because it must be rendered by the parent router
+   *    - All subsequent entries belonging to that same nested scope are excluded
+   *
+   * 3. **Entries owned by a foreign router**
+   *    - Are excluded
+   *    - **Terminate entry collection** once at least one entry has been matched
+   *
+   * This means contiguity is enforced **only across routers that cannot be
+   * matched by this router at all**.
+   *
+   * ---
+   *
+   * ### Important invariants
+   *
+   * - Returned entries are always in **global history order**
+   * - Local indices are **stable and monotonic**
+   * - Nested router entries never leak into the parent router
+   * - Entry collection stops once navigation leaves this router’s ownership
+   *   after it has begun
+   *
+   * ---
+   *
+   * ### Example
+   *
+   * Global history:
+   * ```
+   * 0: /                     (parent)
+   * 1: /world                (parent)
+   * 2: /world/1              (nested mount point)
+   * 3: /world/2              (nested)
+   * 4: /about                (parent)
+   * 5: /other-router/page    (foreign)
+   * 6: /                     (parent)
+   * ```
+   *
+   * Parent router entries:
+   * ```
+   * /, /world, /world/1, /about
+   * ```
+   *
+   * Collection stops at index 5 because ownership is transferred to a
+   * foreign router.
+   *
+   * ---
+   *
+   * ### Why this design
+   *
+   * - The Navigation API has no notion of router hierarchy
+   * - Parent routers must render nested routers’ mount points
+   * - Foreign routers represent a **hard ownership boundary**
+   *
+   * This approach balances correctness, simplicity, and predictable behavior
+   * without requiring global history rewriting or fragile index arithmetic.
+   */
   public get entries() {
     const nestedPathPatterns = this.config
       .getPathPatterns()
