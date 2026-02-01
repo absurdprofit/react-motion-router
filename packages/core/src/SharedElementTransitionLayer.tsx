@@ -54,7 +54,11 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
     return computedStyles;
   }
 
-  copyStyles(srcElement: Element | null | undefined, cloneElement: StylableElement, styleList: StyleKeyList) {
+  copyStyles(
+    srcElement: Element | null | undefined,
+    cloneElement: StylableElement,
+    styleList: StyleKeyList
+  ) {
     if (!isStylableElement(srcElement)) return;
     const computedStyles = window.getComputedStyle(srcElement);
     for (const key of styleList) {
