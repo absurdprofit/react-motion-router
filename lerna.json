@@ -8,7 +8,7 @@
   "version": "independent",
   "command": {
     "publish": {
-      "verifyAccess": true
+      "verifyAccess": false
     }
   }
 }
