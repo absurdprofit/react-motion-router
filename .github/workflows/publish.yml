@@ -33,7 +33,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "24.0.0"
+          node-version: "20.x"
           registry-url: "https://registry.npmjs.org"
 
       - name: Cache node modules
@@ -103,6 +103,8 @@ jobs:
 
       - name: Publish packages
         if: ${{ steps.version.outputs.versioned == 'true' || env.TAG_NAME == 'latest' }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           TAG_NAME=${{ env.TAG_NAME }}
           npx lerna publish from-package --yes --dist-tag $TAG_NAME
