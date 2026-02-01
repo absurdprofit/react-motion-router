@@ -18,7 +18,7 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
   #outgoingScreen: RefObject<ScreenBase> | null = null;
   #incomingScreen: RefObject<ScreenBase> | null = null;
 
-  state: SharedElementTransitionLayerState = {
+  public state: SharedElementTransitionLayerState = {
     transitioning: false,
   };
 
