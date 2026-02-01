@@ -7,6 +7,10 @@ on:
       - next
       - beta
 
+concurrency:
+  group: merge-enforcer-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   branch-merge-check:
     runs-on: ubuntu-latest

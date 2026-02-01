@@ -9,12 +9,20 @@ on:
     tags:
       - "v*"
 
+concurrency:
+  group: publish-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+
 jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write  # Required for OIDC
       contents: read
+      id-token: write
 
     steps:
       - name: Checkout repository
@@ -25,7 +33,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20.x"
+          node-version: 22
           registry-url: "https://registry.npmjs.org"
 
       - name: Cache node modules

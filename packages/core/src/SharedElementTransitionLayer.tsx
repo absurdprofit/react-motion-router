@@ -22,7 +22,7 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
     transitioning: false,
   };
 
-  set outgoingScreen(outgoingScreen: RefObject<ScreenBase> | null) {
+  public set outgoingScreen(outgoingScreen: RefObject<ScreenBase> | null) {
     this.#outgoingScreen = outgoingScreen;
   }
 
