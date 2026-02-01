@@ -38,7 +38,7 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
     return this.#incomingScreen;
   }
 
-  getKeyframeProperties(element: Element, styleList: StyleKeyList) {
+  public getKeyframeProperties(element: Element, styleList: StyleKeyList) {
     const computedStyles: Record<string, string> = {};
     const computedStyle = window.getComputedStyle(element);
     for (const key of styleList) {
