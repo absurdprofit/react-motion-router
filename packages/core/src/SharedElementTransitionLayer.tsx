@@ -26,7 +26,7 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
     this.#outgoingScreen = outgoingScreen;
   }
 
-  set incomingScreen(incomingScreen: RefObject<ScreenBase> | null) {
+  public set incomingScreen(incomingScreen: RefObject<ScreenBase> | null) {
     this.#incomingScreen = incomingScreen;
   }
 

@@ -237,8 +237,8 @@ export class Navigation extends NavigationBase<RouterEventMap> {
    * ### Mental model
    *
    * The Web Navigation API exposes a **single, flat history list**.
-   * This router projects a **scoped, ordered view** of that list based on
-   * route ownership.
+   * This router projects a **scoped, ordered view** of that list ensuring the
+   * router can only see entries it created.
    *
    * Each global entry is classified as one of:
    *
