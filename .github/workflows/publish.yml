@@ -95,8 +95,6 @@ jobs:
 
       - name: Publish packages
         if: ${{ steps.version.outputs.versioned == 'true' || env.TAG_NAME == 'latest' }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           TAG_NAME=${{ env.TAG_NAME }}
           npx lerna publish from-package --yes --dist-tag $TAG_NAME
