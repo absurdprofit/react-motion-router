@@ -302,14 +302,6 @@ export class Navigation extends NavigationBase<RouterEventMap> {
    * Collection stops at index 5 because ownership is transferred to a
    * foreign router.
    *
-   * ---
-   *
-   * ### Why this design
-   *
-   * - The Navigation API has no notion of router hierarchy
-   * - Parent routers must render nested routers’ mount points
-   * - Foreign routers represent a **hard ownership boundary**
-   *
    * This approach balances correctness, simplicity, and predictable behavior
    * without requiring global history rewriting or fragile index arithmetic.
    */
