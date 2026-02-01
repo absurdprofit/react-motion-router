@@ -8,7 +8,7 @@ on:
       - beta
 
 concurrency:
-  group: dry-run-publish-${{ github.workflow }}-${{ github.ref }}
+  group: merge-enforcer-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:

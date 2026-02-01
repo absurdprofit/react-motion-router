@@ -10,7 +10,7 @@ on:
       - "v*"
 
 concurrency:
-  group: dry-run-publish-${{ github.workflow }}-${{ github.ref }}
+  group: publish-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:

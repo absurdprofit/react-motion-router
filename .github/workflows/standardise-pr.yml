@@ -5,7 +5,7 @@ on:
     types: [opened, edited, synchronize, reopened]
 
 concurrency:
-  group: dry-run-publish-${{ github.workflow }}-${{ github.ref }}
+  group: standardise-pr-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
