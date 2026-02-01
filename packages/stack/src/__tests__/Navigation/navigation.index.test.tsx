@@ -1,16 +1,16 @@
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { Navigation, NavigationConfig } from '../../Navigation';
 import {
   assertNavigationAvailable,
   installInterceptor,
-  LAST_INDEX,
+  SINGLE_ELEMENT_LENGTH,
   traverseToStart,
   uninstallInterceptor
 } from '@react-motion-router/core';
 import { cleanup } from '@testing-library/react';
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { Navigation, NavigationConfig } from '../../Navigation';
-import { SECOND_TO_LAST_INDEX } from './common/constants';
+import { FIRST_INDEX, FOURTH_INDEX } from './common/constants';
 
-describe('Navigation', () => {
+describe('Navigation.index', () => {
   beforeAll(installInterceptor);
   beforeEach(async () => {
     assertNavigationAvailable();
@@ -20,13 +20,9 @@ describe('Navigation', () => {
   });
   afterAll(uninstallInterceptor);
 
-  it('resolves the previous entry', async () => {
+  it('returns 0 if the current index is before its owning scope', () => {
     const navigation = new Navigation({
       getPathPatterns: () => [
-        {
-          pattern: '.',
-          caseSensitive: false,
-        },
         {
           pattern: 'hello',
           caseSensitive: false,
@@ -43,16 +39,39 @@ describe('Navigation', () => {
       baseURLPattern: new URLPattern('/', globalThis.location.origin),
     } as NavigationConfig);
 
-    window.navigation.navigate('/hello', { history: 'replace' });
-    window.navigation.navigate('/world/hello');
-    
-    expect(navigation.previous).toBeDefined();
-    if (navigation.canGoBack())
-      expect(navigation.previous.key)
-        .toBe(window.navigation.entries().at(SECOND_TO_LAST_INDEX)?.key);
+    expect(navigation.index).toBe(FIRST_INDEX);
   });
 
-  it('resolves the next entry', async () => {
+  it(
+    'returns the last entry index if the current index is owned by a nested scope',
+    () => {
+      const navigation = new Navigation({
+        getPathPatterns: () => [
+          {
+            pattern: 'hello',
+            caseSensitive: false,
+          },
+          {
+            pattern: 'world/**',
+            caseSensitive: false,
+          },
+          {
+            pattern: 'hello-world/**',
+            caseSensitive: false,
+          },
+        ],
+        baseURLPattern: new URLPattern('/', globalThis.location.origin),
+      } as NavigationConfig);
+
+      window.navigation.navigate('hello');
+      window.navigation.navigate('hello');
+      window.navigation.navigate('world/hello');
+      expect(navigation.index)
+        .toBe(navigation.entries.length - SINGLE_ELEMENT_LENGTH);
+    }
+  );
+
+  it('includes index of non-contiguous entries', () => {
     const navigation = new Navigation({
       getPathPatterns: () => [
         {
@@ -75,49 +94,44 @@ describe('Navigation', () => {
       baseURLPattern: new URLPattern('/', globalThis.location.origin),
     } as NavigationConfig);
 
-    window.navigation.navigate('/hello', { history: 'replace' });
+    window.navigation.navigate('/hello');
+    window.navigation.navigate('/world/hello');
+    window.navigation.navigate('/world/world');
+    window.navigation.navigate('/hello');
+    
+    expect(navigation.index).toBe(FOURTH_INDEX);
+  });
+
+  it('returns the closest index to the current index', async () => {
+    const navigation = new Navigation({
+      getPathPatterns: () => [
+        {
+          pattern: '.',
+          caseSensitive: false,
+        },
+        {
+          pattern: 'hello',
+          caseSensitive: false,
+        },
+        {
+          pattern: 'world/**',
+          caseSensitive: false,
+        },
+        {
+          pattern: 'hello-world/**',
+          caseSensitive: false,
+        },
+      ],
+      baseURLPattern: new URLPattern('/', globalThis.location.origin),
+    } as NavigationConfig);
+
+    window.navigation.navigate('/hello');
+    window.navigation.navigate('/world/hello');
+    window.navigation.navigate('/world/world');
+    window.navigation.navigate('/hello');
     window.navigation.navigate('/world/hello');
     await window.navigation.back().finished;
     
-    expect(navigation.next).toBeDefined();
-    if (navigation.canGoForward())
-      expect(navigation.next.key)
-        .toBe(window.navigation.entries().at(LAST_INDEX)?.key);
+    expect(navigation.index).toBe(FOURTH_INDEX);
   });
-
-  it('resolves the current entry', async () => {
-    const navigation = new Navigation({
-      getPathPatterns: () => [
-        {
-          pattern: '.',
-          caseSensitive: false,
-        },
-        {
-          pattern: 'hello',
-          caseSensitive: false,
-        },
-        {
-          pattern: 'world/**',
-          caseSensitive: false,
-        },
-        {
-          pattern: 'hello-world/**',
-          caseSensitive: false,
-        },
-      ],
-      baseURLPattern: new URLPattern('/', globalThis.location.origin),
-    } as NavigationConfig);
-
-    window.navigation.navigate('/hello', { history: 'replace' });
-    window.navigation.navigate('/world/hello');
-    
-    expect(navigation.current).toBeDefined();
-    expect(navigation.current.key).toBe(window.navigation.currentEntry?.key);
-  });
-
-  // TODO: need to test canGoBack and canGoForward when the target entry.sameDocument is false
-  // Currently unsure how to create a non-sameDocument entry that has the same origin. It has
-  // been a bug in the past however. When users unload the browser window by clicking the
-  // actual browser reload button it used to cause traversal navigations to break because the assumption
-  // at the time was that same document === same origin. This didn't seem like it was the case however.
 });
