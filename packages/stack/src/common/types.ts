@@ -89,27 +89,21 @@ export function isSupportedDirection(
 }
 
 export function isOutOfBounds(
-  direction: SwipeDirection,
+  direction: Direction,
   { x, y }: { x: number, y: number },
   clientRect: DOMRect,
   gestureAreaWidth: number
 ) {
-  if (
-    direction === 'right'
-    && Math.abs(x - clientRect.left) >= gestureAreaWidth
-  ) return false;
-  if (
-    direction === 'left'
-    && Math.abs(x - clientRect.right) >= gestureAreaWidth
-  ) return false;
-  if (
-    direction === 'down'
-    && Math.abs(y - clientRect.top) >= gestureAreaWidth
-  ) return false;
-  if (
-    direction === 'up'
-    && Math.abs(y - clientRect.bottom) >= gestureAreaWidth
-  ) return false;
+  switch (direction) {
+    case 'right':
+      return Math.abs(x - clientRect.left) < gestureAreaWidth;
+    case 'left':
+      return Math.abs(x - clientRect.right) < gestureAreaWidth;
+    case 'down':
+      return Math.abs(y - clientRect.top) < gestureAreaWidth;
+    case 'up':
+      return Math.abs(y - clientRect.bottom) < gestureAreaWidth;
+  }
 }
 
 export function isHorizontalDirection(
