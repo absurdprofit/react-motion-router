@@ -302,7 +302,6 @@ export class Navigation extends NavigationBase<RouterEventMap> {
    * Collection stops at index 5 because ownership is transferred to a
    * foreign router.
    *
-   *
    * This approach balances correctness, simplicity, and predictable behavior
    * without requiring global history rewriting or fragile index arithmetic.
    */

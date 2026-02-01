@@ -54,7 +54,7 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
     return computedStyles;
   }
 
-  public copyStyles(
+  copyStyles(
     srcElement: Element | null | undefined,
     cloneElement: StylableElement,
     styleList: StyleKeyList
