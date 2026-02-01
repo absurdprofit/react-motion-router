@@ -5,5 +5,10 @@
     "example"
   ],
   "useNx": true,
-  "version": "independent"
+  "version": "independent",
+  "command": {
+    "publish": {
+      "verifyAccess": true
+    }
+  }
 }
