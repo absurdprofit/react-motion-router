@@ -9,12 +9,17 @@ on:
     tags:
       - "v*"
 
+concurrency:
+  group: dry-run-publish-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+
 jobs:
   publish:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write  # Required for OIDC
-      contents: read
 
     steps:
       - name: Checkout repository

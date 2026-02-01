@@ -7,11 +7,14 @@ on:
       - next
       - beta
 
+concurrency:
+  group: dry-run-publish-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   publish-check:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
       contents: read
 
     steps:
