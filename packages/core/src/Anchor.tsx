@@ -5,6 +5,7 @@ import {
 } from './common/constants';
 import { omit } from './common/utils';
 
+// TODO: implement ForwardRef
 interface AnchorProps extends React.DetailedHTMLProps<
   React.AnchorHTMLAttributes<HTMLAnchorElement>,
   HTMLAnchorElement
