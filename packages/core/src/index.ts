@@ -10,6 +10,7 @@ export * from './common/types';
 export * from './common/events';
 export * from './common/utils';
 export * from './common/test-utils';
+export * from './common/promise-wrapper';
 export * from './common/constants';
 export * from './Anchor';
 export * from './RouterContext';

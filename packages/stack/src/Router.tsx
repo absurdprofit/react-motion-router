@@ -13,7 +13,8 @@ import {
   RouterBaseConfig,
   RouterBaseProps,
   RouterBaseState,
-  ScreenChild
+  ScreenChild,
+  PromiseWrapper
 } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { ScreenProps, Screen, ScreenConfig } from './Screen';
@@ -22,8 +23,6 @@ import {
   isHorizontalDirection,
   isRefObject,
   isSupportedDirection,
-  NavigationBaseOptions,
-  NavigationProps,
   ScreenInternalProps,
   SwipeDirection
 } from './common/types';
@@ -45,7 +44,6 @@ import {
   DEFAULT_GESTURE_CONFIG,
   DEFAULT_PLAYBACK_RATE
 } from './common/constants';
-import { PromiseWrapper } from '@react-motion-router/core/src/common/promise-wrapper';
 import { GestureRegion } from './GestureRegion';
 
 export interface RouterConfig extends RouterBaseConfig {
