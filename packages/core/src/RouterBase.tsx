@@ -89,7 +89,7 @@ export abstract class RouterBase<
     this.#addEventListeners();
 
     if (!this.loadDispatched) {
-      window.navigation.dispatchEvent(new LoadEvent());
+      window.navigation.dispatchEvent(new LoadEvent('load'));
       this.loadDispatched = true;
     }
   }

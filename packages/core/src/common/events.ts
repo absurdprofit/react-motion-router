@@ -6,7 +6,7 @@ export class LoadEvent extends Event implements Omit<
   NavigateEvent,
   'navigationType' | 'commit'
 > {
-  #navigationType = 'load' as const;
+  #navigationType: 'load' | 'preload';
   #userInitiated: boolean = false;
   #canIntercept: boolean = true;
   #hashChange: boolean = false;
@@ -20,9 +20,16 @@ export class LoadEvent extends Event implements Omit<
   #transition: LoadNavigationTransition | null = null;
   public readonly hasUAVisualTransition = false;
 
-  constructor(entry?: NavigationHistoryEntry | null) {
+  constructor(
+    navigationType: 'load' | 'preload',
+    loadEventInitDict?: { entry?: NavigationHistoryEntry | null }
+  ) {
     super('navigate', { cancelable: false, bubbles: false, composed: false });
-    entry ??= window.navigation.currentEntry;
+
+    this.#navigationType = navigationType;
+    const {
+      entry = window.navigation.currentEntry,
+    } = loadEventInitDict ?? {};
     if (!entry) throw new Error('Current entry is null');
     this.#destination = {
       getState() {
@@ -53,7 +60,7 @@ export class LoadEvent extends Event implements Omit<
 
   public intercept(options?: NavigationInterceptOptions | undefined): void {
     if (this.#intercepted) throw new DOMException('Failed to execute \'intercept\' on \'NavigateEvent\': intercept() may only be called while the navigate event is being dispatched.');
-    let finish: () => void | null = null;
+    let finish: (() => void) | null = null;
     if (!this.#transition) {
       this.#transition = {
         finished: new Promise((resolve) => finish = resolve),
