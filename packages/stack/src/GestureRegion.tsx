@@ -1,8 +1,19 @@
-import React, { cache } from 'react';
+import React from 'react';
 import { useRoute } from './common/hooks';
-import { isOutOfBounds } from './common/types';
+import { isWithinGestureInset } from './common/utils';
 
-const DEFAULT_GESTURE_AREA_WIDTH = 20;
+const DEFAULT_UA_GESTURE_AREA_WIDTH = 24;
+
+function WithActivationDetection(
+  { clientX: x, clientY: y }: Touch,
+  rect: DOMRect,
+  gestureAreaWidth: number
+) {
+  return isWithinGestureInset('left', { x, y }, rect, gestureAreaWidth)
+    && isWithinGestureInset('right', { x, y }, rect, gestureAreaWidth)
+    && isWithinGestureInset('down', { x, y }, rect, gestureAreaWidth)
+    && isWithinGestureInset('up', { x, y }, rect, gestureAreaWidth);
+}
 
 type ElementForTag<T extends keyof JSX.IntrinsicElements> =
   T extends keyof (HTMLElementTagNameMap & SVGElementTagNameMap)
@@ -15,70 +26,73 @@ type GestureRegion = {
 
 interface GestureRegionProps {
   gestureBehaviour?: 'contain' | 'none';
+  uaGestureAreaWidth?: number;
 }
 
-export const createGestureRegion = cache(
-  <T extends keyof JSX.IntrinsicElements>(tag: T) => {
-    return (
-      function GestureRegion({
-        ref: forwardedRef,
-        gestureBehaviour = 'contain',
-        ...props
-      }: JSX.IntrinsicElements[T] & GestureRegionProps) {
-        const ref = React.useRef<ElementForTag<T>>(null);
-        const route = useRoute();
-        const { gestureAreaWidth = DEFAULT_GESTURE_AREA_WIDTH } = route.config;
+export const createGestureRegion = (
+  <T extends keyof JSX.IntrinsicElements>(tag: T) => 
+    function GestureRegion({
+      ref: forwardedRef,
+      gestureBehaviour = 'contain',
+      uaGestureAreaWidth = DEFAULT_UA_GESTURE_AREA_WIDTH,
+      ...props
+    }: JSX.IntrinsicElements[T] & GestureRegionProps) {
+      const ref = React.useRef<ElementForTag<T>>(null);
+      const route = useRoute();
+      const { gestureAreaWidth = Number() } = route.config;
         
-        React.useImperativeHandle(
+      React.useImperativeHandle(
           forwardedRef as React.Ref<ElementForTag<T>> | undefined,
           () => ref.current as ElementForTag<T>
-        );
+      );
 
-        React.useEffect(() => {
-          if (!ref.current) return;
-          const target = ref.current;
+      React.useEffect(() => {
+        if (!ref.current) return;
+        const target = ref.current;
 
-          const handler = (e: Event) => {
-            if (!(e instanceof TouchEvent)) return;
-            if (gestureBehaviour === 'none') return;
-            const rect = target.getBoundingClientRect();
-            const touches = Array.from(e.touches)
-              .map(({ clientX: x, clientY: y }) => {
-                return isOutOfBounds('left', { x, y }, rect, gestureAreaWidth)
-                && isOutOfBounds('right', { x, y }, rect, gestureAreaWidth)
-                && isOutOfBounds('down', { x, y }, rect, gestureAreaWidth)
-                && isOutOfBounds('up', { x, y }, rect, gestureAreaWidth);
-              });
+        const handler = (e: Event) => {
+          if (!(e instanceof TouchEvent)) return;
+          if (gestureBehaviour === 'none') return;
+          const rect = target.getBoundingClientRect();
+          const isWithinGestureInset = Array.from(e.touches)
+            .map(touch => {
+              return WithActivationDetection(touch, rect, gestureAreaWidth);
+            })
+            .some(Boolean);
 
-            if (!touches.some(Boolean)) return;
-
+          if (isWithinGestureInset)
             e.stopPropagation();
+
+          const isWithinUAGestureInset = Array.from(e.touches)
+            .map(touch => {
+              return WithActivationDetection(touch, rect, uaGestureAreaWidth);
+            })
+            .some(Boolean);
+            
+          if (isWithinUAGestureInset)
             e.preventDefault();
-          };
+        };
 
-          target.addEventListener('touchstart', handler);
-          return () => {
-            target.removeEventListener(
-              'touchstart',
-              handler
-            );
-          };
-        }, [gestureAreaWidth, gestureBehaviour]);
+        target.addEventListener('touchstart', handler);
+        return () => {
+          target.removeEventListener(
+            'touchstart',
+            handler
+          );
+        };
+      }, [uaGestureAreaWidth, gestureAreaWidth, gestureBehaviour]);
 
-        const Tag = tag as React.JSX.ElementType;
+      const Tag = tag as React.JSX.ElementType;
 
-        return <Tag ref={ref} {...props} />;
-      }
-    );
-  }
+      return <Tag ref={ref} {...props} />;
+    }
 );
 
 export const GestureRegion = new Proxy(
   {} as GestureRegion, {
-    get(_, key) {
-      return (
-        createGestureRegion(key as keyof JSX.IntrinsicElements)
-      );
+    get(target, key: keyof JSX.IntrinsicElements) {
+      target[key] ??= createGestureRegion(key);
+      return target[key];
     },
   }
 );

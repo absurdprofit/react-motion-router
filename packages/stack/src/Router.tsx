@@ -20,7 +20,6 @@ import { ScreenProps, Screen, ScreenConfig } from './Screen';
 import {
   HistoryEntryState,
   isHorizontalDirection,
-  isOutOfBounds,
   isRefObject,
   isSupportedDirection,
   NavigationBaseOptions,
@@ -32,7 +31,12 @@ import {
 import { createRef, startTransition } from 'react';
 import { SwipeStartEvent, SwipeEndEvent } from 'web-gesture-events';
 import { GestureTimeline } from 'web-animations-extension';
-import { deepEquals, isGesture, isRollback } from './common/utils';
+import {
+  deepEquals,
+  isGesture,
+  isRollback,
+  isWithinGestureInset
+} from './common/utils';
 import {
   GestureCancelEvent,
   GestureEndEvent,
@@ -237,7 +241,14 @@ export class Router extends RouterBase<
       && !this.navigation.canGoForward()
     )
       return false;
-    if (isOutOfBounds(direction, e, clientRect, this.state.gestureAreaWidth))
+    if (
+      isWithinGestureInset(
+        direction,
+        e,
+        clientRect,
+        this.state.gestureAreaWidth
+      )
+    )
       return false;
 
     return isSupportedDirection(direction, this.state.gestureDirection);

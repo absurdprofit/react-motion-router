@@ -17,7 +17,10 @@ let isFirstLoad = false;
 let originalDesc: string | undefined;
 let lastHero = '';
 export default function Details(props: DetailsProps) {
-  const [gestureDisabled, setGestureDisabled] = React.useState(true);
+  const [
+    preventGestureNavigation,
+    setPreventGestureNavigation,
+  ] = React.useState(true);
   const { noBg, ...hero } = props.route.params;
 
   useEffect(() => {
@@ -55,9 +58,9 @@ export default function Details(props: DetailsProps) {
     const maxScroll = e.target.scrollHeight - e.target.clientHeight;
     const scrollPercent = scrollPos / maxScroll;
     if (scrollPercent !== 0) {
-      setGestureDisabled(true);
+      setPreventGestureNavigation(true);
     } else {
-      setGestureDisabled(false);
+      setPreventGestureNavigation(false);
     }
   };
 
@@ -70,11 +73,15 @@ export default function Details(props: DetailsProps) {
         height: '100%',
         backgroundColor: noBg ? 'white' : undefined,
       }}
-      onScroll={onScroll}
-      gestureBehaviour={gestureDisabled ? 'none' : 'contain'}
+      gestureBehaviour={preventGestureNavigation ? 'contain' : 'none'}
     >
       <SharedElement id={`${hero.id}-card-bg`} config={{ styles: ['background-color', 'border-radius'], deepClone: false }} disabled={noBg}>
-        <div className="card-bg" aria-hidden="true">
+        <div
+          className="card-bg"
+          aria-hidden="true"
+          style={{ overflow: 'auto' }}
+          onScroll={onScroll}
+        >
                         
           <Anchor aria-label='Go Back' goBack tabIndex={-1}>
             <IconButton style={{
