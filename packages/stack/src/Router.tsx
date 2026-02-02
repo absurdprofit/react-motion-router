@@ -6,7 +6,7 @@ import {
   cloneAndInject,
   matchRoute
 } from '@react-motion-router/core';
-import type {
+import {
   ClonedElementType,
   LoadEvent,
   NestedRouterContext,
@@ -427,10 +427,11 @@ export class Router extends RouterBase<
   }
 
   protected intercept(e: NavigateEvent | LoadEvent): void {
-    if (e.navigationType !== 'load') this.props.config?.onIntercept?.(e);
+    if (!(e instanceof LoadEvent)) this.props.config?.onIntercept?.(e);
     if (e.defaultPrevented) return;
 
     switch (e.navigationType) {
+      case 'preload':
       case 'load':
         this.handleLoad(e);
         break;

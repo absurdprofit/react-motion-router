@@ -33,16 +33,20 @@ export class ScreenTransitionLayer extends Component<
 
   private onTransitionCancel() {
     this.props.navigation.dispatchEvent(
-      new TransitionEvent('transitioncancel')
+      new TransitionEvent('routertransitioncancel')
     );
   }
 
   private onTransitionStart() {
-    this.props.navigation.dispatchEvent(new TransitionEvent('transitionstart'));
+    this.props
+      .navigation
+      .dispatchEvent(new TransitionEvent('routertransitionstart'));
   }
 
   private onTransitionEnd() {
-    this.props.navigation.dispatchEvent(new TransitionEvent('transitionend'));
+    this.props
+      .navigation
+      .dispatchEvent(new TransitionEvent('routertransitionend'));
   }
 
   public get screens() {

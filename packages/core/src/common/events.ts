@@ -65,7 +65,7 @@ export class LoadEvent extends Event implements Omit<
       this.#transition = {
         finished: new Promise((resolve) => finish = resolve),
         from: window.navigation.currentEntry!,
-        navigationType: 'load' as const,
+        navigationType: this.#navigationType,
       };
     }
     const thenable = options?.handler?.();
