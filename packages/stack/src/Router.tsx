@@ -4,6 +4,7 @@ import {
   RouterBase,
   SINGLE_ELEMENT_LENGTH,
   cloneAndInject,
+  historyEntryFromDestination,
   matchRoute
 } from '@react-motion-router/core';
 import {
@@ -45,6 +46,7 @@ import {
   DEFAULT_PLAYBACK_RATE
 } from './common/constants';
 import { GestureRegion } from './GestureRegion';
+import { HistoryEntry } from './HistoryEntry';
 
 export interface RouterConfig extends RouterBaseConfig {
   screenConfig?: ScreenConfig;
@@ -415,7 +417,10 @@ export class Router extends RouterBase<
   ) {
     const handler = () => {
       const { pathname } = new URL(e.destination.url);
-      const { child, matchInfo } = this.screenChildFromPathname(pathname) ?? {};
+      const {
+        child,
+        matchInfo = null,
+      } = this.screenChildFromPathname(pathname) ?? {};
       if (!child) return Promise.resolve();
       const { navigation } = this;
       const { signal } = e;
@@ -424,8 +429,14 @@ export class Router extends RouterBase<
       const { transition } = e;
       return new Promise<void>(resolve => {
         this.setState({ transition }, async () => {
-          // TODO: refactor to delegate this to Screen. This logic is a bit complex and it's
-          // best to share the code.
+          const historyEntryState = Screen.historyEntryStateFromEntry(
+            new HistoryEntry(
+              historyEntryFromDestination(e.destination),
+              this.id,
+              LAST_INDEX
+            ),
+            matchInfo
+          );
           await Promise.all([
             this.preloadScreen(child),
             child.props.config?.onLoad?.({
@@ -439,12 +450,12 @@ export class Router extends RouterBase<
                 config: {
                   ...this.props.config?.screenConfig,
                   ...child.props.config,
-                  // ...props.config,
+                  ...historyEntryState.config,
                 },
                 params: {
                   ...child.props.defaultParams,
                   ...matchInfo?.params,
-                  // ...props.params,
+                  ...historyEntryState.params,
                 },
               },
             }),
@@ -684,9 +695,11 @@ export class Router extends RouterBase<
     signal: AbortSignal
   ) {
     let animationStarted = false;
-    this.addEventListener('routertransitionstart', () => (animationStarted = true), {
-      once: true,
-    });
+    this.addEventListener(
+      'routertransitionstart',
+      () => (animationStarted = true),
+      { once: true }
+    );
 
     await Promise.all([
       outgoingScreen?.current?.onExit(signal),

@@ -180,7 +180,7 @@ export abstract class ScreenBase<
     await this.props
       .config
       ?.onLoad
-      ?.({ navigation, route, signal, preloading });
+      ?.({ navigation, route, signal, preloading }); // TODO: prevent passing setConfig and setParams in lifecycle props
 
     return result;
   }

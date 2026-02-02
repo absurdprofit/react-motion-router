@@ -4,7 +4,8 @@ import type {
   ScreenBaseProps,
   ScreenBaseState,
   ScreenBaseComponentProps,
-  ScreenBaseConfig
+  ScreenBaseConfig,
+  MatchedRoute
 } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import {
@@ -65,6 +66,25 @@ export class Screen extends ScreenBase<
       return { elementType: 'div' };
   }
 
+  public static historyEntryStateFromEntry(
+    entry: HistoryEntry,
+    matchInfo: MatchedRoute | null
+  ) {
+    if (entry?.url) {
+      const state = entry.getState<HistoryEntryState>() ?? {};
+      const queryParams = searchParamsToObject(entry.url.searchParams);
+      const { params: pathParams = {} } = matchInfo ?? {};
+      state.params = {
+        ...state.params,
+        ...queryParams,
+        ...pathParams,
+      };
+
+      return state;
+    }
+    return {};
+  }
+
   protected setParams(newParams: PlainObject): void {
     super.setParams(newParams);
     this.setHistoryState(
@@ -109,24 +129,14 @@ export class Screen extends ScreenBase<
 
   private get historyEntryState() {
     const entry = this.#historyEntry;
-    if (entry?.url) {
-      const state = entry.getState<HistoryEntryState>() ?? {};
-      const queryParams = searchParamsToObject(entry.url.searchParams);
-      const pathParams = matchRoute(
-        this.props.path,
-        entry.url.pathname,
-        this.context.baseURLPattern.pathname,
-        this.props.caseSensitive
-      )?.params;
-      state.params = {
-        ...state.params,
-        ...queryParams,
-        ...pathParams,
-      };
-
-      return state;
-    }
-    return {};
+    if (!entry.url) return {};
+    const matchInfo = matchRoute(
+      this.props.path,
+      entry.url.pathname,
+      this.context.baseURLPattern.pathname,
+      this.props.caseSensitive
+    );
+    return Screen.historyEntryStateFromEntry(entry, matchInfo);
   }
 
   public get id() {
