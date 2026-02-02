@@ -20,18 +20,18 @@ export class LoadEvent extends Event implements Omit<
   #transition: LoadNavigationTransition | null = null;
   public readonly hasUAVisualTransition = false;
 
-  constructor() {
+  constructor(entry?: NavigationHistoryEntry | null) {
     super('navigate', { cancelable: false, bubbles: false, composed: false });
-    const currentEntry = window.navigation.currentEntry;
-    if (!currentEntry) throw new Error('Current entry is null');
+    entry ??= window.navigation.currentEntry;
+    if (!entry) throw new Error('Current entry is null');
     this.#destination = {
       getState() {
-        return currentEntry.getState();
+        return entry.getState();
       },
-      url: currentEntry.url ?? new URL(window.location.href).href,
-      key: currentEntry.key,
-      index: currentEntry.index,
-      id: currentEntry.id,
+      url: entry.url ?? new URL(window.location.href).href,
+      key: entry.key,
+      index: entry.index,
+      id: entry.id,
       sameDocument: true,
     };
 
@@ -53,7 +53,7 @@ export class LoadEvent extends Event implements Omit<
 
   public intercept(options?: NavigationInterceptOptions | undefined): void {
     if (this.#intercepted) throw new DOMException('Failed to execute \'intercept\' on \'NavigateEvent\': intercept() may only be called while the navigate event is being dispatched.');
-    let finish: Function | null = null;
+    let finish: () => void | null = null;
     if (!this.#transition) {
       this.#transition = {
         finished: new Promise((resolve) => finish = resolve),
