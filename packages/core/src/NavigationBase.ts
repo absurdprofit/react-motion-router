@@ -1,3 +1,4 @@
+import { LAST_INDEX } from './common/constants';
 import { LoadEvent } from './common/events';
 import { RouterBaseHTMLElement } from './common/types';
 import { historyEntryFromDestination } from './common/utils';
@@ -83,11 +84,11 @@ export abstract class NavigationBase {
       getState() {
         return state;
       },
-      index: window.navigation.entries.length,
+      index: LAST_INDEX,
       sameDocument: true,
       url,
-      id: crypto.randomUUID(),
-      key: crypto.randomUUID(),
+      id: null,
+      key: null,
     };
     const loadEvent = new LoadEvent('preload', { destination });
     window.navigation.dispatchEvent(loadEvent);
