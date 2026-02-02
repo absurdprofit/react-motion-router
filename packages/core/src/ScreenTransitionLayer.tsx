@@ -1,5 +1,4 @@
 import { Component, RefObject, createRef } from 'react';
-import { TransitionCancelEvent, TransitionEndEvent, TransitionStartEvent } from './common/events';
 import { SharedElementTransitionLayer } from './SharedElementTransitionLayer';
 import { ParallelEffect, Animation } from 'web-animations-extension';
 import { ScreenTransitionLayerContext } from './ScreenTransitionLayerContext';
@@ -18,8 +17,12 @@ interface ScreenTransitionLayerState {
     gestureNavigating: boolean;
 }
 
-export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps, ScreenTransitionLayerState> {
-  public readonly sharedElementTransitionLayer = createRef<SharedElementTransitionLayer>();
+export class ScreenTransitionLayer extends Component<
+  ScreenTransitionLayerProps,
+  ScreenTransitionLayerState
+> {
+  public readonly sharedElementTransitionLayer =
+    createRef<SharedElementTransitionLayer>();
   public readonly animation: Animation = new Animation();
   #direction: PlaybackDirection = 'normal';
   #screens: RefObject<ScreenBase>[] = [];
@@ -29,15 +32,17 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
   };
 
   private onTransitionCancel() {
-    this.props.navigation.dispatchEvent(new TransitionCancelEvent());
+    this.props.navigation.dispatchEvent(
+      new TransitionEvent('transitioncancel')
+    );
   }
 
   private onTransitionStart() {
-    this.props.navigation.dispatchEvent(new TransitionStartEvent());
+    this.props.navigation.dispatchEvent(new TransitionEvent('transitionstart'));
   }
 
   private onTransitionEnd() {
-    this.props.navigation.dispatchEvent(new TransitionEndEvent());
+    this.props.navigation.dispatchEvent(new TransitionEvent('transitionend'));
   }
 
   public get screens() {
@@ -64,15 +69,22 @@ export class ScreenTransitionLayer extends Component<ScreenTransitionLayerProps,
   public transition() {
     const effect = new ParallelEffect(
       this.screens.map(screen => {
-        return screen.current?.transitionProvider?.current?.animationEffect ?? null;
+        return screen.current
+          ?.transitionProvider
+          ?.current
+          ?.animationEffect ?? null;
       }).filter((effect): effect is AnimationEffect => effect !== null)
     );
 
-    const sharedElementEffect = this.sharedElementTransitionLayer.current?.animationEffect;
+    const sharedElementEffect = this.sharedElementTransitionLayer
+      .current
+      ?.animationEffect;
     const duration = effect.getComputedTiming().duration;
     if (sharedElementEffect) {
       sharedElementEffect.updateTiming({
-        duration: duration instanceof CSSNumericValue ? duration.to('ms').value : duration,
+        duration: duration instanceof CSSNumericValue
+          ? duration.to('ms').value
+          : duration,
       });
       effect.append(sharedElementEffect);
       this.sharedElementTransitionLayer.current?.ref.current?.showModal();

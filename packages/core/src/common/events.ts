@@ -2,36 +2,6 @@ import { SINGLE_ELEMENT_LENGTH } from './constants';
 import { LoadNavigationTransition } from './types';
 import { PromiseAllSequential } from './utils';
 
-export class TransitionStartEvent extends Event {
-  constructor() {
-    super('transition-start');
-  }
-}
-
-export class TransitionCancelEvent extends Event {
-  constructor() {
-    super('transition-cancel');
-  }
-}
-
-export class TransitionEndEvent extends Event {
-  constructor() {
-    super('transition-end');
-  }
-}
-
-export class MotionProgressStartEvent extends Event {
-  constructor() {
-    super('motion-progress-start');
-  }
-}
-
-export class MotionProgressEndEvent extends Event {
-  constructor() {
-    super('motion-progress-end');
-  }
-}
-
 export class LoadEvent extends Event implements Omit<
   NavigateEvent,
   'navigationType' | 'commit'

@@ -673,7 +673,7 @@ export class Router extends RouterBase<
     signal: AbortSignal
   ) {
     let animationStarted = false;
-    this.addEventListener('transition-start', () => (animationStarted = true), {
+    this.addEventListener('routertransitionstart', () => (animationStarted = true), {
       once: true,
     });
 
@@ -685,7 +685,7 @@ export class Router extends RouterBase<
 
     if (animationStarted)
       await new Promise((resolve) =>
-        this.addEventListener('transition-end', resolve, { once: true })
+        this.addEventListener('routertransitionend', resolve, { once: true })
       );
 
     // if gesture navigation cancelled then exit here

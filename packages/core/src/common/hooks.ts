@@ -39,10 +39,10 @@ export function useMotion() {
           callback();
         } while (animation.playState === 'running');
       };
-      router.addEventListener('transition-start', onTransitionStart);
+      router.addEventListener('routertransitionstart', onTransitionStart);
 
       return () => {
-        router.removeEventListener('transition-start', onTransitionStart);
+        router.removeEventListener('routertransitionstart', onTransitionStart);
       };
     },
     () => {

@@ -1,12 +1,5 @@
 import { isValidElement } from 'react';
 import { ScreenBase, ScreenBaseProps } from '../ScreenBase';
-import {
-  MotionProgressEndEvent,
-  MotionProgressStartEvent,
-  TransitionCancelEvent,
-  TransitionEndEvent,
-  TransitionStartEvent
-} from './events';
 import { SharedElement } from '../SharedElement';
 import { StandardPropertiesHyphen } from 'csstype';
 
@@ -55,11 +48,9 @@ export type PlainObject<T = any> = { [key: string]: T };
 // TODO: remove hyphens
 declare global {
   interface HTMLElementEventMap {
-      'transition-start': TransitionStartEvent;
-      'transition-cancel': TransitionCancelEvent;
-      'transition-end': TransitionEndEvent;
-      'motion-progress-start': MotionProgressStartEvent;
-      'motion-progress-end': MotionProgressEndEvent;
+    'routertransitionstart': TransitionEvent;
+    'routertransitioncancel': TransitionEvent;
+    'routertransitionend': TransitionEvent;
   }
 }
 
