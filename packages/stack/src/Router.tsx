@@ -45,7 +45,7 @@ import {
   DEFAULT_GESTURE_CONFIG,
   DEFAULT_PLAYBACK_RATE
 } from './common/constants';
-import { PromiseWrapper } from './common/promise-wrapper';
+import { PromiseWrapper } from '@react-motion-router/core/src/common/promise-wrapper';
 import { GestureRegion } from './GestureRegion';
 
 export interface RouterConfig extends RouterBaseConfig {
@@ -105,7 +105,6 @@ export class Router extends RouterBase<
       getPathPatterns: () => {
         return this.pathPatterns;
       },
-      preload: this.preload.bind(this),
       getNavigatorById: (id: string) =>
         this.getRouterById(id)?.navigation ?? null,
     });
@@ -345,42 +344,6 @@ export class Router extends RouterBase<
     });
   }
 
-  public async preload(
-    pathname: string,
-    props: NavigationProps = {},
-    options: NavigationBaseOptions = {}
-  ) {
-    const { child, matchInfo } = this.screenChildFromPathname(pathname) ?? {};
-    if (!child) return Promise.resolve(false);
-    const { navigation } = this;
-    const { signal } = options;
-    const { path } = child.props;
-    await Promise.all([
-      this.preloadScreen(child),
-      child.props.config?.onLoad?.({
-        navigation,
-        signal,
-        preloading: true,
-        route: {
-          focused: false,
-          path,
-          resolvedPathname: pathname,
-          config: {
-            ...this.props.config?.screenConfig,
-            ...child.props.config,
-            ...props.config,
-          },
-          params: {
-            ...child.props.defaultParams,
-            ...matchInfo?.params,
-            ...props.params,
-          },
-        },
-      }),
-    ]);
-    return true;
-  }
-
   private cloneScreenChildFromPathname(
     pathname: string,
     key: React.Key | null
@@ -432,6 +395,8 @@ export class Router extends RouterBase<
 
     switch (e.navigationType) {
       case 'preload':
+        this.handlePreload(e);
+        break;
       case 'load':
         this.handleLoad(e);
         break;
@@ -445,6 +410,51 @@ export class Router extends RouterBase<
         this.handleDefault(e);
         break;
     }
+  }
+
+  public handlePreload(
+    e: LoadEvent
+  ) {
+    const handler = () => {
+      const { pathname } = new URL(e.destination.url);
+      const { child, matchInfo } = this.screenChildFromPathname(pathname) ?? {};
+      if (!child) return Promise.resolve();
+      const { navigation } = this;
+      const { signal } = e;
+      const { path } = child.props;
+
+      const { transition } = e;
+      return new Promise<void>(resolve => {
+        this.setState({ transition }, async () => {
+          await Promise.all([
+            this.preloadScreen(child),
+            child.props.config?.onLoad?.({
+              navigation,
+              signal,
+              preloading: true,
+              route: {
+                focused: false,
+                path,
+                resolvedPathname: pathname,
+                config: {
+                  ...this.props.config?.screenConfig,
+                  ...child.props.config,
+                  // ...props.config,
+                },
+                params: {
+                  ...child.props.defaultParams,
+                  ...matchInfo?.params,
+                  // ...props.params,
+                },
+              },
+            }),
+          ]);
+          this.setState({ transition: null }, resolve);
+        });
+      });
+    };
+
+    e.intercept({ handler });
   }
 
   private handleLoad(e: LoadEvent) {

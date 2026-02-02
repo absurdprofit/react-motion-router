@@ -1,4 +1,6 @@
+import { LoadEvent } from './common/events';
 import { RouterBaseHTMLElement } from './common/types';
+import { historyEntryFromDestination } from './common/utils';
 import { MetaData } from './MetaData';
 
 export interface NavigationBaseConfig {
@@ -70,6 +72,31 @@ export abstract class NavigationBase {
     this.baseURL = config.baseURL;
     this.baseURLPattern = config.baseURLPattern;
     this.getNavigatorById = config.getNavigatorById;
+  }
+
+  protected preload(
+    route: string,
+    state?: unknown
+  ): NavigationResult {
+    const url = new URL(route, this.baseURL).href;
+    const destination: NavigationDestination = {
+      getState() {
+        return state;
+      },
+      index: window.navigation.entries.length,
+      sameDocument: true,
+      url,
+      id: crypto.randomUUID(),
+      key: crypto.randomUUID(),
+    };
+    const loadEvent = new LoadEvent('preload', { destination });
+    window.navigation.dispatchEvent(loadEvent);
+
+    const entry = historyEntryFromDestination(destination);
+    return {
+      finished: loadEvent.transition.finished.then(() => entry),
+      committed: Promise.resolve(entry),
+    };
   }
 
   private get isInDocument() {

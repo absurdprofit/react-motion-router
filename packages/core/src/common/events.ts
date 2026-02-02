@@ -1,4 +1,5 @@
 import { SINGLE_ELEMENT_LENGTH } from './constants';
+import { PromiseWrapper } from './promise-wrapper';
 import { LoadNavigationTransition } from './types';
 import { PromiseAllSequential } from './utils';
 
@@ -18,27 +19,28 @@ export class LoadEvent extends Event implements Omit<
   #intercepted = false;
   #thenables: Promise<void>[] = [];
   #transition: LoadNavigationTransition | null = null;
+  #finished = new PromiseWrapper<void>();
   public readonly hasUAVisualTransition = false;
 
   constructor(
     navigationType: 'load' | 'preload',
-    loadEventInitDict?: { entry?: NavigationHistoryEntry | null }
+    loadEventInitDict?: { destination?: NavigationDestination | null }
   ) {
     super('navigate', { cancelable: false, bubbles: false, composed: false });
 
     this.#navigationType = navigationType;
     const {
-      entry = window.navigation.currentEntry,
+      destination = window.navigation.currentEntry,
     } = loadEventInitDict ?? {};
-    if (!entry) throw new Error('Current entry is null');
+    if (!destination) throw new Error('Destination is null');
     this.#destination = {
       getState() {
-        return entry.getState();
+        return destination.getState();
       },
-      url: entry.url ?? new URL(window.location.href).href,
-      key: entry.key,
-      index: entry.index,
-      id: entry.id,
+      url: destination.url ?? new URL(window.location.href).href,
+      key: destination.key,
+      index: destination.index,
+      id: destination.id,
       sameDocument: true,
     };
 
@@ -60,21 +62,14 @@ export class LoadEvent extends Event implements Omit<
 
   public intercept(options?: NavigationInterceptOptions | undefined): void {
     if (this.#intercepted) throw new DOMException('Failed to execute \'intercept\' on \'NavigateEvent\': intercept() may only be called while the navigate event is being dispatched.');
-    let finish: (() => void) | null = null;
-    if (!this.#transition) {
-      this.#transition = {
-        finished: new Promise((resolve) => finish = resolve),
-        from: window.navigation.currentEntry!,
-        navigationType: this.#navigationType,
-      };
-    }
+    
     const thenable = options?.handler?.();
     if (thenable) this.#thenables.push(thenable);
     if (this.#thenables.length === SINGLE_ELEMENT_LENGTH) {
       PromiseAllSequential(this.#thenables).then(() => {
         this.#intercepted = true;
         window.removeEventListener('navigate', this.#onNavigate);
-        finish?.();
+        this.#finished.resolve();
       });
     }
   }
@@ -84,6 +79,13 @@ export class LoadEvent extends Event implements Omit<
   }
 
   public get transition() {
+    if (!this.#transition) {
+      this.#transition = {
+        finished: this.#finished.promise,
+        from: window.navigation.currentEntry!,
+        navigationType: this.#navigationType,
+      };
+    }
     return this.#transition;
   }
 

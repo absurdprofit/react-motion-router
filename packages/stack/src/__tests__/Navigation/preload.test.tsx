@@ -2,16 +2,17 @@ import { Router } from '../../Router';
 import { act, renderHook } from '@testing-library/react';
 import { Screen } from '../../Screen';
 import { useNavigation } from '../../common/hooks';
-import { describe, expect, it, vi } from 'vitest';
+import { assert, describe, expect, it, vi } from 'vitest';
+import { Navigation } from '../../Navigation';
 
 describe('Navigation.preload', () => {
   it('returns true', async () => {
     const onLoad = vi.fn();
-    const navigation = await act(async () => {
+    const { result: { current: navigation } } = await act(async () => {
       return renderHook(() => useNavigation(), {
         wrapper(props) {
           return (
-            <Router config={{ basePath: window.location.pathname }}>
+            <Router config={{ basePath: globalThis.location.pathname }}>
               <Screen
                 path='preload'
                 component={() => null}
@@ -24,7 +25,10 @@ describe('Navigation.preload', () => {
       });
     });
     
-    expect(await navigation.result.current.preload('preload')).toBe(true);
+    assert(navigation instanceof Navigation);
+    const result = navigation.preload('preload');
+    expect(result.finished).toBe(navigation.transition?.finished);
+    expect((await result.finished).url?.endsWith('preload')).toBe(true);
     expect(onLoad).toBeCalled();
   });
 
@@ -49,13 +53,16 @@ describe('Navigation.preload', () => {
         </Router>
       );
     };
-    const navigation = await act(async () => {
+    const { result: { current: navigation } } = await act(async () => {
       return renderHook(() => useNavigation(), {
         wrapper,
       });
     });
     
-    expect(await navigation.result.current.preload('preload')).toBe(true);
+    assert(navigation instanceof Navigation);
+    const result = act(() => navigation.preload('preload'));
+    // expect(result.finished).toBe(navigation.transition?.finished);
+    expect((await result.finished).url?.endsWith('preload')).toBe(true);
     expect(onLoad).toBeCalled();
   });
 });

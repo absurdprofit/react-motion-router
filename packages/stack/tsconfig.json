@@ -6,7 +6,7 @@
   "include": [
     "src/**/*.tsx",
     "src/**/*.ts"
-  ],
+, "../core/src/common/promise-wrapper.ts"  ],
   "exclude": [
     "node_modules",
     "build"
