@@ -24,7 +24,6 @@ import {
   isSupportedDirection,
   NavigationBaseOptions,
   NavigationProps,
-  RouterEventMap,
   ScreenInternalProps,
   SwipeDirection
 } from './common/types';
@@ -79,8 +78,7 @@ export interface RouterState extends RouterBaseState {
 
 export class Router extends RouterBase<
   RouterProps,
-  RouterState,
-  RouterEventMap
+  RouterState
 > {
   public readonly navigation;
   #committed: PromiseWrapper<NavigationHistoryEntry> | null = null;
@@ -157,18 +155,10 @@ export class Router extends RouterBase<
 
   public componentDidMount(): void {
     super.componentDidMount();
-    this.ref.current?.addEventListener('swipestart', this.onSwipeStart);
-    this.ref.current?.addEventListener('swipeend', this.onSwipeEnd);
-    window.navigation.addEventListener(
-      'currententrychange',
-      this.onCurrentEntryChange
-    );
-    window.navigation.addEventListener('navigate', this.onNavigate);
-    window.navigation.addEventListener(
-      'navigatesuccess',
-      this.onNavigateSuccess
-    );
-    window.navigation.addEventListener('navigateerror', this.onNavigateError);
+    window.navigation.addEventListener('currententrychange', this);
+    window.navigation.addEventListener('navigate', this);
+    window.navigation.addEventListener('navigatesuccess', this);
+    window.navigation.addEventListener('navigateerror', this);
   }
 
   // TODO: figure out how to remove this
@@ -184,41 +174,32 @@ export class Router extends RouterBase<
   }
 
   public componentWillUnmount(): void {
-    this.ref.current?.removeEventListener('swipestart', this.onSwipeStart);
-    this.ref.current?.removeEventListener('swipeend', this.onSwipeEnd);
-    window.navigation.removeEventListener(
-      'currententrychange',
-      this.onCurrentEntryChange
-    );
-    window.navigation.removeEventListener('navigate', this.onNavigate);
-    window.navigation.removeEventListener(
-      'navigatesuccess',
-      this.onNavigateSuccess
-    );
-    window.navigation.removeEventListener(
-      'navigateerror',
-      this.onNavigateError
-    );
+    window.navigation.removeEventListener('currententrychange', this);
+    window.navigation.removeEventListener('navigate', this);
+    window.navigation.removeEventListener('navigatesuccess', this);
+    window.navigation.removeEventListener('navigateerror', this);
   }
 
-  private readonly onNavigate = () => {
+  public onnavigate(e: NavigateEvent) {
+    super.onnavigate(e);
     this.#committed = new PromiseWrapper();
   };
 
-  private readonly onCurrentEntryChange = () => {
+  public oncurrententrychange() {
     this.#committed?.resolve?.(window.navigation.currentEntry!);
   };
 
-  private readonly onNavigateSuccess = () => {
+  public onnavigatesuccess() {
     this.#committed = null;
   };
 
-  private readonly onNavigateError = ({ error }: ErrorEvent) => {
+  public onnavigateerror({ error }: ErrorEvent) {
     if (this.#committed?.state === 'pending')
       this.#committed.reject?.(error); // TODO: find out what the spec does for cancelled navigations
     this.#committed = null;
   };
 
+  // TODO: change to use handleEvent paradigm
   private readonly onGestureCancel = () => {
     if (!this.state.transition)
       throw new Error('Rollback failed, transition is null');
@@ -255,7 +236,7 @@ export class Router extends RouterBase<
     return isSupportedDirection(direction, this.state.gestureDirection);
   }
 
-  private readonly onSwipeStart = (e: SwipeStartEvent) => {
+  public onswipestart(e: SwipeStartEvent) {
     if (!this.canGestureNavigate(e)) return;
     if (!this.ref.current || !this.screenTransitionLayer.current) return;
     const { direction } = e;
@@ -303,7 +284,7 @@ export class Router extends RouterBase<
     this.dispatchEvent(new GestureStartEvent(e));
   };
 
-  private readonly onSwipeEnd = (e: SwipeEndEvent) => {
+  public onswipeend(e: SwipeEndEvent) {
     if (!this.screenTransitionLayer.current) return;
     const progress =
       this.screenTransitionLayer.current.animation.effect?.getComputedTiming()

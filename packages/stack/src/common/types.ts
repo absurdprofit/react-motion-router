@@ -1,7 +1,6 @@
 import {
   PlainObject,
-  RoutePropBase,
-  RouterBaseEventMap
+  RoutePropBase
 } from '@react-motion-router/core';
 import { ScreenProps } from '../Screen';
 import { RefObject } from 'react';
@@ -52,13 +51,16 @@ export function isRefObject<T>(
   return false;
 }
 
-export interface RouterEventMap extends RouterBaseEventMap {
-	'navigate': NavigateEvent;
-	'back': BackEvent;
-	'forward': ForwardEvent;
-	'gesture-start': GestureStartEvent;
-	'gesture-end': GestureEndEvent;
-	'gesture-cancel': GestureCancelEvent;
+// TODO: remove hyphens
+declare global {
+  interface HTMLElementEventMap {
+    'navigate': NavigateEvent;
+    'back': BackEvent;
+    'forward': ForwardEvent;
+    'gesture-start': GestureStartEvent;
+    'gesture-end': GestureEndEvent;
+    'gesture-cancel': GestureCancelEvent;
+  }
 }
 
 export interface RouteProp<

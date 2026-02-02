@@ -14,15 +14,12 @@ import {
   GoForwardOptions,
   NavigateOptions,
   NavigationBaseOptions,
-  NavigationProps,
-  RouterEventMap
+  NavigationProps
 } from './common/types';
 import { BackEvent, ForwardEvent, NavigateEvent } from './common/events';
 import { HistoryEntry } from './HistoryEntry';
 
-export interface NavigationConfig extends NavigationBaseConfig<
-  RouterEventMap
-> {
+export interface NavigationConfig extends NavigationBaseConfig {
   preload(
     pathname: string,
     props?: NavigationProps,
@@ -33,7 +30,7 @@ export interface NavigationConfig extends NavigationBaseConfig<
   getPathPatterns(): PathPattern[];
 }
 
-export class Navigation extends NavigationBase<RouterEventMap> {
+export class Navigation extends NavigationBase {
   private readonly config;
 
   constructor(config: NavigationConfig) {

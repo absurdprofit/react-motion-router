@@ -1,14 +1,12 @@
-import { RouterHTMLElement, RouterBaseEventMap } from './common/types';
+import { RouterBaseHTMLElement } from './common/types';
 import { MetaData } from './MetaData';
 
-export interface NavigationBaseConfig<
-  E extends RouterBaseEventMap = RouterBaseEventMap
-> {
-  addEventListener<K extends keyof E>(
+export interface NavigationBaseConfig {
+  addEventListener<K extends keyof HTMLElementEventMap>(
       type: K,
       listener: (
-        this: RouterHTMLElement<E>,
-        ev: E[K]
+        this: RouterBaseHTMLElement,
+        ev: HTMLElementEventMap[K]
       ) => void,
       options?: boolean | AddEventListenerOptions
     ): () => void;
@@ -22,11 +20,11 @@ export interface NavigationBaseConfig<
     listener: EventListenerOrEventListenerObject,
     options?: boolean | AddEventListenerOptions
   ): () => void;
-  removeEventListener<K extends keyof E>(
+  removeEventListener<K extends keyof HTMLElementEventMap>(
       type: K,
       listener: (
-        this: RouterHTMLElement<E>,
-        ev: E[K]
+        this: RouterBaseHTMLElement,
+        ev: HTMLElementEventMap[K]
       ) => void,
       options?: boolean | EventListenerOptions | undefined
     ): void
@@ -48,9 +46,7 @@ export interface NavigationBaseConfig<
   getNavigatorById(routerId: string): NavigationBase | null;
 }
 
-export abstract class NavigationBase<
-  E extends RouterBaseEventMap = RouterBaseEventMap
-> {
+export abstract class NavigationBase {
   private static rootNavigatorRef: WeakRef<NavigationBase> | null = null;
   public readonly metaData = new MetaData();
   public readonly addEventListener;
@@ -62,7 +58,7 @@ export abstract class NavigationBase<
   public readonly baseURLPattern;
   public readonly getNavigatorById;
 
-  constructor(config: NavigationBaseConfig<E>) {
+  constructor(config: NavigationBaseConfig) {
     const rootNavigator = NavigationBase.rootNavigatorRef?.deref();
     if (!rootNavigator || !rootNavigator.isInDocument)
       NavigationBase.rootNavigatorRef = new WeakRef(this);
