@@ -12,3 +12,5 @@ export * from './common/utils';
 export * from './common/test-utils';
 export * from './common/constants';
 export * from './Anchor';
+export * from './RouterContext';
+export * from './RoutePropContext';

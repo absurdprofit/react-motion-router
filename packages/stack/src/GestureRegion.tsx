@@ -1,6 +1,7 @@
-import React from 'react';
-import { useRoute } from './common/hooks';
+import React, { useContext } from 'react';
 import { isWithinGestureInset } from './common/utils';
+import { PlainObject, RoutePropContext } from '@react-motion-router/core';
+import { RouteProp } from './common/types';
 
 const DEFAULT_UA_GESTURE_AREA_WIDTH = 24;
 
@@ -38,8 +39,10 @@ export const createGestureRegion = (
       ...props
     }: JSX.IntrinsicElements[T] & GestureRegionProps) {
       const ref = React.useRef<ElementForTag<T>>(null);
-      const route = useRoute();
-      const { gestureAreaWidth = Number() } = route.config;
+      const route = useContext<RouteProp<PlainObject>>(
+        RoutePropContext
+      ) ?? null;
+      const { gestureAreaWidth = Number() } = route?.config ?? {};
         
       React.useImperativeHandle(
           forwardedRef as React.Ref<ElementForTag<T>> | undefined,

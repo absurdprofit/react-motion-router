@@ -47,6 +47,7 @@ import {
   DEFAULT_PLAYBACK_RATE
 } from './common/constants';
 import { PromiseWrapper } from './common/promise-wrapper';
+import { GestureRegion } from './GestureRegion';
 
 export interface RouterConfig extends RouterBaseConfig {
   screenConfig?: ScreenConfig;
@@ -769,5 +770,13 @@ export class Router extends RouterBase<
 
       return screenTransitionLayer.transition();
     }
+  }
+
+  public render() {
+    return (
+      <GestureRegion.div style={{ display: 'contents' }}>
+        {super.render()}
+      </GestureRegion.div>
+    );
   }
 }
