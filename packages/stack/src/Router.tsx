@@ -426,6 +426,8 @@ export class Router extends RouterBase<
       const { transition } = e;
       return new Promise<void>(resolve => {
         this.setState({ transition }, async () => {
+          // TODO: refactor to delegate this to Screen. This logic is a bit complex and it's
+          // best to share the code.
           await Promise.all([
             this.preloadScreen(child),
             child.props.config?.onLoad?.({
