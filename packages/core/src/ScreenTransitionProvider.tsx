@@ -1,5 +1,5 @@
 import { ScreenTransitionLayerContext } from './ScreenTransitionLayerContext';
-import { AnimationEffectFactory } from './common/types';
+import { AnimationEffectFactory, EventHandler } from './common/types';
 import { NavigationBase } from './NavigationBase';
 import { Component, ElementType, createRef } from 'react';
 import { FIRST_INDEX } from './common/constants';
@@ -20,7 +20,7 @@ interface ScreenTransitionProviderState {
 export class ScreenTransitionProvider extends Component<
   ScreenTransitionProviderProps,
   ScreenTransitionProviderState
-> {
+> implements EventHandler {
   public readonly ref = createRef<HTMLElement>();
   public static readonly contextType = ScreenTransitionLayerContext;
   public declare context: React.ContextType<
@@ -33,14 +33,24 @@ export class ScreenTransitionProvider extends Component<
     zIndex: 'unset',
   };
 
-  private onroutertransitionend() {
+  public handleEvent(e: Event) {
+    const key = `on${e.type}` as keyof this;
+
+    const self = this as {
+      [K in typeof key]?: (e: Event) => void;
+    };
+
+    self[key]?.(e);
+  }
+
+  public onroutertransitionend() {
     if (this.ref.current) {
       this.ref.current.style.willChange = 'auto';
       this.ref.current.style.pointerEvents = 'auto';
     }
   };
 
-  private onroutertransitionstart() {
+  public onroutertransitionstart() {
     if (this.ref.current) {
       this.ref.current.style.willChange = 'transform, opacity';
       this.ref.current.style.pointerEvents = 'none';
