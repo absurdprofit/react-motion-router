@@ -1,6 +1,6 @@
 import React from 'react';
 import * as Stack from '@react-motion-router/stack';
-import { lazy } from '@react-motion-router/core';
+import { Anchor, lazy } from '@react-motion-router/core';
 import { isIOS, isPWA } from './common/utils';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './Theme';
@@ -122,6 +122,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <Routes />
+      <Anchor rel='prev' traverse>Hello</Anchor>
     </ThemeProvider>
   );
 }

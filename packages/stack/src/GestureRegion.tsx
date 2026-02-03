@@ -45,8 +45,8 @@ export const createGestureRegion = (
       const { gestureAreaWidth = Number() } = route?.config ?? {};
         
       React.useImperativeHandle(
-          forwardedRef as React.Ref<ElementForTag<T>> | undefined,
-          () => ref.current as ElementForTag<T>
+        forwardedRef as React.Ref<ElementForTag<T>> | undefined,
+        () => ref.current as ElementForTag<T>
       );
 
       React.useEffect(() => {
