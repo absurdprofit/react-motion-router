@@ -1,6 +1,10 @@
 import React, { useContext } from 'react';
 import { isWithinGestureInset } from './common/utils';
-import { PlainObject, RoutePropContext } from '@react-motion-router/core';
+import {
+  ElementForTag,
+  PlainObject,
+  RoutePropContext
+} from '@react-motion-router/core';
 import { RouteProp } from './common/types';
 
 const DEFAULT_UA_GESTURE_AREA_WIDTH = 24;
@@ -15,11 +19,6 @@ function WithActivationDetection(
     && isWithinGestureInset('down', { x, y }, rect, gestureAreaWidth)
     && isWithinGestureInset('up', { x, y }, rect, gestureAreaWidth);
 }
-
-type ElementForTag<T extends keyof JSX.IntrinsicElements> =
-  T extends keyof (HTMLElementTagNameMap & SVGElementTagNameMap)
-    ? (HTMLElementTagNameMap & SVGElementTagNameMap)[T]
-    : HTMLElement;
 
 type GestureRegion = {
   [T in keyof JSX.IntrinsicElements]: ReturnType<typeof createGestureRegion<T>>;

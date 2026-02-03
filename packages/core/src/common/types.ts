@@ -154,3 +154,8 @@ declare global {
 
 export type ElementPropType<C> = C extends React.CElement<infer P, infer T> ? P & React.ClassAttributes<T> : never;
 export type ClonedElementType<C, IP extends Partial<ElementPropType<C>>> = C extends React.CElement<infer P, infer T> ? React.CElement<P & Partial<IP>, T & React.Component<P & IP>> : never;
+
+export type ElementForTag<T extends keyof JSX.IntrinsicElements> =
+  T extends keyof (HTMLElementTagNameMap & SVGElementTagNameMap)
+    ? (HTMLElementTagNameMap & SVGElementTagNameMap)[T]
+    : HTMLElement;
