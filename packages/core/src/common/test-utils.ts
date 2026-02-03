@@ -104,8 +104,11 @@ export async function waitForNavigateSuccess() {
   });
 }
 
-export async function navTo(url: string) {
-  const res = window.navigation.navigate(url);
+export async function navTo(
+  url: string,
+  history?: NavigationNavigateOptions['history']
+) {
+  const res = window.navigation.navigate(url, { history });
   await res.finished;
 }
 

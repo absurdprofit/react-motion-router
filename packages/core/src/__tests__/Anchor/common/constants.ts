@@ -1,0 +1,1 @@
+export const SECOND_INDEX = 1;

@@ -2,6 +2,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
   assertNavigationAvailable,
   installInterceptor,
+  navTo,
   seedHistory,
   traverseTo,
   traverseToStart,
@@ -10,6 +11,8 @@ import {
 } from '../../common/test-utils';
 import { act, cleanup, fireEvent, render } from '@testing-library/react';
 import { Anchor } from '../../Anchor';
+import { SECOND_INDEX } from './common/constants';
+import { SINGLE_ELEMENT_LENGTH } from '../../common/constants';
 
 describe('Anchor - traverse', () => {
   beforeAll(installInterceptor);
@@ -20,6 +23,144 @@ describe('Anchor - traverse', () => {
     await traverseToStart();
   });
   afterAll(uninstallInterceptor);
+
+  it('defaults to prev when rel is undefined', async () => {
+    await seedHistory();
+
+    // At /three now
+    const { getByText } = render(
+      <Anchor traverse>
+        Back
+      </Anchor>
+    );
+
+    const a = getByText('Back') as HTMLAnchorElement;
+
+    // Initial href should point at prev entry (/two) because href is computed when traverse+rel
+    expect(a.getAttribute('href')?.endsWith('/two')).toBe(true);
+  });
+
+  it(
+    'searches previous entries first when rel is undefined and href hint is present',
+    async () => {
+      await navTo('/one', 'replace');
+      await navTo('/two');
+      await navTo('/three');
+      await navTo('/two', 'push');
+
+      // At /three now
+      const { getByText } = render(
+        <Anchor href='/two' traverse>
+        Back
+        </Anchor>
+      );
+
+      await act(async () => {
+        await window.navigation.back().finished;
+      });
+      const a = getByText('Back') as HTMLAnchorElement;
+
+      expect(a.getAttribute('href')?.endsWith('/two')).toBe(true);
+      await act(async () => {
+        fireEvent.click(a);
+        await waitForNavigateSuccess();
+      });
+      expect(window.navigation.currentEntry?.index).toBe(SECOND_INDEX);
+    }
+  );
+
+  it(
+    'searches next entries when rel is undefined and previous entries don\'t match href hint'
+    , async () => {
+      await navTo('/one', 'replace');
+      await navTo('/three');
+      await navTo('/two');
+
+      // At /three now
+      const { getByText } = render(
+        <Anchor href='/two' traverse>
+        Next
+        </Anchor>
+      );
+
+      await act(async () => {
+        await window.navigation.back().finished;
+      });
+      const a = getByText('Next') as HTMLAnchorElement;
+
+      expect(a.getAttribute('href')?.endsWith('/two')).toBe(true);
+      await act(async () => {
+        fireEvent.click(a);
+        await waitForNavigateSuccess();
+      });
+      const LAST_ENTRY_INDEX = window.navigation
+        .entries().length - SINGLE_ELEMENT_LENGTH;
+      expect(window.navigation.currentEntry?.index).toBe(LAST_ENTRY_INDEX);
+    }
+  );
+
+  it(
+    'yields no href when rel is undefined and no previous entry'
+    , async () => {
+      await navTo('/one', 'replace');
+      await navTo('/two');
+
+      // At /three now
+      const { getByText } = render(
+        <Anchor traverse>
+        Disabled
+        </Anchor>
+      );
+
+      await act(async () => {
+        await window.navigation.back().finished;
+      });
+      const a = getByText('Disabled') as HTMLAnchorElement;
+
+      expect(a.getAttribute('href')).toBe(null);
+    }
+  );
+
+  it(
+    'yields no href when rel is prev and no previous entry'
+    , async () => {
+      await navTo('/one', 'replace');
+      await navTo('/two');
+
+      // At /three now
+      const { getByText } = render(
+        <Anchor rel='prev' traverse>
+        Disabled
+        </Anchor>
+      );
+
+      await act(async () => {
+        await window.navigation.back().finished;
+      });
+      const a = getByText('Disabled') as HTMLAnchorElement;
+
+      expect(a.getAttribute('href')).toBe(null);
+    }
+  );
+
+  it(
+    'yields no href when rel is next and no next entry'
+    , async () => {
+      await navTo('/one', 'replace');
+      await navTo('/two');
+
+      // At /three now
+      const { getByText } = render(
+        <Anchor rel='next' traverse>
+        Disabled
+        </Anchor>
+      );
+
+      const a = getByText('Disabled') as HTMLAnchorElement;
+
+      expect(a.getAttribute('href')).toBe(null);
+    }
+  );
 
   it(
     'traverse without hints moves to the previous existing entry without growing history',
