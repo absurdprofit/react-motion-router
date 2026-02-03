@@ -778,8 +778,14 @@ export class Router extends RouterBase<
   }
 
   public render() {
+    const gestureRegionBehaviour = this.state.gestureDisabled
+      ? 'none'
+      : 'contain';
     return (
-      <GestureRegion.div style={{ display: 'contents' }}>
+      <GestureRegion.div
+        style={{ display: 'contents' }}
+        gestureBehaviour={gestureRegionBehaviour}
+      >
         {super.render()}
       </GestureRegion.div>
     );
