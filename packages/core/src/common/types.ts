@@ -5,7 +5,10 @@ import { StandardPropertiesHyphen } from 'csstype';
 
 export type ScreenChild<E extends ScreenBase = ScreenBase> = E extends ScreenBase<infer P> ? React.CElement<P, E> : never;
 
-export interface AnimationEffectFactoryProps<R extends HTMLElement = HTMLElement> {
+export interface AnimationEffectFactoryProps<
+  R extends HTMLElement = HTMLElement
+> {
+    id: string;
     ref: R | null;
     index: number;
     screens: string[];
@@ -16,7 +19,9 @@ export interface AnimationEffectFactoryProps<R extends HTMLElement = HTMLElement
     hasUAVisualTransition: boolean;
 }
 
-export type AnimationEffectFactory<R extends HTMLElement = HTMLElement> = (props: AnimationEffectFactoryProps<R>) => AnimationEffect;
+export type AnimationEffectFactory<
+  R extends HTMLElement = HTMLElement
+> = (props: AnimationEffectFactoryProps<R>) => AnimationEffect;
 
 export type MetaType = [string, string];
 export type MetaKey = `${string}=${string}`;

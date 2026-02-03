@@ -90,6 +90,7 @@ export class ScreenTransitionProvider extends Component<
 
     return animationEffectFactory?.({
       ref: ref.current,
+      id: this.props.id,
       index,
       screens,
       exiting,
