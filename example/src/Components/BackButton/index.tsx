@@ -6,7 +6,7 @@ import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 
 export default function BackButton() {
   return (
-    <Anchor goBack>
+    <Anchor traverse>
       <IconButton disableRipple>
         <SharedElement id="back">
           <ArrowBackIosIcon style={{ zIndex: 100 }} />

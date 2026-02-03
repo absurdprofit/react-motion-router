@@ -67,7 +67,7 @@ export default function Slides(props: SlidesProps) {
   return (
     <div className={`slides ${isFirstLoad ? 'loaded' : 'suspense'}`}>
       <div className="back">
-        <Anchor goBack>
+        <Anchor traverse>
           <IconButton disableRipple>
             <SharedElement id="back" config={{
               type: 'fade-through',
