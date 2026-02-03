@@ -252,7 +252,7 @@ export interface AnchorProps extends React.DetailedHTMLProps<
   HTMLAnchorElement
 > {
   href?: string;
-  rel?: string;
+  rel?: 'next' | 'prev' | (string & {});
   historyEntryKey?: string;
   navigateInfo?: unknown;
   navigateState?: unknown;
