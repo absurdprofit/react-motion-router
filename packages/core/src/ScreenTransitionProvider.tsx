@@ -119,6 +119,7 @@ export class ScreenTransitionProvider extends Component<
           height: '100%',
           transformOrigin: 'center center',
           zIndex: this.state.zIndex,
+          viewTransitionName: this.props.id,
         }}
       >
         {this.props.children}
