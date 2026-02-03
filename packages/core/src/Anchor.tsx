@@ -113,21 +113,19 @@ export class AnchorBase extends React.Component<
         entry = window.navigation
           ?.entries()
           .find(e => e.key === historyEntryKey);
-      } else if (rel) {
-        if (href)
-          entry = AnchorBase.findClosestEntryByHref(
-            href,
-            rel,
-            window.navigation.entries(),
-            window.navigation.currentEntry?.index ?? FIRST_INDEX
-          );
-        else
-          entry = AnchorBase.findClosestEntry(
-            rel,
-            window.navigation.entries(),
-            window.navigation.currentEntry?.index ?? FIRST_INDEX
-          );
-      }
+      } else if (href)
+        entry = AnchorBase.findClosestEntryByHref(
+          href,
+          rel,
+          window.navigation.entries(),
+          window.navigation.currentEntry?.index ?? FIRST_INDEX
+        );
+      else
+        entry = AnchorBase.findClosestEntry(
+          rel,
+          window.navigation.entries(),
+          window.navigation.currentEntry?.index ?? FIRST_INDEX
+        );
 
       return entry?.url;
     } else if (reload) {

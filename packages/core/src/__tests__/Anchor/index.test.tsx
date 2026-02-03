@@ -21,12 +21,12 @@ describe('Anchor', () => {
   });
   afterAll(uninstallInterceptor);
 
-  it('component reacts to navigatesuccess by updating its rendered href', async () => {
+  it('defaults to prev when rel is undefined', async () => {
     await seedHistory();
 
     // At /three now
     const { getByText } = render(
-      <Anchor traverse rel="prev">
+      <Anchor traverse>
         Back
       </Anchor>
     );
@@ -35,13 +35,32 @@ describe('Anchor', () => {
 
     // Initial href should point at prev entry (/two) because href is computed when traverse+rel
     expect(a.getAttribute('href')?.endsWith('/two')).toBe(true);
-
-    await act(async () => {
-      fireEvent.click(a);
-      await waitForNavigateSuccess();
-    });
-
-    // After navigating to /two, the component's computed href should now point at /one
-    expect(a.getAttribute('href')?.endsWith('/one')).toBe(true);
   });
+
+  it(
+    'component reacts to navigatesuccess by updating its rendered href',
+    async () => {
+      await seedHistory();
+
+      // At /three now
+      const { getByText } = render(
+        <Anchor traverse rel="prev">
+        Back
+        </Anchor>
+      );
+
+      const a = getByText('Back') as HTMLAnchorElement;
+
+      // Initial href should point at prev entry (/two) because href is computed when traverse+rel
+      expect(a.getAttribute('href')?.endsWith('/two')).toBe(true);
+
+      await act(async () => {
+        fireEvent.click(a);
+        await waitForNavigateSuccess();
+      });
+
+      // After navigating to /two, the component's computed href should now point at /one
+      expect(a.getAttribute('href')?.endsWith('/one')).toBe(true);
+    }
+  );
 });
