@@ -1,34 +1,26 @@
-import React from 'react';
+import React, { RefObject, useRef } from 'react';
 import {
   FIRST_INDEX,
   SINGLE_ELEMENT_LENGTH
 } from './common/constants';
 import { omit } from './common/utils';
 
-interface AnchorProps extends React.DetailedHTMLProps<
-  React.AnchorHTMLAttributes<HTMLAnchorElement>,
-  HTMLAnchorElement
-> {
-  href?: string;
-  rel?: string;
-  historyEntryKey?: string;
-  navigateInfo?: unknown;
-  navigateState?: unknown;
-  reload?: boolean;
-  replace?: boolean;
-  traverse?: boolean;
-  children?: React.ReactNode;
-}
-
 type AnchorState = {
   href?: string | null;
 };
 
-export class Anchor extends React.Component<
+interface AnchorBaseProps extends Omit<
   AnchorProps,
+  'ref'
+> {
+  ref?: RefObject<AnchorBase | null>;
+}
+
+export class AnchorBase extends React.Component<
+  AnchorBaseProps,
   AnchorState
 > {
-  constructor(props: AnchorProps) {
+  constructor(props: AnchorBaseProps) {
     super(props);
 
     this.state = {
@@ -36,7 +28,7 @@ export class Anchor extends React.Component<
     };
   }
 
-  private readonly anchorRef = React.createRef<HTMLAnchorElement>();
+  public readonly anchorRef = React.createRef<HTMLAnchorElement>();
 
   private static directionFromRel(rel: string | undefined) {
     return rel
@@ -62,7 +54,7 @@ export class Anchor extends React.Component<
 
     let left = index - SINGLE_ELEMENT_LENGTH;
     let right = index + SINGLE_ELEMENT_LENGTH;
-    const direction = Anchor.directionFromRel(rel);
+    const direction = AnchorBase.directionFromRel(rel);
     // if direction is next, prevent searching left
     if (direction === 'next') left = FIRST_INDEX;
     // if direction is prev, prevent searching right
@@ -89,7 +81,7 @@ export class Anchor extends React.Component<
     entries: NavigationHistoryEntry[],
     index: number
   ) {
-    const direction = Anchor.directionFromRel(rel);
+    const direction = AnchorBase.directionFromRel(rel);
     
     switch (direction) {
       case 'prev':
@@ -123,14 +115,14 @@ export class Anchor extends React.Component<
           .find(e => e.key === historyEntryKey);
       } else if (rel) {
         if (href)
-          entry = Anchor.findClosestEntryByHref(
+          entry = AnchorBase.findClosestEntryByHref(
             href,
             rel,
             window.navigation.entries(),
             window.navigation.currentEntry?.index ?? FIRST_INDEX
           );
         else
-          entry = Anchor.findClosestEntry(
+          entry = AnchorBase.findClosestEntry(
             rel,
             window.navigation.entries(),
             window.navigation.currentEntry?.index ?? FIRST_INDEX
@@ -142,6 +134,16 @@ export class Anchor extends React.Component<
       return '.';
     }
     return href;
+  }
+
+  private get search() {
+    if (this.props.search)
+      // Adding leading '?' if it doesn't already exist
+      if (this.props.search.startsWith('?'))
+        return this.props.search;
+      else
+        return `?${this.props.search}`;
+    return '';
   }
 
   private readonly handleClick = (
@@ -176,14 +178,14 @@ export class Anchor extends React.Component<
       let entry;
       // if traverse has href hint, use that to find closest entry
       if (href)
-        entry = Anchor.findClosestEntryByHref(
+        entry = AnchorBase.findClosestEntryByHref(
           href,
           rel,
           entries,
           navigation.currentEntry?.index ?? FIRST_INDEX
         );
       else // if not, use sibling entry
-        entry = Anchor.findClosestEntry(
+        entry = AnchorBase.findClosestEntry(
           rel,
           entries,
           navigation.currentEntry?.index ?? FIRST_INDEX
@@ -221,6 +223,7 @@ export class Anchor extends React.Component<
       children,
     } = this.props;
     const { href } = this.state;
+    const { search } = this;
     const props = omit(this.props, [
       'historyEntryKey',
       'navigateInfo',
@@ -234,7 +237,7 @@ export class Anchor extends React.Component<
       <a
         {...props}
         ref={this.anchorRef}
-        href={href ?? undefined}
+        href={href ? `${href}${search}` : undefined}
         rel={rel}
         onClick={this.handleClick}
       >
@@ -242,4 +245,35 @@ export class Anchor extends React.Component<
       </a>
     );
   }
+}
+
+export interface AnchorProps extends React.DetailedHTMLProps<
+  React.AnchorHTMLAttributes<HTMLAnchorElement>,
+  HTMLAnchorElement
+> {
+  href?: string;
+  rel?: string;
+  historyEntryKey?: string;
+  navigateInfo?: unknown;
+  navigateState?: unknown;
+  reload?: boolean;
+  replace?: boolean;
+  traverse?: boolean;
+  children?: React.ReactNode;
+  search?: string;
+}
+
+export function Anchor({ ref: forwardedRef, ...props }: AnchorProps) {
+  const ref = useRef<AnchorBase>(null);
+
+  React.useImperativeHandle<
+    HTMLAnchorElement | null, HTMLAnchorElement | null
+  >(
+    forwardedRef,
+    () => ref.current?.anchorRef.current ?? null
+  );
+
+  return (
+    <AnchorBase ref={ref} {...props} />
+  );
 }

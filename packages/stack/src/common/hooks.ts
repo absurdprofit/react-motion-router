@@ -31,23 +31,3 @@ export function useParams<K extends string, S>(
   useDebugValue('Stack.Params');
   return useParamsBase(key, initialParams);
 }
-
-type EventListenerOptions = boolean | AddEventListenerOptions;
-
-export function useEventListener<K extends keyof HTMLElementEventMap>(
-  ref: RefObject<HTMLElement | null>,
-  eventName: K,
-  handler: (event: HTMLElementEventMap[K]) => void,
-  options?: EventListenerOptions
-) {
-  useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-
-    element.addEventListener(eventName, handler, options);
-
-    return () => {
-      element.removeEventListener(eventName, handler, options);
-    };
-  }, [ref, eventName, handler, options]);
-}

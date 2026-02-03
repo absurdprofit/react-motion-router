@@ -2,11 +2,10 @@ import { NavigationBase } from './NavigationBase';
 import { ScreenTransitionLayer } from './ScreenTransitionLayer';
 import {
   ScreenChild,
-  RouterBaseEventMap,
-  RouterHTMLElement,
+  RouterBaseHTMLElement,
   isLazyExoticComponent,
   isValidScreenChild,
-  PathPattern
+  EventHandler
 } from './common/types';
 import { NestedRouterContext, RouterContext } from './RouterContext';
 import {
@@ -38,9 +37,8 @@ export type RouterBaseState = object;
 export abstract class RouterBase<
   P extends RouterBaseProps = RouterBaseProps,
   S extends RouterBaseState = RouterBaseState,
-  E extends RouterBaseEventMap = RouterBaseEventMap
-> extends Component<P, S> {
-  protected readonly ref = createRef<RouterHTMLElement<E>>();
+> extends Component<P, S> implements EventHandler {
+  protected readonly ref = createRef<RouterBaseHTMLElement>();
   protected screenTransitionLayer = createRef<ScreenTransitionLayer>();
   public abstract readonly navigation: NavigationBase;
   public readonly parent: RouterBase | null = null;
@@ -62,6 +60,12 @@ export abstract class RouterBase<
     this.parent = context?.parentRouter ?? null;
   }
 
+  private static get events() {
+    return Object.getOwnPropertyNames(this.prototype)
+      .filter(type => /^on/.test(type))
+      .map(type => type.replace('on', ''));
+  }
+
   public componentDidMount() {
     if (this.parent)
       this.parent.child = this;
@@ -78,26 +82,29 @@ export abstract class RouterBase<
 
       window.navigation.addEventListener(
         'navigate',
-        this.handleNavigationDispatch
+        this
       );
     }
 
+    this.#addEventListeners();
+
     if (!this.loadDispatched) {
-      window.navigation.dispatchEvent(new LoadEvent());
+      window.navigation.dispatchEvent(new LoadEvent('load'));
       this.loadDispatched = true;
     }
   }
 
   public componentWillUnmount() {
+    this.#removeEventListeners();
     if (this.isRoot) {
       window.navigation.removeEventListener(
         'navigate',
-        this.handleNavigationDispatch
+        this
       );
     }
   }
 
-  private handleNavigationDispatch = (e: NavigateEvent) => {
+  public onnavigate(e: NavigateEvent) {
     const activeRouters = [...this.#activeRoutersIter()];
     // travel down router tree to find a router that can intercept
     const interceptor = activeRouters.findLast(
@@ -108,6 +115,20 @@ export abstract class RouterBase<
       this.hasUAVisualTransition = e.hasUAVisualTransition;
     }
   };
+
+  #addEventListeners() {
+    const Router = this.constructor as typeof RouterBase;
+    Router.events.forEach(event => {
+      this.ref.current?.addEventListener(event, this);
+    });
+  }
+
+  #removeEventListeners() {
+    const Router = this.constructor as typeof RouterBase;
+    Router.events.forEach(event => {
+      this.ref.current?.removeEventListener(event, this);
+    });
+  }
 
   *#activeRoutersIter(
     target: RouterBase | null = RouterBase.rootRouterRef?.deref() ?? null
@@ -132,11 +153,11 @@ export abstract class RouterBase<
     return dispatchEvent(event, ref);
   }
 
-  public addEventListener<K extends keyof E>(
+  public addEventListener<K extends keyof HTMLElementEventMap>(
     type: K,
     listener: (
-      this: RouterHTMLElement<E>,
-      ev: E[K]
+      this: RouterBaseHTMLElement,
+      ev: HTMLElementEventMap[K]
     ) => void,
     options?: boolean | AddEventListenerOptions
   ): () => void;
@@ -156,11 +177,11 @@ export abstract class RouterBase<
     return () => ref.removeEventListener(type, listener, options);
   }
 
-  public removeEventListener<K extends keyof E>(
+  public removeEventListener<K extends keyof HTMLElementEventMap>(
     type: K,
     listener: (
-      this: RouterHTMLElement<E>,
-      ev: E[K]
+      this: RouterBaseHTMLElement,
+      ev: HTMLElementEventMap[K]
     ) => void,
     options?: boolean | EventListenerOptions | undefined
   ): void;
@@ -175,6 +196,16 @@ export abstract class RouterBase<
     options?: boolean | EventListenerOptions
   ) {
     return this.ref.current?.removeEventListener(type, listener, options);
+  }
+
+  public handleEvent(e: Event) {
+    const key = `on${e.type}` as keyof this;
+
+    const self = this as {
+      [K in typeof key]?: (e: Event) => void;
+    };
+
+    self[key]?.(e);
   }
 
   protected screenChildFromPathname(pathname: string) {

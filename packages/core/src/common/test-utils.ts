@@ -134,9 +134,9 @@ const interceptor = (event: NavigateEvent) => {
   });
 };
 export async function installInterceptor() {
-  window.navigation.addEventListener('navigate',interceptor);
+  window.navigation.addEventListener('navigate', interceptor);
 }
 
 export async function uninstallInterceptor() {
-  window.navigation.removeEventListener('navigate',interceptor);
+  window.navigation.removeEventListener('navigate', interceptor);
 }

@@ -1,19 +1,13 @@
-import { PlainObject } from '@react-motion-router/core';
-import { Navigation } from './Navigation';
-import { NavigateOptions, XOR } from './common/types';
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { useEventListener, useNavigation } from './common/hooks';
+import {
+  PlainObject,
+  Anchor as AnchorBase,
+  AnchorProps as AnchorBaseProps
+} from '@react-motion-router/core';
+import { useEffect, useRef, useCallback, RefObject } from 'react';
+import { useNavigation } from './common/hooks';
 import { searchParamsFromObject } from './common/utils';
 import { DEFAULT_PRELOAD_FORCE_THRESHOLD } from './common/constants';
-
-interface BaseAnchorProps
-  extends React.DetailedHTMLProps<
-    React.AnchorHTMLAttributes<HTMLAnchorElement>,
-    HTMLAnchorElement
-  > {
-  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
-  navigation?: Navigation | null;
-}
+import { ScreenConfig } from './Screen';
 
 interface OnSightPreloadBehaviour extends UseIntersectionOptions {
   type: 'onsight';
@@ -24,26 +18,19 @@ interface OnHoverPreloadBehaviour {
   forceThreshold?: number;
 }
 
-interface ForwardAnchorProps extends BaseAnchorProps {
+interface AnchorProps extends AnchorBaseProps {
   params?: PlainObject<string | boolean | number>;
-  href: string;
-  type?: NavigateOptions['type'];
+  /**
+   * Will override params object if supplied.
+   * Used to control the search params that get passed to the href attribute.
+   */
+  searchParams?: PlainObject<string | boolean | number>;
+  config?: ScreenConfig;
   preload?: boolean;
   preloadBehaviour?:
     | OnSightPreloadBehaviour
     | OnHoverPreloadBehaviour
     | { type: 'force' };
-}
-
-interface BackAnchorProps extends BaseAnchorProps {
-  goBack: boolean;
-}
-
-type AnchorProps = XOR<ForwardAnchorProps, BackAnchorProps>;
-
-function useNavigationOrDefault(navigation?: Navigation | null) {
-  const defaultNavigation = useNavigation();
-  return navigation ?? defaultNavigation;
 }
 
 interface UseIntersectionOptions {
@@ -52,11 +39,10 @@ interface UseIntersectionOptions {
   threshold?: number | number[];
 }
 function useIntersection<T extends HTMLElement>(
+  targetRef: RefObject<T | null>,
   callback: (entry: IntersectionObserverEntry) => void,
   options: UseIntersectionOptions = {}
 ) {
-  const targetRef = useRef<T>(null);
-
   const observerCallback = useCallback(
     (entries: IntersectionObserverEntry[]) => {
       entries.forEach((entry) => {
@@ -70,82 +56,103 @@ function useIntersection<T extends HTMLElement>(
 
   useEffect(() => {
     const observer = new IntersectionObserver(observerCallback, options);
-    const element = targetRef.current;
+    const target = targetRef.current;
 
-    if (element) {
-      observer.observe(element);
+    if (target) {
+      observer.observe(target);
     }
 
     return () => {
-      if (element) {
-        observer.unobserve(element);
+      if (target) {
+        observer.unobserve(target);
       }
     };
-  }, [observerCallback, options]);
+  }, [observerCallback, targetRef, options]);
 
   return targetRef;
 }
 
 type UseHoverOptions = {
-  forceThreshold?: number; // Threshold for touch pressure to count as "hover" (0 to 1 range)
+  /** Threshold for touch pressure to count as "hover" (0 to 1 range) */
+  forceThreshold?: number;
 };
 
-type UseHoverCallback = (isHovered: boolean) => void;
+type UseHoverCallback = () => void;
 function useHover<T extends HTMLElement>(
-  hoverCallback: UseHoverCallback,
+  targetRef: RefObject<T | null>,
+  callback: UseHoverCallback,
   { forceThreshold = DEFAULT_PRELOAD_FORCE_THRESHOLD }: UseHoverOptions = {}
 ) {
-  const targetRef = useRef<T | null>(null);
+  const handleMouseEnter = useCallback(() => callback(), [callback]);
 
-  const handleMouseEnter = () => hoverCallback(true);
-
-  const handleTouchStart = (event: TouchEvent) => {
+  const handleTouchStart = useCallback((event: TouchEvent) => {
     const touch = event.touches[0];
     if (touch && touch.force >= forceThreshold) {
-      hoverCallback(true);
+      callback();
     }
-  };
+  }, [forceThreshold, callback]);
 
-  useEventListener(targetRef, 'mouseenter', handleMouseEnter);
-  useEventListener(targetRef, 'touchstart', handleTouchStart);
+  useEffect(() => {
+    const target = targetRef.current;
+    target?.addEventListener('mouseenter', handleMouseEnter);
+
+    return () => {
+      return target?.removeEventListener('mouseenter', handleMouseEnter);
+    };
+  });
+  useEffect(() => {
+    const target = targetRef.current;
+    target?.addEventListener('touchstart', handleTouchStart);
+
+    return () => {
+      return target?.removeEventListener('touchstart', handleTouchStart);
+    };
+  });
 
   return targetRef;
 }
 
 export function Anchor({
   preload,
-  goBack,
-  params = {},
-  type = 'push',
-  href: hrefProp,
-  navigation: navigationProp,
-  onClick: onClickProp,
+  params,
+  searchParams = params,
+  config,
   preloadBehaviour = {
     type: 'onsight',
   },
   children,
   ...aProps
 }: AnchorProps) {
-  const navigation = useNavigationOrDefault(navigationProp);
-  const isOnSightPreload = preloadBehaviour?.type === 'onsight';
-  const isOnHoverPreload = preloadBehaviour?.type === 'onhover';
-  const isForcePreload = preloadBehaviour?.type === 'force';
+  const navigation = useNavigation();
+  const isOnSightPreload = preloadBehaviour?.type === 'onsight' && preload;
+  const isOnHoverPreload = preloadBehaviour?.type === 'onhover' && preload;
+  const isForcePreload = preloadBehaviour?.type === 'force' && preload;
+  const ref = useRef<HTMLAnchorElement>(null);
 
   /// Intersection preload behaviour
-  const intersectionRef = useIntersection<HTMLAnchorElement>(
+  useIntersection<HTMLAnchorElement>(
+    ref,
     (entry) => {
-      if (!entry.isIntersecting || !preload) return;
-      navigation.preload(hrefProp, { params });
+      if (
+        !isOnSightPreload
+        || !entry.isIntersecting
+        || !(entry.target instanceof HTMLAnchorElement)
+      ) return;
+      navigation.preload(entry.target.href, { params, config });
     },
     isOnSightPreload ? preloadBehaviour : {}
   );
   /// Intersection preload behaviour
 
   /// Hover preload behaviour
-  const hoverRef = useHover<HTMLAnchorElement>(
-    (hovered) => {
-      if (!hovered || !preload) return;
-      navigation.preload(hrefProp, { params });
+  useHover<HTMLAnchorElement>(
+    ref,
+    () => {
+      if (
+        !isOnHoverPreload
+        || !ref.current
+      ) return;
+      navigation.preload(ref.current.href, { params, config });
     },
     isOnHoverPreload ? preloadBehaviour : {}
   );
@@ -153,60 +160,31 @@ export function Anchor({
 
   /// Force preload behaviour
   useEffect(() => {
-    if (!preload || !isForcePreload) return;
-    navigation.preload(hrefProp, { params });
-  }, [preload, hrefProp, navigation, isForcePreload, params]);
+    if (
+      !isForcePreload
+      || !ref.current
+    ) return;
+    navigation.preload(ref.current.href, { params, config });
+  }, [preload, navigation, config, isForcePreload, params]);
   /// Force preload behaviour
 
-  const [href, setHref] = useState<string | undefined>(undefined);
   const routerId = navigation?.routerId;
-  const isExternal = !href?.includes(window.location.origin);
-  const rel = isExternal ? 'noopener noreferrer' : goBack ? 'prev' : 'next';
-
-  useEffect(() => {
-    if (goBack && navigation.canGoBack()) {
-      setHref(navigation.previous.url?.href);
-    } else if (hrefProp) {
-      const search = searchParamsFromObject(params);
-      const uri = new URL(hrefProp, navigation.baseURL);
-      uri.search = search;
-      setHref(uri.href);
-    }
-  }, [hrefProp, params, navigation, goBack]);
-
-  const onClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (goBack) {
-      e.preventDefault();
-      navigation.goBack();
-    } else if (type === 'replace' && hrefProp) {
-      e.preventDefault();
-      navigation.replace(hrefProp);
-    }
-    onClickProp?.(e);
-  };
-
-  let ref;
-  switch (preloadBehaviour?.type) {
-    case 'onhover':
-      ref = hoverRef;
-      break;
-    case 'onsight':
-      ref = intersectionRef;
-      break;
-    default:
-      ref = null;
-  }
+  const search = searchParams
+    ? searchParamsFromObject(searchParams)
+    : undefined;
 
   return (
-    <a
-      href={href}
-      data-router-id={routerId}
-      onClick={onClick}
-      rel={rel}
-      ref={ref}
+    <AnchorBase
       {...aProps}
+      data-router-id={routerId}
+      ref={ref}
+      search={search}
+      navigateState={{
+        config,
+        params,
+      }}
     >
       {children}
-    </a>
+    </AnchorBase>
   );
 }

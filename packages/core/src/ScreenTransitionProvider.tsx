@@ -33,14 +33,14 @@ export class ScreenTransitionProvider extends Component<
     zIndex: 'unset',
   };
 
-  private onAnimationEnd = () => {
+  private onroutertransitionend() {
     if (this.ref.current) {
       this.ref.current.style.willChange = 'auto';
       this.ref.current.style.pointerEvents = 'auto';
     }
   };
 
-  private onAnimationStart = () => {
+  private onroutertransitionstart() {
     if (this.ref.current) {
       this.ref.current.style.willChange = 'transform, opacity';
       this.ref.current.style.pointerEvents = 'none';
@@ -50,25 +50,25 @@ export class ScreenTransitionProvider extends Component<
   public componentDidMount() {
     this.props
       .navigation
-      .addEventListener('transition-start', this.onAnimationStart);
+      .addEventListener('routertransitionstart', this);
     this.props
       .navigation
-      .addEventListener('transition-end', this.onAnimationEnd);
+      .addEventListener('routertransitionend', this);
     this.props
       .navigation
-      .addEventListener('transition-cancel', this.onAnimationEnd);
+      .addEventListener('routertransitioncancel', this);
   }
 
   public componentWillUnmount() {
     this.props
       .navigation
-      .removeEventListener('transition-start', this.onAnimationStart);
+      .removeEventListener('routertransitionstart', this);
     this.props
       .navigation
-      .removeEventListener('transition-end', this.onAnimationEnd);
+      .removeEventListener('routertransitionend', this);
     this.props
       .navigation
-      .removeEventListener('transition-cancel', this.onAnimationEnd);
+      .removeEventListener('routertransitioncancel', this);
   }
 
   public get animationEffect() {

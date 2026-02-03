@@ -132,3 +132,55 @@ export function omit<T extends object, K extends readonly (keyof T)[]>(
   for (const k of keys) delete copy[k];
   return copy;
 }
+
+export function historyEntryFromDestination(
+  destination: NavigationDestination
+) {
+  return Object.create(
+    EventTarget.prototype,
+    {
+      id: {
+        value: destination.id,
+        enumerable: true,
+        writable: false,
+        configurable: false,
+      },
+      key: {
+        value: destination.key,
+        enumerable: true,
+        writable: false,
+        configurable: false,
+      },
+      url: {
+        value: destination.url,
+        enumerable: true,
+        writable: false,
+        configurable: false,
+      },
+      index: {
+        value: destination.index,
+        enumerable: true,
+        writable: false,
+        configurable: false,
+      },
+      sameDocument: {
+        value: destination.sameDocument,
+        enumerable: true,
+        writable: false,
+        configurable: false,
+      },
+      getState: {
+        value: () => destination.getState(),
+        enumerable: false,
+        writable: false,
+        configurable: false,
+      },
+      ondispose: {
+        value: null,
+        enumerable: true,
+        writable: true,
+        configurable: false,
+      },
+    }
+  ) as NavigationHistoryEntry;
+}

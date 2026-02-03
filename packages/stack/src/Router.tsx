@@ -4,35 +4,38 @@ import {
   RouterBase,
   SINGLE_ELEMENT_LENGTH,
   cloneAndInject,
+  historyEntryFromDestination,
   matchRoute
 } from '@react-motion-router/core';
-import type {
+import {
   ClonedElementType,
   LoadEvent,
   NestedRouterContext,
   RouterBaseConfig,
   RouterBaseProps,
   RouterBaseState,
-  ScreenChild
+  ScreenChild,
+  PromiseWrapper
 } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import { ScreenProps, Screen, ScreenConfig } from './Screen';
 import {
   HistoryEntryState,
   isHorizontalDirection,
-  isOutOfBounds,
   isRefObject,
   isSupportedDirection,
-  NavigationBaseOptions,
-  NavigationProps,
-  RouterEventMap,
   ScreenInternalProps,
   SwipeDirection
 } from './common/types';
 import { createRef, startTransition } from 'react';
 import { SwipeStartEvent, SwipeEndEvent } from 'web-gesture-events';
 import { GestureTimeline } from 'web-animations-extension';
-import { deepEquals, isGesture, isRollback } from './common/utils';
+import {
+  deepEquals,
+  isGesture,
+  isRollback,
+  isWithinGestureInset
+} from './common/utils';
 import {
   GestureCancelEvent,
   GestureEndEvent,
@@ -42,7 +45,8 @@ import {
   DEFAULT_GESTURE_CONFIG,
   DEFAULT_PLAYBACK_RATE
 } from './common/constants';
-import { PromiseWrapper } from './common/promise-wrapper';
+import { GestureRegion } from './GestureRegion';
+import { HistoryEntry } from './HistoryEntry';
 
 export interface RouterConfig extends RouterBaseConfig {
   screenConfig?: ScreenConfig;
@@ -74,8 +78,7 @@ export interface RouterState extends RouterBaseState {
 
 export class Router extends RouterBase<
   RouterProps,
-  RouterState,
-  RouterEventMap
+  RouterState
 > {
   public readonly navigation;
   #committed: PromiseWrapper<NavigationHistoryEntry> | null = null;
@@ -102,7 +105,6 @@ export class Router extends RouterBase<
       getPathPatterns: () => {
         return this.pathPatterns;
       },
-      preload: this.preload.bind(this),
       getNavigatorById: (id: string) =>
         this.getRouterById(id)?.navigation ?? null,
     });
@@ -152,18 +154,10 @@ export class Router extends RouterBase<
 
   public componentDidMount(): void {
     super.componentDidMount();
-    this.ref.current?.addEventListener('swipestart', this.onSwipeStart);
-    this.ref.current?.addEventListener('swipeend', this.onSwipeEnd);
-    window.navigation.addEventListener(
-      'currententrychange',
-      this.onCurrentEntryChange
-    );
-    window.navigation.addEventListener('navigate', this.onNavigate);
-    window.navigation.addEventListener(
-      'navigatesuccess',
-      this.onNavigateSuccess
-    );
-    window.navigation.addEventListener('navigateerror', this.onNavigateError);
+    window.navigation.addEventListener('currententrychange', this);
+    window.navigation.addEventListener('navigate', this);
+    window.navigation.addEventListener('navigatesuccess', this);
+    window.navigation.addEventListener('navigateerror', this);
   }
 
   // TODO: figure out how to remove this
@@ -179,41 +173,32 @@ export class Router extends RouterBase<
   }
 
   public componentWillUnmount(): void {
-    this.ref.current?.removeEventListener('swipestart', this.onSwipeStart);
-    this.ref.current?.removeEventListener('swipeend', this.onSwipeEnd);
-    window.navigation.removeEventListener(
-      'currententrychange',
-      this.onCurrentEntryChange
-    );
-    window.navigation.removeEventListener('navigate', this.onNavigate);
-    window.navigation.removeEventListener(
-      'navigatesuccess',
-      this.onNavigateSuccess
-    );
-    window.navigation.removeEventListener(
-      'navigateerror',
-      this.onNavigateError
-    );
+    window.navigation.removeEventListener('currententrychange', this);
+    window.navigation.removeEventListener('navigate', this);
+    window.navigation.removeEventListener('navigatesuccess', this);
+    window.navigation.removeEventListener('navigateerror', this);
   }
 
-  private readonly onNavigate = () => {
+  public onnavigate(e: NavigateEvent) {
+    super.onnavigate(e);
     this.#committed = new PromiseWrapper();
   };
 
-  private readonly onCurrentEntryChange = () => {
+  public oncurrententrychange() {
     this.#committed?.resolve?.(window.navigation.currentEntry!);
   };
 
-  private readonly onNavigateSuccess = () => {
+  public onnavigatesuccess() {
     this.#committed = null;
   };
 
-  private readonly onNavigateError = ({ error }: ErrorEvent) => {
+  public onnavigateerror({ error }: ErrorEvent) {
     if (this.#committed?.state === 'pending')
       this.#committed.reject?.(error); // TODO: find out what the spec does for cancelled navigations
     this.#committed = null;
   };
 
+  // TODO: change to use handleEvent paradigm
   private readonly onGestureCancel = () => {
     if (!this.state.transition)
       throw new Error('Rollback failed, transition is null');
@@ -237,13 +222,20 @@ export class Router extends RouterBase<
       && !this.navigation.canGoForward()
     )
       return false;
-    if (isOutOfBounds(direction, e, clientRect, this.state.gestureAreaWidth))
+    if (
+      isWithinGestureInset(
+        direction,
+        e,
+        clientRect,
+        this.state.gestureAreaWidth
+      )
+    )
       return false;
 
     return isSupportedDirection(direction, this.state.gestureDirection);
   }
 
-  private readonly onSwipeStart = (e: SwipeStartEvent) => {
+  public onswipestart(e: SwipeStartEvent) {
     if (!this.canGestureNavigate(e)) return;
     if (!this.ref.current || !this.screenTransitionLayer.current) return;
     const { direction } = e;
@@ -291,7 +283,7 @@ export class Router extends RouterBase<
     this.dispatchEvent(new GestureStartEvent(e));
   };
 
-  private readonly onSwipeEnd = (e: SwipeEndEvent) => {
+  public onswipeend(e: SwipeEndEvent) {
     if (!this.screenTransitionLayer.current) return;
     const progress =
       this.screenTransitionLayer.current.animation.effect?.getComputedTiming()
@@ -352,42 +344,6 @@ export class Router extends RouterBase<
     });
   }
 
-  public async preload(
-    pathname: string,
-    props: NavigationProps = {},
-    options: NavigationBaseOptions = {}
-  ) {
-    const { child, matchInfo } = this.screenChildFromPathname(pathname) ?? {};
-    if (!child) return Promise.resolve(false);
-    const { navigation } = this;
-    const { signal } = options;
-    const { path } = child.props;
-    await Promise.all([
-      this.preloadScreen(child),
-      child.props.config?.onLoad?.({
-        navigation,
-        signal,
-        preloading: true,
-        route: {
-          focused: false,
-          path,
-          resolvedPathname: pathname,
-          config: {
-            ...this.props.config?.screenConfig,
-            ...child.props.config,
-            ...props.config,
-          },
-          params: {
-            ...child.props.defaultParams,
-            ...matchInfo?.params,
-            ...props.params,
-          },
-        },
-      }),
-    ]);
-    return true;
-  }
-
   private cloneScreenChildFromPathname(
     pathname: string,
     key: React.Key | null
@@ -434,10 +390,13 @@ export class Router extends RouterBase<
   }
 
   protected intercept(e: NavigateEvent | LoadEvent): void {
-    if (e.navigationType !== 'load') this.props.config?.onIntercept?.(e);
+    if (!(e instanceof LoadEvent)) this.props.config?.onIntercept?.(e);
     if (e.defaultPrevented) return;
 
     switch (e.navigationType) {
+      case 'preload':
+        this.handlePreload(e);
+        break;
       case 'load':
         this.handleLoad(e);
         break;
@@ -451,6 +410,62 @@ export class Router extends RouterBase<
         this.handleDefault(e);
         break;
     }
+  }
+
+  public handlePreload(
+    e: LoadEvent
+  ) {
+    const handler = () => {
+      const { pathname } = new URL(e.destination.url);
+      const {
+        child,
+        matchInfo = null,
+      } = this.screenChildFromPathname(pathname) ?? {};
+      if (!child) return Promise.resolve();
+      const { navigation } = this;
+      const { signal } = e;
+      const { path } = child.props;
+
+      const { transition } = e;
+      return new Promise<void>(resolve => {
+        this.setState({ transition }, async () => {
+          const historyEntryState = Screen.historyEntryStateFromEntry(
+            new HistoryEntry(
+              historyEntryFromDestination(e.destination),
+              this.id,
+              LAST_INDEX
+            ),
+            matchInfo
+          );
+          await Promise.all([
+            this.preloadScreen(child),
+            child.props.config?.onLoad?.({
+              navigation,
+              signal,
+              preloading: true,
+              route: {
+                focused: false,
+                path,
+                resolvedPathname: pathname,
+                config: {
+                  ...this.props.config?.screenConfig,
+                  ...child.props.config,
+                  ...historyEntryState.config,
+                },
+                params: {
+                  ...child.props.defaultParams,
+                  ...matchInfo?.params,
+                  ...historyEntryState.params,
+                },
+              },
+            }),
+          ]);
+          this.setState({ transition: null }, resolve);
+        });
+      });
+    };
+
+    e.intercept({ handler });
   }
 
   private handleLoad(e: LoadEvent) {
@@ -680,9 +695,11 @@ export class Router extends RouterBase<
     signal: AbortSignal
   ) {
     let animationStarted = false;
-    this.addEventListener('transition-start', () => (animationStarted = true), {
-      once: true,
-    });
+    this.addEventListener(
+      'routertransitionstart',
+      () => (animationStarted = true),
+      { once: true }
+    );
 
     await Promise.all([
       outgoingScreen?.current?.onExit(signal),
@@ -692,7 +709,7 @@ export class Router extends RouterBase<
 
     if (animationStarted)
       await new Promise((resolve) =>
-        this.addEventListener('transition-end', resolve, { once: true })
+        this.addEventListener('routertransitionend', resolve, { once: true })
       );
 
     // if gesture navigation cancelled then exit here
@@ -758,5 +775,13 @@ export class Router extends RouterBase<
 
       return screenTransitionLayer.transition();
     }
+  }
+
+  public render() {
+    return (
+      <GestureRegion.div style={{ display: 'contents' }}>
+        {super.render()}
+      </GestureRegion.div>
+    );
   }
 }

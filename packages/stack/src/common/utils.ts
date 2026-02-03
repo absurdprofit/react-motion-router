@@ -1,3 +1,5 @@
+import { Direction } from './types';
+
 export function searchParamsToObject(searchParams: URLSearchParams) {
   return Object.fromEntries(searchParams.entries());
 }
@@ -46,4 +48,22 @@ export function deepEquals<T>(obj1: T, obj2: T): boolean {
   }
 
   return true;
+}
+
+export function isWithinGestureInset(
+  direction: Direction,
+  { x, y }: { x: number, y: number },
+  clientRect: DOMRect,
+  gestureAreaWidth: number
+) {
+  switch (direction) {
+    case 'right':
+      return Math.abs(x - clientRect.left) < gestureAreaWidth;
+    case 'left':
+      return Math.abs(x - clientRect.right) < gestureAreaWidth;
+    case 'down':
+      return Math.abs(y - clientRect.top) < gestureAreaWidth;
+    case 'up':
+      return Math.abs(y - clientRect.bottom) < gestureAreaWidth;
+  }
 }

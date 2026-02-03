@@ -4,7 +4,7 @@ import { FIRST_INDEX, LAST_INDEX } from '../common/constants';
 
 describe('LoadEvent', () => {
   it('creates a transition on first intercept()', async () => {
-    const e = new LoadEvent();
+    const e = new LoadEvent('load');
 
     e.intercept({
       handler: () => Promise.resolve(),
@@ -20,7 +20,7 @@ describe('LoadEvent', () => {
     async () => {
       let resolve!: () => void;
 
-      const e = new LoadEvent();
+      const e = new LoadEvent('load');
 
       e.intercept({
         handler: () =>
@@ -42,7 +42,7 @@ describe('LoadEvent', () => {
   );
 
   it('awaits all intercept handlers before transition.finished', async () => {
-    const e = new LoadEvent();
+    const e = new LoadEvent('load');
     const order = new Array<string>();
     const firstPromise = Promise.withResolvers<void>();
     const secondPromise = Promise.withResolvers<void>();
@@ -76,7 +76,7 @@ describe('LoadEvent', () => {
   });
 
   it('throws if intercept() is called after transition.finished', async () => {
-    const e = new LoadEvent();
+    const e = new LoadEvent('load');
 
     e.intercept({ handler: () => Promise.resolve() });
 
@@ -86,7 +86,7 @@ describe('LoadEvent', () => {
   });
 
   it('aborts when a different navigate event is dispatched', () => {
-    const e = new LoadEvent();
+    const e = new LoadEvent('load');
 
     expect(e.signal.aborted).toBe(false);
 
@@ -97,7 +97,7 @@ describe('LoadEvent', () => {
   });
 
   it('removes listener when self-dispatched with no intercepts', () => {
-    const e = new LoadEvent();
+    const e = new LoadEvent('load');
     const mockRemoveEventListener = vi.spyOn(
       window.navigation,
       'removeEventListener'

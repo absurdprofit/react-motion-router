@@ -14,26 +14,18 @@ import {
   GoForwardOptions,
   NavigateOptions,
   NavigationBaseOptions,
-  NavigationProps,
-  RouterEventMap
+  NavigationProps
 } from './common/types';
 import { BackEvent, ForwardEvent, NavigateEvent } from './common/events';
 import { HistoryEntry } from './HistoryEntry';
 
-export interface NavigationConfig extends NavigationBaseConfig<
-  RouterEventMap
-> {
-  preload(
-    pathname: string,
-    props?: NavigationProps,
-    options?: NavigationBaseOptions
-  ): Promise<boolean>;
+export interface NavigationConfig extends NavigationBaseConfig {
   getCommitted(): Promise<NavigationHistoryEntry> | null;
   getTransition(): NavigationTransition | LoadNavigationTransition | null;
   getPathPatterns(): PathPattern[];
 }
 
-export class Navigation extends NavigationBase<RouterEventMap> {
+export class Navigation extends NavigationBase {
   private readonly config;
 
   constructor(config: NavigationConfig) {
@@ -41,13 +33,8 @@ export class Navigation extends NavigationBase<RouterEventMap> {
     this.config = config;
   }
 
-  public preload(
-    route: string,
-    props: NavigationProps = {},
-    options: NavigationBaseOptions = {}
-  ) {
-    const { pathname } = new URL(route, this.baseURL);
-    return this.config.preload(pathname, props, options);
+  public preload(route: string, state: NavigationProps = {}) {
+    return super.preload(route, state);
   }
 
   public replace(

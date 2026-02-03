@@ -1,12 +1,5 @@
 import { isValidElement } from 'react';
 import { ScreenBase, ScreenBaseProps } from '../ScreenBase';
-import {
-  MotionProgressEndEvent,
-  MotionProgressStartEvent,
-  TransitionCancelEvent,
-  TransitionEndEvent,
-  TransitionStartEvent
-} from './events';
 import { SharedElement } from '../SharedElement';
 import { StandardPropertiesHyphen } from 'csstype';
 
@@ -52,19 +45,45 @@ export function isValidScreenChild<S extends ScreenBase>(value: any): value is S
 
 export type PlainObject<T = any> = { [key: string]: T };
 
-export interface RouterBaseEventMap extends HTMLElementEventMap {
-    'transition-start': TransitionStartEvent;
-    'transition-cancel': TransitionCancelEvent;
-    'transition-end': TransitionEndEvent;
-    'motion-progress-start': MotionProgressStartEvent;
-    'motion-progress-end': MotionProgressEndEvent;
+// TODO: remove hyphens
+declare global {
+  interface HTMLElementEventMap {
+    'routertransitionstart': TransitionEvent;
+    'routertransitioncancel': TransitionEvent;
+    'routertransitionend': TransitionEvent;
+  }
 }
 
-export type RouterHTMLElement<E extends RouterBaseEventMap, T extends HTMLElement = HTMLDivElement> = T & {
-    addEventListener<K extends keyof E>(type: K, listener: (this: T, ev: E[K]) => any, options?: boolean | AddEventListenerOptions): void;
-    addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-    removeEventListener<K extends keyof E>(type: K, listener: (this: T, ev: E[K]) => any, options?: boolean | EventListenerOptions): void;
-    removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+export type EventHandler = {
+  [K in keyof HTMLElementEventMap as `on${K}`]?:
+      (e: HTMLElementEventMap[K]) => void;
+} & {
+  handleEvent: (e: Event) => void;
+}
+
+export type RouterBaseHTMLElement<
+  T extends HTMLElement = HTMLDivElement
+> = T & {
+    addEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: T, ev: HTMLElementEventMap[K]) => any,
+      options?: boolean | AddEventListenerOptions
+    ): void;
+    addEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      options?: boolean | AddEventListenerOptions
+    ): void;
+    removeEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: T, ev: HTMLElementEventMap[K]) => any,
+      options?: boolean | EventListenerOptions
+    ): void;
+    removeEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      options?: boolean | EventListenerOptions
+    ): void;
 }
 
 export type CustomElementType = `${string}-${string}`;
@@ -115,8 +134,11 @@ export function isStylableElement(element: any): element is StylableElement {
   return 'style' in element && element.style instanceof CSSStyleDeclaration;
 }
 
-export interface LoadNavigationTransition extends Omit<NavigationTransition, 'navigationType'> {
-    navigationType: 'load';
+export interface LoadNavigationTransition extends Omit<
+  NavigationTransition,
+  'navigationType'
+> {
+  navigationType: 'load' | 'preload';
 }
 
 declare global {

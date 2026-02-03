@@ -4,11 +4,6 @@ import { RouterContext } from '../RouterContext';
 import { ScreenTransitionLayerContext } from '../ScreenTransitionLayerContext';
 import { useMotion } from '../common/hooks';
 import { dispatchEvent } from '../common/utils';
-import {
-  TransitionCancelEvent,
-  TransitionEndEvent,
-  TransitionStartEvent
-} from '../common/events';
 import { ScreenTransitionLayer } from '../ScreenTransitionLayer';
 import { RouterBase } from '../RouterBase';
 import { triggerRerender, useRerender } from '../common/test-utils';
@@ -44,13 +39,13 @@ const HALF_ANIMATION_DURATION = ANIMATION_DURATION / HALF;
 const MockScreenTransitionLayer = {
   animation: new Animation(),
   onTransitionCancel() {
-    MockRouter.dispatchEvent(new TransitionCancelEvent());
+    MockRouter.dispatchEvent(new TransitionEvent('routertransitioncancel'));
   },
   onTransitionStart() {
-    MockRouter.dispatchEvent(new TransitionStartEvent());
+    MockRouter.dispatchEvent(new TransitionEvent('routertransitionstart'));
   },
   onTransitionEnd() {
-    MockRouter.dispatchEvent(new TransitionEndEvent());
+    MockRouter.dispatchEvent(new TransitionEvent('routertransitionend'));
   },
   transition(target: HTMLElement = document.body) {
     const start = 0;

@@ -1,42 +1,13 @@
 import { SINGLE_ELEMENT_LENGTH } from './constants';
+import { PromiseWrapper } from './promise-wrapper';
 import { LoadNavigationTransition } from './types';
 import { PromiseAllSequential } from './utils';
-
-export class TransitionStartEvent extends Event {
-  constructor() {
-    super('transition-start');
-  }
-}
-
-export class TransitionCancelEvent extends Event {
-  constructor() {
-    super('transition-cancel');
-  }
-}
-
-export class TransitionEndEvent extends Event {
-  constructor() {
-    super('transition-end');
-  }
-}
-
-export class MotionProgressStartEvent extends Event {
-  constructor() {
-    super('motion-progress-start');
-  }
-}
-
-export class MotionProgressEndEvent extends Event {
-  constructor() {
-    super('motion-progress-end');
-  }
-}
 
 export class LoadEvent extends Event implements Omit<
   NavigateEvent,
   'navigationType' | 'commit'
 > {
-  #navigationType = 'load' as const;
+  #navigationType: 'load' | 'preload';
   #userInitiated: boolean = false;
   #canIntercept: boolean = true;
   #hashChange: boolean = false;
@@ -48,20 +19,28 @@ export class LoadEvent extends Event implements Omit<
   #intercepted = false;
   #thenables: Promise<void>[] = [];
   #transition: LoadNavigationTransition | null = null;
+  #finished = new PromiseWrapper<void>();
   public readonly hasUAVisualTransition = false;
 
-  constructor() {
+  constructor(
+    navigationType: 'load' | 'preload',
+    loadEventInitDict?: { destination?: NavigationDestination | null }
+  ) {
     super('navigate', { cancelable: false, bubbles: false, composed: false });
-    const currentEntry = window.navigation.currentEntry;
-    if (!currentEntry) throw new Error('Current entry is null');
+
+    this.#navigationType = navigationType;
+    const {
+      destination = window.navigation.currentEntry,
+    } = loadEventInitDict ?? {};
+    if (!destination) throw new Error('Destination is null');
     this.#destination = {
       getState() {
-        return currentEntry.getState();
+        return destination.getState();
       },
-      url: currentEntry.url ?? new URL(window.location.href).href,
-      key: currentEntry.key,
-      index: currentEntry.index,
-      id: currentEntry.id,
+      url: destination.url ?? new URL(window.location.href).href,
+      key: destination.key,
+      index: destination.index,
+      id: destination.id,
       sameDocument: true,
     };
 
@@ -83,21 +62,14 @@ export class LoadEvent extends Event implements Omit<
 
   public intercept(options?: NavigationInterceptOptions | undefined): void {
     if (this.#intercepted) throw new DOMException('Failed to execute \'intercept\' on \'NavigateEvent\': intercept() may only be called while the navigate event is being dispatched.');
-    let finish: Function | null = null;
-    if (!this.#transition) {
-      this.#transition = {
-        finished: new Promise((resolve) => finish = resolve),
-        from: window.navigation.currentEntry!,
-        navigationType: 'load' as const,
-      };
-    }
+    
     const thenable = options?.handler?.();
     if (thenable) this.#thenables.push(thenable);
     if (this.#thenables.length === SINGLE_ELEMENT_LENGTH) {
       PromiseAllSequential(this.#thenables).then(() => {
         this.#intercepted = true;
         window.removeEventListener('navigate', this.#onNavigate);
-        finish?.();
+        this.#finished.resolve();
       });
     }
   }
@@ -107,6 +79,13 @@ export class LoadEvent extends Event implements Omit<
   }
 
   public get transition() {
+    if (!this.#transition) {
+      this.#transition = {
+        finished: this.#finished.promise,
+        from: window.navigation.currentEntry!,
+        navigationType: this.#navigationType,
+      };
+    }
     return this.#transition;
   }
 

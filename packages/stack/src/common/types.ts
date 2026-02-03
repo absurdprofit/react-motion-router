@@ -1,7 +1,6 @@
 import {
   PlainObject,
-  RoutePropBase,
-  RouterBaseEventMap
+  RoutePropBase
 } from '@react-motion-router/core';
 import { ScreenProps } from '../Screen';
 import { RefObject } from 'react';
@@ -52,13 +51,16 @@ export function isRefObject<T>(
   return false;
 }
 
-export interface RouterEventMap extends RouterBaseEventMap {
-	'navigate': NavigateEvent;
-	'back': BackEvent;
-	'forward': ForwardEvent;
-	'gesture-start': GestureStartEvent;
-	'gesture-end': GestureEndEvent;
-	'gesture-cancel': GestureCancelEvent;
+// TODO: remove hyphens
+declare global {
+  interface HTMLElementEventMap {
+    'navigate': NavigateEvent;
+    'back': BackEvent;
+    'forward': ForwardEvent;
+    'gesture-start': GestureStartEvent;
+    'gesture-end': GestureEndEvent;
+    'gesture-cancel': GestureCancelEvent;
+  }
 }
 
 export interface RouteProp<
@@ -86,30 +88,6 @@ export function isSupportedDirection(
   supported: SwipeDirection
 ) {
   return directions[supported].includes(direction);
-}
-
-export function isOutOfBounds(
-  direction: SwipeDirection,
-  { x, y }: { x: number, y: number },
-  clientRect: DOMRect,
-  gestureAreaWidth: number
-) {
-  if (
-    direction === 'right'
-    && Math.abs(x - clientRect.left) >= gestureAreaWidth
-  ) return false;
-  if (
-    direction === 'left'
-    && Math.abs(x - clientRect.right) >= gestureAreaWidth
-  ) return false;
-  if (
-    direction === 'down'
-    && Math.abs(y - clientRect.top) >= gestureAreaWidth
-  ) return false;
-  if (
-    direction === 'up'
-    && Math.abs(y - clientRect.bottom) >= gestureAreaWidth
-  ) return false;
 }
 
 export function isHorizontalDirection(

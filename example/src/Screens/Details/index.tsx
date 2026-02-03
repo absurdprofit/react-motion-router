@@ -17,7 +17,10 @@ let isFirstLoad = false;
 let originalDesc: string | undefined;
 let lastHero = '';
 export default function Details(props: DetailsProps) {
-  const [gestureDisabled, setGestureDisabled] = React.useState(true);
+  const [
+    preventGestureNavigation,
+    setPreventGestureNavigation,
+  ] = React.useState(true);
   const { noBg, ...hero } = props.route.params;
 
   useEffect(() => {
@@ -55,79 +58,82 @@ export default function Details(props: DetailsProps) {
     const maxScroll = e.target.scrollHeight - e.target.clientHeight;
     const scrollPercent = scrollPos / maxScroll;
     if (scrollPercent !== 0) {
-      setGestureDisabled(true);
+      setPreventGestureNavigation(true);
     } else {
-      setGestureDisabled(false);
+      setPreventGestureNavigation(false);
     }
   };
 
   return (
-    <GestureRegion disabled={gestureDisabled}>
-      <article
-        aria-label={`Character profile: ${hero.name}`}
-        className={`details ${isFirstLoad ? 'loaded' : 'suspense'}`}
-        style={{
-          width: '100%',
-          height: '100%',
-          backgroundColor: noBg ? 'white' : undefined,
-        }}
-        onScroll={onScroll}
-      >
-        <SharedElement id={`${hero.id}-card-bg`} config={{ styles: ['background-color', 'border-radius'], deepClone: false }} disabled={noBg}>
-          <div className="card-bg" aria-hidden="true">
+    <GestureRegion.article
+      aria-label={`Character profile: ${hero.name}`}
+      className={`details ${isFirstLoad ? 'loaded' : 'suspense'}`}
+      style={{
+        width: '100%',
+        height: '100%',
+        backgroundColor: noBg ? 'white' : undefined,
+      }}
+      gestureBehaviour={preventGestureNavigation ? 'contain' : 'none'}
+    >
+      <SharedElement id={`${hero.id}-card-bg`} config={{ styles: ['background-color', 'border-radius'], deepClone: false }} disabled={noBg}>
+        <div
+          className="card-bg"
+          aria-hidden="true"
+          style={{ overflow: 'auto' }}
+          onScroll={onScroll}
+        >
                         
-            <Anchor aria-label='Go Back' goBack tabIndex={-1}>
-              <IconButton style={{
-                position: 'absolute',
-                color: 'grey',
-                zIndex: 10000,
-              }} disableRipple>
-                <SharedElement id="back" config={{
-                  type: 'fade-through',
-                  styles: ['color'],
-                }}>
-                  <ClearIcon style={{
-                    zIndex: 100,
-                  }} />
-                </SharedElement>
-              </IconButton>
-            </Anchor>
-            <div className="profile-info">
-              <SharedElement id={`${hero.id}-gradient-overlay`} config={{ styles: ['background', 'opacity', 'clip-path', 'border-radius'] }}>
-                <div
-                  className="gradient-overlay"
-                  style={{
-                    height: window.innerWidth / photoAspect,
-                    width: window.innerWidth,
-                  }}
-                  aria-hidden="true"
-                ></div>
+          <Anchor aria-label='Go Back' goBack tabIndex={-1}>
+            <IconButton style={{
+              position: 'absolute',
+              color: 'grey',
+              zIndex: 10000,
+            }} disableRipple>
+              <SharedElement id="back" config={{
+                type: 'fade-through',
+                styles: ['color'],
+              }}>
+                <ClearIcon style={{
+                  zIndex: 100,
+                }} />
               </SharedElement>
-              <SharedElement id={hero.id} config={{ styles: ['object-fit', 'border-radius'] }}>
-                <img src={hero.photoUrl} alt="Character" width={hero.photoWidth} height={hero.photoHeight} />
+            </IconButton>
+          </Anchor>
+          <div className="profile-info">
+            <SharedElement id={`${hero.id}-gradient-overlay`} config={{ styles: ['background', 'opacity', 'clip-path', 'border-radius'] }}>
+              <div
+                className="gradient-overlay"
+                style={{
+                  height: window.innerWidth / photoAspect,
+                  width: window.innerWidth,
+                }}
+                aria-hidden="true"
+              ></div>
+            </SharedElement>
+            <SharedElement id={hero.id} config={{ styles: ['object-fit', 'border-radius'] }}>
+              <img src={hero.photoUrl} alt="Character" width={hero.photoWidth} height={hero.photoHeight} />
+            </SharedElement>
+            <div className="text-content" tabIndex={0}>
+              <SharedElement id={`title-${hero.id}`}>
+                <Typography
+                  id="title"
+                  style={{ fontWeight: 'bold', fontSize: '28px', zIndex: 10 }}
+                  gutterBottom
+                  variant="h4"
+                  component="h4"
+                >
+                  {hero.name}
+                </Typography>
               </SharedElement>
-              <div className="text-content" tabIndex={0}>
-                <SharedElement id={`title-${hero.id}`}>
-                  <Typography
-                    id="title"
-                    style={{ fontWeight: 'bold', fontSize: '28px', zIndex: 10 }}
-                    gutterBottom
-                    variant="h4"
-                    component="h4"
-                  >
-                    {hero.name}
-                  </Typography>
+              <div className="description">
+                <SharedElement id={`description-${hero.id}`} config={{ styles: ['clip-path', 'text-align', 'overflow', 'line-height'] }}>
+                  <p style={{ zIndex: 10 }}>{hero.description}</p>
                 </SharedElement>
-                <div className="description">
-                  <SharedElement id={`description-${hero.id}`} config={{ styles: ['clip-path', 'text-align', 'overflow', 'line-height'] }}>
-                    <p style={{ zIndex: 10 }}>{hero.description}</p>
-                  </SharedElement>
-                </div>
               </div>
             </div>
           </div>
-        </SharedElement>
-      </article>
-    </GestureRegion>
+        </div>
+      </SharedElement>
+    </GestureRegion.article>
   );
 }
