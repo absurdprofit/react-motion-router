@@ -34,32 +34,30 @@ export default function Home({ navigation }: HomeProps) {
       <div className="player" onClick={openPlayer} ref={playerRef}>
         <div className="info">
           <div className="cover-art">
-            <SharedElement id="cover-art" config={{
+            <SharedElement.img src={King} alt="" id="cover-art" config={{
               easing: 'ease-out',
-            }}>
-              <img src={King} alt="" />
-            </SharedElement>
+            }} />
           </div>
           <div className="title">
-            <SharedElement id="title" config={{
+            <SharedElement.h6 id="title" config={{
               type: 'fade-through',
             }}>
-              <h6>Modal Sheet Example</h6>
-            </SharedElement>
+              Modal Sheet Example
+            </SharedElement.h6>
           </div>
         </div>
         <div className="play-controls">
           <div className="play">
-            <SharedElement id="play" config={{
+            <SharedElement.div id="play" config={{
               easing: 'ease-out',
             }}>
               <PlayArrowIcon />
-            </SharedElement>
+            </SharedElement.div>
           </div>
           <div className="next">
-            <SharedElement id="next">
+            <SharedElement.div id="next">
               <SkipNextIcon />
-            </SharedElement>
+            </SharedElement.div>
           </div>
         </div>
       </div>
