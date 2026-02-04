@@ -345,8 +345,9 @@ export class Router extends RouterBase<
   }
 
   private cloneScreenChildFromPathname(
-    pathname: string,
-    key: React.Key | null
+    pathname: ScreenInternalProps['resolvedPathname'],
+    key: ScreenInternalProps['id'] | null,
+    entry: ScreenInternalProps['entry']
   ) {
     const { child } = this.screenChildFromPathname(pathname) ?? {};
 
@@ -359,6 +360,7 @@ export class Router extends RouterBase<
         ...child.props.config,
       },
       id: key,
+      entry,
       resolvedPathname: pathname,
       key,
       ref: createRef<Screen>(),
@@ -479,7 +481,8 @@ export class Router extends RouterBase<
         if (!entry.url) return null;
         const screen = this.cloneScreenChildFromPathname(
           entry.url.pathname,
-          entry.key
+          entry.key,
+          entry
         );
         if (!screen) return null;
         screenStack.push(screen);
@@ -546,7 +549,12 @@ export class Router extends RouterBase<
       window.navigation.currentEntry?.key ?? destination.key;
     const destinationScreen = this.cloneScreenChildFromPathname(
       destinationPathname,
-      destinationKey
+      destinationKey,
+      new HistoryEntry(
+        historyEntryFromDestination(destination),
+        this.id,
+        destination.index
+      )
     );
     if (!destinationScreen) return e.preventDefault();
     const handler = () => {
@@ -625,7 +633,12 @@ export class Router extends RouterBase<
         const destinationPathname = new URL(destination.url).pathname;
         const destinationScreen = this.cloneScreenChildFromPathname(
           destinationPathname,
-          destinationKey
+          destinationKey,
+          new HistoryEntry(
+            historyEntryFromDestination(destination),
+            this.id,
+            destination.index
+          )
         );
         if (!destinationScreen) return Promise.resolve();
         destinationKey = destinationScreen.key;

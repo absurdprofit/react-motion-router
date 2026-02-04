@@ -12,6 +12,7 @@ import {
   GestureStartEvent,
   NavigateEvent
 } from './events';
+import { HistoryEntry } from '../HistoryEntry';
 
 export interface NavigationBaseOptions {
 	signal?: AbortSignal;
@@ -61,6 +62,15 @@ declare global {
     'gesture-end': GestureEndEvent;
     'gesture-cancel': GestureCancelEvent;
   }
+
+  interface NavigationPrecommitController {
+    redirect(url: string, options?: NavigationNavigateOptions): void;
+    addHandler(handler: NavigationInterceptOptions['handler']): void;
+  }
+
+  interface NavigationInterceptOptions {
+    precommitHandler?(controller: NavigationPrecommitController): Promise<void>;
+  }
 }
 
 export interface RouteProp<
@@ -101,4 +111,5 @@ export function isHorizontalDirection(
 export interface ScreenInternalProps {
     resolvedPathname: string;
     id: React.Key;
+    entry: HistoryEntry;
 }
