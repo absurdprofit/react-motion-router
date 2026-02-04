@@ -8,9 +8,9 @@ export default function BackButton() {
   return (
     <Anchor traverse>
       <IconButton disableRipple>
-        <SharedElement id="back">
+        <SharedElement.div id="back">
           <ArrowBackIosIcon style={{ zIndex: 100 }} />
-        </SharedElement>
+        </SharedElement.div>
       </IconButton>
     </Anchor>
   );

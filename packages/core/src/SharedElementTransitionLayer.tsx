@@ -11,9 +11,14 @@ interface SharedElementTransitionLayerProps {
     direction: 'forwards' | 'backwards';
 }
 
-interface SharedElementTransitionLayerState { }
+interface SharedElementTransitionLayerState {
+  transitioning: boolean;
+}
 
-export class SharedElementTransitionLayer extends Component<SharedElementTransitionLayerProps, SharedElementTransitionLayerState> {
+export class SharedElementTransitionLayer extends Component<
+  SharedElementTransitionLayerProps,
+  SharedElementTransitionLayerState
+> {
   public readonly ref = createRef<HTMLDialogElement>();
   #outgoingScreen: RefObject<ScreenBase> | null = null;
   #incomingScreen: RefObject<ScreenBase> | null = null;
@@ -244,26 +249,7 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
     return new ParallelEffect(parallelEffects);
   }
 
-  render() {
-    return (
-      <dialog className="shared-element-layer" ref={this.ref} style={{
-        maxWidth: 'unset',
-        maxHeight: 'unset',
-        width: '100vw',
-        height: '100vh',
-        contain: 'strict',
-        padding: 0,
-        border: 'none',
-        backgroundColor: 'transparent',
-        isolation: 'isolate',
-      }}>
-        <style>
-          {`
-            .shared-element-layer::backdrop {display: none}
-            .shared-element-layer[open] {display:grid}
-          `}
-        </style>
-      </dialog>
-    );
+  public render() {
+    return null;
   }
 }

@@ -1,106 +1,65 @@
-import { Component, createRef } from 'react';
-import { SharedElementTransitionType, StyleKeyList } from './common/types';
+import React, { useContext, useEffect } from 'react';
+import {
+  ElementForTag
+} from '@react-motion-router/core';
+import { SharedElementTransitionType } from './common/types';
 import { SharedElementSceneContext } from './SharedElementSceneContext';
+
+type SharedElement = {
+  [T in keyof JSX.IntrinsicElements]: ReturnType<typeof createSharedElement<T>>;
+}
 
 interface SharedElementConfig extends OptionalEffectTiming {
   type?: SharedElementTransitionType;
-  transformOrigin?: React.CSSProperties['transformOrigin'];
-  styles?: StyleKeyList;
-  deepClone?: boolean;
 }
 
 interface SharedElementProps {
   id: string;
-  children: React.ReactElement;
-  disabled?: boolean;
   config?: SharedElementConfig;
 }
 
-export class SharedElement extends Component<
-  SharedElementProps
-> {
-  public readonly ref = createRef<HTMLDivElement>();
-  public static readonly contextType = SharedElementSceneContext;
-  public declare context: React.ContextType<typeof SharedElementSceneContext>;
+export const createSharedElement = (
+  <T extends keyof JSX.IntrinsicElements>(tag: T) => 
+    function SharedElement({
+      ref: forwardedRef,
+      ...props
+    }: JSX.IntrinsicElements[T] & SharedElementProps) {
+      const ref = React.useRef<ElementForTag<T>>(null);
+      const scene = useContext(SharedElementSceneContext);
 
-  public componentDidMount(): void {
-    this.scene.addNode(this);
-  }
+      useEffect(() => {
+        scene.addElement(ref.current);
 
-  public componentDidUpdate(prevProps: SharedElementProps) {
-    if (this.props.id !== prevProps.id) {
-      this.scene.removeNode(prevProps.id.toString());
-      this.scene.addNode(this);
+        return () => {
+          scene.removeElement(props.id);
+        };
+      }, [scene, props.id]);
+        
+      React.useImperativeHandle(
+        forwardedRef as React.Ref<ElementForTag<T>> | undefined,
+        () => ref.current as ElementForTag<T>
+      );
+
+      const Tag = tag as React.JSX.ElementType;
+
+      const viewTransitionName = `shared-element-${props.id.toString()}`;
+
+      return <Tag
+        ref={ref}
+        {...props}
+        style={{
+          ...props.style,
+          viewTransitionName,
+        }}
+      />;
     }
-  }
+);
 
-  public componentWillUnmount(): void {
-    this.scene.removeNode(this.id);
+export const SharedElement = new Proxy(
+  {} as SharedElement, {
+    get(target, key: keyof JSX.IntrinsicElements) {
+      target[key] ??= createSharedElement(key);
+      return target[key];
+    },
   }
-
-  public get styles(): StyleKeyList {
-    if (this.props.config?.styles) {
-      return this.props.config.styles;
-    }
-    return [];
-  }
-
-  public get canTransition() {
-    return !this.props.disabled
-      && this.scene.canTransition;
-  }
-
-  public get scene() {
-    return this.context;
-  }
-
-  public get id() {
-    return `shared-element-${this.props.id.toString()}`;
-  }
-
-  public get transitionType(): SharedElementTransitionType {
-    return this.props.config?.type ?? this.scene
-      .previousScene
-      ?.nodes
-      .get(this.id)
-      ?.transitionType ?? 'morph';
-  }
-
-  public getBoundingClientRect() {
-    return this.ref
-      .current
-      ?.firstElementChild
-      ?.getBoundingClientRect() ?? new DOMRect();
-  }
-
-  public clone() {
-    if (!this.ref.current) return null;
-    const deepClone = this.props.config?.deepClone ?? true;
-    return this.ref
-      .current
-      .firstElementChild
-      ?.cloneNode(deepClone) as HTMLElement;
-  }
-
-  public hide() {
-    if (!this.ref.current) return;
-    this.ref.current.style.visibility = 'hidden';
-  }
-
-  public unhide() {
-    if (!this.ref.current) return;
-    this.ref.current.style.visibility = 'visible';
-  }
-
-  public render() {
-    return (
-      <div
-        ref={this.ref}
-        id={this.id}
-        style={{ display: 'contents' }}
-      >
-        {this.props.children}
-      </div>
-    );
-  }
-}
+);

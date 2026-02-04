@@ -38,21 +38,20 @@ export default function Tile({ hero, navigation, onClick }: TileProps) {
         onClick();
       }
     }} className="tile">
-      <SharedElement id={hero.id} config={{
-        duration: 200,
-      }}>
-        <img
-          ref={imageRef}
-          src={hero.photoUrl}
-          alt={hero.name}
-          width={hero.photoWidth}
-          height={hero.photoHeight}
-          decoding="async"
-          style={{
-            clipPath: (heroID === hero.id ? inset : ''),
-          }}
-        />
-      </SharedElement>
+      <SharedElement.img
+        id={hero.id} config={{
+          duration: 200,
+        }}
+        ref={imageRef}
+        src={hero.photoUrl}
+        alt={hero.name}
+        width={hero.photoWidth}
+        height={hero.photoHeight}
+        decoding="async"
+        style={{
+          clipPath: (heroID === hero.id ? inset : ''),
+        }}
+      />
     </div>
   );
 }

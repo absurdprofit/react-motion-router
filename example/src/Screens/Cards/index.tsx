@@ -62,57 +62,54 @@ const CardComponent = ({ observer, hero }: CardProps) => {
     <li role="menuitem">
       <Anchor href='details' params={{ ...hero }} onClick={onClick}>
         <ButtonBase aria-label={`Character profile: ${hero.name}`} disableRipple>
-          <SharedElement id={`${hero.id}-card-bg`} config={{ deepClone: false }}>
-            <div
-              id={`${hero.id}-card-bg`}
-              className="card-bg"
-              ref={bgRef}
-              style={{ width: 345 > window.screen.width ? 300 : 345, clipPath: (heroName === hero.id ? bgInset : '') }}
-            >
-              <Card sx={{ width: 345 > window.screen.width ? 300 : 345 }}>
-                <SharedElement id={hero.id}>
-                  <CardMedia
-                    component="img"
-                    height="140"
-                    loading={heroName === hero.id ? 'eager' : 'lazy'}
-                    decoding={heroName === hero.id ? 'sync' : 'async'}
-                    src={hero.photoUrl}
-                    alt={hero.name}
-                    id={`${hero.id}`}
-                    ref={imageRef}
+          <SharedElement.div
+            id={`${hero.id}-card-bg`}
+            className="card-bg"
+            ref={bgRef}
+            style={{ width: 345 > window.screen.width ? 300 : 345, clipPath: (heroName === hero.id ? bgInset : '') }}
+          >
+            <Card sx={{ width: 345 > window.screen.width ? 300 : 345 }}>
+              <SharedElement.div id={hero.id}>
+                <CardMedia
+                  component="img"
+                  height="140"
+                  loading={heroName === hero.id ? 'eager' : 'lazy'}
+                  decoding={heroName === hero.id ? 'sync' : 'async'}
+                  src={hero.photoUrl}
+                  alt={hero.name}
+                  id={`${hero.id}`}
+                  ref={imageRef}
+                  style={{
+                    clipPath: (heroName === hero.id ? imageInset : ''),
+                  }}
+                />
+              </SharedElement.div>
+              <CardContent>
+                <SharedElement.div id={`title-${hero.id}`}>
+                  <Typography
                     style={{
-                      clipPath: (heroName === hero.id ? imageInset : ''),
+                      clipPath: (heroName === hero.id ? titleInset : ''),
+                      fontWeight: 'bold',
+                      margin: 0,
+                      fontSize: '28px',
                     }}
-                  />
-                </SharedElement>
-                <CardContent>
-                  <SharedElement id={`title-${hero.id}`}>
-                    <Typography
-                      style={{
-                        clipPath: (heroName === hero.id ? titleInset : ''),
-                        fontWeight: 'bold',
-                        margin: 0,
-                        fontSize: '28px',
-                      }}
-                      ref={titleRef}
-                      gutterBottom
-                      variant="h4"
-                      component="h4"
-                    >{hero.name}</Typography>
-                  </SharedElement>
-                  <SharedElement id={`description-${hero.id}`}>
-                    <p
-                      ref={paraRef}
-                      style={{
-                        fontSize: '16px',
-                        clipPath: (heroName === hero.id ? textInset : ''),
-                      }}
-                    >{hero.description}</p>
-                  </SharedElement>
-                </CardContent>
-              </Card>
-            </div>
-          </SharedElement>
+                    ref={titleRef}
+                    gutterBottom
+                    variant="h4"
+                    component="h4"
+                  >{hero.name}</Typography>
+                </SharedElement.div>
+                <SharedElement.p
+                  id={`description-${hero.id}`}
+                  ref={paraRef}
+                  style={{
+                    fontSize: '16px',
+                    clipPath: (heroName === hero.id ? textInset : ''),
+                  }}
+                >{hero.description}</SharedElement.p>
+              </CardContent>
+            </Card>
+          </SharedElement.div>
         </ButtonBase>
       </Anchor>
     </li>

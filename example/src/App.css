@@ -84,3 +84,7 @@ div.screen-fallback.modal {
 meta[name="theme-color"] {
   transition: 3s ease;
 }
+::view-transition-old(*),
+::view-transition-new(*) {
+  animation: none;
+}

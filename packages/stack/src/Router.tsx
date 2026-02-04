@@ -638,38 +638,49 @@ export class Router extends RouterBase<
 
       const controller = new AbortController();
       return new Promise<void>((resolve, reject) =>
-        startTransition(() => {
+        startTransition(async () => {
+          const commit = new PromiseWrapper<void>();
+          const viewTransition = document.startViewTransition(() => {
+            this.setState(
+              {
+                controller,
+                destinationKey,
+                fromKey,
+                transition,
+                screenStack,
+              },
+              () => commit.resolve()
+            );
+          });
+          await commit.promise;
+
+          controller.signal.onabort = reject;
+          const signal = e.signal;
+          const outgoingScreen = this.getScreenRefByKey(String(fromKey));
+          const incomingScreen = this.getScreenRefByKey(
+            String(destinationKey)
+          );
+          const pendingLifecycleHandlers = this.dispatchLifecycleHandlers(
+            incomingScreen,
+            outgoingScreen,
+            signal
+          ).catch(reject);
+          await viewTransition.ready;
+          const animation = this.screenTransition(
+            incomingScreen,
+            outgoingScreen
+          );
+          animation?.updatePlaybackRate(DEFAULT_PLAYBACK_RATE);
+          animation?.finished.catch(reject);
+          await pendingLifecycleHandlers;
           this.setState(
-            { controller, destinationKey, fromKey, transition, screenStack },
-            async () => {
-              controller.signal.onabort = reject;
-              const signal = e.signal;
-              const outgoingScreen = this.getScreenRefByKey(String(fromKey));
-              const incomingScreen = this.getScreenRefByKey(
-                String(destinationKey)
-              );
-              const pendingLifecycleHandlers = this.dispatchLifecycleHandlers(
-                incomingScreen,
-                outgoingScreen,
-                signal
-              ).catch(reject);
-              const animation = this.screenTransition(
-                incomingScreen,
-                outgoingScreen
-              );
-              animation?.updatePlaybackRate(DEFAULT_PLAYBACK_RATE);
-              animation?.finished.catch(reject);
-              await pendingLifecycleHandlers;
-              this.setState(
-                {
-                  destinationKey: null,
-                  fromKey: null,
-                  transition: null,
-                  controller: null,
-                },
-                resolve
-              );
-            }
+            {
+              destinationKey: null,
+              fromKey: null,
+              transition: null,
+              controller: null,
+            },
+            resolve
           );
         })
       );

@@ -19,26 +19,24 @@ function Navbar(props: NavbarProps) {
   };
 
   return (
-    <SharedElement id="navbar" config={{
+    <SharedElement.div id="navbar" className='navbar' config={{
       type: 'fade',
     }}>
-      <div className="navbar">
-        <div className="back">
-          {
-            navigation.canGoBack()
-              ? <BackButton />
-              :                            undefined
-          }
-        </div>
-        <div className="title">
-          <SharedElement id={props.title.toLowerCase().split(' ').join('-') + '-title'} config={{ transformOrigin: 'center center' }}>
-            <h2>{props.title} - {count}</h2>
-          </SharedElement>
-          <button onClick={() => setCount(count + 1)}>Inc</button>
-          <button onClick={() => clearCount()}>Clear</button>
-        </div>
+      <div className="back">
+        {
+          navigation.canGoBack()
+            ? <BackButton />
+            :                            undefined
+        }
       </div>
-    </SharedElement>
+      <div className="title">
+        <SharedElement.h2 id={props.title.toLowerCase().split(' ').join('-') + '-title'}>
+          {props.title} - {count}
+        </SharedElement.h2>
+        <button onClick={() => setCount(count + 1)}>Inc</button>
+        <button onClick={() => clearCount()}>Clear</button>
+      </div>
+    </SharedElement.div>
   );
 }
 
