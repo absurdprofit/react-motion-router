@@ -50,7 +50,6 @@ export function isValidScreenChild<S extends ScreenBase>(value: any): value is S
 
 export type PlainObject<T = any> = { [key: string]: T };
 
-// TODO: remove hyphens
 declare global {
   interface HTMLElementEventMap {
     'routertransitionstart': TransitionEvent;
