@@ -196,6 +196,8 @@ export class Router extends RouterBase<
     if (this.#committed?.state === 'pending')
       this.#committed.reject?.(error); // TODO: find out what the spec does for cancelled navigations
     this.#committed = null;
+    if (this.screenTransitionLayer.current?.animation.playState === 'running')
+      this.screenTransitionLayer.current.animation.cancel();
   };
 
   // TODO: change to use handleEvent paradigm
@@ -586,14 +588,18 @@ export class Router extends RouterBase<
                 signal
               ).catch(reject);
               await pendingLifecycleHandlers;
-              this.setState(
-                { destinationKey: null, fromKey: null, transition: null },
-                resolve
-              );
+              resolve();
             }
           );
         })
-      );
+      )
+        .finally(() => {
+          this.setState({
+            destinationKey: null,
+            fromKey: null,
+            transition: null,
+          });
+        });
     };
 
     e.intercept({ precommitHandler });
@@ -675,19 +681,21 @@ export class Router extends RouterBase<
               animation?.updatePlaybackRate(DEFAULT_PLAYBACK_RATE);
               animation?.finished.catch(reject);
               await pendingLifecycleHandlers;
-              this.setState(
-                {
-                  destinationKey: null,
-                  fromKey: null,
-                  transition: null,
-                  controller: null,
-                },
-                resolve
-              );
+              resolve();
             }
           );
         })
-      );
+      )
+        .finally(() => {
+          this.setState(
+            {
+              destinationKey: null,
+              fromKey: null,
+              transition: null,
+              controller: null,
+            }
+          );
+        });
     };
 
     if (isGesture(e.info)) {

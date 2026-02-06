@@ -50,6 +50,10 @@ export class ScreenTransitionProvider extends Component<
     }
   };
 
+  public onroutertransitioncancel() {
+    this.onroutertransitionend();
+  };
+
   public onroutertransitionstart() {
     if (this.ref.current) {
       this.ref.current.style.willChange = 'transform, opacity';
