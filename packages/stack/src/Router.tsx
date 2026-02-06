@@ -548,7 +548,7 @@ export class Router extends RouterBase<
     const destination = e.destination;
     const destinationPathname = new URL(destination.url).pathname;
     const destinationKey =
-      window.navigation.currentEntry?.key ?? destination.key;
+      window.navigation.currentEntry?.key ?? null;
     const destinationScreen = this.cloneScreenChildFromPathname(
       destinationPathname,
       destinationKey,
@@ -559,7 +559,7 @@ export class Router extends RouterBase<
       )
     );
     if (!destinationScreen) return e.preventDefault();
-    const handler = () => {
+    const precommitHandler = () => {
       const transition = this.state.transition ?? window.navigation.transition;
       const fromKey = transition?.from?.key ?? null;
       const currentIndex = screenStack.findIndex(
@@ -596,7 +596,7 @@ export class Router extends RouterBase<
       );
     };
 
-    e.intercept({ handler });
+    e.intercept({ precommitHandler });
   }
 
   private handleDefault(e: NavigateEvent) {
