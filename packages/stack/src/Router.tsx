@@ -327,20 +327,11 @@ export class Router extends RouterBase<
 
   protected get screens() {
     const screenStack = this.state.screenStack;
-    return screenStack.filter((screen, index) => {
-      const currentScreenRef = screen.ref ?? null;
-      const nextScreenRef = screenStack.at(index + SINGLE_ELEMENT_LENGTH)?.ref;
-      return (
-        (isRefObject(currentScreenRef)
-          && currentScreenRef.current?.config.keepAlive)
-        || (isRefObject(nextScreenRef)
-          && nextScreenRef.current?.config.presentation === 'modal')
-        || (isRefObject(nextScreenRef)
-          && nextScreenRef.current?.config.presentation === 'dialog')
-        || screen.key === this.navigation.current?.key
-        || screen.key === this.state.fromKey
-        || screen.key === this.state.destinationKey
-      );
+    return screenStack.filter((screen) => {
+      if (isRefObject(screen.ref) && screen.ref.current)
+        return screen.ref.current.config.keepAlive
+          || screen.ref.current.focused;
+      return screen.key === this.state.destinationKey;
     });
   }
 
@@ -523,6 +514,7 @@ export class Router extends RouterBase<
               const currentScreen = this.getScreenRefByKey(
                 this.navigation.current.key
               );
+              await currentScreen?.current.focus();
               await this.dispatchLifecycleHandlers(
                 currentScreen,
                 null,
@@ -601,7 +593,8 @@ export class Router extends RouterBase<
     const screenStack = this.state.screenStack;
     const destination = e.destination;
     const destinationPathname = new URL(destination.url).pathname;
-    if (!this.screenChildFromPathname(destinationPathname))
+    const destinationScreen = this.screenChildFromPathname(destinationPathname);
+    if (!destinationScreen)
       return e.preventDefault();
     const precommitHandler = () => {
       if (isRollback(e.info)) return Promise.resolve();
@@ -652,8 +645,12 @@ export class Router extends RouterBase<
       const controller = new AbortController();
       return new Promise<void>((resolve, reject) =>
         startTransition(async () => {
-          const commit = new PromiseWrapper<void>();
-          const viewTransition = document.startViewTransition(() => {
+          const outgoingScreen = this.getScreenRefByKey(String(fromKey));
+          const signal = e.signal;
+          await this.preloadScreen(destinationScreen.child);
+          const viewTransition = document.startViewTransition(async () => {
+            const commit = new PromiseWrapper<void>();
+            await outgoingScreen?.current?.blur();
             this.setState(
               {
                 controller,
@@ -662,14 +659,20 @@ export class Router extends RouterBase<
                 transition,
                 screenStack,
               },
-              () => commit.resolve()
+              async () => {
+                const incomingScreen = this.getScreenRefByKey(
+                  String(destinationKey)
+                );
+                // await incomingScreen?.current.focus();
+                await incomingScreen?.current?.load(signal);
+                commit.resolve();
+              }
             );
+            await commit.promise;
           });
-          await commit.promise;
+          await viewTransition.updateCallbackDone;
 
           controller.signal.onabort = reject;
-          const signal = e.signal;
-          const outgoingScreen = this.getScreenRefByKey(String(fromKey));
           const incomingScreen = this.getScreenRefByKey(
             String(destinationKey)
           );
@@ -723,7 +726,6 @@ export class Router extends RouterBase<
     await Promise.all([
       outgoingScreen?.current?.onExit(signal),
       incomingScreen?.current?.onEnter(signal),
-      incomingScreen?.current?.load(signal),
     ]);
 
     if (animationStarted)
@@ -736,11 +738,11 @@ export class Router extends RouterBase<
 
     await Promise.all([
       outgoingScreen?.current
-        ?.onExited(signal)
-        .then(() => outgoingScreen.current?.blur()),
+        ?.onExited(signal),
+      // .then(() => outgoingScreen.current?.blur()),
       incomingScreen?.current
-        ?.onEntered(signal)
-        .then(() => incomingScreen.current?.focus()),
+        ?.onEntered(signal),
+      // .then(() => incomingScreen.current?.focus()),
     ]);
   }
 
