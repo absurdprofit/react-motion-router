@@ -47,13 +47,7 @@ export class Screen extends ScreenBase<
   constructor(props: ScreenProps, router: Router) {
     super(props, router);
 
-    const id = this.internalProps.id;
-    const historyEntry = router.navigation
-      .entries
-      .find(entry => entry.key === id);
-    if (!historyEntry)
-      throw new Error(`No history entry found for: ${id}`);
-    this.#historyEntry = historyEntry;
+    this.#historyEntry = this.internalProps.entry;
   }
 
   public static getDerivedStateFromProps(props: ScreenProps) {

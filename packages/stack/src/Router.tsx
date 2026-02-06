@@ -332,6 +332,8 @@ export class Router extends RouterBase<
       const nextScreenRef = screenStack.at(index + SINGLE_ELEMENT_LENGTH)?.ref;
       return (
         (isRefObject(currentScreenRef)
+          && currentScreenRef.current?.focused)
+        || (isRefObject(currentScreenRef)
           && currentScreenRef.current?.config.keepAlive)
         || (isRefObject(nextScreenRef)
           && nextScreenRef.current?.config.presentation === 'modal')
@@ -346,7 +348,8 @@ export class Router extends RouterBase<
 
   private cloneScreenChildFromPathname(
     pathname: string,
-    key: React.Key | null
+    key: React.Key | null,
+    entry: HistoryEntry
   ) {
     const { child } = this.screenChildFromPathname(pathname) ?? {};
 
@@ -360,6 +363,7 @@ export class Router extends RouterBase<
       },
       id: key,
       resolvedPathname: pathname,
+      entry,
       key,
       ref: createRef<Screen>(),
     } as InjectedScreenProps);
@@ -479,7 +483,8 @@ export class Router extends RouterBase<
         if (!entry.url) return null;
         const screen = this.cloneScreenChildFromPathname(
           entry.url.pathname,
-          entry.key
+          entry.key,
+          entry
         );
         if (!screen) return null;
         screenStack.push(screen);
@@ -546,7 +551,12 @@ export class Router extends RouterBase<
       window.navigation.currentEntry?.key ?? destination.key;
     const destinationScreen = this.cloneScreenChildFromPathname(
       destinationPathname,
-      destinationKey
+      destinationKey,
+      new HistoryEntry(
+        historyEntryFromDestination(destination),
+        this.id,
+        destination.index
+      )
     );
     if (!destinationScreen) return e.preventDefault();
     const handler = () => {
@@ -618,17 +628,22 @@ export class Router extends RouterBase<
       const destinationIndex = screenStack.findIndex(
         (screen) => screen.key === e.destination.key
       );
-      const destinationKey =
-        (screenStack[destinationIndex]?.key
-          || window.navigation.currentEntry?.key)
+      let destinationKey =
+        screenStack[destinationIndex]?.key
         ?? null;
       if (e.navigationType === 'push') {
         const destinationPathname = new URL(destination.url).pathname;
         const destinationScreen = this.cloneScreenChildFromPathname(
           destinationPathname,
-          destinationKey
+          destinationKey,
+          new HistoryEntry(
+            historyEntryFromDestination(destination),
+            this.id,
+            destination.index
+          )
         );
         if (!destinationScreen) return Promise.resolve();
+        destinationKey = destinationScreen.key;
         screenStack.splice(
           fromIndex + SINGLE_ELEMENT_LENGTH,
           Infinity, // Remove all screens after current
