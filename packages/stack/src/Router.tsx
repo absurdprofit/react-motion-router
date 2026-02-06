@@ -595,7 +595,7 @@ export class Router extends RouterBase<
     const destinationPathname = new URL(destination.url).pathname;
     if (!this.screenChildFromPathname(destinationPathname))
       return e.preventDefault();
-    const handler = () => {
+    const precommitHandler = () => {
       if (isRollback(e.info)) return Promise.resolve();
       const transition = window.navigation.transition;
       let fromIndex = screenStack.findIndex(
@@ -675,17 +675,12 @@ export class Router extends RouterBase<
       );
     };
 
-    let commit;
     if (isGesture(e.info)) {
-      commit = 'after-transition';
-      this.addEventListener('gesture-end', () => e.commit?.(), { once: true });
       this.addEventListener('gesture-cancel', this.onGestureCancel, {
         once: true,
       });
-    } else {
-      commit = 'immediate';
     }
-    const options = { handler, commit };
+    const options = { precommitHandler };
     e.intercept(options);
   }
 
