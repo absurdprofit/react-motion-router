@@ -57,6 +57,15 @@ declare global {
     'routertransitioncancel': TransitionEvent;
     'routertransitionend': TransitionEvent;
   }
+
+  interface NavigationPrecommitController {
+    redirect(url: string, options?: NavigationNavigateOptions): void;
+    addHandler(handler: NavigationInterceptOptions['handler']): void;
+  }
+
+  interface NavigationInterceptOptions {
+    precommitHandler?(controller: NavigationPrecommitController): Promise<void>;
+  }
 }
 
 export type EventHandler = {
@@ -144,12 +153,6 @@ export interface LoadNavigationTransition extends Omit<
   'navigationType'
 > {
   navigationType: 'load' | 'preload';
-}
-
-declare global {
-    interface NavigateEvent extends Event {
-        commit?(): void; // not in spec yet, see https://github.com/WICG/navigation-api/issues/66
-    }
 }
 
 export type ElementPropType<C> = C extends React.CElement<infer P, infer T> ? P & React.ClassAttributes<T> : never;
