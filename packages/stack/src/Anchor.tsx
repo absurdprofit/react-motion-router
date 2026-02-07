@@ -1,3 +1,4 @@
+// TODO: use AnchorBase from core directly and use forward ref to expose underlying HTMLAnchorElement
 import {
   PlainObject,
   Anchor as AnchorBase,

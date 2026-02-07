@@ -4,6 +4,7 @@ import {
   SINGLE_ELEMENT_LENGTH
 } from './common/constants';
 import { omit } from './common/utils';
+import { EventHandler } from './common/types';
 
 type AnchorState = {
   href?: string | null;
@@ -19,7 +20,7 @@ interface AnchorBaseProps extends Omit<
 export class AnchorBase extends React.Component<
   AnchorBaseProps,
   AnchorState
-> {
+> implements EventHandler {
   constructor(props: AnchorBaseProps) {
     super(props);
 
@@ -30,14 +31,14 @@ export class AnchorBase extends React.Component<
 
   public readonly anchorRef = React.createRef<HTMLAnchorElement>();
 
-  private static directionFromRel(rel: string | undefined) {
+  public static directionFromRel(rel: string | undefined) {
     return rel
       ?.split(' ')
       .findLast(dir => dir === 'next' || dir === 'prev')
       ?? 'prev';
   }
 
-  private static findClosestEntryByHref(
+  public static findClosestEntryByHref(
     href: string,
     rel: string | undefined,
     entries: NavigationHistoryEntry[],
@@ -76,7 +77,7 @@ export class AnchorBase extends React.Component<
     return undefined;
   }
 
-  private static findClosestEntry(
+  public static findClosestEntry(
     rel: string | undefined,
     entries: NavigationHistoryEntry[],
     index: number
@@ -92,14 +93,24 @@ export class AnchorBase extends React.Component<
   }
 
   public componentDidMount() {
-    window.navigation?.addEventListener('navigatesuccess', this.onNavigate);
+    window.navigation?.addEventListener('navigatesuccess', this);
   }
 
   public componentWillUnmount() {
-    window.navigation?.removeEventListener('navigatesuccess', this.onNavigate);
+    window.navigation?.removeEventListener('navigatesuccess', this);
   }
 
-  private readonly onNavigate = () => {
+  public handleEvent(e: Event) {
+    const key = `on${e.type}` as keyof this;
+
+    const self = this as {
+      [K in typeof key]?: (e: Event) => void;
+    };
+
+    self[key]?.(e);
+  }
+
+  public onnavigatesuccess() {
     const { href } = this;
     this.setState({ href });
   };

@@ -1,4 +1,5 @@
 import {
+  AnchorBase,
   FIRST_INDEX,
   LAST_INDEX,
   RouterBase,
@@ -33,7 +34,6 @@ import { GestureTimeline } from 'web-animations-extension';
 import {
   deepEquals,
   isGesture,
-  isRollback,
   isWithinGestureInset
 } from './common/utils';
 import {
@@ -612,27 +612,30 @@ export class Router extends RouterBase<
     if (!this.screenChildFromPathname(destinationPathname))
       return e.preventDefault();
     const precommitHandler = () => {
-      if (isRollback(e.info)) return Promise.resolve();
       const transition = window.navigation.transition;
-      let fromIndex = screenStack.findIndex(
-        (screen) => screen.key === transition?.from.key
+      let fromIndex = this.navigation.entries.findIndex(
+        (entry) => entry.globalIndex === transition?.from.index
       );
       // if navigating from a nested screen the first lookup won't work since entries are scoped
-      if (fromIndex === LAST_INDEX && e.navigationType === 'traverse') {
-        fromIndex = screenStack.findIndex((screen) => {
-          if (!transition?.from.url) return false;
-          return matchRoute(
-            screen.props.path,
-            new URL(transition.from.url).pathname,
-            this.baseURLPattern.pathname,
-            screen.props.caseSensitive
-          );
-        });
+      if (
+        e.navigationType === 'traverse'
+        && fromIndex === LAST_INDEX
+        && transition?.from.url
+      ) {
+        const fromEntry = AnchorBase.findClosestEntryByHref(
+          transition.from.url,
+          undefined,
+          this.navigation.entries.map(entry => entry.nativeEntry),
+          this.navigation.current.index
+        );
+        fromIndex = this.navigation.entries.findIndex(
+          (entry) => entry.globalIndex === fromEntry?.index
+        );
       }
       const fromKey =
-        (screenStack[fromIndex]?.key || transition?.from.key) ?? null;
-      const destinationIndex = screenStack.findIndex(
-        (screen) => screen.key === e.destination.key
+        screenStack[fromIndex]?.key ?? null;
+      const destinationIndex = this.navigation.entries.findIndex(
+        (entry) => entry.globalIndex === destination.index
       );
       let destinationKey =
         screenStack[destinationIndex]?.key
