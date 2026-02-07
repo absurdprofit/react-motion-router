@@ -133,7 +133,10 @@ export class Router extends RouterBase<
 
   public static getDerivedStateFromProps(_: RouterProps, state: RouterState) {
     const config = state.screenStack.find(
-      (screen) => isRefObject(screen.ref) && screen.ref.current?.focused
+      (screen) => (
+        isRefObject(screen.props.ref)
+        && screen.props.ref.current?.focused
+      )
     )?.props.config;
     document.title = config?.title ?? document.title;
     return {
@@ -330,8 +333,10 @@ export class Router extends RouterBase<
   protected get screens() {
     const screenStack = this.state.screenStack;
     return screenStack.filter((screen, index) => {
-      const currentScreenRef = screen.ref ?? null;
-      const nextScreenRef = screenStack.at(index + SINGLE_ELEMENT_LENGTH)?.ref;
+      const currentScreenRef = screen.props.ref ?? null;
+      const nextScreenRef = screenStack.at(
+        index + SINGLE_ELEMENT_LENGTH
+      )?.props.ref;
       return (
         (isRefObject(currentScreenRef)
           && currentScreenRef.current?.focused)
@@ -374,7 +379,7 @@ export class Router extends RouterBase<
   private getScreenRefByKey(key: string) {
     const screen = this.state.screenStack.find(
       (screen) => screen.key === key
-    )?.ref;
+    )?.props.ref;
     if (isRefObject(screen)) return screen;
     return null;
   }
@@ -775,18 +780,22 @@ export class Router extends RouterBase<
       }
       const topScreenIndex = this.screens.findIndex(
         (screen) =>
-          screen.ref === (backNavigating ? outgoingScreen : incomingScreen)
+          screen.props.ref === (
+            backNavigating
+              ? outgoingScreen
+              : incomingScreen
+          )
       );
       screenTransitionLayer.screens = this.screens
         .map((screen, index) => {
           // normalise indices making incoming screen index 1 and preceding screens index 0...-n
           index = index - topScreenIndex + SINGLE_ELEMENT_LENGTH;
           if (
-            isRefObject(screen.ref)
-            && screen.ref.current?.transitionProvider.current
+            isRefObject(screen.props.ref)
+            && screen.props.ref.current?.transitionProvider.current
           ) {
-            screen.ref.current.transitionProvider.current.index = index;
-            return screen.ref;
+            screen.props.ref.current.transitionProvider.current.index = index;
+            return screen.props.ref;
           }
           return null;
         })

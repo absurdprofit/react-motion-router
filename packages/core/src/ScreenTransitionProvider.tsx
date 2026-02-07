@@ -105,19 +105,24 @@ export class ScreenTransitionProvider extends Component<
     }) ?? null;
   }
 
+  public get inert() {
+    if (this.props.focused)
+      return undefined;
+    return true;
+  }
+
   public setZIndex(zIndex: React.CSSProperties['zIndex']) {
     return new Promise<void>(resolve => this.setState({ zIndex }, resolve));
   }
 
   public render() {
     const Element = this.props.renderAs;
-    const inert = !this.props.focused ? '' : undefined;
     return (
       <Element
         id={this.props.id}
         className="screen-transition-provider"
         ref={this.ref}
-        {...{ inert }}
+        inert={this.inert}
         style={{
           gridArea: '1 / 1',
           width: '100%',

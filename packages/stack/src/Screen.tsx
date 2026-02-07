@@ -17,6 +17,7 @@ import {
 import { Router } from './Router';
 import { searchParamsToObject } from './common/utils';
 import { HistoryEntry } from './HistoryEntry';
+import { RefObject } from 'react';
 
 export type ScreenComponentProps<
   T extends PlainObject = object
@@ -34,7 +35,8 @@ export interface ScreenConfig extends ScreenBaseConfig<RouteProp> {
 }
 
 export interface ScreenProps extends ScreenBaseProps {
-    config?: ScreenConfig;
+  config?: ScreenConfig;
+  ref?: RefObject<Screen | null>
 }
 
 export class Screen extends ScreenBase<
