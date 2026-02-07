@@ -44,7 +44,7 @@ export abstract class RouterBase<
   public readonly parent: RouterBase | null = null;
   #child: WeakRef<RouterBase> | null = null;
   private loadDispatched = false;
-  private hasUAVisualTransition = false;
+  #activeEvent: NavigateEvent | LoadEvent | null = null;
   public readonly parentScreen: ScreenBase | null = null;
   private static rootRouterRef: WeakRef<RouterBase> | null = null;
   public static readonly contextType = NestedRouterContext;
@@ -89,7 +89,9 @@ export abstract class RouterBase<
     this.#addEventListeners();
 
     if (!this.loadDispatched) {
-      window.navigation.dispatchEvent(new LoadEvent('load'));
+      const destination = this.parent?.activeEvent?.destination;
+      this.#activeEvent = new LoadEvent('load', { destination });
+      window.navigation.dispatchEvent(this.#activeEvent);
       this.loadDispatched = true;
     }
   }
@@ -104,6 +106,18 @@ export abstract class RouterBase<
     }
   }
 
+  public interceptHandler = () => {
+    let transition;
+    if (this.#activeEvent instanceof LoadEvent)
+      transition = this.#activeEvent.transition;
+    else
+      transition = window.navigation.transition;
+            
+    transition?.finished
+      .finally(() => this.#activeEvent = null);
+    return Promise.resolve();
+  };
+
   public onnavigate(e: NavigateEvent) {
     const activeRouters = [...this.#activeRoutersIter()];
     // travel down router tree to find a router that can intercept
@@ -111,8 +125,14 @@ export abstract class RouterBase<
       router => router.canIntercept(e)
     );
     if (interceptor) {
+      this.#activeEvent = e;
       interceptor.intercept(e);
-      this.hasUAVisualTransition = e.hasUAVisualTransition;
+      if (e.defaultPrevented)
+        this.#activeEvent = null;
+      else
+        e.intercept({
+          handler: this.interceptHandler,
+        });
     }
   };
 
@@ -247,6 +267,16 @@ export abstract class RouterBase<
     return this.pathPatterns.some(({ pattern, caseSensitive }) => {
       return matchRoute(pattern, pathname, baseURLPattern, caseSensitive);
     });
+  }
+
+  public get activeEvent() {
+    return this.#activeEvent;
+  }
+
+  public get hasUAVisualTransition() {
+    return Boolean(
+      this.#activeEvent?.hasUAVisualTransition
+    );
   }
 
   public get id(): string {

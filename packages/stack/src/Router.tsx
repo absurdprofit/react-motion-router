@@ -521,11 +521,9 @@ export class Router extends RouterBase<
                 return resolve();
               }
               const signal = e.signal;
-              if (this.navigation.current?.key === undefined)
-                reject(new Error('Current key is undefined'));
 
               const currentScreen = this.getScreenRefByKey(
-                this.navigation.current.key
+                String(destinationKey)
               );
               await this.dispatchLifecycleHandlers(
                 currentScreen,
