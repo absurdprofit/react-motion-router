@@ -797,9 +797,16 @@ export class Router extends RouterBase<
     const gestureRegionBehaviour = this.state.gestureDisabled
       ? 'none'
       : 'contain';
+
     return (
       <GestureRegion.div
-        style={{ display: 'contents' }}
+        id={this.id}
+        ref={this.ref}
+        style={{
+          display: 'contents',
+          width: '100%',
+          height: '100%',
+        }}
         gestureBehaviour={gestureRegionBehaviour}
       >
         {super.render()}

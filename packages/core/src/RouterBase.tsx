@@ -370,23 +370,16 @@ export abstract class RouterBase<
     public render() {
       if (!this.navigation) return;
       return (
-        <div
-          id={this.id}
-          className="react-motion-router"
-          style={{ width: '100%', height: '100%' }}
-          ref={this.ref}
-        >
-          <RouterContext.Provider value={this}>
-            <ScreenTransitionLayer
-              id={`${this.id}-transition-layer`}
-              ref={this.screenTransitionLayer}
-              navigation={this.navigation}
-              hasUAVisualTransition={this.hasUAVisualTransition}
-            >
-              {this.screens}
-            </ScreenTransitionLayer>
-          </RouterContext.Provider>
-        </div>
+        <RouterContext.Provider value={this}>
+          <ScreenTransitionLayer
+            id={`${this.id}-transition-layer`}
+            ref={this.screenTransitionLayer}
+            navigation={this.navigation}
+            hasUAVisualTransition={this.hasUAVisualTransition}
+          >
+            {this.screens}
+          </ScreenTransitionLayer>
+        </RouterContext.Provider>
       );
     }
 }
