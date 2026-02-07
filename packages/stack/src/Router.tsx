@@ -163,18 +163,6 @@ export class Router extends RouterBase<
     window.navigation.addEventListener('navigateerror', this);
   }
 
-  // TODO: figure out how to remove this
-  public shouldComponentUpdate(
-    nextProps: Readonly<RouterProps>,
-    nextState: Readonly<RouterState>
-  ): boolean {
-    return (
-      !deepEquals(this.props.config, nextProps.config)
-      || !deepEquals(this.state, nextState)
-      || this.props.id !== nextProps.id
-    );
-  }
-
   public componentWillUnmount(): void {
     window.navigation.removeEventListener('currententrychange', this);
     window.navigation.removeEventListener('navigate', this);
