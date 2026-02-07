@@ -94,10 +94,12 @@ export class AnchorBase extends React.Component<
 
   public componentDidMount() {
     window.navigation?.addEventListener('navigatesuccess', this);
+    this.anchorRef.current?.addEventListener('click', this);
   }
 
   public componentWillUnmount() {
     window.navigation?.removeEventListener('navigatesuccess', this);
+    this.anchorRef.current?.removeEventListener('click', this);
   }
 
   public handleEvent(e: Event) {
@@ -113,53 +115,11 @@ export class AnchorBase extends React.Component<
   public onnavigatesuccess() {
     const { href } = this;
     this.setState({ href });
-  };
-
-  private get href() {
-    const { href, traverse, reload, historyEntryKey, rel } = this.props;
-    if (href === undefined && traverse) {
-      let entry: NavigationHistoryEntry | undefined;
-
-      if (historyEntryKey) {
-        entry = window.navigation
-          ?.entries()
-          .find(e => e.key === historyEntryKey);
-      } else if (href)
-        entry = AnchorBase.findClosestEntryByHref(
-          href,
-          rel,
-          window.navigation.entries(),
-          window.navigation.currentEntry?.index ?? FIRST_INDEX
-        );
-      else
-        entry = AnchorBase.findClosestEntry(
-          rel,
-          window.navigation.entries(),
-          window.navigation.currentEntry?.index ?? FIRST_INDEX
-        );
-
-      return entry?.url;
-    } else if (reload) {
-      return '.';
-    }
-    return href;
   }
 
-  private get search() {
-    if (this.props.search)
-      // Adding leading '?' if it doesn't already exist
-      if (this.props.search.startsWith('?'))
-        return this.props.search;
-      else
-        return `?${this.props.search}`;
-    return '';
-  }
-
-  private readonly handleClick = (
-    event: React.PointerEvent<HTMLAnchorElement>
-  ) => {
-    this.props.onClick?.(event);
-    if (event.defaultPrevented) return;
+  public onclick(
+    event: MouseEvent
+  ) {
     event.preventDefault();
 
     const navigation = window.navigation;
@@ -226,6 +186,46 @@ export class AnchorBase extends React.Component<
     }
   };
 
+  private get href() {
+    const { href, traverse, reload, historyEntryKey, rel } = this.props;
+    if (href === undefined && traverse) {
+      let entry: NavigationHistoryEntry | undefined;
+
+      if (historyEntryKey) {
+        entry = window.navigation
+          ?.entries()
+          .find(e => e.key === historyEntryKey);
+      } else if (href)
+        entry = AnchorBase.findClosestEntryByHref(
+          href,
+          rel,
+          window.navigation.entries(),
+          window.navigation.currentEntry?.index ?? FIRST_INDEX
+        );
+      else
+        entry = AnchorBase.findClosestEntry(
+          rel,
+          window.navigation.entries(),
+          window.navigation.currentEntry?.index ?? FIRST_INDEX
+        );
+
+      return entry?.url;
+    } else if (reload) {
+      return '.';
+    }
+    return href;
+  }
+
+  private get search() {
+    if (this.props.search)
+      // Adding leading '?' if it doesn't already exist
+      if (this.props.search.startsWith('?'))
+        return this.props.search;
+      else
+        return `?${this.props.search}`;
+    return '';
+  }
+
   public render() {
     const {
       rel,
@@ -248,7 +248,6 @@ export class AnchorBase extends React.Component<
         ref={this.anchorRef}
         href={href ? `${href}${search}` : undefined}
         rel={rel}
-        onClick={this.handleClick}
       >
         {children}
       </a>

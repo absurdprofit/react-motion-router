@@ -9,6 +9,7 @@ import {
 import { ScreenTransitionProvider } from './ScreenTransitionProvider';
 import {
   AnimationEffectFactory,
+  EventHandler,
   LazyExoticComponent,
   PlainObject,
   RoutePropBase,
@@ -87,10 +88,10 @@ export interface ScreenBaseState<
 }
 
 export abstract class ScreenBase<
-    P extends ScreenBaseProps = ScreenBaseProps,
-    S extends ScreenBaseState<P['config']> = ScreenBaseState<P['config']>,
-    R extends RoutePropBase<P['config']> = RoutePropBase<P['config']>
-> extends Component<P, S> {
+  P extends ScreenBaseProps = ScreenBaseProps,
+  S extends ScreenBaseState<P['config']> = ScreenBaseState<P['config']>,
+  R extends RoutePropBase<P['config']> = RoutePropBase<P['config']>
+> extends Component<P, S> implements EventHandler {
   public readonly sharedElementScene: SharedElementScene;
   readonly #transitionProvider = createRef<ScreenTransitionProvider>();
   protected abstract readonly ref: RefObject<HTMLElement | null>;
@@ -117,6 +118,16 @@ export abstract class ScreenBase<
       parentScreen: this as ScreenBase,
       parentRouter: context,
     };
+  }
+
+  public handleEvent(e: Event) {
+    const key = `on${e.type}` as keyof this;
+
+    const self = this as {
+      [K in typeof key]?: (e: Event) => void;
+    };
+
+    self[key]?.(e);
   }
 
   protected setParams(newParams: PlainObject) {

@@ -144,7 +144,7 @@ export class Screen extends ScreenBase<
     const matchInfo = matchRoute(
       this.props.path,
       entry.url.pathname,
-      this.context.baseURLPattern.pathname,
+      this.router.baseURLPattern.pathname,
       this.props.caseSensitive
     );
     return Screen.historyEntryStateFromEntry(entry, matchInfo);
@@ -161,7 +161,7 @@ export class Screen extends ScreenBase<
   }
 
   public get viewTransitionName() {
-    return `${this.context.id}-${this.name}`;
+    return `${this.router.id}-${this.name}`;
   }
 
   public get params() {
@@ -212,7 +212,7 @@ export class Screen extends ScreenBase<
     window.navigation.updateCurrentEntry({ state });
   }
 
-  private onClickOutside(e: MouseEvent) {
+  public onclick(e: MouseEvent) {
     if (!this.ref.current) return;
     const navigation = this.context?.navigation as Navigation | undefined;
     if (
@@ -226,7 +226,7 @@ export class Screen extends ScreenBase<
       this.ref?.current instanceof HTMLDialogElement
       && this.ref.current.open === false
     ) {
-      const navigation = this.context?.navigation as Navigation | undefined;
+      const navigation = this.router.navigation;
       if (this.props.config?.presentation === 'modal') {
         this.ref.current.showModal();
       } else {
@@ -237,19 +237,15 @@ export class Screen extends ScreenBase<
       this.ref.current.style.width = 'max-content';
       this.ref.current.style.height = 'max-content';
 
-      const onClickOutside = this.onClickOutside.bind(this);
-
       // closed by form submit or ESC key
       this.ref.current.addEventListener('close', function () {
         if (this.returnValue !== 'screen-exit') {
           this.style.display = 'block';
-          navigation?.goBack();
+          navigation.goBack();
         }
-
-        navigation?.removeEventListener('click', onClickOutside);
       }, { once: true });
 
-      navigation?.addEventListener('click', onClickOutside);
+      navigation.addEventListener('click', this);
     }
 
     return super.onEnter(signal);
@@ -258,6 +254,7 @@ export class Screen extends ScreenBase<
   public onExited(signal: AbortSignal) {
     if (this.ref?.current instanceof HTMLDialogElement) {
       this.ref.current.close('screen-exit');
+      this.router.navigation.removeEventListener('click', this);
     }
 
     return super.onExited(signal);
