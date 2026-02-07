@@ -5,7 +5,7 @@ import BackButton from '../BackButton';
 import { useNavigation, useRoute } from '@react-motion-router/stack';
 
 interface NavbarProps {
-    title: string;
+  title: string;
 }
 function Navbar(props: NavbarProps) {
   const navigation = useNavigation();

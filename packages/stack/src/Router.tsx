@@ -536,27 +536,28 @@ export class Router extends RouterBase<
   }
 
   private handleReplace(e: NavigateEvent) {
-    const screenStack = this.state.screenStack;
-    const destination = e.destination;
-    const destinationPathname = new URL(destination.url).pathname;
-    const destinationKey =
+    const precommitHandler = async () => {
+      const screenStack = this.state.screenStack;
+      const destination = e.destination;
+      const destinationPathname = new URL(destination.url).pathname;
+      const destinationKey =
       window.navigation.currentEntry?.key ?? null;
-    const destinationScreen = this.cloneScreenChildFromPathname(
-      destinationPathname,
-      destinationKey,
-      new HistoryEntry(
-        historyEntryFromDestination(destination),
-        this.id,
-        destination.index
-      )
-    );
-    if (!destinationScreen) return e.preventDefault();
-    const precommitHandler = () => {
       const transition = this.state.transition ?? window.navigation.transition;
       const fromKey = transition?.from?.key ?? null;
       const currentIndex = screenStack.findIndex(
         (screen) => screen.key === this.navigation.current?.key
       );
+      const destinationScreen = this.cloneScreenChildFromPathname(
+        destinationPathname,
+        destinationKey,
+        new HistoryEntry(
+          historyEntryFromDestination(destination),
+          this.id,
+          destination.index
+        )
+      );
+      if (!destinationScreen) return;
+      await this.preloadScreen(destinationScreen);
       screenStack.splice(
         currentIndex,
         SINGLE_ELEMENT_LENGTH,
@@ -596,12 +597,9 @@ export class Router extends RouterBase<
   }
 
   private handleDefault(e: NavigateEvent) {
-    const screenStack = this.state.screenStack;
-    const destination = e.destination;
-    const destinationPathname = new URL(destination.url).pathname;
-    if (!this.screenChildFromPathname(destinationPathname))
-      return e.preventDefault();
-    const precommitHandler = () => {
+    const precommitHandler = async () => {
+      const screenStack = this.state.screenStack;
+      const destination = e.destination;
       const transition = window.navigation.transition;
       let fromIndex = this.navigation.entries.findIndex(
         (entry) => entry.globalIndex === transition?.from.index
@@ -641,13 +639,17 @@ export class Router extends RouterBase<
             destination.index
           )
         );
-        if (!destinationScreen) return Promise.resolve();
+        if (!destinationScreen) return;
+        await this.preloadScreen(destinationScreen);
         destinationKey = destinationScreen.key;
         screenStack.splice(
           fromIndex + SINGLE_ELEMENT_LENGTH,
           Infinity, // Remove all screens after current
           destinationScreen
         );
+      } else {
+        const destinationScreen = this.state.screenStack[destinationIndex];
+        await this.preloadScreen(destinationScreen);
       }
 
       const controller = new AbortController();

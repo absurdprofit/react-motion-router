@@ -3,7 +3,7 @@ import { AnimationEffectFactory } from './common/types';
 import { RefObject, useContext, useImperativeHandle } from 'react';
 import { FIRST_INDEX } from './common/constants';
 
-export interface ScreenTransitionProviderHandle {
+export interface ScreenTransitionProvider {
   index: number;
   exiting: boolean;
   readonly animationEffect: AnimationEffect | null;
@@ -15,7 +15,7 @@ export interface ScreenTransitionProviderProps {
   animation?: AnimationEffectFactory;
   children: React.ReactNode
   screenElementRef: RefObject<HTMLElement | null>;
-  ref?: RefObject<ScreenTransitionProviderHandle | null>;
+  ref?: RefObject<ScreenTransitionProvider | null>;
 }
 
 export function ScreenTransitionProvider(props: ScreenTransitionProviderProps) {

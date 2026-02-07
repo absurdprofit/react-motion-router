@@ -92,7 +92,7 @@ export abstract class ScreenBase<
     R extends RoutePropBase<P['config']> = RoutePropBase<P['config']>
 > extends Component<P, S> {
   public readonly sharedElementScene: SharedElementScene;
-  #transitionProvider = createRef<ScreenTransitionProvider>();
+  readonly #transitionProvider = createRef<ScreenTransitionProvider>();
   protected abstract readonly ref: RefObject<HTMLElement | null>;
   protected readonly nestedRouterData;
   public static readonly contextType = RouterContext;
