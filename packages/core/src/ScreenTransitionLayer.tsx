@@ -7,14 +7,13 @@ import { NavigationBase } from './NavigationBase';
 import { ScreenBase } from './ScreenBase';
 
 interface ScreenTransitionLayerProps {
-  id: string;
   children: ScreenChild | ScreenChild[];
   navigation: NavigationBase;
   hasUAVisualTransition: boolean;
 }
 
 interface ScreenTransitionLayerState {
-    gestureNavigating: boolean;
+  gestureNavigating: boolean;
 }
 
 export class ScreenTransitionLayer extends Component<
@@ -126,18 +125,7 @@ export class ScreenTransitionLayer extends Component<
           navigation={this.props.navigation}
           direction={this.animation.playbackRate > 0 ? 'forwards' : 'backwards'}
         />
-        <div
-          className={this.props.id}
-          style={{
-            width: '100%',
-            height: '100%',
-            display: 'grid',
-            contain: 'layout',
-            isolation: 'isolate',
-          } as React.CSSProperties}
-        >
-          {this.props.children}
-        </div>
+        {this.props.children}
       </ScreenTransitionLayerContext.Provider>
     );
   }

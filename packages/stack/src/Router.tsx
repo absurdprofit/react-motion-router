@@ -32,7 +32,6 @@ import { createRef, startTransition } from 'react';
 import { SwipeStartEvent, SwipeEndEvent } from 'web-gesture-events';
 import { GestureTimeline } from 'web-animations-extension';
 import {
-  deepEquals,
   isGesture,
   isWithinGestureInset
 } from './common/utils';
@@ -797,15 +796,22 @@ export class Router extends RouterBase<
     const gestureRegionBehaviour = this.state.gestureDisabled
       ? 'none'
       : 'contain';
+    const pointerEvents = this.state.fromKey
+      ? 'none'
+      : undefined;
 
     return (
       <GestureRegion.div
         id={this.id}
         ref={this.ref}
+        className='stack'
         style={{
-          display: 'contents',
           width: '100%',
           height: '100%',
+          display: 'grid',
+          contain: 'layout',
+          isolation: 'isolate',
+          pointerEvents,
         }}
         gestureBehaviour={gestureRegionBehaviour}
       >

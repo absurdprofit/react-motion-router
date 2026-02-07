@@ -8,15 +8,15 @@ export type ScreenChild<E extends ScreenBase = ScreenBase> = E extends ScreenBas
 export interface AnimationEffectFactoryProps<
   R extends HTMLElement = HTMLElement
 > {
-    id: string;
-    ref: R | null;
-    index: number;
-    screens: string[];
-    exiting: boolean;
-    timeline: AnimationTimeline | null;
-    playbackRate: number;
-    direction: PlaybackDirection;
-    hasUAVisualTransition: boolean;
+  ref: R | null;
+  viewTransitionName: string;
+  index: number;
+  screens: string[];
+  exiting: boolean;
+  timeline: AnimationTimeline | null;
+  playbackRate: number;
+  direction: PlaybackDirection;
+  hasUAVisualTransition: boolean;
 }
 
 export type AnimationEffectFactory<
