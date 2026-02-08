@@ -1,4 +1,9 @@
-import React, { createRef, RefObject, useImperativeHandle, useRef } from 'react';
+import React, {
+  createRef,
+  RefObject,
+  useImperativeHandle,
+  useRef
+} from 'react';
 import {
   FIRST_INDEX,
   SINGLE_ELEMENT_LENGTH

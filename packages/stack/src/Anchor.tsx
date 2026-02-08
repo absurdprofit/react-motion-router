@@ -39,6 +39,12 @@ interface AnchorProps extends React.DetailedHTMLProps<
     | OnSightPreloadBehaviour
     | OnHoverPreloadBehaviour
     | { type: 'force' };
+  rel?: 'next' | 'prev' | (string & {});
+  historyEntryKey?: string;
+  reload?: boolean;
+  replace?: boolean;
+  traverse?: boolean;
+  children?: React.ReactNode;
 }
 
 interface UseIntersectionOptions {
