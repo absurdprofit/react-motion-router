@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { createRef } from 'react';
 import { NavigationBase } from '../../NavigationBase';
 import { RouterBase, RouterBaseProps } from '../../RouterBase';
 import { NestedRouterContext } from '../../RouterContext';
@@ -57,9 +57,19 @@ export class TestRouter extends RouterBase {
       }, 
     });
   }
+
+  public render() {
+    return (
+      <div ref={this.ref}>
+        {super.render()}
+      </div>
+    );
+  }
 }
 
 export class TestScreen extends ScreenBase {
+  protected ref = createRef<HTMLDivElement>();
+
   public get id(): string {
     return this.props.path ?? '';
   }
@@ -76,6 +86,10 @@ export class TestScreen extends ScreenBase {
     return this.path;
   }
 
+  public get viewTransitionName() {
+    return `${this.context.id}-${this.name}`;
+  }
+
   protected get routeProp() {
     return {
       config: this.config,
@@ -88,5 +102,13 @@ export class TestScreen extends ScreenBase {
       setParams() {
       },
     };
+  }
+
+  public render() {
+    return (
+      <div ref={this.ref}>
+        {super.render()}
+      </div>
+    );
   }
 }

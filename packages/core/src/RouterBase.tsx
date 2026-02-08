@@ -38,6 +38,7 @@ export abstract class RouterBase<
   P extends RouterBaseProps = RouterBaseProps,
   S extends RouterBaseState = RouterBaseState,
 > extends Component<P, S> implements EventHandler {
+  // TODO: move this out of RouterBase and leave only an abstract declaration
   protected readonly ref = createRef<RouterBaseHTMLElement>();
   protected screenTransitionLayer = createRef<ScreenTransitionLayer>();
   public abstract readonly navigation: NavigationBase;
@@ -348,6 +349,9 @@ export abstract class RouterBase<
 
   public set child(child: RouterBase | null) {
     const currentChildRouter = this.#child?.deref();
+    console.log(
+      child?.parentScreen?.id, currentChildRouter?.parentScreen?.id, currentChildRouter?.mounted
+    );
     if (
       currentChildRouter
         && child !== currentChildRouter
