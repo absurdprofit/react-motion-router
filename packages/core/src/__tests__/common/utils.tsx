@@ -8,6 +8,7 @@ import { cloneAndInject } from '../../common/utils';
 export class TestNavigation extends NavigationBase {}
 
 export class TestRouter extends RouterBase {
+  protected ref = createRef<HTMLDivElement>();
   public navigation = new TestNavigation({
     addEventListener: this.addEventListener.bind(this),
     removeEventListener: this.removeEventListener.bind(this),
