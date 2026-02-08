@@ -134,7 +134,8 @@ export function omit<T extends object, K extends readonly (keyof T)[]>(
 }
 
 export function historyEntryFromDestination(
-  destination: NavigationDestination
+  destination: NavigationDestination,
+  index?: number
 ) {
   return Object.create(
     EventTarget.prototype,
@@ -158,7 +159,7 @@ export function historyEntryFromDestination(
         configurable: false,
       },
       index: {
-        value: destination.index,
+        value: index ?? destination.index,
         enumerable: true,
         writable: false,
         configurable: false,

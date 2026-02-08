@@ -8,3 +8,4 @@ export const DEFAULT_GESTURE_CONFIG = {
 
 export const DEFAULT_PRELOAD_FORCE_THRESHOLD = 0.5;
 export const DEFAULT_PLAYBACK_RATE = 1;
+export const GLOBAL_ENTRIES = [...window.navigation.entries()];

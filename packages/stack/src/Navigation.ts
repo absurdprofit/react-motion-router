@@ -18,10 +18,12 @@ import {
 } from './common/types';
 import { BackEvent, ForwardEvent, NavigateEvent } from './common/events';
 import { HistoryEntry } from './HistoryEntry';
+import { GLOBAL_ENTRIES } from './common/constants';
 
 export interface NavigationConfig extends NavigationBaseConfig {
   getCommitted(): Promise<NavigationHistoryEntry> | null;
   getTransition(): NavigationTransition | LoadNavigationTransition | null;
+  getDestination(): NavigationDestination | null;
   getPathPatterns(): PathPattern[];
 }
 
@@ -212,7 +214,7 @@ export class Navigation extends NavigationBase {
   }
 
   public get globalEntries() {
-    return window.navigation.entries();
+    return GLOBAL_ENTRIES;
   }
 
   /**
@@ -449,7 +451,8 @@ export class Navigation extends NavigationBase {
    * ```
    */
   public get index() {
-    const globalCurrentIndex = window.navigation
+    const destinationIndex = this.config.getDestination()?.index;
+    const globalCurrentIndex = destinationIndex ?? window.navigation
       .currentEntry
       ?.index ?? LAST_INDEX;
     const firstEntryGlobalIndex = this.entries

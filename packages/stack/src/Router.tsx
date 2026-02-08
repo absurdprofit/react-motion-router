@@ -42,7 +42,8 @@ import {
 } from './common/events';
 import {
   DEFAULT_GESTURE_CONFIG,
-  DEFAULT_PLAYBACK_RATE
+  DEFAULT_PLAYBACK_RATE,
+  GLOBAL_ENTRIES
 } from './common/constants';
 import { GestureRegion } from './GestureRegion';
 import { HistoryEntry } from './HistoryEntry';
@@ -63,6 +64,7 @@ type InjectedScreenProps = Pick<ScreenProps, 'config' | 'defaultParams'> &
   ScreenInternalProps;
 export interface RouterState extends RouterBaseState {
   transition: NavigationTransition | LoadEvent['transition'] | null;
+  destination: NavigationDestination | null;
   screenStack: ClonedElementType<ScreenChild<Screen>, InjectedScreenProps>[];
   gestureDirection: SwipeDirection;
   gestureAreaWidth: number;
@@ -101,6 +103,9 @@ export class Router extends RouterBase<
       getTransition: () => {
         return this.state.transition;
       },
+      getDestination: () => {
+        return this.state.destination;
+      },
       getPathPatterns: () => {
         return this.pathPatterns;
       },
@@ -123,6 +128,7 @@ export class Router extends RouterBase<
       gestureDisabled,
       gestureMinFlingVelocity,
       transition: null,
+      destination: null,
       documentTitle: document.title,
       fromKey: null,
       destinationKey: null,
@@ -176,9 +182,6 @@ export class Router extends RouterBase<
 
   public oncurrententrychange() {
     this.#committed?.resolve?.(window.navigation.currentEntry!);
-  };
-
-  public onnavigatesuccess() {
     this.#committed = null;
   };
 
@@ -413,7 +416,11 @@ export class Router extends RouterBase<
   public handlePreload(
     e: LoadEvent
   ) {
-    const handler = () => {
+    const handler = async () => {
+      // Wait for any ongoing navigations to end
+      // we don't care if this fails since that indicates we should ditch animations
+      // and target state rendering.
+      await this.state.transition?.finished;
       const { pathname } = new URL(e.destination.url);
       const {
         child,
@@ -423,8 +430,8 @@ export class Router extends RouterBase<
       const { navigation } = this;
       const { signal } = e;
       const { path } = child.props;
-
-      const { transition } = e;
+      
+      const transition = e.transition;
       return new Promise<void>(resolve => {
         this.setState({ transition }, async () => {
           const historyEntryState = Screen.historyEntryStateFromEntry(
@@ -470,7 +477,7 @@ export class Router extends RouterBase<
     const handler = () => {
       const fromKey = e.transition?.from?.key ?? null;
       const destinationKey = e.destination.key;
-      const transition = e.transition;
+      const { destination, transition } = e;
       const screenStack: RouterState['screenStack'] = [];
       const entries = this.navigation.entries;
       entries.forEach((entry) => {
@@ -487,7 +494,7 @@ export class Router extends RouterBase<
       return new Promise<void>((resolve, reject) =>
         startTransition(() => {
           this.setState(
-            { screenStack, fromKey, transition, destinationKey },
+            { screenStack, fromKey, transition, destination, destinationKey },
             async () => {
               const { initialPathname } = this.props.config ?? {};
               const [firstEntry] = entries;
@@ -523,7 +530,12 @@ export class Router extends RouterBase<
                 signal
               ).catch(reject);
               this.setState(
-                { destinationKey: null, fromKey: null, transition: null },
+                {
+                  destinationKey: null,
+                  fromKey: null,
+                  transition: null,
+                  destination: null,
+                },
                 resolve
               );
             }
@@ -539,22 +551,26 @@ export class Router extends RouterBase<
     const precommitHandler = async () => {
       const screenStack = this.state.screenStack;
       const destination = e.destination;
+      const transition = window.navigation.transition;
       const destinationPathname = new URL(destination.url).pathname;
       const destinationKey =
       window.navigation.currentEntry?.key ?? null;
-      const transition = this.state.transition ?? window.navigation.transition;
       const fromKey = transition?.from?.key ?? null;
       const currentIndex = screenStack.findIndex(
         (screen) => screen.key === this.navigation.current?.key
       );
+      const historyEntry = new HistoryEntry(
+        historyEntryFromDestination(
+          destination,
+          currentIndex
+        ),
+        this.id,
+        destination.index
+      );
       const destinationScreen = this.cloneScreenChildFromPathname(
         destinationPathname,
         destinationKey,
-        new HistoryEntry(
-          historyEntryFromDestination(destination),
-          this.id,
-          destination.index
-        )
+        historyEntry
       );
       if (!destinationScreen) return;
       await this.preloadScreen(destinationScreen);
@@ -563,11 +579,16 @@ export class Router extends RouterBase<
         SINGLE_ELEMENT_LENGTH,
         destinationScreen
       );
+      GLOBAL_ENTRIES.splice(
+        currentIndex,
+        SINGLE_ELEMENT_LENGTH,
+        historyEntry.nativeEntry
+      );
 
       return new Promise<void>((resolve, reject) =>
         startTransition(() => {
           this.setState(
-            { destinationKey, fromKey, transition, screenStack },
+            { destinationKey, fromKey, transition, destination, screenStack },
             async () => {
               const signal = e.signal;
               const incomingScreen = this.getScreenRefByKey(
@@ -579,18 +600,19 @@ export class Router extends RouterBase<
                 signal
               ).catch(reject);
               await pendingLifecycleHandlers;
+              this.committed?.finally(() => {
+                this.setState({
+                  destinationKey: null,
+                  fromKey: null,
+                  transition: null,
+                  destination: null,
+                });
+              });
               resolve();
             }
           );
         })
-      )
-        .finally(() => {
-          this.setState({
-            destinationKey: null,
-            fromKey: null,
-            transition: null,
-          });
-        });
+      );
     };
 
     e.intercept({ precommitHandler });
@@ -622,31 +644,48 @@ export class Router extends RouterBase<
       }
       const fromKey =
         screenStack[fromIndex]?.key ?? null;
-      const destinationIndex = this.navigation.entries.findIndex(
+      let destinationIndex = this.navigation.entries.findIndex(
         (entry) => entry.globalIndex === destination.index
       );
       let destinationKey =
         screenStack[destinationIndex]?.key
         ?? null;
       if (e.navigationType === 'push') {
+        destinationIndex = fromIndex + SINGLE_ELEMENT_LENGTH;
         const destinationPathname = new URL(destination.url).pathname;
+        const historyEntry = new HistoryEntry(
+          historyEntryFromDestination(
+            destination,
+            destinationIndex
+          ),
+          this.id,
+          destination.index
+        );
         const destinationScreen = this.cloneScreenChildFromPathname(
           destinationPathname,
           destinationKey,
-          new HistoryEntry(
-            historyEntryFromDestination(destination),
-            this.id,
-            destination.index
-          )
+          historyEntry
         );
         if (!destinationScreen) return;
         await this.preloadScreen(destinationScreen);
         destinationKey = destinationScreen.key;
         screenStack.splice(
-          fromIndex + SINGLE_ELEMENT_LENGTH,
+          destinationIndex,
           Infinity, // Remove all screens after current
           destinationScreen
         );
+        GLOBAL_ENTRIES.splice(
+          destinationIndex,
+          Infinity,
+          historyEntry.nativeEntry
+        );
+        Object.defineProperty(destination, 'index', {
+          configurable: true,
+          enumerable: true,
+          get() {
+            return destinationIndex;
+          },
+        });
       } else {
         const destinationScreen = this.state.screenStack[destinationIndex];
         await this.preloadScreen(destinationScreen);
@@ -656,7 +695,14 @@ export class Router extends RouterBase<
       return new Promise<void>((resolve, reject) =>
         startTransition(() => {
           this.setState(
-            { controller, destinationKey, fromKey, transition, screenStack },
+            {
+              controller,
+              destinationKey,
+              fromKey,
+              transition,
+              destination,
+              screenStack,
+            },
             async () => {
               controller.signal.onabort = reject;
               const signal = e.signal;
@@ -676,21 +722,22 @@ export class Router extends RouterBase<
               animation?.updatePlaybackRate(DEFAULT_PLAYBACK_RATE);
               animation?.finished.catch(reject);
               await pendingLifecycleHandlers;
+              this.committed?.finally(() => {
+                this.setState(
+                  {
+                    destinationKey: null,
+                    fromKey: null,
+                    transition: null,
+                    destination: null,
+                    controller: null,
+                  }
+                );
+              });
               resolve();
             }
           );
         })
-      )
-        .finally(() => {
-          this.setState(
-            {
-              destinationKey: null,
-              fromKey: null,
-              transition: null,
-              controller: null,
-            }
-          );
-        });
+      );
     };
 
     if (isGesture(e.info)) {
