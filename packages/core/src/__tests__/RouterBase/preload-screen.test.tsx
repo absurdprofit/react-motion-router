@@ -20,12 +20,12 @@ describe('Router.preloadScreen', () => {
     )?.value as RouterBase['preloadScreen'];
 
     expect(
-      preloadScreen.call(
+      await preloadScreen.call(
         router,
         <TestScreen path='' component={() => <></>} />
       )
     )
-      .resolves.toBeUndefined();
+      .toBeUndefined();
     router.componentWillUnmount();
   });
 });
