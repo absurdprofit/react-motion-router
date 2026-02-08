@@ -80,6 +80,7 @@ export class Router extends RouterBase<
   RouterProps,
   RouterState
 > {
+  protected ref = createRef<HTMLDivElement>();
   public readonly navigation;
   #committed: PromiseWrapper<NavigationHistoryEntry> | null = null;
 

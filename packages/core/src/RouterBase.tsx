@@ -2,7 +2,6 @@ import { NavigationBase } from './NavigationBase';
 import { ScreenTransitionLayer } from './ScreenTransitionLayer';
 import {
   ScreenChild,
-  RouterBaseHTMLElement,
   isLazyExoticComponent,
   isValidScreenChild,
   EventHandler
@@ -13,7 +12,7 @@ import {
   matchRoute,
   resolveBaseURLFromPattern
 } from './common/utils';
-import { Component, createRef, Children } from 'react';
+import { Component, createRef, Children, RefObject } from 'react';
 import { ScreenBase, ScreenBaseConfig } from './ScreenBase';
 import { LoadEvent } from './common/events';
 
@@ -38,8 +37,7 @@ export abstract class RouterBase<
   P extends RouterBaseProps = RouterBaseProps,
   S extends RouterBaseState = RouterBaseState,
 > extends Component<P, S> implements EventHandler {
-  // TODO: move this out of RouterBase and leave only an abstract declaration
-  protected readonly ref = createRef<RouterBaseHTMLElement>();
+  protected abstract readonly ref: RefObject<HTMLElement | null>;
   protected screenTransitionLayer = createRef<ScreenTransitionLayer>();
   public abstract readonly navigation: NavigationBase;
   public readonly parent: RouterBase | null = null;
@@ -177,7 +175,7 @@ export abstract class RouterBase<
   public addEventListener<K extends keyof HTMLElementEventMap>(
     type: K,
     listener: (
-      this: RouterBaseHTMLElement,
+      this: HTMLElement,
       ev: HTMLElementEventMap[K]
     ) => void,
     options?: boolean | AddEventListenerOptions
@@ -201,7 +199,7 @@ export abstract class RouterBase<
   public removeEventListener<K extends keyof HTMLElementEventMap>(
     type: K,
     listener: (
-      this: RouterBaseHTMLElement,
+      this: HTMLElement,
       ev: HTMLElementEventMap[K]
     ) => void,
     options?: boolean | EventListenerOptions | undefined
