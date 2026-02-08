@@ -36,22 +36,22 @@ describe('Anchor.preload (onsight)', () => {
     window.navigation.addEventListener('navigate', onPreload);
     await act(() => {
       return render(
-        <Anchor href='preload' preload preloadBehaviour={{ type: 'onsight' }}>
-        Preload
-        </Anchor>,
-        {
-          wrapper(props) {
-            return (
-              <Router config={{ basePath: globalThis.location.pathname }}>
-                <Screen
-                  path='preload'
-                  component={() => null}
-                />
-                <Screen path='.' component={() => <>{props.children}</>} />
-              </Router>
-            );
-          },
-        }
+        <Router config={{ basePath: globalThis.location.pathname }}>
+          <Screen
+            path='preload'
+            component={() => null}
+          />
+          <Screen path='.' component={() => (
+            <Anchor
+              href='preload'
+              preload
+              preloadBehaviour={{ type: 'onsight' }}
+            >
+              Preload
+            </Anchor>
+          )} />
+        </Router>
+        
       );
     });
 
@@ -84,29 +84,24 @@ describe('Anchor.preload (onsight)', () => {
     window.navigation.addEventListener('navigate', onPreload);
     await act(() => {
       return render(
-        <Anchor
-          href='preload'
-          preload
-          preloadBehaviour={{ type: 'onsight' }}
-          style={{
-            marginLeft: window.screen.width,
-          }}
-        >
-        Preload
-        </Anchor>,
-        {
-          wrapper(props) {
-            return (
-              <Router config={{ basePath: globalThis.location.pathname }}>
-                <Screen
-                  path='preload'
-                  component={() => null}
-                />
-                <Screen path='.' component={() => <>{props.children}</>} />
-              </Router>
-            );
-          },
-        }
+        <Router config={{ basePath: globalThis.location.pathname }}>
+          <Screen
+            path='preload'
+            component={() => null}
+          />
+          <Screen path='.' component={() => (
+            <Anchor
+              href='preload'
+              preload
+              preloadBehaviour={{ type: 'onsight' }}
+              style={{
+                marginLeft: window.screen.width,
+              }}
+            >
+              Preload
+            </Anchor>
+          )} />
+        </Router>
       );
     });
 
@@ -126,31 +121,27 @@ describe('Anchor.preload (onsight)', () => {
     window.navigation.addEventListener('navigate', onPreload);
     const { unmount } = await act(async () => {
       const result = render(
-        <Anchor
-          href='preload'
-          preload
-          preloadBehaviour={{ type: 'onsight', root: document.body }}
-          style={{
-            marginRight: '50vw',
-          }}
-        >
-        Preload
-        </Anchor>,
-        {
-          wrapper(props) {
-            return (
-              <div style={{ width: '10px' }}>
-                <Router config={{ basePath: globalThis.location.pathname }}>
-                  <Screen
-                    path='preload'
-                    component={() => null}
-                  />
-                  <Screen path='.' component={() => <>{props.children}</>} />
-                </Router>
-              </div>
-            );
-          },
-        }
+        <div style={{ width: '10px' }}>
+          <Router config={{ basePath: globalThis.location.pathname }}>
+            <Screen
+              path='preload'
+              component={() => null}
+            />
+            <Screen path='.' component={() => (
+              <Anchor
+                href='preload'
+                preload
+                preloadBehaviour={{ type: 'onsight', root: document.body }}
+                style={{
+                  marginRight: '50vw',
+                }}
+              >
+                Preload
+              </Anchor>
+            )} />
+          </Router>
+        </div>
+        
       );
 
       // wait for intersection observer
@@ -177,31 +168,26 @@ describe('Anchor.preload (onsight)', () => {
 
     await act(() => {
       return render(
-        <Anchor
-          href='preload'
-          preload
-          preloadBehaviour={{ type: 'onsight' }}
-          style={{
-            marginRight: '50vw',
-          }}
-        >
-        Preload
-        </Anchor>,
-        {
-          wrapper(props) {
-            return (
-              <div style={{ width: '10px' }}>
-                <Router config={{ basePath: globalThis.location.pathname }}>
-                  <Screen
-                    path='preload'
-                    component={() => null}
-                  />
-                  <Screen path='.' component={() => <>{props.children}</>} />
-                </Router>
-              </div>
-            );
-          },
-        }
+        <div style={{ width: '10px' }}>
+          <Router config={{ basePath: globalThis.location.pathname }}>
+            <Screen
+              path='preload'
+              component={() => null}
+            />
+            <Screen path='.' component={() => (
+              <Anchor
+                href='preload'
+                preload
+                preloadBehaviour={{ type: 'onsight' }}
+                style={{
+                  marginRight: '50vw',
+                }}
+              >
+                Preload
+              </Anchor>
+            )} />
+          </Router>
+        </div>
       );
     });
 
@@ -222,29 +208,25 @@ describe('Anchor.preload (onsight)', () => {
     const { unmount } = await act(async () => {
       const threshold = .5;
       const result = render(
-        <Anchor
-          href='preload'
-          preload
-          preloadBehaviour={{ type: 'onsight', threshold }}
-          style={{
-            marginRight: '40vw',
-          }}
-        >
-        Preload
-        </Anchor>,
-        {
-          wrapper(props) {
-            return (
-              <Router config={{ basePath: globalThis.location.pathname }}>
-                <Screen
-                  path='preload'
-                  component={() => null}
-                />
-                <Screen path='.' component={() => <>{props.children}</>} />
-              </Router>
-            );
-          },
-        }
+        <Router config={{ basePath: globalThis.location.pathname }}>
+          <Screen
+            path='preload'
+            component={() => null}
+          />
+          <Screen path='.' component={() => (
+            <Anchor
+              href='preload'
+              preload
+              preloadBehaviour={{ type: 'onsight', threshold }}
+              style={{
+                marginRight: '40vw',
+              }}
+            >
+              Preload
+            </Anchor>
+          )} />
+        </Router>
+        
       );
 
       // wait for intersection observer
@@ -272,29 +254,24 @@ describe('Anchor.preload (onsight)', () => {
     await act(() => {
       const threshold = 1;
       return render(
-        <Anchor
-          href='preload'
-          preload
-          preloadBehaviour={{ type: 'onsight', threshold }}
-          style={{
-            marginLeft: '40vw',
-          }}
-        >
-        Preload
-        </Anchor>,
-        {
-          wrapper(props) {
-            return (
-              <Router config={{ basePath: globalThis.location.pathname }}>
-                <Screen
-                  path='preload'
-                  component={() => null}
-                />
-                <Screen path='.' component={() => <>{props.children}</>} />
-              </Router>
-            );
-          },
-        }
+        <Router config={{ basePath: globalThis.location.pathname }}>
+          <Screen
+            path='preload'
+            component={() => null}
+          />
+          <Screen path='.' component={() => (
+            <Anchor
+              href='preload'
+              preload
+              preloadBehaviour={{ type: 'onsight', threshold }}
+              style={{
+                marginLeft: '40vw',
+              }}
+            >
+              Preload
+            </Anchor>
+          )} />
+        </Router>
       );
     });
 
