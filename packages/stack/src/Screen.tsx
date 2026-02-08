@@ -221,6 +221,11 @@ export class Screen extends ScreenBase<
     navigation?.goBack();
   }
 
+  public onclose() {
+    if (!this.focused) return;
+    this.router.navigation.goBack();
+  }
+
   public onEnter(signal: AbortSignal) {
     if (
       this.ref?.current instanceof HTMLDialogElement
@@ -238,14 +243,9 @@ export class Screen extends ScreenBase<
       this.ref.current.style.height = 'max-content';
 
       // closed by form submit or ESC key
-      this.ref.current.addEventListener('close', function () {
-        if (this.returnValue !== 'screen-exit') {
-          this.style.display = 'block';
-          navigation.goBack();
-        }
-      }, { once: true });
+      this.ref.current.addEventListener('close', this, { once: true });
 
-      navigation.addEventListener('click', this);
+      navigation.addEventListener('click', this, { once: true });
     }
 
     return super.onEnter(signal);
@@ -253,7 +253,7 @@ export class Screen extends ScreenBase<
 
   public onExited(signal: AbortSignal) {
     if (this.ref?.current instanceof HTMLDialogElement) {
-      this.ref.current.close('screen-exit');
+      this.ref.current.close();
       this.router.navigation.removeEventListener('click', this);
     }
 
