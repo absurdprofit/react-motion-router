@@ -416,9 +416,7 @@ export class Router extends RouterBase<
     }
   }
 
-  public handlePreload(
-    e: LoadEvent
-  ) {
+  public handlePreload(e: LoadEvent) {
     const handler = async () => {
       // Wait for any ongoing navigations to end
       // we don't care if this fails since that indicates we should ditch animations

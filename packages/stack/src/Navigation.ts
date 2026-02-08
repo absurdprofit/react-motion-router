@@ -77,15 +77,9 @@ export class Navigation extends NavigationBase {
 
     let event;
     if (fromIndex > destinationIndex) {
-      event = this.createBackEvent(
-        result.committed,
-        transition
-      );
+      event = this.createBackEvent(result);
     } else {
-      event = this.createForwardEvent(
-        result.committed,
-        transition
-      );
+      event = this.createForwardEvent(result);
     }
     this.dispatchEvent?.(event);
 
@@ -102,7 +96,6 @@ export class Navigation extends NavigationBase {
     const url = new URL(route, this.baseURL);
     const result = window.navigation
       .navigate(url.href, { history, state: props });
-    const transition = window.navigation.transition!;
 
     options.signal?.addEventListener(
       'abort',
@@ -114,8 +107,7 @@ export class Navigation extends NavigationBase {
       route,
       props,
       history,
-      result.committed,
-      transition
+      result
     );
     this.dispatchEvent?.(event);
 
@@ -126,7 +118,6 @@ export class Navigation extends NavigationBase {
     if (!this.canGoBack()) return;
 
     const result = window.navigation.traverseTo(this.previous.key);
-    const transition = window.navigation.transition!;
 
     options.signal?.addEventListener(
       'abort',
@@ -134,10 +125,7 @@ export class Navigation extends NavigationBase {
       { once: true }
     );
 
-    const event = this.createBackEvent(
-      result.committed,
-      transition
-    );
+    const event = this.createBackEvent(result);
     this.dispatchEvent?.(event);
 
     return result;
@@ -147,7 +135,6 @@ export class Navigation extends NavigationBase {
     if (!this.canGoForward()) return;
 
     const result = window.navigation.traverseTo(this.next.key);
-    const transition = window.navigation.transition!;
 
     options.signal?.addEventListener(
       'abort',
@@ -155,44 +142,38 @@ export class Navigation extends NavigationBase {
       { once: true }
     );
 
-    const event = this.createForwardEvent(
-      result.committed,
-      transition
-    );
+    const event = this.createForwardEvent(result);
     this.dispatchEvent?.(event);
 
     return result;
   }
 
   private createBackEvent(
-    committed: Promise<NavigationHistoryEntry>,
-    transition: NavigationTransition
+    navigationResult: NavigationResult
   ) {
     const controller = new AbortController();
-    transition.finished.catch(() => controller.abort());
+    navigationResult.finished.catch(() => controller.abort());
     const signal = controller.signal;
-    return new BackEvent(this.routerId, signal, committed, transition);
+    return new BackEvent(this.routerId, signal, navigationResult);
   }
 
   private createForwardEvent(
-    committed: Promise<NavigationHistoryEntry>,
-    transition: NavigationTransition
+    navigationResult: NavigationResult
   ) {
     const controller = new AbortController();
-    transition.finished.catch(() => controller.abort());
+    navigationResult.finished.catch(() => controller.abort());
     const signal = controller.signal;
-    return new ForwardEvent(this.routerId, signal, committed, transition);
+    return new ForwardEvent(this.routerId, signal, navigationResult);
   }
 
   private createNavigateEvent(
     route: string,
     props: NavigationProps,
     type: NavigateOptions['type'],
-    committed: Promise<NavigationHistoryEntry>,
-    transition: NavigationTransition
+    navigationResult: NavigationResult
   ) {
     const controller = new AbortController();
-    transition.finished.catch(() => controller.abort());
+    navigationResult.finished.catch(() => controller.abort());
     const signal = controller.signal;
     return new NavigateEvent(
       this.routerId,
@@ -200,8 +181,7 @@ export class Navigation extends NavigationBase {
       props,
       type,
       signal,
-      committed,
-      transition
+      navigationResult
     );
   }
 

@@ -23,22 +23,17 @@ describe('Anchor', () => {
   it('converts params to search params', async () => {
     const { getByText } = await act(() => {
       return render(
-        <Anchor href='world' params={{ hello: 'world' }}>
-        World
-        </Anchor>,
-        {
-          wrapper(props) {
-            return (
-              <Router config={{ basePath: globalThis.location.pathname }}>
-                <Screen
-                  path='world'
-                  component={() => null}
-                />
-                <Screen path='.' component={() => <>{props.children}</>} />
-              </Router>
-            );
-          },
-        }
+        <Router config={{ basePath: globalThis.location.pathname }}>
+          <Screen
+            path='world'
+            component={() => null}
+          />
+          <Screen path='.' component={() => (
+            <Anchor href='world' params={{ hello: 'world' }}>
+              World
+            </Anchor>
+          )} />
+        </Router>
       );
     });
 
@@ -50,22 +45,17 @@ describe('Anchor', () => {
   it('doesn\'t add search params if href is unresolved', async () => {
     const { getByText } = await act(() => {
       return render(
-        <Anchor params={{ hello: 'world' }}>
-        World
-        </Anchor>,
-        {
-          wrapper(props) {
-            return (
-              <Router config={{ basePath: globalThis.location.pathname }}>
-                <Screen
-                  path='world'
-                  component={() => null}
-                />
-                <Screen path='.' component={() => <>{props.children}</>} />
-              </Router>
-            );
-          },
-        }
+        <Router config={{ basePath: globalThis.location.pathname }}>
+          <Screen
+            path='world'
+            component={() => null}
+          />
+          <Screen path='.' component={() => (
+            <Anchor params={{ hello: 'world' }}>
+              World
+            </Anchor>
+          )} />
+        </Router>
       );
     });
 
@@ -77,26 +67,22 @@ describe('Anchor', () => {
   it('allows overriding search params', async () => {
     const { getByText } = await act(() => {
       return render(
-        <Anchor
-          href='world'
-          params={{ hello: 'world' }}
-          searchParams={{ world: 'hello' }}
-        >
-        World
-        </Anchor>,
-        {
-          wrapper(props) {
-            return (
-              <Router config={{ basePath: globalThis.location.pathname }}>
-                <Screen
-                  path='world'
-                  component={() => null}
-                />
-                <Screen path='.' component={() => <>{props.children}</>} />
-              </Router>
-            );
-          },
-        }
+        <Router config={{ basePath: globalThis.location.pathname }}>
+          <Screen
+            path='world'
+            component={() => null}
+          />
+          <Screen path='.' component={() => (
+            <Anchor
+              href='world'
+              params={{ hello: 'world' }}
+              searchParams={{ world: 'hello' }}
+            >
+              World
+            </Anchor>
+          )} />
+        </Router>
+        
       );
     });
 

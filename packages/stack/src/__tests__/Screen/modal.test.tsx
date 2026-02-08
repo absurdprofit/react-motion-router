@@ -1,8 +1,8 @@
-import { act, render } from '@testing-library/react';
+import { act, fireEvent, render } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { Router } from '../../Router';
 import { Screen } from '../../Screen';
-import { FIRST_INDEX, navTo, traverseToStart } from '@react-motion-router/core';
+import { FIRST_INDEX, navTo, traverseToStart, waitForNavigateSuccess } from '@react-motion-router/core';
 
 describe('Screen (modal)', () => {
   beforeEach(async () => {
@@ -54,12 +54,12 @@ describe('Screen (modal)', () => {
   });
 
   it('navigates back on HTMLDialogElement.requestClose', async () => {
-    await act(async () => {
+    const { getByText } = await act(async () => {
       return render(
         <Router id='router' config={{ basePath: globalThis.location.pathname }}>
           <Screen
             path='.'
-            component={() => null}
+            component={() => <a href='modal'>Modal</a>}
           />
           <Screen
             path='modal'
@@ -73,14 +73,16 @@ describe('Screen (modal)', () => {
       );
     });
     
-    await act(async () => {
-      await navTo('modal');
-    });
+    await act(async () => 
+      fireEvent.click(getByText('Modal'))
+    );
 
     const dialog = document.querySelector('#router-screen');
 
     expect(dialog).toBeInstanceOf(HTMLDialogElement);
-    (dialog as HTMLDialogElement).requestClose();
+    await act(async () =>
+      (dialog as HTMLDialogElement).requestClose()
+    );
     expect(window.navigation.currentEntry?.index).toBe(FIRST_INDEX);
   });
 });

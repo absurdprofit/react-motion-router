@@ -34,24 +34,19 @@ describe('Anchor.preload (force)', () => {
     const onPreload = vi.fn();
     await window.navigation.transition?.finished;
     window.navigation.addEventListener('navigate', onPreload);
-    await act(() => {
+    await act(async () => {
       return render(
-        <Anchor href='preload' preload>
-          Preload
-        </Anchor>,
-        {
-          wrapper(props) {
-            return (
-              <Router config={{ basePath: globalThis.location.pathname }}>
-                <Screen
-                  path='preload'
-                  component={() => null}
-                />
-                <Screen path='.' component={() => <>{props.children}</>} />
-              </Router>
-            );
-          },
-        }
+        <Router config={{ basePath: globalThis.location.pathname }}>
+          <Screen
+            path='preload'
+            component={() => null}
+          />
+          <Screen path='.' component={() => (
+            <Anchor href='preload' preload>
+              Preload
+            </Anchor>
+          )} />
+        </Router>
       );
     });
 
