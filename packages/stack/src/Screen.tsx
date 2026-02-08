@@ -96,14 +96,16 @@ export class Screen extends ScreenBase<
     return {};
   }
 
-  protected setParams(newParams: PlainObject): void {
+  protected override setParams(newParams: PlainObject): void {
     super.setParams(newParams);
     this.setHistoryState(
       ({ params }) => ({ params: { ...params, ...newParams } })
     );
   }
 
-  protected setConfig(newConfig: NonNullable<ScreenProps['config']>): void {
+  protected override setConfig(
+    newConfig: NonNullable<ScreenProps['config']>
+  ): void {
     super.setConfig(newConfig);
     this.setHistoryState(({ config }) => {
       // navigation history state can only accept structured cloneable objects.
@@ -226,7 +228,7 @@ export class Screen extends ScreenBase<
     this.router.navigation.goBack();
   }
 
-  public onEnter(signal: AbortSignal) {
+  public override onEnter(signal: AbortSignal) {
     if (
       this.ref?.current instanceof HTMLDialogElement
       && this.ref.current.open === false
@@ -251,7 +253,7 @@ export class Screen extends ScreenBase<
     return super.onEnter(signal);
   };
 
-  public onExited(signal: AbortSignal) {
+  public override onExited(signal: AbortSignal) {
     if (this.ref?.current instanceof HTMLDialogElement) {
       this.ref.current.close();
       this.router.navigation.removeEventListener('click', this);

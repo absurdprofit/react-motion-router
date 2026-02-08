@@ -163,7 +163,7 @@ export class Router extends RouterBase<
     };
   }
 
-  public componentDidMount(): void {
+  public override componentDidMount(): void {
     super.componentDidMount();
     window.navigation.addEventListener('currententrychange', this);
     window.navigation.addEventListener('navigate', this);
@@ -171,14 +171,14 @@ export class Router extends RouterBase<
     window.navigation.addEventListener('navigateerror', this);
   }
 
-  public componentWillUnmount(): void {
+  public override componentWillUnmount(): void {
     window.navigation.removeEventListener('currententrychange', this);
     window.navigation.removeEventListener('navigate', this);
     window.navigation.removeEventListener('navigatesuccess', this);
     window.navigation.removeEventListener('navigateerror', this);
   }
 
-  public onnavigate(e: NavigateEvent) {
+  public override onnavigate(e: NavigateEvent) {
     super.onnavigate(e);
     this.#committed = new PromiseWrapper();
   };
@@ -836,7 +836,7 @@ export class Router extends RouterBase<
     }
   }
 
-  public render() {
+  public override render() {
     const gestureRegionBehaviour = this.state.gestureDisabled
       ? 'none'
       : 'contain';

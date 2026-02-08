@@ -20,21 +20,21 @@ export class SharedElement extends Component<
   SharedElementProps
 > {
   public readonly ref = createRef<HTMLDivElement>();
-  public static readonly contextType = SharedElementSceneContext;
+  public static override readonly contextType = SharedElementSceneContext;
   public declare context: React.ContextType<typeof SharedElementSceneContext>;
 
-  public componentDidMount(): void {
+  public override componentDidMount(): void {
     this.scene.addNode(this);
   }
 
-  public componentDidUpdate(prevProps: SharedElementProps) {
+  public override componentDidUpdate(prevProps: SharedElementProps) {
     if (this.props.id !== prevProps.id) {
       this.scene.removeNode(prevProps.id.toString());
       this.scene.addNode(this);
     }
   }
 
-  public componentWillUnmount(): void {
+  public override componentWillUnmount(): void {
     this.scene.removeNode(this.id);
   }
 
@@ -92,7 +92,7 @@ export class SharedElement extends Component<
     this.ref.current.style.visibility = 'visible';
   }
 
-  public render() {
+  public override render() {
     return (
       <div
         ref={this.ref}

@@ -36,7 +36,7 @@ export class Navigation extends NavigationBase {
     this.config = config;
   }
 
-  public preload(route: string, state: NavigationProps = {}) {
+  public override preload(route: string, state: NavigationProps = {}) {
     return super.preload(route, state);
   }
 

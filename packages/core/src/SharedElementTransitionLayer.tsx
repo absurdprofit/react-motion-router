@@ -18,7 +18,7 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
   #outgoingScreen: RefObject<ScreenBase> | null = null;
   #incomingScreen: RefObject<ScreenBase> | null = null;
 
-  public state: SharedElementTransitionLayerState = {
+  public override state: SharedElementTransitionLayerState = {
     transitioning: false,
   };
 
@@ -245,7 +245,7 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
     return new ParallelEffect(parallelEffects);
   }
 
-  render() {
+  override render() {
     return (
       <dialog className="shared-element-layer" ref={this.ref} style={{
         maxWidth: 'unset',

@@ -46,7 +46,7 @@ export abstract class RouterBase<
   #activeEvent: NavigateEvent | LoadEvent | null = null;
   public readonly parentScreen: ScreenBase | null = null;
   private static rootRouterRef: WeakRef<RouterBase> | null = null;
-  public static readonly contextType = NestedRouterContext;
+  public static override readonly contextType = NestedRouterContext;
   public declare context: React.ContextType<typeof NestedRouterContext>;
 
   constructor(
@@ -65,7 +65,7 @@ export abstract class RouterBase<
       .map(type => type.replace('on', ''));
   }
 
-  public componentDidMount() {
+  public override componentDidMount() {
     if (this.parent)
       this.parent.child = this;
     else {
@@ -95,7 +95,7 @@ export abstract class RouterBase<
     }
   }
 
-  public componentWillUnmount() {
+  public override componentWillUnmount() {
     this.#removeEventListeners();
     if (this.isRoot) {
       window.navigation.removeEventListener(
@@ -366,7 +366,7 @@ export abstract class RouterBase<
     protected abstract intercept(navigateEvent: NavigateEvent): void;
     protected abstract get screens(): P['children'];
 
-    public render() {
+    public override render() {
       if (!this.navigation) return;
       return (
         <RouterContext.Provider value={this}>
