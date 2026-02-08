@@ -32,6 +32,7 @@ describe('Anchor.preload (onsight)', () => {
 
   it('calls navigation.preload if in view', async () => {
     const onPreload = vi.fn();
+    await window.navigation.transition?.finished;
     window.navigation.addEventListener('navigate', onPreload);
     await act(() => {
       return render(
@@ -79,6 +80,7 @@ describe('Anchor.preload (onsight)', () => {
 
   it('doesn\'t call navigation.preload if not in view', async () => {
     const onPreload = vi.fn();
+    await window.navigation.transition?.finished;
     window.navigation.addEventListener('navigate', onPreload);
     await act(() => {
       return render(
@@ -120,13 +122,17 @@ describe('Anchor.preload (onsight)', () => {
 
   it('respects root config', async () => {
     const onPreload = vi.fn();
+    await window.navigation.transition?.finished;
     window.navigation.addEventListener('navigate', onPreload);
-    const { unmount } = await act(() => {
-      return render(
+    const { unmount } = await act(async () => {
+      const result = render(
         <Anchor
           href='preload'
           preload
           preloadBehaviour={{ type: 'onsight', root: document.body }}
+          style={{
+            marginRight: '50vw',
+          }}
         >
         Preload
         </Anchor>,
@@ -146,6 +152,11 @@ describe('Anchor.preload (onsight)', () => {
           },
         }
       );
+
+      // wait for intersection observer
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      
+      return result;
     });
 
     expect(
@@ -170,6 +181,9 @@ describe('Anchor.preload (onsight)', () => {
           href='preload'
           preload
           preloadBehaviour={{ type: 'onsight' }}
+          style={{
+            marginRight: '50vw',
+          }}
         >
         Preload
         </Anchor>,
@@ -203,10 +217,11 @@ describe('Anchor.preload (onsight)', () => {
 
   it('respects threshold config', async () => {
     const onPreload = vi.fn();
+    await window.navigation.transition?.finished;
     window.navigation.addEventListener('navigate', onPreload);
-    const { unmount } = await act(() => {
+    const { unmount } = await act(async () => {
       const threshold = .5;
-      return render(
+      const result = render(
         <Anchor
           href='preload'
           preload
@@ -231,6 +246,11 @@ describe('Anchor.preload (onsight)', () => {
           },
         }
       );
+
+      // wait for intersection observer
+      await new Promise(resolve => requestAnimationFrame(resolve));
+
+      return result;
     });
 
     expect(
@@ -257,7 +277,7 @@ describe('Anchor.preload (onsight)', () => {
           preload
           preloadBehaviour={{ type: 'onsight', threshold }}
           style={{
-            marginLeft: '50vw',
+            marginLeft: '40vw',
           }}
         >
         Preload
