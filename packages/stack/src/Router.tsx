@@ -106,6 +106,9 @@ export class Router extends RouterBase<
       getDestination: () => {
         return this.state.destination;
       },
+      getController: () => {
+        return this.state.controller;
+      },
       getPathPatterns: () => {
         return this.pathPatterns;
       },
@@ -198,9 +201,7 @@ export class Router extends RouterBase<
   private readonly onGestureCancel = () => {
     if (!this.state.transition)
       throw new Error('Rollback failed, transition is null');
-    window.navigation.traverseTo(this.state.transition.from.key, {
-      info: { rollback: true },
-    });
+    this.state.controller?.abort();
   };
 
   private canGestureNavigate(e: SwipeStartEvent) {
