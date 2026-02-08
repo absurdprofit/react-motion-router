@@ -1,10 +1,14 @@
-// TODO: use AnchorBase from core directly and use forward ref to expose underlying HTMLAnchorElement
 import {
   PlainObject,
-  Anchor as AnchorBase,
-  AnchorProps as AnchorBaseProps
+  Anchor as AnchorBase
 } from '@react-motion-router/core';
-import { useEffect, useRef, useCallback, RefObject } from 'react';
+import {
+  useEffect,
+  useRef,
+  useCallback,
+  RefObject,
+  useImperativeHandle
+} from 'react';
 import { useNavigation } from './common/hooks';
 import { searchParamsFromObject } from './common/utils';
 import { DEFAULT_PRELOAD_FORCE_THRESHOLD } from './common/constants';
@@ -19,13 +23,16 @@ interface OnHoverPreloadBehaviour {
   forceThreshold?: number;
 }
 
-interface AnchorProps extends AnchorBaseProps {
-  params?: PlainObject<string | boolean | number>;
+interface AnchorProps extends React.DetailedHTMLProps<
+  React.AnchorHTMLAttributes<HTMLAnchorElement>,
+  HTMLAnchorElement
+> {
+  params?: PlainObject<string | boolean | number> | null;
   /**
    * Will override params object if supplied.
    * Used to control the search params that get passed to the href attribute.
    */
-  searchParams?: PlainObject<string | boolean | number>;
+  searchParams?: PlainObject<string | boolean | number> | null;
   config?: ScreenConfig;
   preload?: boolean;
   preloadBehaviour?:
@@ -114,6 +121,7 @@ function useHover<T extends HTMLElement>(
 }
 
 export function Anchor({
+  ref: forwardedRef,
   preload,
   params,
   searchParams = params,
@@ -122,13 +130,14 @@ export function Anchor({
     type: 'onsight',
   },
   children,
-  ...aProps
+  ...props
 }: AnchorProps) {
   const navigation = useNavigation();
   const isOnSightPreload = preloadBehaviour?.type === 'onsight' && preload;
   const isOnHoverPreload = preloadBehaviour?.type === 'onhover' && preload;
   const isForcePreload = preloadBehaviour?.type === 'force' && preload;
   const ref = useRef<HTMLAnchorElement>(null);
+  params ??= undefined;
 
   /// Intersection preload behaviour
   useIntersection<HTMLAnchorElement>(
@@ -174,9 +183,17 @@ export function Anchor({
     ? searchParamsFromObject(searchParams)
     : undefined;
 
+  useImperativeHandle<
+    HTMLAnchorElement | null,
+    HTMLAnchorElement | null
+  >(
+    forwardedRef,
+    () => ref.current
+  );
+
   return (
     <AnchorBase
-      {...aProps}
+      {...props}
       data-router-id={routerId}
       ref={ref}
       search={search}

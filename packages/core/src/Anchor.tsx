@@ -1,4 +1,4 @@
-import React, { RefObject, useRef } from 'react';
+import React, { createRef, RefObject, useImperativeHandle, useRef } from 'react';
 import {
   FIRST_INDEX,
   SINGLE_ELEMENT_LENGTH
@@ -29,7 +29,7 @@ export class AnchorBase extends React.Component<
     };
   }
 
-  public readonly anchorRef = React.createRef<HTMLAnchorElement>();
+  public readonly anchorRef = createRef<HTMLAnchorElement>();
 
   public static directionFromRel(rel: string | undefined) {
     return rel
@@ -274,8 +274,9 @@ export interface AnchorProps extends React.DetailedHTMLProps<
 export function Anchor({ ref: forwardedRef, ...props }: AnchorProps) {
   const ref = useRef<AnchorBase>(null);
 
-  React.useImperativeHandle<
-    HTMLAnchorElement | null, HTMLAnchorElement | null
+  useImperativeHandle<
+    HTMLAnchorElement | null,
+    HTMLAnchorElement | null
   >(
     forwardedRef,
     () => ref.current?.anchorRef.current ?? null

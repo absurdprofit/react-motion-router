@@ -193,6 +193,7 @@ export class Router extends RouterBase<
   };
 
   // TODO: change to use handleEvent paradigm
+  // TODO: refactor this to just cancel the current navigation.
   private readonly onGestureCancel = () => {
     if (!this.state.transition)
       throw new Error('Rollback failed, transition is null');
@@ -425,7 +426,7 @@ export class Router extends RouterBase<
         child,
         matchInfo = null,
       } = this.screenChildFromPathname(pathname) ?? {};
-      if (!child) return Promise.resolve();
+      if (!child) return;
       const { navigation } = this;
       const { signal } = e;
       const { path } = child.props;
@@ -564,8 +565,7 @@ export class Router extends RouterBase<
       const destination = e.destination;
       const transition = window.navigation.transition;
       const destinationPathname = new URL(destination.url).pathname;
-      const destinationKey =
-      window.navigation.currentEntry?.key ?? null;
+      const destinationKey = window.navigation.currentEntry?.key ?? null;
       const fromKey = transition?.from?.key ?? null;
       const currentIndex = screenStack.findIndex(
         (screen) => screen.key === this.navigation.current?.key
