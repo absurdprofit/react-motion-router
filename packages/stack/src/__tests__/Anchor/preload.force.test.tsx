@@ -32,6 +32,7 @@ describe('Anchor.preload (force)', () => {
 
   it('preloads on mount by default', async () => {
     const onPreload = vi.fn();
+    await window.navigation.transition?.finished;
     window.navigation.addEventListener('navigate', onPreload);
     await act(() => {
       return render(

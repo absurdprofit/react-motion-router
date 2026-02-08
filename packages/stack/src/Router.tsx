@@ -199,6 +199,7 @@ export class Router extends RouterBase<
   // TODO: change to use handleEvent paradigm
   // TODO: refactor this to just cancel the current navigation.
   private readonly onGestureCancel = () => {
+    // TODO: We don't need this guard any more
     if (!this.state.transition)
       throw new Error('Rollback failed, transition is null');
     this.state.controller?.abort();
