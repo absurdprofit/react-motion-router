@@ -1,4 +1,4 @@
-import { act, fireEvent, render } from '@testing-library/react';
+import { act, fireEvent, render, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { Router } from '../../Router';
 import { Screen } from '../../Screen';
@@ -7,7 +7,6 @@ import {
   traverseToStart,
   waitForNavigation
 } from '@react-motion-router/core';
-
 describe('Screen (modal)', () => {
   beforeEach(async () => {
 
@@ -87,12 +86,12 @@ describe('Screen (modal)', () => {
 
     expect(dialog).toBeInstanceOf(HTMLDialogElement);
 
-    const forTraverse = waitForNavigation('traverse');
     await act(async () => {
       (dialog as HTMLDialogElement).requestClose();
-      await forTraverse;
     });
 
-    expect(window.navigation.currentEntry?.index).toBe(FIRST_INDEX);
+    await waitFor(() => {
+      expect(window.navigation.currentEntry?.index).toBe(FIRST_INDEX);
+    });
   });
 });

@@ -4,9 +4,10 @@ import {
   installInterceptor,
   LAST_INDEX,
   traverseToStart,
-  uninstallInterceptor
+  uninstallInterceptor,
+  waitForNavigation
 } from '@react-motion-router/core';
-import { act, cleanup, render } from '@testing-library/react';
+import { act, cleanup, render, waitFor } from '@testing-library/react';
 import {
   afterAll,
   beforeAll,
@@ -32,7 +33,7 @@ describe('Anchor.preload (onsight)', () => {
 
   it('calls navigation.preload if in view', async () => {
     const onPreload = vi.fn();
-    await window.navigation.transition?.finished;
+    const forLoad = waitForNavigation('load');
     window.navigation.addEventListener('navigate', onPreload);
     await act(() => {
       return render(
@@ -55,13 +56,17 @@ describe('Anchor.preload (onsight)', () => {
       );
     });
 
-    expect(
-      onPreload.mock
-        .calls
-        .at(LAST_INDEX)
-        ?.at(FIRST_INDEX)
-    ).toMatchObject({
-      navigationType: 'preload',
+    await act(() => forLoad);
+
+    await waitFor(() => {
+      expect(
+        onPreload.mock
+          .calls
+          .at(LAST_INDEX)
+          ?.at(FIRST_INDEX)
+      ).toMatchObject({
+        navigationType: 'preload',
+      });
     });
 
     expect(
@@ -117,7 +122,7 @@ describe('Anchor.preload (onsight)', () => {
 
   it('respects root config', async () => {
     const onPreload = vi.fn();
-    await window.navigation.transition?.finished;
+    const forLoad = waitForNavigation('load');
     window.navigation.addEventListener('navigate', onPreload);
     const { unmount } = await act(async () => {
       const result = render(
@@ -150,17 +155,23 @@ describe('Anchor.preload (onsight)', () => {
       return result;
     });
 
-    expect(
-      onPreload.mock
-        .calls
-        .at(LAST_INDEX)
-        ?.at(FIRST_INDEX)
-        .destination
-    ).toMatchObject({
-      url: new URL(
-        'preload',
-        `${globalThis.origin}${globalThis.location.pathname}`
-      ).href,
+    await act(async () => {
+      await forLoad;
+    });
+
+    await waitFor(() => {
+      expect(
+        onPreload.mock
+          .calls
+          .at(LAST_INDEX)
+          ?.at(FIRST_INDEX)
+          .destination
+      ).toMatchObject({
+        url: new URL(
+          'preload',
+          `${globalThis.origin}${globalThis.location.pathname}`
+        ).href,
+      });
     });
 
     onPreload.mockReset();
@@ -203,11 +214,11 @@ describe('Anchor.preload (onsight)', () => {
 
   it('respects threshold config', async () => {
     const onPreload = vi.fn();
-    await window.navigation.transition?.finished;
+    const forLoad = waitForNavigation('load');
     window.navigation.addEventListener('navigate', onPreload);
     const { unmount } = await act(async () => {
       const threshold = .5;
-      const result = render(
+      return render(
         <Router config={{ basePath: globalThis.location.pathname }}>
           <Screen
             path='preload'
@@ -226,26 +237,26 @@ describe('Anchor.preload (onsight)', () => {
             </Anchor>
           )} />
         </Router>
-        
       );
-
-      // wait for intersection observer
-      await new Promise(resolve => requestAnimationFrame(resolve));
-
-      return result;
     });
 
-    expect(
-      onPreload.mock
-        .calls
-        .at(LAST_INDEX)
-        ?.at(FIRST_INDEX)
-        .destination
-    ).toMatchObject({
-      url: new URL(
-        'preload',
-        `${globalThis.origin}${globalThis.location.pathname}`
-      ).href,
+    await act(async () => {
+      await forLoad;
+    });
+
+    await waitFor(() => {
+      expect(
+        onPreload.mock
+          .calls
+          .at(LAST_INDEX)
+          ?.at(FIRST_INDEX)
+          .destination
+      ).toMatchObject({
+        url: new URL(
+          'preload',
+          `${globalThis.origin}${globalThis.location.pathname}`
+        ).href,
+      });
     });
 
     onPreload.mockReset();

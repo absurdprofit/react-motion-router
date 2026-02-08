@@ -112,12 +112,17 @@ export async function waitForNavigation(
     window.navigation.addEventListener(
       'navigate',
       (e: NavigateEvent | LoadEvent) => {
-        if (e.navigationType !== type)
-          return;
-        if (e instanceof LoadEvent)
-          e.transition.finished.then(resolve);
-        else
-          window.navigation.transition?.finished.then(resolve);
+        e.intercept({
+          handler: () => {
+            if (e.navigationType !== type)
+              return Promise.resolve();
+            if (e instanceof LoadEvent)
+              e.transition.finished.then(resolve);
+            else
+              window.navigation.transition?.finished.then(resolve);
+            return Promise.resolve();
+          },
+        });
       },
       { once: true }
     );
