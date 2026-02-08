@@ -151,7 +151,6 @@ export function Anchor({
     (entry) => {
       if (
         !isOnSightPreload
-        || !entry.isIntersecting
         || !(entry.target instanceof HTMLAnchorElement)
       ) return;
       navigation.preload(entry.target.href, { params, config });
