@@ -9,7 +9,6 @@ import { cleanup } from '@testing-library/react';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { Navigation, NavigationConfig } from '../../Navigation';
 import { SECOND_TO_LAST_INDEX } from './common/constants';
-import { GLOBAL_ENTRIES } from '../../common/constants';
 
 describe('Navigation', () => {
   beforeAll(installInterceptor);
@@ -50,7 +49,7 @@ describe('Navigation', () => {
     expect(navigation.previous).toBeDefined();
     if (navigation.canGoBack())
       expect(navigation.previous.key)
-        .toBe(GLOBAL_ENTRIES.at(SECOND_TO_LAST_INDEX)?.key);
+        .toBe(window.navigation.entries().at(SECOND_TO_LAST_INDEX)?.key);
   });
 
   it('resolves the next entry', async () => {
@@ -83,7 +82,7 @@ describe('Navigation', () => {
     expect(navigation.next).toBeDefined();
     if (navigation.canGoForward())
       expect(navigation.next.key)
-        .toBe(GLOBAL_ENTRIES.at(LAST_INDEX)?.key);
+        .toBe(window.navigation.entries().at(LAST_INDEX)?.key);
   });
 
   it('resolves the current entry', async () => {

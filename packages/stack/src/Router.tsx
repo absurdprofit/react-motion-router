@@ -42,8 +42,7 @@ import {
 } from './common/events';
 import {
   DEFAULT_GESTURE_CONFIG,
-  DEFAULT_PLAYBACK_RATE,
-  GLOBAL_ENTRIES
+  DEFAULT_PLAYBACK_RATE
 } from './common/constants';
 import { GestureRegion } from './GestureRegion';
 import { HistoryEntry } from './HistoryEntry';
@@ -480,6 +479,18 @@ export class Router extends RouterBase<
       const { destination, transition } = e;
       const screenStack: RouterState['screenStack'] = [];
       const entries = this.navigation.entries;
+      if (!entries.length) {
+        entries.push(
+          new HistoryEntry(
+            historyEntryFromDestination(
+              destination,
+              FIRST_INDEX
+            ),
+            this.id,
+            FIRST_INDEX
+          )
+        );
+      }
       entries.forEach((entry) => {
         if (!entry.url) return null;
         const screen = this.cloneScreenChildFromPathname(
@@ -579,11 +590,6 @@ export class Router extends RouterBase<
         SINGLE_ELEMENT_LENGTH,
         destinationScreen
       );
-      GLOBAL_ENTRIES.splice(
-        currentIndex,
-        SINGLE_ELEMENT_LENGTH,
-        historyEntry.nativeEntry
-      );
 
       return new Promise<void>((resolve, reject) =>
         startTransition(() => {
@@ -674,18 +680,6 @@ export class Router extends RouterBase<
           Infinity, // Remove all screens after current
           destinationScreen
         );
-        GLOBAL_ENTRIES.splice(
-          destinationIndex,
-          Infinity,
-          historyEntry.nativeEntry
-        );
-        Object.defineProperty(destination, 'index', {
-          configurable: true,
-          enumerable: true,
-          get() {
-            return destinationIndex;
-          },
-        });
       } else {
         const destinationScreen = this.state.screenStack[destinationIndex];
         await this.preloadScreen(destinationScreen);
