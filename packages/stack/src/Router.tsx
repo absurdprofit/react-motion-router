@@ -606,19 +606,19 @@ export class Router extends RouterBase<
                 signal
               ).catch(reject);
               await pendingLifecycleHandlers;
-              this.committed?.finally(() => {
-                this.setState({
-                  destinationKey: null,
-                  fromKey: null,
-                  transition: null,
-                  destination: null,
-                });
-              });
               resolve();
             }
           );
         })
-      );
+      )
+        .finally(() => {
+          this.setState({
+            destinationKey: null,
+            fromKey: null,
+            transition: null,
+            destination: null,
+          });
+        });
     };
 
     e.intercept({ precommitHandler });
@@ -716,22 +716,22 @@ export class Router extends RouterBase<
               animation?.updatePlaybackRate(DEFAULT_PLAYBACK_RATE);
               animation?.finished.catch(reject);
               await pendingLifecycleHandlers;
-              this.committed?.finally(() => {
-                this.setState(
-                  {
-                    destinationKey: null,
-                    fromKey: null,
-                    transition: null,
-                    destination: null,
-                    controller: null,
-                  }
-                );
-              });
               resolve();
             }
           );
         })
-      );
+      )
+        .finally(() => {
+          this.setState(
+            {
+              destinationKey: null,
+              fromKey: null,
+              transition: null,
+              destination: null,
+              controller: null,
+            }
+          );
+        });
     };
 
     if (isGesture(e.info)) {
