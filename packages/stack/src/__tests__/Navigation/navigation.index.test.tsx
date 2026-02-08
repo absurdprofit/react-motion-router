@@ -37,6 +37,8 @@ describe('Navigation.index', () => {
         },
       ],
       baseURLPattern: new URLPattern('/', globalThis.location.origin),
+      getDestination: () => null,
+      getTransition: () => null,
     } as NavigationConfig);
 
     expect(navigation.index).toBe(FIRST_INDEX);
@@ -61,6 +63,8 @@ describe('Navigation.index', () => {
           },
         ],
         baseURLPattern: new URLPattern('/', globalThis.location.origin),
+        getDestination: () => null,
+        getTransition: () => null,
       } as NavigationConfig);
 
       window.navigation.navigate('hello');
@@ -92,6 +96,8 @@ describe('Navigation.index', () => {
         },
       ],
       baseURLPattern: new URLPattern('/', globalThis.location.origin),
+      getDestination: () => null,
+      getTransition: () => null,
     } as NavigationConfig);
 
     window.navigation.navigate('/hello');
@@ -123,6 +129,8 @@ describe('Navigation.index', () => {
         },
       ],
       baseURLPattern: new URLPattern('/', globalThis.location.origin),
+      getDestination: () => null,
+      getTransition: () => null,
     } as NavigationConfig);
 
     window.navigation.navigate('/hello');

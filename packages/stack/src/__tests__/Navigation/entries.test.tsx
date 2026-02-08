@@ -17,8 +17,7 @@ import { cleanup } from '@testing-library/react';
 import {
   FIRST_INDEX,
   FOURTH_INDEX,
-  SECOND_INDEX,
-  THIRD_INDEX
+  SECOND_INDEX
 } from './common/constants';
 
 describe('Navigation.entries', () => {
@@ -39,6 +38,7 @@ describe('Navigation.entries', () => {
         { pattern: 'world/**', caseSensitive: false },
       ],
       baseURLPattern: new URLPattern('/', globalThis.location.origin),
+      getDestination: () => null,
     } as NavigationConfig);
 
     // top-level
@@ -62,6 +62,7 @@ describe('Navigation.entries', () => {
         { pattern: 'hello-world/**', caseSensitive: false },
       ],
       baseURLPattern: new URLPattern('/', globalThis.location.origin),
+      getDestination: () => null,
     } as NavigationConfig);
 
     // top-level
@@ -87,6 +88,7 @@ describe('Navigation.entries', () => {
         { pattern: 'hello-world/**', caseSensitive: false },
       ],
       baseURLPattern: new URLPattern('/', globalThis.location.origin),
+      getDestination: () => null,
     } as NavigationConfig);
 
     window.navigation.navigate('/', { history: 'replace' });
@@ -117,6 +119,7 @@ describe('Navigation.entries', () => {
           '/nested/**',
           globalThis.location.origin
         ),
+        getDestination: () => null,
       } as NavigationConfig);
 
       window.navigation.navigate('/nested', { history: 'replace' });

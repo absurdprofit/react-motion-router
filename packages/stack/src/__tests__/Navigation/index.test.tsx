@@ -41,6 +41,8 @@ describe('Navigation', () => {
         },
       ],
       baseURLPattern: new URLPattern('/', globalThis.location.origin),
+      getDestination: () => null,
+      getTransition: () => null,
     } as NavigationConfig);
 
     window.navigation.navigate('/hello', { history: 'replace' });
@@ -73,6 +75,8 @@ describe('Navigation', () => {
         },
       ],
       baseURLPattern: new URLPattern('/', globalThis.location.origin),
+      getDestination: () => null,
+      getTransition: () => null,
     } as NavigationConfig);
 
     window.navigation.navigate('/hello', { history: 'replace' });
@@ -106,6 +110,8 @@ describe('Navigation', () => {
         },
       ],
       baseURLPattern: new URLPattern('/', globalThis.location.origin),
+      getDestination: () => null,
+      getTransition: () => null,
     } as NavigationConfig);
 
     window.navigation.navigate('/hello', { history: 'replace' });
