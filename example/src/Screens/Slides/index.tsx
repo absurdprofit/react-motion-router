@@ -6,12 +6,8 @@ import { SharedElement } from '@react-motion-router/core';
 import IconButton from '@mui/material/IconButton';
 import './index.css';
 import { SwipeStartEvent, SwipeEvent, SwipeEndEvent } from 'web-gesture-events';
-import { bindKeyboard } from 'react-swipeable-views-utils';
-import SwipeableViews from 'react-swipeable-views';
 
 interface SlidesProps extends ScreenComponentProps<{ hero: string; }> { }
-
-const KeyboardSwipeableViews = bindKeyboard(SwipeableViews);
 
 let isFirstLoad = false;
 export default function Slides(props: SlidesProps) {
@@ -82,26 +78,24 @@ export default function Slides(props: SlidesProps) {
           <h2>{Heroes[index].name}</h2>
         </SharedElement>
       </div>
-      <KeyboardSwipeableViews onChangeIndex={(index: number) => setIndex(index)} index={index}>
-        {
-          Heroes.map((hero: Hero, _index: number) => {
-            return (
-              <div className="slide" key={_index}>
-                {
-                  <SharedElement id={hero.id} disabled={_index !== index} config={{ styles: ['object-fit', 'aspect-ratio'] }}>
-                    <img
-                      src={hero.photoUrl}
-                      alt={hero.name}
-                      style={{ transition: '0.2s transform ease' }}
-                      {...{ 'data-gesturetarget': true }}
-                    />
-                  </SharedElement>
-                }
-              </div>
-            );
-          })
-        }
-      </KeyboardSwipeableViews>
+      {
+        Heroes.map((hero: Hero, _index: number) => {
+          return (
+            <div className="slide" key={_index}>
+              {
+                <SharedElement id={hero.id} disabled={_index !== index} config={{ styles: ['object-fit', 'aspect-ratio'] }}>
+                  <img
+                    src={hero.photoUrl}
+                    alt={hero.name}
+                    style={{ transition: '0.2s transform ease' }}
+                    {...{ 'data-gesturetarget': true }}
+                  />
+                </SharedElement>
+              }
+            </div>
+          );
+        })[index]
+      }
     </div>
   );
 }

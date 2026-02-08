@@ -21,7 +21,8 @@ function WithActivationDetection(
 }
 
 type GestureRegion = {
-  [T in keyof JSX.IntrinsicElements]: ReturnType<typeof createGestureRegion<T>>;
+  [T in keyof React.JSX.IntrinsicElements]:
+    ReturnType<typeof createGestureRegion<T>>;
 }
 
 interface GestureRegionProps {
@@ -30,13 +31,13 @@ interface GestureRegionProps {
 }
 
 export const createGestureRegion = (
-  <T extends keyof JSX.IntrinsicElements>(tag: T) => 
+  <T extends keyof React.JSX.IntrinsicElements>(tag: T) => 
     function GestureRegion({
       ref: forwardedRef,
       gestureBehaviour = 'contain',
       uaGestureAreaWidth = DEFAULT_UA_GESTURE_AREA_WIDTH,
       ...props
-    }: JSX.IntrinsicElements[T] & GestureRegionProps) {
+    }: React.JSX.IntrinsicElements[T] & GestureRegionProps) {
       const ref = React.useRef<ElementForTag<T>>(null);
       const route = useContext<RouteProp<PlainObject>>(
         RoutePropContext
@@ -92,7 +93,7 @@ export const createGestureRegion = (
 
 export const GestureRegion = new Proxy(
   {} as GestureRegion, {
-    get(target, key: keyof JSX.IntrinsicElements) {
+    get(target, key: keyof React.JSX.IntrinsicElements) {
       target[key] ??= createGestureRegion(key);
       return target[key];
     },
