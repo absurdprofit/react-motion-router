@@ -12,6 +12,7 @@ import {
   GestureStartEvent,
   NavigateEvent
 } from './events';
+import { HistoryEntry } from '../HistoryEntry';
 
 export interface NavigationBaseOptions {
 	signal?: AbortSignal;
@@ -99,6 +100,7 @@ export function isHorizontalDirection(
 }
 
 export interface ScreenInternalProps {
-    resolvedPathname: string;
-    id: React.Key;
+  resolvedPathname: string;
+  id: React.Key;
+  entry: HistoryEntry;
 }

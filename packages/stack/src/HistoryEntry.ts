@@ -23,6 +23,10 @@ export class HistoryEntry implements Omit<NavigationHistoryEntry, 'url'> {
     return this.#nativeEntry.ondispose;
   }
 
+  public get nativeEntry() {
+    return this.#nativeEntry;
+  }
+
   public get id() {
     return this.#nativeEntry.id;
   }

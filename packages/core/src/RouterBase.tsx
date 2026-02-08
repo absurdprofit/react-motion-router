@@ -38,13 +38,14 @@ export abstract class RouterBase<
   P extends RouterBaseProps = RouterBaseProps,
   S extends RouterBaseState = RouterBaseState,
 > extends Component<P, S> implements EventHandler {
+  // TODO: move this out of RouterBase and leave only an abstract declaration
   protected readonly ref = createRef<RouterBaseHTMLElement>();
   protected screenTransitionLayer = createRef<ScreenTransitionLayer>();
   public abstract readonly navigation: NavigationBase;
   public readonly parent: RouterBase | null = null;
   #child: WeakRef<RouterBase> | null = null;
   private loadDispatched = false;
-  private hasUAVisualTransition = false;
+  #activeEvent: NavigateEvent | LoadEvent | null = null;
   public readonly parentScreen: ScreenBase | null = null;
   private static rootRouterRef: WeakRef<RouterBase> | null = null;
   public static readonly contextType = NestedRouterContext;
@@ -89,7 +90,9 @@ export abstract class RouterBase<
     this.#addEventListeners();
 
     if (!this.loadDispatched) {
-      window.navigation.dispatchEvent(new LoadEvent('load'));
+      const destination = this.parent?.activeEvent?.destination;
+      this.#activeEvent = new LoadEvent('load', { destination });
+      window.navigation.dispatchEvent(this.#activeEvent);
       this.loadDispatched = true;
     }
   }
@@ -104,6 +107,18 @@ export abstract class RouterBase<
     }
   }
 
+  public interceptHandler = () => {
+    let transition;
+    if (this.#activeEvent instanceof LoadEvent)
+      transition = this.#activeEvent.transition;
+    else
+      transition = window.navigation.transition;
+            
+    transition?.finished
+      .finally(() => this.#activeEvent = null);
+    return Promise.resolve();
+  };
+
   public onnavigate(e: NavigateEvent) {
     const activeRouters = [...this.#activeRoutersIter()];
     // travel down router tree to find a router that can intercept
@@ -111,8 +126,14 @@ export abstract class RouterBase<
       router => router.canIntercept(e)
     );
     if (interceptor) {
+      this.#activeEvent = e;
       interceptor.intercept(e);
-      this.hasUAVisualTransition = e.hasUAVisualTransition;
+      if (e.defaultPrevented)
+        this.#activeEvent = null;
+      else
+        e.intercept({
+          handler: this.interceptHandler,
+        });
     }
   };
 
@@ -249,6 +270,16 @@ export abstract class RouterBase<
     });
   }
 
+  public get activeEvent() {
+    return this.#activeEvent;
+  }
+
+  public get hasUAVisualTransition() {
+    return Boolean(
+      this.#activeEvent?.hasUAVisualTransition
+    );
+  }
+
   public get id(): string {
     if (this.props.id) return this.props.id;
     const prefix = this.parent?.id;
@@ -340,23 +371,15 @@ export abstract class RouterBase<
     public render() {
       if (!this.navigation) return;
       return (
-        <div
-          id={this.id}
-          className="react-motion-router"
-          style={{ width: '100%', height: '100%' }}
-          ref={this.ref}
-        >
-          <RouterContext.Provider value={this}>
-            <ScreenTransitionLayer
-              id={`${this.id}-transition-layer`}
-              ref={this.screenTransitionLayer}
-              navigation={this.navigation}
-              hasUAVisualTransition={this.hasUAVisualTransition}
-            >
-              {this.screens}
-            </ScreenTransitionLayer>
-          </RouterContext.Provider>
-        </div>
+        <RouterContext.Provider value={this}>
+          <ScreenTransitionLayer
+            ref={this.screenTransitionLayer}
+            navigation={this.navigation}
+            hasUAVisualTransition={this.hasUAVisualTransition}
+          >
+            {this.screens}
+          </ScreenTransitionLayer>
+        </RouterContext.Provider>
       );
     }
 }

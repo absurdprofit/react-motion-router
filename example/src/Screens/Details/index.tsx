@@ -83,7 +83,7 @@ export default function Details(props: DetailsProps) {
           onScroll={onScroll}
         >
                         
-          <Anchor aria-label='Go Back' goBack tabIndex={-1}>
+          <Anchor aria-label='Go Back' traverse tabIndex={-1}>
             <IconButton style={{
               position: 'absolute',
               color: 'grey',

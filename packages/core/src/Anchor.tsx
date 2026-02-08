@@ -1,9 +1,15 @@
-import React, { RefObject, useRef } from 'react';
+import React, {
+  createRef,
+  RefObject,
+  useImperativeHandle,
+  useRef
+} from 'react';
 import {
   FIRST_INDEX,
   SINGLE_ELEMENT_LENGTH
 } from './common/constants';
 import { omit } from './common/utils';
+import { EventHandler } from './common/types';
 
 type AnchorState = {
   href?: string | null;
@@ -19,7 +25,7 @@ interface AnchorBaseProps extends Omit<
 export class AnchorBase extends React.Component<
   AnchorBaseProps,
   AnchorState
-> {
+> implements EventHandler {
   constructor(props: AnchorBaseProps) {
     super(props);
 
@@ -28,16 +34,16 @@ export class AnchorBase extends React.Component<
     };
   }
 
-  public readonly anchorRef = React.createRef<HTMLAnchorElement>();
+  public readonly anchorRef = createRef<HTMLAnchorElement>();
 
-  private static directionFromRel(rel: string | undefined) {
+  public static directionFromRel(rel: string | undefined) {
     return rel
       ?.split(' ')
       .findLast(dir => dir === 'next' || dir === 'prev')
       ?? 'prev';
   }
 
-  private static findClosestEntryByHref(
+  public static findClosestEntryByHref(
     href: string,
     rel: string | undefined,
     entries: NavigationHistoryEntry[],
@@ -76,7 +82,7 @@ export class AnchorBase extends React.Component<
     return undefined;
   }
 
-  private static findClosestEntry(
+  public static findClosestEntry(
     rel: string | undefined,
     entries: NavigationHistoryEntry[],
     index: number
@@ -92,63 +98,33 @@ export class AnchorBase extends React.Component<
   }
 
   public componentDidMount() {
-    window.navigation?.addEventListener('navigatesuccess', this.onNavigate);
+    window.navigation?.addEventListener('navigatesuccess', this);
+    this.anchorRef.current?.addEventListener('click', this);
   }
 
   public componentWillUnmount() {
-    window.navigation?.removeEventListener('navigatesuccess', this.onNavigate);
+    window.navigation?.removeEventListener('navigatesuccess', this);
+    this.anchorRef.current?.removeEventListener('click', this);
   }
 
-  private readonly onNavigate = () => {
+  public handleEvent(e: Event) {
+    const key = `on${e.type}` as keyof this;
+
+    const self = this as {
+      [K in typeof key]?: (e: Event) => void;
+    };
+
+    self[key]?.(e);
+  }
+
+  public onnavigatesuccess() {
     const { href } = this;
     this.setState({ href });
-  };
-
-  private get href() {
-    const { href, traverse, reload, historyEntryKey, rel } = this.props;
-    if (href === undefined && traverse) {
-      let entry: NavigationHistoryEntry | undefined;
-
-      if (historyEntryKey) {
-        entry = window.navigation
-          ?.entries()
-          .find(e => e.key === historyEntryKey);
-      } else if (href)
-        entry = AnchorBase.findClosestEntryByHref(
-          href,
-          rel,
-          window.navigation.entries(),
-          window.navigation.currentEntry?.index ?? FIRST_INDEX
-        );
-      else
-        entry = AnchorBase.findClosestEntry(
-          rel,
-          window.navigation.entries(),
-          window.navigation.currentEntry?.index ?? FIRST_INDEX
-        );
-
-      return entry?.url;
-    } else if (reload) {
-      return '.';
-    }
-    return href;
   }
 
-  private get search() {
-    if (this.props.search)
-      // Adding leading '?' if it doesn't already exist
-      if (this.props.search.startsWith('?'))
-        return this.props.search;
-      else
-        return `?${this.props.search}`;
-    return '';
-  }
-
-  private readonly handleClick = (
-    event: React.PointerEvent<HTMLAnchorElement>
-  ) => {
-    this.props.onClick?.(event);
-    if (event.defaultPrevented) return;
+  public onclick(
+    event: MouseEvent
+  ) {
     event.preventDefault();
 
     const navigation = window.navigation;
@@ -215,6 +191,46 @@ export class AnchorBase extends React.Component<
     }
   };
 
+  private get href() {
+    const { href, traverse, reload, historyEntryKey, rel } = this.props;
+    if (href === undefined && traverse) {
+      let entry: NavigationHistoryEntry | undefined;
+
+      if (historyEntryKey) {
+        entry = window.navigation
+          ?.entries()
+          .find(e => e.key === historyEntryKey);
+      } else if (href)
+        entry = AnchorBase.findClosestEntryByHref(
+          href,
+          rel,
+          window.navigation.entries(),
+          window.navigation.currentEntry?.index ?? FIRST_INDEX
+        );
+      else
+        entry = AnchorBase.findClosestEntry(
+          rel,
+          window.navigation.entries(),
+          window.navigation.currentEntry?.index ?? FIRST_INDEX
+        );
+
+      return entry?.url;
+    } else if (reload) {
+      return '.';
+    }
+    return href;
+  }
+
+  private get search() {
+    if (this.props.search)
+      // Adding leading '?' if it doesn't already exist
+      if (this.props.search.startsWith('?'))
+        return this.props.search;
+      else
+        return `?${this.props.search}`;
+    return '';
+  }
+
   public render() {
     const {
       rel,
@@ -237,7 +253,6 @@ export class AnchorBase extends React.Component<
         ref={this.anchorRef}
         href={href ? `${href}${search}` : undefined}
         rel={rel}
-        onClick={this.handleClick}
       >
         {children}
       </a>
@@ -264,8 +279,9 @@ export interface AnchorProps extends React.DetailedHTMLProps<
 export function Anchor({ ref: forwardedRef, ...props }: AnchorProps) {
   const ref = useRef<AnchorBase>(null);
 
-  React.useImperativeHandle<
-    HTMLAnchorElement | null, HTMLAnchorElement | null
+  useImperativeHandle<
+    HTMLAnchorElement | null,
+    HTMLAnchorElement | null
   >(
     forwardedRef,
     () => ref.current?.anchorRef.current ?? null

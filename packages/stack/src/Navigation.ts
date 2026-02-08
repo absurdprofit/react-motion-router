@@ -6,6 +6,7 @@ import {
   NavigationBaseConfig,
   PathPattern,
   SINGLE_ELEMENT_LENGTH,
+  historyEntryFromDestination,
   matchRoute,
   resolveBaseURLFromPattern
 } from '@react-motion-router/core';
@@ -22,6 +23,7 @@ import { HistoryEntry } from './HistoryEntry';
 export interface NavigationConfig extends NavigationBaseConfig {
   getCommitted(): Promise<NavigationHistoryEntry> | null;
   getTransition(): NavigationTransition | LoadNavigationTransition | null;
+  getDestination(): NavigationDestination | null;
   getPathPatterns(): PathPattern[];
 }
 
@@ -300,7 +302,7 @@ export class Navigation extends NavigationBase {
     let nestedScopePathPattern: PathPattern | null = null;
     let lastMatchedIndex = LAST_INDEX;
     let terminated = false;
-    return this.globalEntries
+    const scope = this.globalEntries
       .filter((entry, index) => {
         if (!entry.url) return false;
         if (terminated) return false;
@@ -349,6 +351,51 @@ export class Navigation extends NavigationBase {
       .map((entry, index) => {
         return new HistoryEntry(entry, this.routerId, index);
       });
+
+    const destination = this.config.getDestination();
+    if (destination) {
+      const { transition } = this;
+      switch (transition?.navigationType) {
+        case 'replace':
+          scope.splice(
+            destination.index,
+            SINGLE_ELEMENT_LENGTH,
+            new HistoryEntry(
+              historyEntryFromDestination(
+                destination
+              ),
+              this.routerId,
+              destination.index
+            )
+          );
+          break;
+        case 'push': {
+          const destinationIndex =
+            transition.from.index + SINGLE_ELEMENT_LENGTH;
+          const fromScopedIndex = scope.findIndex(entry => {
+            return entry.key === transition.from.key;
+          });
+          scope.splice(
+            destinationIndex,
+            Infinity,
+            new HistoryEntry(
+              historyEntryFromDestination({
+                ...destination,
+                getState() {
+                  return destination.getState();
+                },
+                index: destinationIndex,
+              }),
+              this.routerId,
+              fromScopedIndex + SINGLE_ELEMENT_LENGTH
+            )
+          );
+          break;
+        }
+      }
+    }
+
+    return scope;
   }
 
   /**
@@ -449,7 +496,11 @@ export class Navigation extends NavigationBase {
    * ```
    */
   public get index() {
-    const globalCurrentIndex = window.navigation
+    const { transition } = this;
+    const destinationIndex = transition?.navigationType === 'push'
+      ? transition.from.index + SINGLE_ELEMENT_LENGTH
+      : this.config.getDestination()?.index;
+    const globalCurrentIndex = destinationIndex ?? window.navigation
       .currentEntry
       ?.index ?? LAST_INDEX;
     const firstEntryGlobalIndex = this.entries

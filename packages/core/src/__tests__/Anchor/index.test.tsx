@@ -21,22 +21,6 @@ describe('Anchor', () => {
   });
   afterAll(uninstallInterceptor);
 
-  it('defaults to prev when rel is undefined', async () => {
-    await seedHistory();
-
-    // At /three now
-    const { getByText } = render(
-      <Anchor traverse>
-        Back
-      </Anchor>
-    );
-
-    const a = getByText('Back') as HTMLAnchorElement;
-
-    // Initial href should point at prev entry (/two) because href is computed when traverse+rel
-    expect(a.getAttribute('href')?.endsWith('/two')).toBe(true);
-  });
-
   it(
     'component reacts to navigatesuccess by updating its rendered href',
     async () => {

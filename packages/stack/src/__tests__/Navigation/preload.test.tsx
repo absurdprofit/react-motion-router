@@ -35,7 +35,11 @@ describe('Navigation.preload', () => {
     });
     
     assert(navigation instanceof Navigation);
-    const result = await act(() => navigation.preload('preload'));
+    const result = await act(async () => {
+      const result = navigation.preload('preload');
+      await result.committed;
+      return result;
+    });
 
     expect((await result.finished).url?.endsWith('preload')).toBe(true);
     expect(onLoad).toBeCalled();
@@ -80,7 +84,11 @@ describe('Navigation.preload', () => {
     });
     
     assert(navigation instanceof Navigation);
-    const result = await act(() => navigation.preload('preload'));
+    const result = await act(async () => {
+      const result = navigation.preload('preload');
+      await result.committed;
+      return result;
+    });
 
     expect((await result.finished).url?.endsWith('preload')).toBe(true);
     expect(onLoad).toBeCalled();
@@ -126,7 +134,11 @@ describe('Navigation.preload', () => {
     });
     
     assert(navigation instanceof Navigation);
-    const result = await act(() => navigation.preload('preload'));
+    const result = await act(async () => {
+      const result = navigation.preload('preload');
+      await result.committed;
+      return result;
+    });
 
     expect((await result.finished).url?.endsWith('preload')).toBe(true);
     expect(onLoad).toBeCalled();

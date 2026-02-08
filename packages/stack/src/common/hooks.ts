@@ -8,7 +8,7 @@ import {
 import { Navigation } from '../Navigation';
 import { Router } from '../Router';
 import { RouteProp } from './types';
-import { RefObject, useDebugValue, useEffect } from 'react';
+import { useDebugValue } from 'react';
 
 export function useNavigation() {
   useDebugValue('Stack.Navigation');

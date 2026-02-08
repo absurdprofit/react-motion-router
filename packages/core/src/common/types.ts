@@ -5,18 +5,23 @@ import { StandardPropertiesHyphen } from 'csstype';
 
 export type ScreenChild<E extends ScreenBase = ScreenBase> = E extends ScreenBase<infer P> ? React.CElement<P, E> : never;
 
-export interface AnimationEffectFactoryProps<R extends HTMLElement = HTMLElement> {
-    ref: R | null;
-    index: number;
-    screens: string[];
-    exiting: boolean;
-    timeline: AnimationTimeline | null;
-    playbackRate: number;
-    direction: PlaybackDirection;
-    hasUAVisualTransition: boolean;
+export interface AnimationEffectFactoryProps<
+  R extends HTMLElement = HTMLElement
+> {
+  ref: R | null;
+  viewTransitionName: string;
+  index: number;
+  screens: string[];
+  exiting: boolean;
+  timeline: AnimationTimeline | null;
+  playbackRate: number;
+  direction: PlaybackDirection;
+  hasUAVisualTransition: boolean;
 }
 
-export type AnimationEffectFactory<R extends HTMLElement = HTMLElement> = (props: AnimationEffectFactoryProps<R>) => AnimationEffect;
+export type AnimationEffectFactory<
+  R extends HTMLElement = HTMLElement
+> = (props: AnimationEffectFactoryProps<R>) => AnimationEffect;
 
 export type MetaType = [string, string];
 export type MetaKey = `${string}=${string}`;
@@ -45,12 +50,20 @@ export function isValidScreenChild<S extends ScreenBase>(value: any): value is S
 
 export type PlainObject<T = any> = { [key: string]: T };
 
-// TODO: remove hyphens
 declare global {
   interface HTMLElementEventMap {
     'routertransitionstart': TransitionEvent;
     'routertransitioncancel': TransitionEvent;
     'routertransitionend': TransitionEvent;
+  }
+
+  interface NavigationPrecommitController {
+    redirect(url: string, options?: NavigationNavigateOptions): void;
+    addHandler(handler: NavigationInterceptOptions['handler']): void;
+  }
+
+  interface NavigationInterceptOptions {
+    precommitHandler?(controller: NavigationPrecommitController): Promise<void>;
   }
 }
 
@@ -141,11 +154,10 @@ export interface LoadNavigationTransition extends Omit<
   navigationType: 'load' | 'preload';
 }
 
-declare global {
-    interface NavigateEvent extends Event {
-        commit?(): void; // not in spec yet, see https://github.com/WICG/navigation-api/issues/66
-    }
-}
-
 export type ElementPropType<C> = C extends React.CElement<infer P, infer T> ? P & React.ClassAttributes<T> : never;
 export type ClonedElementType<C, IP extends Partial<ElementPropType<C>>> = C extends React.CElement<infer P, infer T> ? React.CElement<P & Partial<IP>, T & React.Component<P & IP>> : never;
+
+export type ElementForTag<T extends keyof JSX.IntrinsicElements> =
+  T extends keyof (HTMLElementTagNameMap & SVGElementTagNameMap)
+    ? (HTMLElementTagNameMap & SVGElementTagNameMap)[T]
+    : HTMLElement;

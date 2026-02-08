@@ -5,7 +5,7 @@ import { PromiseAllSequential } from './utils';
 
 export class LoadEvent extends Event implements Omit<
   NavigateEvent,
-  'navigationType' | 'commit'
+  'navigationType'
 > {
   #navigationType: 'load' | 'preload';
   #userInitiated: boolean = false;

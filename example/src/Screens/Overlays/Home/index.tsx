@@ -20,7 +20,7 @@ export default function Home({ navigation }: HomeProps) {
   return (
     <>
       <div className="go-back">
-        <Anchor goBack navigation={navigation.parent as Navigation}>
+        <Anchor traverse>
           <IconButton disableRipple>
             <ArrowBackIosIcon style={{ zIndex: 100 }} />
           </IconButton>

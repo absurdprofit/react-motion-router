@@ -5,7 +5,8 @@ import type {
   ScreenBaseState,
   ScreenBaseComponentProps,
   ScreenBaseConfig,
-  MatchedRoute
+  MatchedRoute,
+  ElementForTag
 } from '@react-motion-router/core';
 import { Navigation } from './Navigation';
 import {
@@ -17,6 +18,7 @@ import {
 import { Router } from './Router';
 import { searchParamsToObject } from './common/utils';
 import { HistoryEntry } from './HistoryEntry';
+import { createRef, RefObject } from 'react';
 
 export type ScreenComponentProps<
   T extends PlainObject = object
@@ -34,26 +36,35 @@ export interface ScreenConfig extends ScreenBaseConfig<RouteProp> {
 }
 
 export interface ScreenProps extends ScreenBaseProps {
-    config?: ScreenConfig;
+  config?: ScreenConfig;
+  ref?: RefObject<Screen | null>
+}
+
+export interface ScreenState extends ScreenBaseState {
+  elementType: React.JSX.ElementType;
 }
 
 export class Screen extends ScreenBase<
   ScreenProps,
-  ScreenBaseState,
+  ScreenState,
   RouteProp
 > {
   readonly #historyEntry: HistoryEntry;
+  protected ref = createRef<ElementForTag<'div' | 'dialog'>>();
 
   constructor(props: ScreenProps, router: Router) {
     super(props, router);
 
-    const id = this.internalProps.id;
-    const historyEntry = router.navigation
-      .entries
-      .find(entry => entry.key === id);
-    if (!historyEntry)
-      throw new Error(`No history entry found for: ${id}`);
-    this.#historyEntry = historyEntry;
+    this.#historyEntry = this.internalProps.entry;
+    let elementType;
+    if (props.config?.presentation === 'default')
+      elementType = 'div' as const;
+    else
+      elementType = 'dialog' as const;
+    this.state = {
+      ...this.state,
+      elementType,
+    };
   }
 
   public static getDerivedStateFromProps(props: ScreenProps) {
@@ -133,14 +144,24 @@ export class Screen extends ScreenBase<
     const matchInfo = matchRoute(
       this.props.path,
       entry.url.pathname,
-      this.context.baseURLPattern.pathname,
+      this.router.baseURLPattern.pathname,
       this.props.caseSensitive
     );
     return Screen.historyEntryStateFromEntry(entry, matchInfo);
   }
 
+  public get inert() {
+    if (this.state.focused)
+      return undefined;
+    return true;
+  }
+
   public get id() {
     return this.internalProps.id.toString();
+  }
+
+  public get viewTransitionName() {
+    return `${this.router.id}-${this.name}`;
   }
 
   public get params() {
@@ -191,56 +212,74 @@ export class Screen extends ScreenBase<
     window.navigation.updateCurrentEntry({ state });
   }
 
-  private onClickOutside(e: MouseEvent) {
-    if (!this.transitionProvider.current?.ref.current) return;
+  public onclick(e: MouseEvent) {
+    if (!this.ref.current) return;
     const navigation = this.context?.navigation as Navigation | undefined;
     if (
-      e.composedPath().includes(this.transitionProvider.current.ref.current)
+      e.composedPath().includes(this.ref.current)
     ) return;
     navigation?.goBack();
   }
 
   public onEnter(signal: AbortSignal) {
-    const transitionProviderRef = this.transitionProvider.current?.ref;
     if (
-      transitionProviderRef?.current instanceof HTMLDialogElement
-      && transitionProviderRef.current.open === false
+      this.ref?.current instanceof HTMLDialogElement
+      && this.ref.current.open === false
     ) {
-      const navigation = this.context?.navigation as Navigation | undefined;
+      const navigation = this.router.navigation;
       if (this.props.config?.presentation === 'modal') {
-        transitionProviderRef.current.showModal();
+        this.ref.current.showModal();
       } else {
-        transitionProviderRef.current.show();
+        this.ref.current.show();
       }
-      transitionProviderRef.current.style.maxHeight = 'unset';
-      transitionProviderRef.current.style.maxWidth = 'unset';
-      transitionProviderRef.current.style.width = 'max-content';
-      transitionProviderRef.current.style.height = 'max-content';
-
-      const onClickOutside = this.onClickOutside.bind(this);
+      this.ref.current.style.maxHeight = 'unset';
+      this.ref.current.style.maxWidth = 'unset';
+      this.ref.current.style.width = 'max-content';
+      this.ref.current.style.height = 'max-content';
 
       // closed by form submit or ESC key
-      transitionProviderRef.current.addEventListener('close', function () {
+      this.ref.current.addEventListener('close', function () {
         if (this.returnValue !== 'screen-exit') {
           this.style.display = 'block';
-          navigation?.goBack();
+          navigation.goBack();
         }
-
-        navigation?.removeEventListener('click', onClickOutside);
       }, { once: true });
 
-      navigation?.addEventListener('click', onClickOutside);
+      navigation.addEventListener('click', this);
     }
 
     return super.onEnter(signal);
   };
 
   public onExited(signal: AbortSignal) {
-    const transitionProviderRef = this.transitionProvider.current?.ref;
-    if (transitionProviderRef?.current instanceof HTMLDialogElement) {
-      transitionProviderRef.current.close('screen-exit');
+    if (this.ref?.current instanceof HTMLDialogElement) {
+      this.ref.current.close('screen-exit');
+      this.router.navigation.removeEventListener('click', this);
     }
 
     return super.onExited(signal);
+  }
+
+  public override render() {
+    const Element = this.state.elementType;
+
+    return (
+      <Element
+        id={this.viewTransitionName}
+        ref={this.ref}
+        className="screen"
+        inert={this.inert}
+        style={{
+          gridArea: '1 / 1',
+          height: '100%',
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          viewTransitionName: this.viewTransitionName,
+        }}
+      >
+        {super.render()}
+      </Element>
+    );
   }
 }

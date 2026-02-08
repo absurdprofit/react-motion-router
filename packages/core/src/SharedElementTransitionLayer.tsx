@@ -224,6 +224,7 @@ export class SharedElementTransitionLayer extends Component<SharedElementTransit
       this.ref.current?.prepend(endClone);
       start.hide();
       end.hide();
+      // TODO: change to use handleEvent paradigm
       const onFinish = async () => {
         if (this.props.direction === 'forwards')
           end.unhide();

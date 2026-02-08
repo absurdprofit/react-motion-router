@@ -42,20 +42,4 @@
             height: 100%;
         }
     }
-    &.suspense {
-        .back {
-            animation: back-fade-in .5s ease forwards;
-        }
-        .slide {
-            animation: slide-fade-in .5s ease forwards;
-        }
-    }
-}
-@keyframes slide-fade-in {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
 }

@@ -29,7 +29,7 @@ export default function Sheet({ navigation, route }: SheetProps) {
         <p>
                     You can swipe from the top to dismiss or press the button below.
         </p>
-        <Anchor goBack navigation={navigation.parent! as Navigation}>
+        <Anchor traverse>
           <Button variant="contained" className="close" fullWidth>
                         Go Home
           </Button>

@@ -1,6 +1,6 @@
 import {
   Component,
-  ElementType,
+  RefObject,
   Suspense,
   cloneElement,
   createRef,
@@ -9,6 +9,7 @@ import {
 import { ScreenTransitionProvider } from './ScreenTransitionProvider';
 import {
   AnimationEffectFactory,
+  EventHandler,
   LazyExoticComponent,
   PlainObject,
   RoutePropBase,
@@ -84,17 +85,16 @@ export interface ScreenBaseState<
   focused: boolean;
   config: C;
   params: P;
-  elementType: ElementType;
 }
 
 export abstract class ScreenBase<
-    P extends ScreenBaseProps = ScreenBaseProps,
-    S extends ScreenBaseState<P['config']> = ScreenBaseState<P['config']>,
-    R extends RoutePropBase<P['config']> = RoutePropBase<P['config']>
-> extends Component<P, S> {
+  P extends ScreenBaseProps = ScreenBaseProps,
+  S extends ScreenBaseState<P['config']> = ScreenBaseState<P['config']>,
+  R extends RoutePropBase<P['config']> = RoutePropBase<P['config']>
+> extends Component<P, S> implements EventHandler {
   public readonly sharedElementScene: SharedElementScene;
-  #transitionProvider = createRef<ScreenTransitionProvider>();
-  protected readonly ref = createRef<HTMLDivElement>();
+  readonly #transitionProvider = createRef<ScreenTransitionProvider>();
+  protected abstract readonly ref: RefObject<HTMLElement | null>;
   protected readonly nestedRouterData;
   public static readonly contextType = RouterContext;
   public declare context: React.ContextType<typeof RouterContext>;
@@ -103,7 +103,6 @@ export abstract class ScreenBase<
     focused: false,
     config: {},
     params: {},
-    elementType: 'div',
   } as S;
 
   constructor(props: P, context: React.ContextType<typeof RouterContext>) {
@@ -119,6 +118,16 @@ export abstract class ScreenBase<
       parentScreen: this as ScreenBase,
       parentRouter: context,
     };
+  }
+
+  public handleEvent(e: Event) {
+    const key = `on${e.type}` as keyof this;
+
+    const self = this as {
+      [K in typeof key]?: (e: Event) => void;
+    };
+
+    self[key]?.(e);
   }
 
   protected setParams(newParams: PlainObject) {
@@ -190,6 +199,7 @@ export abstract class ScreenBase<
     public abstract get params(): R['params'];
     public abstract get resolvedPathname(): string;
     public abstract get id(): string;
+    public abstract get viewTransitionName(): string;
 
     public async onExited(signal: AbortSignal): Promise<void> {
       await this.routeProp.config.onExited?.({
@@ -245,71 +255,56 @@ export abstract class ScreenBase<
       return (
         <ScreenTransitionProvider
           ref={this.#transitionProvider}
-          renderAs={this.state.elementType}
-          id={`${this.context.id}-${this.name}-transition-provider`}
+          screenElementRef={this.ref}
+          viewTransitionName={this.viewTransitionName}
           animation={routeProp.config.animation}
-          navigation={navigation}
-          focused={this.state.focused}
         >
-          <div
-            id={`${this.context.id}-${this.name}`}
-            ref={this.ref}
-            className="screen"
-            style={{
-              height: '100%',
-              width: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              pointerEvents: 'inherit',
-            }}
-          >
-            <SharedElementSceneContext.Provider value={this.sharedElementScene}>
-              <RoutePropContext.Provider value={routeProp}>
-                <NestedRouterContext.Provider value={this.nestedRouterData}>
-                  <Suspense fallback={(
+          <SharedElementSceneContext.Provider value={this.sharedElementScene}>
+            <RoutePropContext.Provider value={routeProp}>
+              <NestedRouterContext.Provider value={this.nestedRouterData}>
+                <Suspense fallback={(
+                  <ComponentWithRouteProps
+                    component={routeProp.config.header?.fallback}
+                    route={routeProp}
+                    navigation={navigation}
+                  />
+                )}>
+                  <ComponentWithRouteProps
+                    component={HeaderComponent}
+                    route={routeProp}
+                    navigation={navigation}
+                  />
+                </Suspense>
+                <Suspense fallback={(
+                  <ComponentWithRouteProps
+                    component={this.props.fallback}
+                    route={routeProp}
+                    navigation={navigation}
+                  />
+                )}>
+                  <ComponentWithRouteProps
+                    component={Component}
+                    route={routeProp}
+                    navigation={navigation}
+                  />
+                </Suspense>
+                <Suspense
+                  fallback={(
                     <ComponentWithRouteProps
-                      component={routeProp.config.header?.fallback}
+                      component={routeProp.config.footer?.fallback}
                       route={routeProp}
                       navigation={navigation}
                     />
                   )}>
-                    <ComponentWithRouteProps
-                      component={HeaderComponent}
-                      route={routeProp}
-                      navigation={navigation}
-                    />
-                  </Suspense>
-                  <Suspense fallback={(
-                    <ComponentWithRouteProps
-                      component={this.props.fallback}
-                      route={routeProp}
-                      navigation={navigation}
-                    />
-                  )}>
-                    <ComponentWithRouteProps
-                      component={Component}
-                      route={routeProp}
-                      navigation={navigation}
-                    />
-                  </Suspense>
-                  <Suspense
-                    fallback={(
-                      <ComponentWithRouteProps
-                        component={routeProp.config.footer?.fallback}
-                        route={routeProp}
-                        navigation={navigation}
-                      />
-                    )}>
-                    <ComponentWithRouteProps
-                      component={FooterComponent}
-                      route={routeProp}
-                      navigation={navigation}
-                    />
-                  </Suspense>
-                </NestedRouterContext.Provider>
-              </RoutePropContext.Provider>
-            </SharedElementSceneContext.Provider>
-          </div>
+                  <ComponentWithRouteProps
+                    component={FooterComponent}
+                    route={routeProp}
+                    navigation={navigation}
+                  />
+                </Suspense>
+              </NestedRouterContext.Provider>
+            </RoutePropContext.Provider>
+          </SharedElementSceneContext.Provider>
         </ScreenTransitionProvider>
       );
     }
