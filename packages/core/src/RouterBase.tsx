@@ -349,9 +349,6 @@ export abstract class RouterBase<
 
   public set child(child: RouterBase | null) {
     const currentChildRouter = this.#child?.deref();
-    console.log(
-      child?.parentScreen?.id, currentChildRouter?.parentScreen?.id, currentChildRouter?.mounted
-    );
     if (
       currentChildRouter
         && child !== currentChildRouter
