@@ -4,7 +4,8 @@ import {
   installInterceptor,
   LAST_INDEX,
   traverseToStart,
-  uninstallInterceptor
+  uninstallInterceptor,
+  waitForNavigation
 } from '@react-motion-router/core';
 import { act, cleanup, render } from '@testing-library/react';
 import {
@@ -34,6 +35,7 @@ describe('Anchor.preload (force)', () => {
     const onPreload = vi.fn();
     await window.navigation.transition?.finished;
     window.navigation.addEventListener('navigate', onPreload);
+    const forLoad = waitForNavigation('load');
     await act(async () => {
       return render(
         <Router config={{ basePath: globalThis.location.pathname }}>
@@ -42,13 +44,15 @@ describe('Anchor.preload (force)', () => {
             component={() => null}
           />
           <Screen path='.' component={() => (
-            <Anchor href='preload' preload>
+            <Anchor href='preload' preload preloadBehaviour={{ type: 'force' }}>
               Preload
             </Anchor>
           )} />
         </Router>
       );
     });
+
+    await act(() => forLoad);
 
     expect(
       onPreload.mock

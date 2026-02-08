@@ -1,4 +1,5 @@
 import { useEffect, useRef, useSyncExternalStore } from 'react';
+import { LoadEvent } from './events';
 
 const RERENDER_EVENT_TYPE = '--rerender';
 export function useRerender() {
@@ -94,11 +95,30 @@ export function assertNavigationAvailable() {
   }
 }
 
-export async function waitForNavigateSuccess() {
-  await new Promise(resolve => {
+export function waitForNavigateSuccess() {
+  return new Promise(resolve => {
     window.navigation.addEventListener(
       'navigatesuccess',
       resolve,
+      { once: true }
+    );
+  });
+}
+
+export async function waitForNavigation(
+  type: NavigateEvent['navigationType'] | LoadEvent['navigationType']
+) {
+  return new Promise(resolve => {
+    window.navigation.addEventListener(
+      'navigate',
+      (e: NavigateEvent | LoadEvent) => {
+        if (e.navigationType !== type)
+          return;
+        if (e instanceof LoadEvent)
+          e.transition.finished.then(resolve);
+        else
+          window.navigation.transition?.finished.then(resolve);
+      },
       { once: true }
     );
   });
