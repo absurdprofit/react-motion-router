@@ -137,5 +137,7 @@ describe('Screen (modal)', () => {
         .toBe(FIRST_INDEX);
       expect(onClose).toHaveBeenCalled();
     });
+
+    // TODO: add an assertion that ensures navigation.goBack() was not called. We need to ensure the dialog's close handler doesn't get triggered by the onExit lifecycle method, which also calls dialog.close().
   });
 });
