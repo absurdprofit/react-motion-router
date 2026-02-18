@@ -4,10 +4,10 @@ import { Router } from '../../Router';
 import { Screen } from '../../Screen';
 import {
   FIRST_INDEX,
-  traverseToStart,
-  waitForNavigation
+  traverseToStart
 } from '@react-motion-router/core';
 import { userEvent } from 'vitest/browser';
+import { SECOND_INDEX } from '../Navigation/common/constants';
 describe('Screen (modal)', () => {
   beforeEach(async () => {
 
@@ -58,7 +58,6 @@ describe('Screen (modal)', () => {
   });
 
   it('navigates back on HTMLDialogElement.requestClose', async () => {
-    const forLoad = waitForNavigation('load');
     const { getByText } = await act(async () => {
       return render(
         <Router id='router' config={{ basePath: globalThis.location.pathname }}>
@@ -79,20 +78,22 @@ describe('Screen (modal)', () => {
     });
     
     await act(async () => {
-      await forLoad;
       await userEvent.click(getByText('Modal'));
     });
-
-    const dialog = document.querySelector('#router-screen');
-
-    expect(dialog).toBeInstanceOf(HTMLDialogElement);
-
     
-    await act(async () => {
-      (dialog as HTMLDialogElement).requestClose();
+    await waitFor(() => {
+      const dialog = document.querySelector('#router-screen');
+      expect(dialog).toBeInstanceOf(HTMLDialogElement);
+      expect(window.navigation.currentEntry?.index)
+        .toBe(SECOND_INDEX);
     });
-    await waitFor(async () => {
-      expect(window.navigation.currentEntry?.index).toBe(FIRST_INDEX);
+
+    document.querySelector<HTMLDialogElement>('#router-screen')
+      ?.requestClose();
+
+    await waitFor(() => {
+      expect(window.navigation.currentEntry?.index)
+        .toBe(FIRST_INDEX);
     });
   });
 });

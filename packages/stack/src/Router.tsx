@@ -626,7 +626,7 @@ export class Router extends RouterBase<
   }
 
   private handleDefault(e: NavigateEvent) {
-    const precommitHandler = async () => {
+    const handler = async () => {
       const screenStack = this.state.screenStack;
       const destination = e.destination;
       const transition = window.navigation.transition;
@@ -740,8 +740,18 @@ export class Router extends RouterBase<
         once: true,
       });
     }
-    const options = { precommitHandler };
-    e.intercept(options);
+    if (e.cancelable)
+      e.intercept({ precommitHandler: handler });
+    else
+      /**
+       * The cancelable property will be false for some "traverse" navigations,
+       * such as those taking place inside child navigables,
+       * those crossing to new origins,
+       * or when the user attempts to traverse again shortly after a previous call to preventDefault()
+       * prevented them from doing so.
+       * https://html.spec.whatwg.org/multipage/nav-history-apis.html#navigation-api:~:text=The%20cancelable%20property%20will%20be%20false%20for%20some%20%22traverse%22%20navigations%2C%20such%20as%20those%20taking%20place%20inside%20child%20navigables%2C%20those%20crossing%20to%20new%20origins%2C%20or%20when%20the%20user%20attempts%20to%20traverse%20again%20shortly%20after%20a%20previous%20call%20to%20preventDefault()%20prevented%20them%20from%20doing%20so.
+       */
+      e.intercept({ handler });
   }
 
   private async dispatchLifecycleHandlers(
@@ -837,12 +847,9 @@ export class Router extends RouterBase<
   }
 
   public override render() {
-    const gestureRegionBehaviour = this.state.gestureDisabled
+    const gestureBehaviour = this.state.gestureDisabled
       ? 'none'
       : 'contain';
-    const pointerEvents = this.state.fromKey
-      ? 'none'
-      : undefined;
 
     return (
       <GestureRegion.div
@@ -855,9 +862,8 @@ export class Router extends RouterBase<
           display: 'grid',
           contain: 'layout',
           isolation: 'isolate',
-          pointerEvents,
         }}
-        gestureBehaviour={gestureRegionBehaviour}
+        gestureBehaviour={gestureBehaviour}
       >
         {super.render()}
       </GestureRegion.div>

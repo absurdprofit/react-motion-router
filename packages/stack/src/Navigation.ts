@@ -116,7 +116,6 @@ export class Navigation extends NavigationBase {
 
   public goBack(options: GoBackOptions = {}) {
     if (!this.canGoBack()) return;
-    console.log('here can go back');
 
     const result = window.navigation.traverseTo(this.previous.key);
 

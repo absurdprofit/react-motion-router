@@ -116,7 +116,7 @@ export async function waitForNavigation(
           handler: () => {
             if (e.navigationType !== type)
               return Promise.resolve();
-            if (e instanceof LoadEvent)
+            else if (e instanceof LoadEvent)
               e.transition.finished.then(resolve);
             else
               window.navigation.transition?.finished.then(resolve);
