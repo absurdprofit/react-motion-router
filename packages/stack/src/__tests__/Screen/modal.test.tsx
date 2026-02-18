@@ -138,6 +138,7 @@ describe('Screen (modal)', () => {
       expect(onClose).toHaveBeenCalled();
     });
 
+    // TODO: fix the previous test case navigation state from leaking into this one. Currently at the start of this tes case window.navigation.transition is not null.
     // TODO: add an assertion that ensures navigation.goBack() was not called. We need to ensure the dialog's close handler doesn't get triggered by the onExit lifecycle method, which also calls dialog.close().
   });
 });
