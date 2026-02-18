@@ -126,4 +126,7 @@ describe('Navigation', () => {
   // been a bug in the past however. When users unload the browser window by clicking the
   // actual browser reload button it used to cause traversal navigations to break because the assumption
   // at the time was that same document === same origin. This didn't seem like it was the case however.
+
+
+  // TODO: need a test case for getNavigatorById
 });
