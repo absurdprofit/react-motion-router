@@ -20,7 +20,7 @@ interface OnSightPreloadBehaviour extends UseIntersectionOptions {
 
 interface OnHoverPreloadBehaviour {
   type: 'onhover';
-  forceThreshold?: number;
+  pressureThreshold?: number;
 }
 
 interface AnchorProps extends React.DetailedHTMLProps<
@@ -88,38 +88,26 @@ function useIntersection<T extends HTMLElement>(
 
 type UseHoverOptions = {
   /** Threshold for touch pressure to count as "hover" (0 to 1 range) */
-  forceThreshold?: number;
+  pressureThreshold?: number;
 };
 
 type UseHoverCallback = () => void;
 function useHover<T extends HTMLElement>(
   targetRef: RefObject<T | null>,
   callback: UseHoverCallback,
-  { forceThreshold = DEFAULT_PRELOAD_FORCE_THRESHOLD }: UseHoverOptions = {}
+  { pressureThreshold = DEFAULT_PRELOAD_FORCE_THRESHOLD }: UseHoverOptions = {}
 ) {
-  const handleMouseEnter = useCallback(() => callback(), [callback]);
-
-  const handleTouchStart = useCallback((event: TouchEvent) => {
-    const touch = event.touches[0];
-    if (touch && touch.force >= forceThreshold) {
+  const handlePointerEnter = useCallback((e: PointerEvent) => {
+    if (e.pressure >= pressureThreshold)
       callback();
-    }
-  }, [forceThreshold, callback]);
+  }, [pressureThreshold, callback]);
 
   useEffect(() => {
     const target = targetRef.current;
-    target?.addEventListener('mouseenter', handleMouseEnter);
+    target?.addEventListener('pointerenter', handlePointerEnter);
 
     return () => {
-      return target?.removeEventListener('mouseenter', handleMouseEnter);
-    };
-  });
-  useEffect(() => {
-    const target = targetRef.current;
-    target?.addEventListener('touchstart', handleTouchStart);
-
-    return () => {
-      return target?.removeEventListener('touchstart', handleTouchStart);
+      return target?.removeEventListener('pointerenter', handlePointerEnter);
     };
   });
 

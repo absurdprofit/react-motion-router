@@ -40,9 +40,7 @@ export interface ScreenProps extends ScreenBaseProps {
   ref?: RefObject<Screen | null>
 }
 
-export interface ScreenState extends ScreenBaseState {
-  elementType: React.JSX.ElementType;
-}
+export type ScreenState = ScreenBaseState;
 
 export class Screen extends ScreenBase<
   ScreenProps,
@@ -56,25 +54,6 @@ export class Screen extends ScreenBase<
     super(props, router);
 
     this.#historyEntry = this.internalProps.entry;
-    let elementType;
-    if (props.config?.presentation === 'default')
-      elementType = 'div' as const;
-    else
-      elementType = 'dialog' as const;
-    this.state = {
-      ...this.state,
-      elementType,
-    };
-  }
-
-  public static getDerivedStateFromProps(props: ScreenProps) {
-    if (
-      props.config?.presentation === 'dialog'
-      || props.config?.presentation === 'modal'
-    )
-      return { elementType: 'dialog' };
-    else
-      return { elementType: 'div' };
   }
 
   public static historyEntryStateFromEntry(
@@ -158,6 +137,17 @@ export class Screen extends ScreenBase<
     return true;
   }
 
+  public get elementType(): React.JSX.ElementType {
+    const presentation = this.props.config?.presentation;
+    if (
+      presentation === 'dialog'
+      || presentation === 'modal'
+    )
+      return 'dialog';
+    else
+      return 'div';
+  }
+
   public get id() {
     return this.internalProps.id.toString();
   }
@@ -224,7 +214,6 @@ export class Screen extends ScreenBase<
   }
 
   public onclose() {
-    if (!this.focused) return;
     this.router.navigation.goBack();
   }
 
@@ -254,16 +243,17 @@ export class Screen extends ScreenBase<
   };
 
   public override onExited(signal: AbortSignal) {
-    if (this.ref?.current instanceof HTMLDialogElement) {
-      this.ref.current.close();
+    if (this.ref.current instanceof HTMLDialogElement) {
+      this.ref.current.removeEventListener('close', this);
       this.router.navigation.removeEventListener('click', this);
+      this.ref.current.close();
     }
 
     return super.onExited(signal);
   }
 
   public override render() {
-    const Element = this.state.elementType;
+    const Element = this.elementType;
 
     return (
       <Element

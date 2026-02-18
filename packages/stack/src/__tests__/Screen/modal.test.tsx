@@ -1,17 +1,32 @@
 import { act, render, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi
+} from 'vitest';
 import { Router } from '../../Router';
 import { Screen } from '../../Screen';
 import {
   FIRST_INDEX,
-  traverseToStart
+  installInterceptor,
+  navTo,
+  traverseToStart,
+  uninstallInterceptor
 } from '@react-motion-router/core';
 import { userEvent } from 'vitest/browser';
-import { SECOND_INDEX } from '../Navigation/common/constants';
+import { SECOND_INDEX, THIRD_INDEX } from '../Navigation/common/constants';
+import { addEventListener } from '../../common/test-utils';
+
 describe('Screen (modal)', () => {
+  beforeAll(installInterceptor);
   beforeEach(async () => {
     await traverseToStart();
   });
+  afterAll(uninstallInterceptor);
 
   it('renders using the dialog element', async () => {
     await act(async () => {
@@ -90,13 +105,15 @@ describe('Screen (modal)', () => {
     document.querySelector<HTMLDialogElement>('#router-screen')
       ?.requestClose();
 
-    await waitFor(() => {
+    await waitFor(async () => {
+      await window.navigation.transition?.finished;
       expect(window.navigation.currentEntry?.index)
         .toBe(FIRST_INDEX);
     });
   });
 
-  it.todo('closes the modal on exit', async () => {
+  it('closes the modal on exit', async () => {
+    await navTo('/', 'push');
     const { getByText } = await act(async () => {
       return render(
         <Router id='router' config={{ basePath: globalThis.location.pathname }}>
@@ -124,21 +141,29 @@ describe('Screen (modal)', () => {
       const dialog = document.querySelector('#router-screen');
       expect(dialog).toBeInstanceOf(HTMLDialogElement);
       expect(window.navigation.currentEntry?.index)
-        .toBe(SECOND_INDEX);
+        .toBe(THIRD_INDEX);
     });
 
     const dialog = document.querySelector<HTMLDialogElement>('#router-screen');
+    const router = document.querySelector<HTMLElement>('#router');
+    const onBack = vi.fn();
+    const onClose = vi.fn();
+    const removeBackEventListener = addEventListener(router, 'back', onBack);
+    dialog?.addEventListener('close', onClose, { once: true });
     window.navigation.back();
     
     await waitFor(() => {
-      const onClose = vi.fn();
-      dialog?.addEventListener('close', onClose, { once: true });
-      expect(window.navigation.currentEntry?.index)
-        .toBe(FIRST_INDEX);
+      expect(router).toBeDefined();
+      expect(dialog).toBeDefined();
       expect(onClose).toHaveBeenCalled();
+      // assert that no other back navigation was triggered by the Screen.onExited lifecycle method,
+      // which also calls dialog.close().
+      expect(window.navigation.currentEntry?.index)
+        .toBe(SECOND_INDEX);
+      expect(onBack).not.toHaveBeenCalled();
     });
 
+    removeBackEventListener();
     // TODO: fix the previous test case navigation state from leaking into this one. Currently at the start of this tes case window.navigation.transition is not null.
-    // TODO: add an assertion that ensures navigation.goBack() was not called. We need to ensure the dialog's close handler doesn't get triggered by the onExit lifecycle method, which also calls dialog.close().
   });
 });
