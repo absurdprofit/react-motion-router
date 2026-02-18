@@ -1,5 +1,5 @@
 import { act, render, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Router } from '../../Router';
 import { Screen } from '../../Screen';
 import {
@@ -10,7 +10,6 @@ import { userEvent } from 'vitest/browser';
 import { SECOND_INDEX } from '../Navigation/common/constants';
 describe('Screen (modal)', () => {
   beforeEach(async () => {
-
     await traverseToStart();
   });
 
@@ -94,6 +93,49 @@ describe('Screen (modal)', () => {
     await waitFor(() => {
       expect(window.navigation.currentEntry?.index)
         .toBe(FIRST_INDEX);
+    });
+  });
+
+  it('closes the modal on exit', async () => {
+    const { getByText } = await act(async () => {
+      return render(
+        <Router id='router' config={{ basePath: globalThis.location.pathname }}>
+          <Screen
+            path='.'
+            component={() => <a href='modal'>Modal</a>}
+          />
+          <Screen
+            path='modal'
+            name='screen'
+            component={() => null}
+            config={{
+              presentation: 'modal',
+            }}
+          />
+        </Router>
+      );
+    });
+    
+    await act(async () => {
+      await userEvent.click(getByText('Modal'));
+    });
+    
+    await waitFor(() => {
+      const dialog = document.querySelector('#router-screen');
+      expect(dialog).toBeInstanceOf(HTMLDialogElement);
+      expect(window.navigation.currentEntry?.index)
+        .toBe(SECOND_INDEX);
+    });
+
+    const dialog = document.querySelector<HTMLDialogElement>('#router-screen');
+    window.navigation.back();
+    
+    await waitFor(() => {
+      const onClose = vi.fn();
+      dialog?.addEventListener('close', onClose, { once: true });
+      expect(window.navigation.currentEntry?.index)
+        .toBe(FIRST_INDEX);
+      expect(onClose).toHaveBeenCalled();
     });
   });
 });
