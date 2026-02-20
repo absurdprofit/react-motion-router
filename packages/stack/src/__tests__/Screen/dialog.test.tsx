@@ -142,4 +142,6 @@ describe('Screen (dialog)', () => {
         .toBe(FIRST_INDEX);
     });
   });
+
+  // TODO: add test case for layered dialogs, where the second dialog is rendered on top of the first dialog, and both dialogs are on top of the first screen. 
 });

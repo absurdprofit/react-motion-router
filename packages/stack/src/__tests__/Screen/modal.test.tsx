@@ -178,4 +178,6 @@ describe('Screen (modal)', () => {
 
     removeBackEventListener();
   });
+
+  // TODO: add test case for layered modals, where the second modal is rendered on top of the first modal, and both modals are on top of the first screen.
 });
