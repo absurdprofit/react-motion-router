@@ -77,6 +77,7 @@ describe('Screen (modal)', () => {
         <Router id='router' config={{ basePath: globalThis.location.pathname }}>
           <Screen
             path='.'
+            name='keepalive'
             component={() => <a href='modal'>Modal</a>}
           />
           <Screen
@@ -97,13 +98,18 @@ describe('Screen (modal)', () => {
     
     await waitFor(() => {
       const dialog = document.querySelector('#router-screen');
+      const keepAlive = document.querySelector('#router-keepalive');
       expect(dialog).toBeInstanceOf(HTMLDialogElement);
+      // keeps previous screen alive
+      expect(keepAlive).toBeInstanceOf(HTMLDivElement);
       expect(window.navigation.currentEntry?.index)
         .toBe(SECOND_INDEX);
     });
 
-    document.querySelector<HTMLDialogElement>('#router-screen')
-      ?.requestClose();
+    await act(async () => {
+      document.querySelector<HTMLDialogElement>('#router-screen')
+        ?.requestClose();
+    });
 
     await waitFor(async () => {
       await window.navigation.transition?.finished;
@@ -119,6 +125,7 @@ describe('Screen (modal)', () => {
         <Router id='router' config={{ basePath: globalThis.location.pathname }}>
           <Screen
             path='.'
+            name='keepalive'
             component={() => <a href='modal'>Modal</a>}
           />
           <Screen
@@ -139,7 +146,10 @@ describe('Screen (modal)', () => {
     
     await waitFor(() => {
       const dialog = document.querySelector('#router-screen');
+      const keepAlive = document.querySelector('#router-keepalive');
       expect(dialog).toBeInstanceOf(HTMLDialogElement);
+      // keeps previous screen alive
+      expect(keepAlive).toBeInstanceOf(HTMLDivElement);
       expect(window.navigation.currentEntry?.index)
         .toBe(THIRD_INDEX);
     });
@@ -150,9 +160,12 @@ describe('Screen (modal)', () => {
     const onClose = vi.fn();
     const removeBackEventListener = addEventListener(router, 'back', onBack);
     dialog?.addEventListener('close', onClose, { once: true });
-    window.navigation.back();
+    await act(async () => {
+      window.navigation.back();
+    });
     
-    await waitFor(() => {
+    await waitFor(async () => {
+      await window.navigation.transition?.finished;
       expect(router).toBeDefined();
       expect(dialog).toBeDefined();
       expect(onClose).toHaveBeenCalled();
@@ -164,6 +177,5 @@ describe('Screen (modal)', () => {
     });
 
     removeBackEventListener();
-    // TODO: fix the previous test case navigation state from leaking into this one. Currently at the start of this tes case window.navigation.transition is not null.
   });
 });
