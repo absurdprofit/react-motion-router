@@ -183,7 +183,7 @@ export class Router extends RouterBase<
     this.#committed = new PromiseWrapper();
   };
 
-  public oncurrententrychange() {
+  public onnavigatesuccess() {
     this.#committed?.resolve?.(window.navigation.currentEntry!);
     this.#committed = null;
   };
@@ -504,7 +504,7 @@ export class Router extends RouterBase<
         screenStack.push(screen);
       });
 
-      return new Promise<void>((resolve, reject) =>
+      return new Promise<void>((resolve) =>
         startTransition(() => {
           this.setState(
             { screenStack, fromKey, transition, destination, destinationKey },
@@ -530,31 +530,29 @@ export class Router extends RouterBase<
                     this.navigation.push(e.destination.url, state);
                   });
                 });
-                return resolve();
               }
-              const signal = e.signal;
 
-              const currentScreen = this.getScreenRefByKey(
-                String(destinationKey)
-              );
-              await this.dispatchLifecycleHandlers(
-                currentScreen,
-                null,
-                signal
-              ).catch(reject);
-              this.setState(
-                {
-                  destinationKey: null,
-                  fromKey: null,
-                  transition: null,
-                  destination: null,
-                },
-                resolve
-              );
+              resolve();
             }
           );
         })
-      );
+      )
+        .then(() => {
+          const currentScreen = this.getScreenRefByKey(
+            String(destinationKey)
+          );
+          return this.commitScreens(currentScreen, null, e.signal);
+        })
+        .finally(() => {
+          this.setState(
+            {
+              destinationKey: null,
+              fromKey: null,
+              transition: null,
+              destination: null,
+            }
+          );
+        });
     };
 
     e.intercept({ handler });
@@ -598,20 +596,27 @@ export class Router extends RouterBase<
             { destinationKey, fromKey, transition, destination, screenStack },
             async () => {
               const signal = e.signal;
+              const outgoingScreen = this.getScreenRefByKey(String(fromKey));
               const incomingScreen = this.getScreenRefByKey(
                 String(destinationKey)
               );
-              const pendingLifecycleHandlers = this.dispatchLifecycleHandlers(
+              await this.prepareScreens(
                 incomingScreen,
-                null,
+                outgoingScreen,
                 signal
               ).catch(reject);
-              await pendingLifecycleHandlers;
               resolve();
             }
           );
         })
       )
+        .then(() => {
+          const outgoingScreen = this.getScreenRefByKey(String(fromKey));
+          const incomingScreen = this.getScreenRefByKey(
+            String(destinationKey)
+          );
+          return this.commitScreens(incomingScreen, outgoingScreen, e.signal);
+        })
         .finally(() => {
           this.setState({
             destinationKey: null,
@@ -705,7 +710,7 @@ export class Router extends RouterBase<
               const incomingScreen = this.getScreenRefByKey(
                 String(destinationKey)
               );
-              const pendingLifecycleHandlers = this.dispatchLifecycleHandlers(
+              await this.prepareScreens(
                 incomingScreen,
                 outgoingScreen,
                 signal
@@ -715,13 +720,19 @@ export class Router extends RouterBase<
                 outgoingScreen
               );
               animation?.updatePlaybackRate(DEFAULT_PLAYBACK_RATE);
-              animation?.finished.catch(reject);
-              await pendingLifecycleHandlers;
+              await animation?.finished.catch(reject);
               resolve();
             }
           );
         })
       )
+        .then(() => {
+          const outgoingScreen = this.getScreenRefByKey(String(fromKey));
+          const incomingScreen = this.getScreenRefByKey(
+            String(destinationKey)
+          );
+          return this.commitScreens(incomingScreen, outgoingScreen, e.signal);
+        })
         .finally(() => {
           this.setState(
             {
@@ -754,32 +765,23 @@ export class Router extends RouterBase<
       e.intercept({ handler });
   }
 
-  private async dispatchLifecycleHandlers(
+  private async prepareScreens(
     incomingScreen: React.RefObject<Screen> | null,
     outgoingScreen: React.RefObject<Screen> | null,
     signal: AbortSignal
   ) {
-    let animationStarted = false;
-    this.addEventListener(
-      'routertransitionstart',
-      () => (animationStarted = true),
-      { once: true }
-    );
-
     await Promise.all([
       outgoingScreen?.current?.onExit(signal),
       incomingScreen?.current?.onEnter(signal),
       incomingScreen?.current?.load(signal),
     ]);
+  }
 
-    if (animationStarted)
-      await new Promise((resolve) =>
-        this.addEventListener('routertransitionend', resolve, { once: true })
-      );
-
-    // if gesture navigation cancelled then exit here
-    if (this.state.controller?.signal.aborted) return;
-
+  private async commitScreens(
+    incomingScreen: React.RefObject<Screen> | null,
+    outgoingScreen: React.RefObject<Screen> | null,
+    signal: AbortSignal
+  ) {
     await Promise.all([
       outgoingScreen?.current
         ?.onExited(signal)
