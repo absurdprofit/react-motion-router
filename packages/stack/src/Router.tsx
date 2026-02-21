@@ -32,7 +32,6 @@ import { createRef, startTransition } from 'react';
 import { SwipeStartEvent, SwipeEndEvent } from 'web-gesture-events';
 import { GestureTimeline } from 'web-animations-extension';
 import {
-  isGesture,
   isWithinGestureInset
 } from './common/utils';
 import {
@@ -297,6 +296,7 @@ export class Router extends RouterBase<
     if (e.velocity < this.state.gestureMinFlingVelocity && !hysteresisReached) {
       gestureCancelled = true;
       this.screenTransitionLayer.current.animation.reverse();
+      this.onGestureCancel();
       this.dispatchEvent(new GestureCancelEvent());
     } else {
       this.dispatchEvent(new GestureEndEvent(e));
@@ -530,8 +530,13 @@ export class Router extends RouterBase<
                     this.navigation.push(e.destination.url, state);
                   });
                 });
+                return resolve();
               }
 
+              const currentScreen = this.getScreenRefByKey(
+                String(destinationKey)
+              );
+              await this.prepareScreens(currentScreen, null, e.signal);
               resolve();
             }
           );
@@ -719,8 +724,8 @@ export class Router extends RouterBase<
                 incomingScreen,
                 outgoingScreen
               );
-              animation?.updatePlaybackRate(DEFAULT_PLAYBACK_RATE);
               await animation?.finished.catch(reject);
+              animation?.updatePlaybackRate(DEFAULT_PLAYBACK_RATE);
               resolve();
             }
           );
@@ -746,11 +751,6 @@ export class Router extends RouterBase<
         });
     };
 
-    if (isGesture(e.info)) {
-      this.addEventListener('gesture-cancel', this.onGestureCancel, {
-        once: true,
-      });
-    }
     if (e.cancelable)
       e.intercept({ precommitHandler: handler });
     else
