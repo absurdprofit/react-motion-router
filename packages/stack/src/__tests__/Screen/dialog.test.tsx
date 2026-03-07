@@ -108,6 +108,54 @@ describe('Screen (dialog)', () => {
     });
   });
 
+  it('does not navigate back on dialog click', async () => {
+    const { getByText } = await act(async () => {
+      return render(
+        <Router id='router' config={{ basePath: globalThis.location.pathname }}>
+          <Screen
+            path='.'
+            name='keepalive'
+            component={() => <a href='modal'>Modal</a>}
+          />
+          <Screen
+            path='modal'
+            name='screen'
+            component={() => <h1 id='test'>Test</h1>}
+            config={{
+              presentation: 'dialog',
+            }}
+          />
+        </Router>
+      );
+    });
+    
+    await act(async () => {
+      await userEvent.click(getByText('Modal'));
+    });
+      
+    await waitFor(() => {
+      const dialog = document.querySelector('#router-screen');
+      const keepAlive = document.querySelector('#router-keepalive');
+      expect(dialog).toBeInstanceOf(HTMLDialogElement);
+      // keeps previous screen alive
+      expect(keepAlive).toBeInstanceOf(HTMLDivElement);
+      expect(window.navigation.currentEntry?.index)
+        .toBe(SECOND_INDEX);
+    });
+  
+    const target = document.querySelector('#test');
+    await act(async () => {
+      if (!target) return;
+      fireEvent.click(target);
+    });
+  
+    await waitFor(async () => {
+      await window.navigation.transition?.finished;
+      expect(window.navigation.currentEntry?.index)
+        .toBe(SECOND_INDEX);
+    });
+  });
+
   it('navigates back on HTMLDialogElement.requestClose', async () => {
     const { getByText } = await act(async () => {
       return render(
