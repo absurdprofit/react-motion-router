@@ -97,12 +97,12 @@ export class AnchorBase extends React.Component<
     }
   }
 
-  public componentDidMount() {
+  public override componentDidMount() {
     window.navigation?.addEventListener('navigatesuccess', this);
     this.anchorRef.current?.addEventListener('click', this);
   }
 
-  public componentWillUnmount() {
+  public override componentWillUnmount() {
     window.navigation?.removeEventListener('navigatesuccess', this);
     this.anchorRef.current?.removeEventListener('click', this);
   }
@@ -231,7 +231,7 @@ export class AnchorBase extends React.Component<
     return '';
   }
 
-  public render() {
+  public override render() {
     const {
       rel,
       children,

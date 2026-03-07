@@ -27,6 +27,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20.x"
+          cache: 'npm'
           registry-url: "https://registry.npmjs.org"
 
       - name: Cache node modules
@@ -35,6 +36,8 @@ jobs:
         with:
           path: |
             **/node_modules
+            ~/.npm
+            ~/.cache/ms-playwright
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-

@@ -74,31 +74,6 @@ export type EventHandler = {
   handleEvent: (e: Event) => void;
 }
 
-export type RouterBaseHTMLElement<
-  T extends HTMLElement = HTMLDivElement
-> = T & {
-    addEventListener<K extends keyof HTMLElementEventMap>(
-      type: K,
-      listener: (this: T, ev: HTMLElementEventMap[K]) => any,
-      options?: boolean | AddEventListenerOptions
-    ): void;
-    addEventListener(
-      type: string,
-      listener: EventListenerOrEventListenerObject,
-      options?: boolean | AddEventListenerOptions
-    ): void;
-    removeEventListener<K extends keyof HTMLElementEventMap>(
-      type: K,
-      listener: (this: T, ev: HTMLElementEventMap[K]) => any,
-      options?: boolean | EventListenerOptions
-    ): void;
-    removeEventListener(
-      type: string,
-      listener: EventListenerOrEventListenerObject,
-      options?: boolean | EventListenerOptions
-    ): void;
-}
-
 export type CustomElementType = `${string}-${string}`;
 
 export interface MatchedRoute {

@@ -32,7 +32,6 @@ import { createRef, startTransition } from 'react';
 import { SwipeStartEvent, SwipeEndEvent } from 'web-gesture-events';
 import { GestureTimeline } from 'web-animations-extension';
 import {
-  isGesture,
   isWithinGestureInset
 } from './common/utils';
 import {
@@ -80,6 +79,7 @@ export class Router extends RouterBase<
   RouterProps,
   RouterState
 > {
+  protected ref = createRef<HTMLDivElement>();
   public readonly navigation;
   #committed: PromiseWrapper<NavigationHistoryEntry> | null = null;
 
@@ -104,6 +104,9 @@ export class Router extends RouterBase<
       },
       getDestination: () => {
         return this.state.destination;
+      },
+      getController: () => {
+        return this.state.controller;
       },
       getPathPatterns: () => {
         return this.pathPatterns;
@@ -159,7 +162,7 @@ export class Router extends RouterBase<
     };
   }
 
-  public componentDidMount(): void {
+  public override componentDidMount(): void {
     super.componentDidMount();
     window.navigation.addEventListener('currententrychange', this);
     window.navigation.addEventListener('navigate', this);
@@ -167,19 +170,19 @@ export class Router extends RouterBase<
     window.navigation.addEventListener('navigateerror', this);
   }
 
-  public componentWillUnmount(): void {
+  public override componentWillUnmount(): void {
     window.navigation.removeEventListener('currententrychange', this);
     window.navigation.removeEventListener('navigate', this);
     window.navigation.removeEventListener('navigatesuccess', this);
     window.navigation.removeEventListener('navigateerror', this);
   }
 
-  public onnavigate(e: NavigateEvent) {
+  public override onnavigate(e: NavigateEvent) {
     super.onnavigate(e);
     this.#committed = new PromiseWrapper();
   };
 
-  public oncurrententrychange() {
+  public onnavigatesuccess() {
     this.#committed?.resolve?.(window.navigation.currentEntry!);
     this.#committed = null;
   };
@@ -195,11 +198,10 @@ export class Router extends RouterBase<
   // TODO: change to use handleEvent paradigm
   // TODO: refactor this to just cancel the current navigation.
   private readonly onGestureCancel = () => {
+    // TODO: We don't need this guard any more
     if (!this.state.transition)
       throw new Error('Rollback failed, transition is null');
-    window.navigation.traverseTo(this.state.transition.from.key, {
-      info: { rollback: true },
-    });
+    this.state.controller?.abort();
   };
 
   private canGestureNavigate(e: SwipeStartEvent) {
@@ -294,6 +296,7 @@ export class Router extends RouterBase<
     if (e.velocity < this.state.gestureMinFlingVelocity && !hysteresisReached) {
       gestureCancelled = true;
       this.screenTransitionLayer.current.animation.reverse();
+      this.onGestureCancel();
       this.dispatchEvent(new GestureCancelEvent());
     } else {
       this.dispatchEvent(new GestureEndEvent(e));
@@ -413,9 +416,7 @@ export class Router extends RouterBase<
     }
   }
 
-  public handlePreload(
-    e: LoadEvent
-  ) {
+  public handlePreload(e: LoadEvent) {
     const handler = async () => {
       // Wait for any ongoing navigations to end
       // we don't care if this fails since that indicates we should ditch animations
@@ -503,7 +504,7 @@ export class Router extends RouterBase<
         screenStack.push(screen);
       });
 
-      return new Promise<void>((resolve, reject) =>
+      return new Promise<void>((resolve) =>
         startTransition(() => {
           this.setState(
             { screenStack, fromKey, transition, destination, destinationKey },
@@ -531,29 +532,32 @@ export class Router extends RouterBase<
                 });
                 return resolve();
               }
-              const signal = e.signal;
 
               const currentScreen = this.getScreenRefByKey(
                 String(destinationKey)
               );
-              await this.dispatchLifecycleHandlers(
-                currentScreen,
-                null,
-                signal
-              ).catch(reject);
-              this.setState(
-                {
-                  destinationKey: null,
-                  fromKey: null,
-                  transition: null,
-                  destination: null,
-                },
-                resolve
-              );
+              await this.prepareScreens(currentScreen, null, e.signal);
+              resolve();
             }
           );
         })
-      );
+      )
+        .then(() => {
+          const currentScreen = this.getScreenRefByKey(
+            String(destinationKey)
+          );
+          return this.commitScreens(currentScreen, null, e.signal);
+        })
+        .finally(() => {
+          this.setState(
+            {
+              destinationKey: null,
+              fromKey: null,
+              transition: null,
+              destination: null,
+            }
+          );
+        });
     };
 
     e.intercept({ handler });
@@ -597,20 +601,27 @@ export class Router extends RouterBase<
             { destinationKey, fromKey, transition, destination, screenStack },
             async () => {
               const signal = e.signal;
+              const outgoingScreen = this.getScreenRefByKey(String(fromKey));
               const incomingScreen = this.getScreenRefByKey(
                 String(destinationKey)
               );
-              const pendingLifecycleHandlers = this.dispatchLifecycleHandlers(
+              await this.prepareScreens(
                 incomingScreen,
-                null,
+                outgoingScreen,
                 signal
               ).catch(reject);
-              await pendingLifecycleHandlers;
               resolve();
             }
           );
         })
       )
+        .then(() => {
+          const outgoingScreen = this.getScreenRefByKey(String(fromKey));
+          const incomingScreen = this.getScreenRefByKey(
+            String(destinationKey)
+          );
+          return this.commitScreens(incomingScreen, outgoingScreen, e.signal);
+        })
         .finally(() => {
           this.setState({
             destinationKey: null,
@@ -625,7 +636,7 @@ export class Router extends RouterBase<
   }
 
   private handleDefault(e: NavigateEvent) {
-    const precommitHandler = async () => {
+    const handler = async () => {
       const screenStack = this.state.screenStack;
       const destination = e.destination;
       const transition = window.navigation.transition;
@@ -704,7 +715,7 @@ export class Router extends RouterBase<
               const incomingScreen = this.getScreenRefByKey(
                 String(destinationKey)
               );
-              const pendingLifecycleHandlers = this.dispatchLifecycleHandlers(
+              await this.prepareScreens(
                 incomingScreen,
                 outgoingScreen,
                 signal
@@ -713,14 +724,20 @@ export class Router extends RouterBase<
                 incomingScreen,
                 outgoingScreen
               );
+              await animation?.finished.catch(reject);
               animation?.updatePlaybackRate(DEFAULT_PLAYBACK_RATE);
-              animation?.finished.catch(reject);
-              await pendingLifecycleHandlers;
               resolve();
             }
           );
         })
       )
+        .then(() => {
+          const outgoingScreen = this.getScreenRefByKey(String(fromKey));
+          const incomingScreen = this.getScreenRefByKey(
+            String(destinationKey)
+          );
+          return this.commitScreens(incomingScreen, outgoingScreen, e.signal);
+        })
         .finally(() => {
           this.setState(
             {
@@ -734,41 +751,37 @@ export class Router extends RouterBase<
         });
     };
 
-    if (isGesture(e.info)) {
-      this.addEventListener('gesture-cancel', this.onGestureCancel, {
-        once: true,
-      });
-    }
-    const options = { precommitHandler };
-    e.intercept(options);
+    if (e.cancelable)
+      e.intercept({ precommitHandler: handler });
+    else
+      /**
+       * The cancelable property will be false for some "traverse" navigations,
+       * such as those taking place inside child navigables,
+       * those crossing to new origins,
+       * or when the user attempts to traverse again shortly after a previous call to preventDefault()
+       * prevented them from doing so.
+       * https://html.spec.whatwg.org/multipage/nav-history-apis.html#navigation-api:~:text=The%20cancelable%20property%20will%20be%20false%20for%20some%20%22traverse%22%20navigations%2C%20such%20as%20those%20taking%20place%20inside%20child%20navigables%2C%20those%20crossing%20to%20new%20origins%2C%20or%20when%20the%20user%20attempts%20to%20traverse%20again%20shortly%20after%20a%20previous%20call%20to%20preventDefault()%20prevented%20them%20from%20doing%20so.
+       */
+      e.intercept({ handler });
   }
 
-  private async dispatchLifecycleHandlers(
+  private async prepareScreens(
     incomingScreen: React.RefObject<Screen> | null,
     outgoingScreen: React.RefObject<Screen> | null,
     signal: AbortSignal
   ) {
-    let animationStarted = false;
-    this.addEventListener(
-      'routertransitionstart',
-      () => (animationStarted = true),
-      { once: true }
-    );
-
     await Promise.all([
       outgoingScreen?.current?.onExit(signal),
       incomingScreen?.current?.onEnter(signal),
       incomingScreen?.current?.load(signal),
     ]);
+  }
 
-    if (animationStarted)
-      await new Promise((resolve) =>
-        this.addEventListener('routertransitionend', resolve, { once: true })
-      );
-
-    // if gesture navigation cancelled then exit here
-    if (this.state.controller?.signal.aborted) return;
-
+  private async commitScreens(
+    incomingScreen: React.RefObject<Screen> | null,
+    outgoingScreen: React.RefObject<Screen> | null,
+    signal: AbortSignal
+  ) {
     await Promise.all([
       outgoingScreen?.current
         ?.onExited(signal)
@@ -835,13 +848,10 @@ export class Router extends RouterBase<
     }
   }
 
-  public render() {
-    const gestureRegionBehaviour = this.state.gestureDisabled
+  public override render() {
+    const gestureBehaviour = this.state.gestureDisabled
       ? 'none'
       : 'contain';
-    const pointerEvents = this.state.fromKey
-      ? 'none'
-      : undefined;
 
     return (
       <GestureRegion.div
@@ -849,14 +859,11 @@ export class Router extends RouterBase<
         ref={this.ref}
         className='stack'
         style={{
-          width: '100%',
-          height: '100%',
           display: 'grid',
           contain: 'layout',
           isolation: 'isolate',
-          pointerEvents,
         }}
-        gestureBehaviour={gestureRegionBehaviour}
+        gestureBehaviour={gestureBehaviour}
       >
         {super.render()}
       </GestureRegion.div>

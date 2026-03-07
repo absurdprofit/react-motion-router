@@ -26,7 +26,7 @@ export class ScreenTransitionLayer extends Component<
   #direction: PlaybackDirection = 'normal';
   #screens: RefObject<ScreenBase>[] = [];
 
-  public state: ScreenTransitionLayerState = {
+  public override state: ScreenTransitionLayerState = {
     gestureNavigating: false,
   };
 
@@ -117,7 +117,7 @@ export class ScreenTransitionLayer extends Component<
     return this.animation;
   }
 
-  public render() {
+  public override render() {
     return (
       <ScreenTransitionLayerContext.Provider value={this}>
         <SharedElementTransitionLayer

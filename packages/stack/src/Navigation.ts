@@ -25,6 +25,7 @@ export interface NavigationConfig extends NavigationBaseConfig {
   getTransition(): NavigationTransition | LoadNavigationTransition | null;
   getDestination(): NavigationDestination | null;
   getPathPatterns(): PathPattern[];
+  getController(): AbortController | null;
 }
 
 export class Navigation extends NavigationBase {
@@ -35,7 +36,7 @@ export class Navigation extends NavigationBase {
     this.config = config;
   }
 
-  public preload(route: string, state: NavigationProps = {}) {
+  public override preload(route: string, state: NavigationProps = {}) {
     return super.preload(route, state);
   }
 
@@ -68,27 +69,17 @@ export class Navigation extends NavigationBase {
       .entries()
       .findIndex(entry => entry.key === key);
 
-    const controller = new AbortController();
-    controller.signal
-      .addEventListener(
-        'abort',
-        () => this.traverseTo(transition.from.key), { once: true }
-      );
-    options.signal?.addEventListener('abort', controller.abort, { once: true });
+    options.signal?.addEventListener(
+      'abort',
+      () => this.controller?.abort,
+      { once: true }
+    );
 
     let event;
     if (fromIndex > destinationIndex) {
-      event = this.createBackEvent(
-        controller.signal,
-        result.committed,
-        transition
-      );
+      event = this.createBackEvent(result);
     } else {
-      event = this.createForwardEvent(
-        controller.signal,
-        result.committed,
-        transition
-      );
+      event = this.createForwardEvent(result);
     }
     this.dispatchEvent?.(event);
 
@@ -105,20 +96,18 @@ export class Navigation extends NavigationBase {
     const url = new URL(route, this.baseURL);
     const result = window.navigation
       .navigate(url.href, { history, state: props });
-    const transition = window.navigation.transition!;
 
-    const controller = new AbortController();
-    controller.signal
-      .addEventListener('abort', () => this.goBack(), { once: true });
-    options.signal?.addEventListener('abort', controller.abort, { once: true });
+    options.signal?.addEventListener(
+      'abort',
+      () => this.controller?.abort,
+      { once: true }
+    );
 
     const event = this.createNavigateEvent(
       route,
       props,
       history,
-      controller.signal,
-      result.committed,
-      transition
+      result
     );
     this.dispatchEvent?.(event);
 
@@ -129,18 +118,14 @@ export class Navigation extends NavigationBase {
     if (!this.canGoBack()) return;
 
     const result = window.navigation.traverseTo(this.previous.key);
-    const transition = window.navigation.transition!;
 
-    const controller = new AbortController();
-    controller.signal
-      .addEventListener('abort', () => this.goForward(), { once: true });
-    options.signal?.addEventListener('abort', controller.abort, { once: true });
-
-    const event = this.createBackEvent(
-      controller.signal,
-      result.committed,
-      transition
+    options.signal?.addEventListener(
+      'abort',
+      () => this.controller?.abort,
+      { once: true }
     );
+
+    const event = this.createBackEvent(result);
     this.dispatchEvent?.(event);
 
     return result;
@@ -150,59 +135,58 @@ export class Navigation extends NavigationBase {
     if (!this.canGoForward()) return;
 
     const result = window.navigation.traverseTo(this.next.key);
-    const transition = window.navigation.transition!;
 
-    const controller = new AbortController();
-    controller.signal
-      .addEventListener('abort', () => this.goBack(), { once: true });
-    options.signal?.addEventListener('abort', controller.abort, { once: true });
-
-    const event = this.createForwardEvent(
-      controller.signal,
-      result.committed,
-      transition
+    options.signal?.addEventListener(
+      'abort',
+      () => this.controller?.abort,
+      { once: true }
     );
+
+    const event = this.createForwardEvent(result);
     this.dispatchEvent?.(event);
 
     return result;
   }
 
   private createBackEvent(
-    signal: AbortSignal,
-    committed: Promise<NavigationHistoryEntry>,
-    transition: NavigationTransition
+    navigationResult: NavigationResult
   ) {
-    if (!this.routerId) throw new Error('Router ID is not set');
-    return new BackEvent(this.routerId, signal, committed, transition);
+    const controller = new AbortController();
+    navigationResult.finished.catch(() => controller.abort());
+    const signal = controller.signal;
+    return new BackEvent(this.routerId, signal, navigationResult);
   }
 
   private createForwardEvent(
-    signal: AbortSignal,
-    committed: Promise<NavigationHistoryEntry>,
-    transition: NavigationTransition
+    navigationResult: NavigationResult
   ) {
-    if (!this.routerId) throw new Error('Router ID is not set');
-    return new ForwardEvent(this.routerId, signal, committed, transition);
+    const controller = new AbortController();
+    navigationResult.finished.catch(() => controller.abort());
+    const signal = controller.signal;
+    return new ForwardEvent(this.routerId, signal, navigationResult);
   }
 
   private createNavigateEvent(
     route: string,
     props: NavigationProps,
     type: NavigateOptions['type'],
-    signal: AbortSignal,
-    committed: Promise<NavigationHistoryEntry>,
-    transition: NavigationTransition
+    navigationResult: NavigationResult
   ) {
-    if (!this.routerId) throw new Error('Router ID is not set');
+    const controller = new AbortController();
+    navigationResult.finished.catch(() => controller.abort());
+    const signal = controller.signal;
     return new NavigateEvent(
       this.routerId,
       route,
       props,
       type,
       signal,
-      committed,
-      transition
+      navigationResult
     );
+  }
+
+  public get controller() {
+    return this.config.getController();
   }
 
   public get committed() {

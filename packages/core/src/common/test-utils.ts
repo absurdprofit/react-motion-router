@@ -1,4 +1,5 @@
 import { useEffect, useRef, useSyncExternalStore } from 'react';
+import { LoadEvent } from './events';
 
 const RERENDER_EVENT_TYPE = '--rerender';
 export function useRerender() {
@@ -94,8 +95,8 @@ export function assertNavigationAvailable() {
   }
 }
 
-export async function waitForNavigateSuccess() {
-  await new Promise(resolve => {
+export function waitForNavigateSuccess() {
+  return new Promise(resolve => {
     window.navigation.addEventListener(
       'navigatesuccess',
       resolve,
@@ -104,12 +105,35 @@ export async function waitForNavigateSuccess() {
   });
 }
 
-export async function navTo(
+export async function waitForNavigation(
+  type: NavigateEvent['navigationType'] | LoadEvent['navigationType']
+) {
+  return new Promise(resolve => {
+    window.navigation.addEventListener(
+      'navigate',
+      (e: NavigateEvent | LoadEvent) => {
+        e.intercept({
+          handler: () => {
+            if (e.navigationType !== type)
+              return Promise.resolve();
+            else if (e instanceof LoadEvent)
+              e.transition.finished.then(resolve);
+            else
+              window.navigation.transition?.finished.then(resolve);
+            return Promise.resolve();
+          },
+        });
+      },
+      { once: true }
+    );
+  });
+}
+
+export function navTo(
   url: string,
   history?: NavigationNavigateOptions['history']
 ) {
-  const res = window.navigation.navigate(url, { history });
-  await res.finished;
+  return window.navigation.navigate(url, { history }).finished;
 }
 
 export async function traverseTo(key: string) {

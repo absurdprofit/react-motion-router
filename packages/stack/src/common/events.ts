@@ -7,8 +7,7 @@ export class NavigateEvent extends Event {
   public readonly props: NavigationProps;
   public readonly navigationType: NonNullable<NavigateOptions['type']>;
   public readonly signal: AbortSignal;
-  public readonly committed: Promise<NavigationHistoryEntry>;
-  public readonly transition: NavigationTransition;
+  public readonly result: NavigationResult;
 
   constructor(
     routerId: string,
@@ -16,8 +15,7 @@ export class NavigateEvent extends Event {
     props: NavigationProps,
     type: NavigateOptions['type'],
     signal: AbortSignal,
-    committed: Promise<NavigationHistoryEntry>,
-    transition: NavigationTransition
+    result: NavigationResult
   ) {
     super('navigate');
     this.routerId = routerId;
@@ -25,48 +23,42 @@ export class NavigateEvent extends Event {
     this.props = props;
     this.navigationType = type ?? 'push';
     this.signal = signal;
-    this.committed = committed;
-    this.transition = transition;
+    this.result = result;
   }
 }
 
 export class BackEvent extends Event {
   public readonly routerId: string;
   public readonly signal: AbortSignal;
-  public readonly committed: Promise<NavigationHistoryEntry>;
-  public readonly transition: NavigationTransition;
+  public readonly result: NavigationResult;
 
   constructor(
     routerId: string,
     signal: AbortSignal,
-    committed: Promise<NavigationHistoryEntry>,
-    transition: NavigationTransition
+    result: NavigationResult
   ) {
     super('back');
     this.routerId = routerId;
     this.signal = signal;
-    this.committed = committed;
-    this.transition = transition;
+    this.result = result;
   }
 }
 
 export class ForwardEvent extends Event {
   public readonly routerId: string;
   public readonly signal: AbortSignal;
-  public readonly committed: Promise<NavigationHistoryEntry>;
-  public readonly transition: NavigationTransition;
+  public readonly result: NavigationResult;
+
 
   constructor(
     routerId: string,
     signal: AbortSignal,
-    committed: Promise<NavigationHistoryEntry>,
-    transition: NavigationTransition
+    result: NavigationResult
   ) {
     super('forward');
     this.routerId = routerId;
     this.signal = signal;
-    this.committed = committed;
-    this.transition = transition;
+    this.result = result;
   }
 }
 

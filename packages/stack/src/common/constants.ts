@@ -6,5 +6,5 @@ export const DEFAULT_GESTURE_CONFIG = {
   gestureDisabled: false,
 } as const;
 
-export const DEFAULT_PRELOAD_FORCE_THRESHOLD = 0.5;
+export const DEFAULT_PRELOAD_FORCE_THRESHOLD = 0;
 export const DEFAULT_PLAYBACK_RATE = 1;

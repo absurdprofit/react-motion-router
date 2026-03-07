@@ -96,10 +96,10 @@ export abstract class ScreenBase<
   readonly #transitionProvider = createRef<ScreenTransitionProvider>();
   protected abstract readonly ref: RefObject<HTMLElement | null>;
   protected readonly nestedRouterData;
-  public static readonly contextType = RouterContext;
+  public static override readonly contextType = RouterContext;
   public declare context: React.ContextType<typeof RouterContext>;
 
-  public state: S = {
+  public override state: S = {
     focused: false,
     config: {},
     params: {},
@@ -245,7 +245,7 @@ export abstract class ScreenBase<
       return this.#transitionProvider;
     }
 
-    public render() {
+    public override render() {
       const navigation = this.context.navigation;
       const routeProp = this.routeProp;
       const Component = this.props.component;

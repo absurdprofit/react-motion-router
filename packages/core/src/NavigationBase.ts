@@ -1,6 +1,5 @@
 import { LAST_INDEX } from './common/constants';
 import { LoadEvent } from './common/events';
-import { RouterBaseHTMLElement } from './common/types';
 import { historyEntryFromDestination } from './common/utils';
 import { MetaData } from './MetaData';
 
@@ -8,7 +7,7 @@ export interface NavigationBaseConfig {
   addEventListener<K extends keyof HTMLElementEventMap>(
       type: K,
       listener: (
-        this: RouterBaseHTMLElement,
+        this: HTMLElement,
         ev: HTMLElementEventMap[K]
       ) => void,
       options?: boolean | AddEventListenerOptions
@@ -26,7 +25,7 @@ export interface NavigationBaseConfig {
   removeEventListener<K extends keyof HTMLElementEventMap>(
       type: K,
       listener: (
-        this: RouterBaseHTMLElement,
+        this: HTMLElement,
         ev: HTMLElementEventMap[K]
       ) => void,
       options?: boolean | EventListenerOptions | undefined

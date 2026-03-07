@@ -40,9 +40,7 @@ export interface ScreenProps extends ScreenBaseProps {
   ref?: RefObject<Screen | null>
 }
 
-export interface ScreenState extends ScreenBaseState {
-  elementType: React.JSX.ElementType;
-}
+export type ScreenState = ScreenBaseState;
 
 export class Screen extends ScreenBase<
   ScreenProps,
@@ -56,25 +54,6 @@ export class Screen extends ScreenBase<
     super(props, router);
 
     this.#historyEntry = this.internalProps.entry;
-    let elementType;
-    if (props.config?.presentation === 'default')
-      elementType = 'div' as const;
-    else
-      elementType = 'dialog' as const;
-    this.state = {
-      ...this.state,
-      elementType,
-    };
-  }
-
-  public static getDerivedStateFromProps(props: ScreenProps) {
-    if (
-      props.config?.presentation === 'dialog'
-      || props.config?.presentation === 'modal'
-    )
-      return { elementType: 'dialog' };
-    else
-      return { elementType: 'div' };
   }
 
   public static historyEntryStateFromEntry(
@@ -96,14 +75,16 @@ export class Screen extends ScreenBase<
     return {};
   }
 
-  protected setParams(newParams: PlainObject): void {
+  protected override setParams(newParams: PlainObject): void {
     super.setParams(newParams);
     this.setHistoryState(
       ({ params }) => ({ params: { ...params, ...newParams } })
     );
   }
 
-  protected setConfig(newConfig: NonNullable<ScreenProps['config']>): void {
+  protected override setConfig(
+    newConfig: NonNullable<ScreenProps['config']>
+  ): void {
     super.setConfig(newConfig);
     this.setHistoryState(({ config }) => {
       // navigation history state can only accept structured cloneable objects.
@@ -154,6 +135,17 @@ export class Screen extends ScreenBase<
     if (this.state.focused)
       return undefined;
     return true;
+  }
+
+  public get elementType(): React.JSX.ElementType {
+    const presentation = this.props.config?.presentation;
+    if (
+      presentation === 'dialog'
+      || presentation === 'modal'
+    )
+      return 'dialog';
+    else
+      return 'div';
   }
 
   public get id() {
@@ -221,7 +213,11 @@ export class Screen extends ScreenBase<
     navigation?.goBack();
   }
 
-  public onEnter(signal: AbortSignal) {
+  public onclose() {
+    this.router.navigation.goBack();
+  }
+
+  public override onEnter(signal: AbortSignal) {
     if (
       this.ref?.current instanceof HTMLDialogElement
       && this.ref.current.open === false
@@ -238,30 +234,26 @@ export class Screen extends ScreenBase<
       this.ref.current.style.height = 'max-content';
 
       // closed by form submit or ESC key
-      this.ref.current.addEventListener('close', function () {
-        if (this.returnValue !== 'screen-exit') {
-          this.style.display = 'block';
-          navigation.goBack();
-        }
-      }, { once: true });
+      this.ref.current.addEventListener('close', this, { once: true });
 
-      navigation.addEventListener('click', this);
+      navigation.addEventListener('click', this, { once: true });
     }
 
     return super.onEnter(signal);
   };
 
-  public onExited(signal: AbortSignal) {
-    if (this.ref?.current instanceof HTMLDialogElement) {
-      this.ref.current.close('screen-exit');
+  public override onExited(signal: AbortSignal) {
+    if (this.ref.current instanceof HTMLDialogElement) {
+      this.ref.current.removeEventListener('close', this);
       this.router.navigation.removeEventListener('click', this);
+      this.ref.current.close();
     }
 
     return super.onExited(signal);
   }
 
   public override render() {
-    const Element = this.state.elementType;
+    const Element = this.elementType;
 
     return (
       <Element
@@ -271,10 +263,6 @@ export class Screen extends ScreenBase<
         inert={this.inert}
         style={{
           gridArea: '1 / 1',
-          height: '100%',
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
           viewTransitionName: this.viewTransitionName,
         }}
       >
