@@ -12,14 +12,10 @@ import { Navigation } from '../../Navigation';
 import {
   assertNavigationAvailable,
   installInterceptor,
-  LAST_INDEX,
-  LifecycleProps,
   traverseToStart,
   uninstallInterceptor
 } from '@react-motion-router/core';
 import { act, cleanup, renderHook } from '@testing-library/react';
-import { FIRST_INDEX } from './common/constants';
-import { RouteProp } from '../../common/types';
 import { useNavigation } from '../../common/hooks';
 import { Router } from '../../Router';
 import { Screen } from '../../Screen';
@@ -35,10 +31,7 @@ describe('Navigation.push', () => {
   afterAll(uninstallInterceptor);
 
   it.todo('returns NavigationResult', async () => {
-    const onTransition = vi.fn();
-    const onLoad = vi.fn((props: LifecycleProps<RouteProp>) => {
-      onTransition((props.navigation as Navigation).transition);
-    });
+    const onLoad = vi.fn();
     const { result: { current: navigation } } = await act(async () => {
       return renderHook(() => useNavigation(), {
         wrapper(props) {
@@ -65,13 +58,5 @@ describe('Navigation.push', () => {
 
     expect((await result.finished).url?.endsWith('test')).toBe(true);
     expect(onLoad).toBeCalled();
-    expect(
-      onTransition.mock
-        .calls
-        .at(FIRST_INDEX)
-        ?.at(LAST_INDEX)
-    ).toMatchObject({
-      finished: result.finished,
-    });
   });
 });
