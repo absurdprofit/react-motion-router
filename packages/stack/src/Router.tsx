@@ -859,8 +859,6 @@ export class Router extends RouterBase<
         ref={this.ref}
         className='stack'
         style={{
-          width: '100%',
-          height: '100%',
           display: 'grid',
           contain: 'layout',
           isolation: 'isolate',

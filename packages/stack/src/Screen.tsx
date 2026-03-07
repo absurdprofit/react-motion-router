@@ -263,10 +263,6 @@ export class Screen extends ScreenBase<
         inert={this.inert}
         style={{
           gridArea: '1 / 1',
-          height: '100%',
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
           viewTransitionName: this.viewTransitionName,
         }}
       >
