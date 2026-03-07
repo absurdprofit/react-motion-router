@@ -1,12 +1,22 @@
-import { act, render, waitFor } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { act, fireEvent, render, waitFor } from '@testing-library/react';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { Router } from '../../Router';
 import { Screen } from '../../Screen';
 import { userEvent } from 'vitest/browser';
 import { SECOND_INDEX } from '../Navigation/common/constants';
-import { FIRST_INDEX } from '@react-motion-router/core';
+import {
+  FIRST_INDEX,
+  installInterceptor,
+  traverseToStart,
+  uninstallInterceptor
+} from '@react-motion-router/core';
 
 describe('Screen (dialog)', () => {
+  beforeAll(installInterceptor);
+  beforeEach(async () => {
+    await traverseToStart();
+  });
+  afterAll(uninstallInterceptor);
   it('renders using the dialog element', async () => {
     await act(async () => {
       return render(
@@ -50,7 +60,7 @@ describe('Screen (dialog)', () => {
     expect(dialog?.matches(':modal')).toBe(false);
   });
 
-  it.todo('navigates back on click outside', async () => {
+  it('navigates back on click outside', async () => {
     const { getByText } = await act(async () => {
       return render(
         <Router id='router' config={{ basePath: globalThis.location.pathname }}>
@@ -74,7 +84,7 @@ describe('Screen (dialog)', () => {
     await act(async () => {
       await userEvent.click(getByText('Modal'));
     });
-    
+      
     await waitFor(() => {
       const dialog = document.querySelector('#router-screen');
       const keepAlive = document.querySelector('#router-keepalive');
@@ -84,11 +94,13 @@ describe('Screen (dialog)', () => {
       expect(window.navigation.currentEntry?.index)
         .toBe(SECOND_INDEX);
     });
-
+  
+    const stack = document.querySelector('.stack');
     await act(async () => {
-      await userEvent.click(getByText('Modal'));
+      if (!stack) return;
+      fireEvent.click(stack);
     });
-
+  
     await waitFor(async () => {
       await window.navigation.transition?.finished;
       expect(window.navigation.currentEntry?.index)
