@@ -51,6 +51,9 @@
     "vite-plugin-dts": "^4.2.3",
     "vitest": "^4.0.18"
   },
+  "overrides": {
+    "axios": "1.13.5"
+  },
   "workspaces": {
     "packages": [
       "packages/*",
