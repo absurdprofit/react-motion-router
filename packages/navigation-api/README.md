@@ -38,10 +38,32 @@ a virtual facade. To create a facade directly (for example, in tests), use
 The facade owns a **virtual navigation state**. Its `navigate`, `back`, `forward`,
 `traverseTo`, `entries`, and state methods operate on its in-memory stack and persisted
 backup. They do not update the address bar, trigger document loads, or connect to the
-browser's Back/Forward buttons. `navigate` only accepts same-origin URLs. State saved
-to `localStorage` must be JSON-serializable. Use a distinct `storageKey` when multiple
-independent navigation stacks share an origin.
+browser's Back/Forward buttons. The facade intercepts eligible same-origin link clicks
+and form submissions in the current document, including programmatic
+`HTMLFormElement.submit()` calls, preventing their native navigation and turning them
+into `navigate` events. GET form fields become query parameters; POST submissions
+expose their `FormData` on the event. Cross-origin links, downloads,
+modified clicks, and links or forms targeting another browsing context remain native.
+`navigate` only accepts same-origin URLs. State saved to `localStorage` must be
+JSON-serializable. Use a distinct `storageKey` when multiple independent navigation
+stacks share an origin.
 
 The facade emits app-level `navigate`, `currententrychange`, `navigatesuccess`, and
-`navigateerror` events. These are synthetic events; browser navigation gestures and
-other code that directly uses `window.navigation` do not participate in this facade.
+`navigateerror` events. These are synthetic events; browser Back/Forward gestures,
+and direct `location` assignments do not participate in this facade. Call `dispose()`
+on a directly created facade when it should stop intercepting document events and
+restore the native form submission method.
+
+## Web Platform Tests
+
+The WPT tests are tracked as a shallow, sparse Git submodule at `wpt/`. Run
+`npm run test:wpt` from this package to build a single-file test bootstrap and run the
+Navigation API suite with WPT's `--inject-script` support. It uses the installed
+Playwright Chromium binary and a Chromium host resolver rule, so it does not require
+editing the system hosts file. The bootstrap exposes a fresh facade as
+`window.navigation`; eligible same-origin anchor and form navigations are intercepted
+by the facade, but browser history and document lifecycle behavior are not emulated.
+To run selected WPT URL prefixes, set `WPT_INCLUDE` to a comma-separated list (for
+example, `WPT_INCLUDE=navigation-api/navigate-event/navigate-form.html npm run test:wpt`).
+WPT's runner may set up its Python virtual environment and download ChromeDriver on
+the first run.

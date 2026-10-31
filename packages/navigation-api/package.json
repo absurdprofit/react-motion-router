@@ -15,6 +15,8 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite build --watch",
+    "build:wpt": "vite build --config vite.wpt.config.ts",
+    "test:wpt": "npm run build:wpt && node test/run-wpt.mjs",
     "test:coverage": "vitest --coverage",
     "test": "vitest --run"
   },

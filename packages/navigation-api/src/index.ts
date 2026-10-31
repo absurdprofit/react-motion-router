@@ -38,6 +38,7 @@ export interface NavigationNavigateEventLike extends Event {
   readonly hasUAVisualTransition: boolean;
   readonly formData: FormData | null;
   readonly downloadRequest: string | null;
+  readonly sourceElement: Element | null;
   intercept(options?: { handler?: () => void | Promise<void> }): void;
 }
 
@@ -67,6 +68,10 @@ export interface NavigationApiLike extends EventTarget {
   back(options?: NavigationOptions): NavigationResultLike;
   forward(options?: NavigationOptions): NavigationResultLike;
   updateCurrentEntry(options: { state: unknown }): void;
+}
+
+export interface NavigationFacadeInstanceLike extends NavigationApiLike {
+  dispose(): void;
 }
 
 export interface NavigationOptions {
@@ -124,7 +129,7 @@ export async function getNavigationApi(
 
 export async function createNavigationFacade(
   options?: NavigationFacadeOptions
-): Promise<NavigationApiLike> {
+): Promise<NavigationFacadeInstanceLike> {
   const { createNavigationFacade: create } = await import('./polyfill');
   return create(options);
 }

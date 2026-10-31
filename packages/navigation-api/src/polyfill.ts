@@ -19,6 +19,7 @@ interface StoredEntry {
   id: string;
   url: string;
   state: unknown;
+  sameDocument?: boolean;
 }
 
 interface StoredNavigation {
@@ -60,15 +61,34 @@ interface NavigateDetail {
   readonly hasUAVisualTransition: boolean;
   readonly formData: FormData | null;
   readonly downloadRequest: string | null;
+  readonly sourceElement: Element | null;
   intercept(options?: { handler?: () => void | Promise<void> }): void;
 }
+
+interface NavigateContext {
+  userInitiated: boolean;
+  formData: FormData | null;
+  sourceElement: Element | null;
+  preserveEmptyQuery?: boolean;
+}
+
+interface FormSubmitInterceptor {
+  originalDescriptor: PropertyDescriptor | undefined;
+  wrapper: HTMLFormElement['submit'];
+  facades: Map<Document, Array<{
+    owner: NavigationFacade;
+    intercept: (form: HTMLFormElement) => boolean;
+  }>>;
+}
+
+const formSubmitInterceptors = new WeakMap<object, FormSubmitInterceptor>();
 
 export class NavigationFacadeEntry extends EventTarget implements NavigationEntryLike {
   readonly key: string;
   readonly id: string;
   readonly url: string;
   readonly index: number;
-  readonly sameDocument = true;
+  readonly sameDocument: boolean;
   private state: unknown;
 
   constructor(entry: StoredEntry, index: number) {
@@ -77,6 +97,7 @@ export class NavigationFacadeEntry extends EventTarget implements NavigationEntr
     this.id = entry.id;
     this.url = entry.url;
     this.index = index;
+    this.sameDocument = entry.sameDocument ?? true;
     this.state = entry.state;
   }
 
@@ -94,14 +115,15 @@ class NavigationFacadeDestination implements NavigationDestinationLike {
   readonly key: string;
   readonly id: string;
   readonly index: number;
-  readonly sameDocument = true;
+  readonly sameDocument: boolean;
   private readonly state: unknown;
 
-  constructor(entry: NavigationFacadeEntry) {
+  constructor(entry: NavigationFacadeEntry, hasExistingEntry: boolean) {
     this.url = entry.url;
-    this.key = entry.key;
-    this.id = entry.id;
-    this.index = entry.index;
+    this.key = hasExistingEntry ? entry.key : '';
+    this.id = hasExistingEntry ? entry.id : '';
+    this.index = hasExistingEntry ? entry.index : -1;
+    this.sameDocument = entry.sameDocument;
     this.state = entry.getState();
   }
 
@@ -115,11 +137,12 @@ class NavigationFacadeNavigateEvent extends Event implements NavigateDetail, Nav
   readonly destination: NavigationFacadeDestination;
   readonly signal: AbortSignal;
   readonly info: unknown;
-  readonly userInitiated = false;
+  readonly userInitiated: boolean;
   readonly hashChange: boolean;
   readonly hasUAVisualTransition = false;
-  readonly formData = null;
+  readonly formData: FormData | null;
   readonly downloadRequest = null;
+  readonly sourceElement: Element | null;
   private handler?: () => void | Promise<void>;
   private canInterceptValue = true;
 
@@ -128,13 +151,20 @@ class NavigationFacadeNavigateEvent extends Event implements NavigateDetail, Nav
     destination: NavigationFacadeEntry,
     from: NavigationFacadeEntry,
     signal: AbortSignal,
-    info: unknown
+    info: unknown,
+    context: NavigateContext
   ) {
     super('navigate', { cancelable: true });
     this.navigationType = navigationType;
-    this.destination = new NavigationFacadeDestination(destination);
+    this.destination = new NavigationFacadeDestination(
+      destination,
+      navigationType === 'traverse'
+    );
     this.signal = signal;
     this.info = info;
+    this.userInitiated = context.userInitiated;
+    this.formData = context.formData;
+    this.sourceElement = context.sourceElement;
     const fromUrl = new URL(from.url);
     const destinationUrl = new URL(destination.url);
     const fromHash = fromUrl.hash;
@@ -181,6 +211,11 @@ export class NavigationFacade extends EventTarget implements NavigationApiLike {
     handler: unknown;
     listener: EventListener;
   }>();
+  private readonly navigationDocument: Document | undefined;
+  private readonly navigationTarget: Window | undefined;
+  private readonly formSubmitPrototype: object | undefined;
+  private readonly clickListener: EventListener;
+  private readonly submitListener: EventListener;
 
   constructor(options: NavigationFacadeOptions = {}) {
     super();
@@ -201,6 +236,16 @@ export class NavigationFacade extends EventTarget implements NavigationApiLike {
     if (!stored) {
       this.persist();
     }
+
+    this.navigationDocument = typeof document === 'undefined' ? undefined : document;
+    this.navigationTarget = this.navigationDocument && typeof window !== 'undefined'
+      ? window
+      : undefined;
+    this.clickListener = event => this.handleDocumentClick(event as MouseEvent);
+    this.submitListener = event => this.handleFormSubmit(event as SubmitEvent);
+    this.navigationTarget?.addEventListener('click', this.clickListener);
+    this.navigationTarget?.addEventListener('submit', this.submitListener);
+    this.formSubmitPrototype = this.installFormSubmitInterceptor();
   }
 
   get currentEntry(): NavigationFacadeEntry {
@@ -264,11 +309,112 @@ export class NavigationFacade extends EventTarget implements NavigationApiLike {
   }
 
   navigate(url: string, options: NavigationNavigateOptions = {}): NavigationResultLike {
+    return this.navigateInternal(url, options, {
+      userInitiated: false,
+      formData: null,
+      sourceElement: null,
+    });
+  }
+
+  dispose(): void {
+    this.navigationTarget?.removeEventListener('click', this.clickListener);
+    this.navigationTarget?.removeEventListener('submit', this.submitListener);
+    this.uninstallFormSubmitInterceptor();
+  }
+
+  private installFormSubmitInterceptor(): object | undefined {
+    const document = this.navigationDocument;
+    const FormElement = document?.defaultView?.HTMLFormElement;
+    if (!document || !FormElement) {
+      return undefined;
+    }
+
+    const prototype = FormElement.prototype;
+    let interceptor = formSubmitInterceptors.get(prototype);
+    if (!interceptor) {
+      const originalDescriptor = Object.getOwnPropertyDescriptor(prototype, 'submit');
+      const originalSubmit = prototype.submit;
+      let createdInterceptor: FormSubmitInterceptor;
+      const wrapper: HTMLFormElement['submit'] = function (this: HTMLFormElement): void {
+        const active = createdInterceptor.facades.get(this.ownerDocument)?.at(-1);
+        if (!active?.intercept(this)) {
+          originalSubmit.call(this);
+        }
+      };
+      createdInterceptor = {
+        originalDescriptor,
+        wrapper,
+        facades: new Map(),
+      };
+      Object.defineProperty(prototype, 'submit', {
+        configurable: originalDescriptor?.configurable ?? true,
+        enumerable: originalDescriptor?.enumerable ?? false,
+        writable: true,
+        value: wrapper,
+      });
+      formSubmitInterceptors.set(prototype, createdInterceptor);
+      interceptor = createdInterceptor;
+    }
+
+    const facades = interceptor.facades.get(document) ?? [];
+    facades.push({
+      owner: this,
+      intercept: form => this.interceptFormSubmission(form, null, false, true),
+    });
+    interceptor.facades.set(document, facades);
+    return prototype;
+  }
+
+  private uninstallFormSubmitInterceptor(): void {
+    const prototype = this.formSubmitPrototype;
+    const document = this.navigationDocument;
+    if (!prototype || !document) {
+      return;
+    }
+
+    const interceptor = formSubmitInterceptors.get(prototype);
+    if (!interceptor) {
+      return;
+    }
+
+    const facades = (interceptor.facades.get(document) ?? [])
+      .filter(facade => facade.owner !== this);
+    if (facades.length > 0) {
+      interceptor.facades.set(document, facades);
+      return;
+    }
+    interceptor.facades.delete(document);
+
+    if (interceptor.facades.size === 0) {
+      const prototypeWithSubmit = prototype as HTMLFormElement;
+      if (prototypeWithSubmit.submit === interceptor.wrapper) {
+        if (interceptor.originalDescriptor) {
+          Object.defineProperty(prototype, 'submit', interceptor.originalDescriptor);
+        } else {
+          Reflect.deleteProperty(prototype, 'submit');
+        }
+      }
+      formSubmitInterceptors.delete(prototype);
+    }
+  }
+
+  private navigateInternal(
+    url: string,
+    options: NavigationNavigateOptions,
+    context: NavigateContext
+  ): NavigationResultLike {
     const destinationUrl = this.resolveUrl(url);
+    const destinationHref = context.preserveEmptyQuery
+      ? appendEmptyQueryDelimiter(destinationUrl.href)
+      : destinationUrl.href;
     const history = options.history === 'auto'
-      ? (destinationUrl.href === this.currentEntry.url ? 'replace' : 'push')
+      ? (destinationHref === this.currentEntry.url ? 'replace' : 'push')
       : options.history ?? 'push';
-    const destination = this.createEntry(destinationUrl.href, options.state);
+    const destination = this.createEntry(
+      destinationHref,
+      options.state,
+      isSameDocumentFragmentNavigation(this.currentEntry.url, destinationHref)
+    );
     let nextEntries: StoredEntry[];
     let nextIndex: number;
 
@@ -282,7 +428,14 @@ export class NavigationFacade extends EventTarget implements NavigationApiLike {
       nextIndex = nextEntries.length - 1;
     }
 
-    return this.commitNavigation(destination, history, options.info, nextEntries, nextIndex);
+    return this.commitNavigation(
+      destination,
+      history,
+      options.info,
+      nextEntries,
+      nextIndex,
+      context
+    );
   }
 
   reload(options: NavigationReloadOptions = {}): NavigationResultLike {
@@ -290,7 +443,7 @@ export class NavigationFacade extends EventTarget implements NavigationApiLike {
     const state = Object.prototype.hasOwnProperty.call(options, 'state')
       ? options.state
       : current.state;
-    const entry = this.createEntry(current.url, state);
+    const entry = this.createEntry(current.url, state, false);
     const nextEntries = [...this.entriesValue];
     nextEntries[this.indexValue] = entry;
     return this.commitNavigation(entry, 'reload', options.info, nextEntries, this.indexValue);
@@ -339,7 +492,12 @@ export class NavigationFacade extends EventTarget implements NavigationApiLike {
     type: NavigationType,
     info: unknown,
     nextEntries: StoredEntry[],
-    nextIndex: number
+    nextIndex: number,
+    context: NavigateContext = {
+      userInitiated: false,
+      formData: null,
+      sourceElement: null,
+    }
   ): NavigationResultLike {
     const from = this.currentEntryValue;
     const destination = this.toEntry(target, nextIndex);
@@ -362,7 +520,8 @@ export class NavigationFacade extends EventTarget implements NavigationApiLike {
       destination,
       from,
       controller.signal,
-      info
+      info,
+      context
     );
     const accepted = this.dispatchEvent(event);
     event.finishDispatch();
@@ -408,6 +567,128 @@ export class NavigationFacade extends EventTarget implements NavigationApiLike {
     return { committed, finished };
   }
 
+  private handleDocumentClick(event: MouseEvent): void {
+    if (
+      event.defaultPrevented
+      || event.button !== 0
+      || event.metaKey
+      || event.ctrlKey
+      || event.shiftKey
+      || event.altKey
+    ) {
+      return;
+    }
+
+    const target = event.target;
+    if (!(target instanceof Element)) {
+      return;
+    }
+
+    const link = target.closest('a[href]');
+    if (!(link instanceof HTMLAnchorElement) || link.hasAttribute('download') || link.relList.contains('external')) {
+      return;
+    }
+
+    if (!this.targetsCurrentContext(link.getAttribute('target'))) {
+      return;
+    }
+
+    const destination = this.getSameOriginUrl(link.getAttribute('href') ?? '');
+    if (!destination) {
+      return;
+    }
+
+    this.navigateInternal(destination.href, {}, {
+      userInitiated: event.isTrusted,
+      formData: null,
+      sourceElement: link,
+    });
+    event.preventDefault();
+  }
+
+  private handleFormSubmit(event: SubmitEvent): void {
+    if (event.defaultPrevented || !(event.target instanceof HTMLFormElement)) {
+      return;
+    }
+
+    if (this.interceptFormSubmission(event.target, event.submitter, event.isTrusted, false)) {
+      event.preventDefault();
+    }
+  }
+
+  private interceptFormSubmission(
+    form: HTMLFormElement,
+    submitter: HTMLElement | null,
+    userInitiated: boolean,
+    replace: boolean
+  ): boolean {
+    if (form.getAttribute('rel')?.split(/\s+/).includes('external')) {
+      return false;
+    }
+
+    const submitControl = submitter instanceof HTMLButtonElement || submitter instanceof HTMLInputElement
+      ? submitter
+      : undefined;
+    const target = submitControl?.formTarget || form.getAttribute('target');
+    const method = (submitControl?.formMethod || form.method).toLowerCase();
+    if (!this.targetsCurrentContext(target) || method === 'dialog') {
+      return false;
+    }
+
+    const formAction = form.getAttribute('action') || this.currentEntry.url;
+    const action = submitControl?.hasAttribute('formaction')
+      ? submitControl.getAttribute('formaction') || this.currentEntry.url
+      : formAction;
+    const destination = this.getSameOriginUrl(action);
+    if (!destination) {
+      return false;
+    }
+
+    const formData = new FormData(form);
+    if (submitter instanceof HTMLButtonElement || submitter instanceof HTMLInputElement) {
+      if (submitter.type === 'image') {
+        return false;
+      }
+      if (submitter.name && !submitter.disabled) {
+        formData.append(submitter.name, submitter.value);
+      }
+    }
+
+    if (method === 'get') {
+      destination.search = '';
+      for (const [name, value] of formData) {
+        destination.searchParams.append(name, typeof value === 'string' ? value : value.name);
+      }
+    }
+
+    this.navigateInternal(destination.href, { history: replace ? 'replace' : 'push' }, {
+      userInitiated,
+      formData: method === 'post' ? formData : null,
+      sourceElement: submitter ?? form,
+      preserveEmptyQuery: method === 'get' && formData.entries().next().done,
+    });
+    return true;
+  }
+
+  private targetsCurrentContext(target: string | null): boolean {
+    const effectiveTarget = target
+      || this.navigationDocument?.querySelector('base[target]')?.getAttribute('target')
+      || '';
+    return !effectiveTarget || effectiveTarget.toLowerCase() === '_self';
+  }
+
+  private getSameOriginUrl(url: string): URL | undefined {
+    try {
+      const base = this.navigationDocument?.querySelector('base[href]') as HTMLBaseElement | null;
+      const destination = new URL(url, base?.href || this.currentEntry.url);
+      return destination.origin === new URL(this.currentEntry.url).origin
+        ? destination
+        : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
   private resolveUrl(url: string): URL {
     const resolved = new URL(url, this.currentEntry.url);
     if (resolved.origin !== new URL(this.currentEntry.url).origin) {
@@ -416,8 +697,12 @@ export class NavigationFacade extends EventTarget implements NavigationApiLike {
     return resolved;
   }
 
-  private createEntry(url: string, state: unknown = null): StoredEntry {
-    return { key: createId(), id: createId(), url, state };
+  private createEntry(
+    url: string,
+    state: unknown = null,
+    sameDocument = true
+  ): StoredEntry {
+    return { key: createId(), id: createId(), url, state, sameDocument };
   }
 
   private toEntry(entry: StoredEntry, index: number): NavigationFacadeEntry {
@@ -506,6 +791,7 @@ function isStoredNavigation(value: unknown): value is StoredNavigation {
       && typeof entry.key === 'string'
       && typeof entry.id === 'string'
       && typeof entry.url === 'string'
+      && (entry.sameDocument === undefined || typeof entry.sameDocument === 'boolean')
     );
 }
 
@@ -516,4 +802,25 @@ function createId(): string {
     return Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
   }
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+}
+
+function isSameDocumentFragmentNavigation(fromUrl: string, destinationUrl: string): boolean {
+  const from = new URL(fromUrl);
+  const destination = new URL(destinationUrl);
+  return from.origin === destination.origin
+    && from.pathname === destination.pathname
+    && from.search === destination.search
+    && from.hash !== destination.hash;
+}
+
+function appendEmptyQueryDelimiter(url: string): string {
+  const hashIndex = url.indexOf('#');
+  if (hashIndex < 0) {
+    return url.endsWith('?') ? url : `${url}?`;
+  }
+
+  const beforeHash = url.slice(0, hashIndex);
+  return beforeHash.endsWith('?')
+    ? url
+    : `${beforeHash}?${url.slice(hashIndex)}`;
 }
