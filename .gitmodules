@@ -1,0 +1,3 @@
+[submodule "packages/navigation-api/wpt"]
+	path = packages/navigation-api/wpt
+	url = https://github.com/web-platform-tests/wpt.git

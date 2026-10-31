@@ -9,6 +9,7 @@ import './App.css';
 import { STATIC_ANIMATION } from './common/constants';
 import { animation, slideToStatic } from './animations';
 import { SlidesAnimation } from './Screens/Slides/animations';
+import { getNavigationApi } from '@react-motion-router/navigation-api';
 
 const NotFound = lazy(() => import('./Screens/NotFound'));
 const Home = lazy(() => import('./Screens/Home'));
@@ -18,6 +19,8 @@ const Slides = lazy(() => import('./Screens/Slides'));
 const Tiles = lazy(() => import('./Screens/Tiles'));
 const Details = lazy(() => import('./Screens/Details'));
 const Overlays = lazy(() => import('./Screens/Overlays'));
+
+console.log(getNavigationApi);
 
 function Routes() {
   return (

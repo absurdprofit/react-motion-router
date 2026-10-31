@@ -1,0 +1,39 @@
+{
+  "name": "@react-motion-router/navigation-api",
+  "version": "0.0.0",
+  "description": "A lazy-loading Navigation API facade with an app-managed fallback.",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "type": "module",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "files": [
+    "build"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "build:wpt": "vite build --config vite.wpt.config.ts",
+    "test:wpt": "npm run build:wpt && node test/run-wpt.mjs",
+    "test:coverage": "vitest --coverage",
+    "test": "vitest --run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/absurdprofit/react-motion-router.git"
+  },
+  "keywords": [
+    "navigation",
+    "router",
+    "navigation-api",
+    "polyfill"
+  ],
+  "author": "nxtexe",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nxtexe/react-motion-router/issues"
+  },
+  "homepage": "https://github.com/nxtexe/react-motion-router#readme"
+}
