@@ -7,7 +7,7 @@
         },
         "declaration": true,
         "sourceMap": true,
-        "target": "ES2202",
+        "target": "ES2022",
         "lib": [
             "dom",
             "dom.iterable",

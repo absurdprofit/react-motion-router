@@ -18,7 +18,7 @@
     "build:wpt": "vite build --config vite.wpt.config.ts",
     "test:wpt": "npm run build:wpt && node test/run-wpt.mjs",
     "test:coverage": "vitest --coverage",
-    "test": "vitest --run"
+    "test": "vitest --run && npm run test:wpt"
   },
   "repository": {
     "type": "git",
