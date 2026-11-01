@@ -88,7 +88,16 @@ export abstract class RouterBase<
     this.#addEventListeners();
 
     if (!this.loadDispatched) {
-      const destination = this.parent?.activeEvent?.destination;
+      const destination = this.parent?.activeEvent?.destination ?? {
+        url: window.navigation.currentEntry?.url ?? window.location.origin,
+        key: window.navigation.currentEntry?.key ?? '',
+        id: window.navigation.currentEntry?.id ?? '',
+        index: window.navigation.currentEntry?.index ?? Number(),
+        sameDocument: true,
+        getState() {
+          return window.navigation.currentEntry?.getState();
+        },
+      };;
       this.#activeEvent = new LoadEvent('load', { destination });
       window.navigation.dispatchEvent(this.#activeEvent);
       this.loadDispatched = true;
