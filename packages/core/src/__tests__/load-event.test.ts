@@ -2,9 +2,20 @@ import { describe, expect, it, vi } from 'vitest';
 import { LoadEvent } from '../common/events';
 import { FIRST_INDEX, LAST_INDEX } from '../common/constants';
 
+const LOAD_EVENT_DICT = {
+  destination: {
+    getState: () => null,
+    url: window.location.origin,
+    key: '',
+    id: '',
+    index: Number(),
+    sameDocument: true,
+  },
+};
+
 describe('LoadEvent', () => {
   it('creates a transition on first intercept()', async () => {
-    const e = new LoadEvent('load');
+    const e = new LoadEvent('load', LOAD_EVENT_DICT);
 
     e.intercept({
       handler: () => Promise.resolve(),
@@ -20,7 +31,7 @@ describe('LoadEvent', () => {
     async () => {
       let resolve!: () => void;
 
-      const e = new LoadEvent('load');
+      const e = new LoadEvent('load', LOAD_EVENT_DICT);
 
       e.intercept({
         handler: () =>
@@ -42,7 +53,7 @@ describe('LoadEvent', () => {
   );
 
   it('awaits all intercept handlers before transition.finished', async () => {
-    const e = new LoadEvent('load');
+    const e = new LoadEvent('load', LOAD_EVENT_DICT);
     const order = new Array<string>();
     const firstPromise = Promise.withResolvers<void>();
     const secondPromise = Promise.withResolvers<void>();
@@ -76,7 +87,7 @@ describe('LoadEvent', () => {
   });
 
   it('throws if intercept() is called after transition.finished', async () => {
-    const e = new LoadEvent('load');
+    const e = new LoadEvent('load', LOAD_EVENT_DICT);
 
     e.intercept({ handler: () => Promise.resolve() });
 
@@ -86,7 +97,7 @@ describe('LoadEvent', () => {
   });
 
   it('aborts when a different navigate event is dispatched', () => {
-    const e = new LoadEvent('load');
+    const e = new LoadEvent('load', LOAD_EVENT_DICT);
 
     expect(e.signal.aborted).toBe(false);
 
@@ -97,7 +108,7 @@ describe('LoadEvent', () => {
   });
 
   it('removes listener when self-dispatched with no intercepts', () => {
-    const e = new LoadEvent('load');
+    const e = new LoadEvent('load', LOAD_EVENT_DICT);
     const mockRemoveEventListener = vi.spyOn(
       window.navigation,
       'removeEventListener'

@@ -24,20 +24,20 @@ export class LoadEvent extends Event implements Omit<
 
   constructor(
     navigationType: 'load' | 'preload',
-    loadEventInitDict?: { destination?: NavigationDestination | null }
+    loadEventInitDict: { destination: NavigationDestination }
   ) {
     super('navigate', { cancelable: false, bubbles: false, composed: false });
 
     this.#navigationType = navigationType;
     const {
-      destination = window.navigation.currentEntry,
-    } = loadEventInitDict ?? {};
+      destination,
+    } = loadEventInitDict;
     if (!destination) throw new Error('Destination is null');
     this.#destination = {
       getState() {
         return destination.getState();
       },
-      url: destination.url ?? new URL(window.location.href).href,
+      url: destination.url,
       key: destination.key,
       index: destination.index,
       id: destination.id,

@@ -86,8 +86,8 @@ export abstract class NavigationBase {
       index: LAST_INDEX,
       sameDocument: true,
       url,
-      id: null,
-      key: null,
+      id: '',
+      key: '',
     };
     const loadEvent = new LoadEvent('preload', { destination });
     window.navigation.dispatchEvent(loadEvent);
