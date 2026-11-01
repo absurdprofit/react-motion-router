@@ -291,7 +291,9 @@ export abstract class RouterBase<
 
   public get baseURL() {
     const pathname = this.isRoot
-      ? window.location.pathname
+      ? new URL(
+        window.navigation.currentEntry?.url ?? window.location.origin
+      ).pathname
       : this.parentScreen!.resolvedPathname;
     const pattern = this.baseURLPattern.pathname;
 
@@ -311,7 +313,7 @@ export abstract class RouterBase<
 
     if (this.parent && this.parentScreen) {
       const {
-        resolvedPathname = window.location.pathname,
+        resolvedPathname,
         path,
       } = this.parentScreen;
       const parentBaseURL = this.parent.baseURL?.href;
